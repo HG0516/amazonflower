@@ -7,7 +7,7 @@ export const config = {
 };
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-sonnet-4-6";
 
 // 페이지 HTML에서 본문 텍스트만 대략 추출 (태그/스크립트 제거)
 function htmlToText(html) {
