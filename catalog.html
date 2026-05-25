@@ -67,6 +67,19 @@
   .sprice { font-family:var(--font-display); font-size:17px; font-weight:800; color:var(--accent-deep); }
   .scall { margin-top:6px; padding:10px; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:13px; text-align:center; text-decoration:none; }
   .scall:hover { background:var(--accent-deep); }
+  .insta-more { display:block; text-align:center; margin-top:16px; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:13px; color:var(--accent-deep); text-decoration:none; background:#fcfbf8; }
+  .insta-more:hover { background:var(--accent-soft); }
+  .channels { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); text-align:center; }
+  .channels-title { font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
+  .channels-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .ch { display:flex; flex-direction:column; align-items:center; gap:6px; width:92px; padding:14px 8px; border-radius:14px; text-decoration:none; color:#fff; font-weight:700; transition:transform .1s; }
+  .ch:hover { transform:translateY(-2px); }
+  .ch-ic { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; }
+  .ch-nm { font-size:12px; }
+  .ch-insta { background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); }
+  .ch-naver { background:#03c75a; }
+  .ch-kakao { background:#fae100; color:#3a1d1d; }
+  .ch-kakao .ch-ic { background:rgba(58,29,29,0.12); }
   .note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:13px 15px; border-radius:10px; margin-top:22px; line-height:1.7; }
   footer { text-align:center; color:var(--ink-faint); font-size:12px; margin-top:26px; line-height:1.8; }
   .hidden { display:none !important; }
@@ -95,31 +108,28 @@
       <div class="special-title">✿ 특별 제작 — 30년 경력 직접 제작</div>
       <div class="special-sub">스탠드 화환 외에도, 사장님이 직접 만드는 수제 상품입니다. 맞춤 제작이라 전화로 상담 주문해주세요.</div>
     </div>
-    <div class="special-grid">
-      <div class="special-item">
-        <div class="special-photo">사진 준비 중<br><span>(신부부케.jpg)</span></div>
-        <div class="special-body">
-          <div class="snm">신부 부케</div>
-          <div class="sdesc">결혼식 신부 부케. 생화로 직접 제작합니다. 원하시는 색·꽃 종류에 맞춰 맞춤 제작해요.</div>
-          <div class="sprice">맞춤 상담</div>
-          <a class="scall" href="tel:031-314-3003">📞 전화 상담 031-314-3003</a>
-        </div>
-      </div>
-      <div class="special-item">
-        <div class="special-photo">사진 준비 중<br><span>(근조바구니.jpg)</span></div>
-        <div class="special-body">
-          <div class="snm">근조 바구니</div>
-          <div class="sdesc">장례식장에 보내는 근조 바구니(꽃바구니). 단정하고 정성스럽게 제작합니다.</div>
-          <div class="sprice">100,000원</div>
-          <a class="scall" href="tel:031-314-3003">📞 전화 주문 031-314-3003</a>
-        </div>
-      </div>
-    </div>
+    <div class="special-grid" id="specialArea"></div>
+    <a class="insta-more" href="https://instagram.com/amazonflower30003" target="_blank" rel="noopener">📷 실제 제작 사진 더 보기 (인스타그램 @amazonflower30003)</a>
   </div>
 
   <div class="note">
     ※ 사진은 준비 중입니다. 실제 상품 사진으로 곧 교체됩니다.<br>
     원하시는 화환의 <b>주문하기</b>를 누르면, 받는 곳 정보만 입력하고 바로 주문하실 수 있어요.
+  </div>
+
+  <div class="channels">
+    <div class="channels-title">아마존플라워 채널</div>
+    <div class="channels-row">
+      <a class="ch ch-insta" href="https://instagram.com/amazonflower30003" target="_blank" rel="noopener">
+        <span class="ch-ic">📷</span><span class="ch-nm">인스타그램</span>
+      </a>
+      <a class="ch ch-naver" href="#" target="_blank" rel="noopener" data-pending="네이버 스토어 주소 준비 중">
+        <span class="ch-ic">N</span><span class="ch-nm">네이버 스토어</span>
+      </a>
+      <a class="ch ch-kakao" href="#" target="_blank" rel="noopener" data-pending="카카오톡 채널 준비 중">
+        <span class="ch-ic">💬</span><span class="ch-nm">카카오톡 채널</span>
+      </a>
+    </div>
   </div>
 
   <footer>
@@ -130,6 +140,33 @@
 
 <script>
 // 가격대 구성 (실제 상품 들어오면 desc/사진만 채우면 됨)
+// 특별 제작 (탭별로 다르게 노출)
+const SPECIAL = {
+  congrats: [
+    {nm:"결혼식 당일 부케", photo:"결혼당일부케.jpg", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다."},
+    {nm:"웨딩 촬영용 부케", photo:"촬영용부케.jpg", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다."},
+  ],
+  condolence: [
+    {nm:"근조 바구니 (기본)", photo:"근조바구니_기본.jpg", price:"가격 상담", d:"장례식장에 보내는 근조 꽃바구니. 단정하고 정성스럽게 제작합니다."},
+    {nm:"근조 바구니 (고급)", photo:"근조바구니_고급.jpg", price:"가격 상담", d:"꽃 물량을 늘린 고급형 근조 바구니."},
+    {nm:"제단 장식 · 국화 등", photo:"제단장식.jpg", price:"맞춤 상담", d:"빈소 제단 장식, 국화 낱개 송이 등 장례 관련 꽃을 맞춤으로 제작합니다."},
+  ],
+};
+
+function showSpecial(key){
+  const items=SPECIAL[key]||[];
+  document.getElementById("specialArea").innerHTML=items.map(it=>`
+    <div class="special-item">
+      <div class="special-photo">사진 준비 중<br><span>(${it.photo})</span></div>
+      <div class="special-body">
+        <div class="snm">${it.nm}</div>
+        <div class="sdesc">${it.d}</div>
+        <div class="sprice">${it.price}</div>
+        <a class="scall" href="tel:031-314-3003">📞 전화 상담 031-314-3003</a>
+      </div>
+    </div>`).join("");
+}
+
 const TIERS = {
   condolence: {
     label:"근조화환", cls:"condo",
@@ -175,6 +212,7 @@ function showCat(key){
   }
   html+=`</div>`;
   document.getElementById("catArea").innerHTML=html;
+  showSpecial(key);
 }
 
 function goOrder(type, price){
@@ -183,6 +221,16 @@ function goOrder(type, price){
 }
 
 showCat("congrats");
+
+// 준비 중인 채널(네이버/카톡)은 주소가 들어오기 전까지 안내만
+document.querySelectorAll('.ch[data-pending]').forEach(el=>{
+  el.addEventListener('click', e=>{
+    if(el.getAttribute('href')==='#'){
+      e.preventDefault();
+      alert(el.getAttribute('data-pending'));
+    }
+  });
+});
 </script>
 </body>
 </html>
