@@ -52,6 +52,9 @@
   .item .order { margin-top:8px; padding:11px; border:none; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); }
   .item .order:hover { background:var(--accent-deep); }
   .item .order.condo { background:var(--condo); }
+  .item .share-btn { margin-top:6px; padding:8px; border:1px solid var(--line); border-radius:9px; background:#fcfbf8; color:var(--ink-soft); font-size:13px; cursor:pointer; font-family:var(--font-body); width:100%; }
+  .item .share-btn:hover { background:var(--accent-soft); color:var(--accent-deep); }
+  .item.highlight { outline:2px solid var(--accent); outline-offset:2px; }
 
   .special { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); }
   .special-head { margin-bottom:16px; }
@@ -105,11 +108,11 @@
 
   <div class="special">
     <div class="special-head">
-      <div class="special-title">✿ 특별 제작 — 30년 경력 직접 제작</div>
+      <div class="special-title">✿ 특별 제작 — 1993년부터, 사장님이 직접 제작</div>
       <div class="special-sub">스탠드 화환 외에도, 사장님이 직접 만드는 수제 상품입니다. 맞춤 제작이라 전화로 상담 주문해주세요.</div>
     </div>
     <div class="special-grid" id="specialArea"></div>
-    <a class="insta-more" href="https://instagram.com/amazonflower30003" target="_blank" rel="noopener">📷 실제 제작 사진 더 보기 (인스타그램 @amazonflower30003)</a>
+    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">📷 실제 제작 사진 더 보기 (인스타그램 @amazonflower3003)</a>
   </div>
 
   <div class="note">
@@ -120,7 +123,7 @@
   <div class="channels">
     <div class="channels-title">아마존플라워 채널</div>
     <div class="channels-row">
-      <a class="ch ch-insta" href="https://instagram.com/amazonflower30003" target="_blank" rel="noopener">
+      <a class="ch ch-insta" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">
         <span class="ch-ic">📷</span><span class="ch-nm">인스타그램</span>
       </a>
       <a class="ch ch-naver" href="#" target="_blank" rel="noopener" data-pending="네이버 스토어 주소 준비 중">
@@ -207,6 +210,7 @@ function showCat(key){
           <div class="price ${condoCls}">${it.price.toLocaleString()}원</div>
           <div class="desc">${it.d}</div>
           <button class="order ${condoCls}" onclick="goOrder('${orderType}',${it.price})">이 화환 주문하기</button>
+          <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">🔗 공유하기</button>
         </div>
       </div>`;
   }
@@ -220,7 +224,46 @@ function goOrder(type, price){
   location.href = "/?type="+type+"&price="+price;
 }
 
+function escapeJs(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+async function shareItem(key, code, name, price){
+  // 이 상품을 가리키는 공유 링크
+  const url = location.origin + "/catalog.html?item=" + encodeURIComponent(code);
+  const kind = key==="condolence" ? "근조화환" : "축하화환";
+  const text = `[아마존플라워] ${name} ${price.toLocaleString()}원 — ${kind} 전국 당일배송`;
+  // 모바일: 기본 공유창(카톡·문자 등) / PC: 링크 복사
+  if(navigator.share){
+    try{ await navigator.share({title:"아마존플라워", text, url}); }catch(e){}
+  } else {
+    try{
+      await navigator.clipboard.writeText(url);
+      alert("링크가 복사되었어요. 붙여넣기 해서 공유해보세요.\n\n"+url);
+    }catch(e){
+      prompt("아래 링크를 복사해서 공유하세요:", url);
+    }
+  }
+}
+
+// 공유 링크로 들어온 경우(?item=코드): 해당 탭을 열고 그 상품을 강조
+function openSharedItem(){
+  const q=new URLSearchParams(location.search);
+  const item=q.get("item");
+  if(!item) return;
+  const key = item.startsWith("AF-C") ? "condolence" : "congrats";
+  showCat(key);
+  setTimeout(()=>{
+    const cards=document.querySelectorAll("#catArea .item");
+    cards.forEach(c=>{
+      if(c.querySelector(".code")?.textContent===item){
+        c.classList.add("highlight");
+        c.scrollIntoView({behavior:"smooth",block:"center"});
+      }
+    });
+  },100);
+}
+
 showCat("congrats");
+openSharedItem();
 
 // 준비 중인 채널(네이버/카톡)은 주소가 들어오기 전까지 안내만
 document.querySelectorAll('.ch[data-pending]').forEach(el=>{

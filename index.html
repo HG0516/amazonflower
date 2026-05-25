@@ -37,6 +37,14 @@
   .hero-photo { width:100%; max-width:300px; margin:0 auto 18px; aspect-ratio:16/9;
     background: repeating-linear-gradient(45deg,#f0ece2,#f0ece2 10px,#ece7da 10px,#ece7da 20px);
     border:1px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; color:var(--ink-faint); font-size:13px; }
+  .hero-slide { width:100%; max-width:340px; margin:0 auto 18px; aspect-ratio:4/3; border-radius:12px; overflow:hidden; position:relative; border:1px solid var(--line); }
+  .hero-slide .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; opacity:0; transition:opacity 1.2s ease; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 10px,#ece7da 10px,#ece7da 20px); color:var(--ink-faint); font-size:14px; text-align:center; }
+  .hero-slide .slide.on { opacity:1; }
+  .hero-slide .slide img { width:100%; height:100%; object-fit:cover; }
+  .hero-slide .slide .ph-name { font-size:12px; color:var(--ink-faint); }
+  .hero-dots { position:absolute; bottom:8px; left:0; right:0; display:flex; gap:6px; justify-content:center; z-index:2; }
+  .hero-dots span { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.1); }
+  .hero-dots span.on { background:var(--accent); }
   .hero h1 { font-family: var(--font-display); font-size: 27px; font-weight:800; line-height:1.35; color:var(--ink); }
   .hero .lede { font-size:15px; color:var(--ink-soft); line-height:1.7; margin-top:12px; }
   .hero .lede b { color: var(--accent-deep); font-weight:700; }
@@ -159,10 +167,14 @@
   </header>
 
   <section class="hero">
-    <!-- 옛날 꽃집 사진 자리: 나중에 아래 div를 <img src="/your-photo.jpg" style="width:100%;max-width:300px;border-radius:10px;margin:0 auto 18px;display:block;"> 로 교체 -->
-    <div class="hero-photo" id="heroPhoto">
-      <span>📷 사진 자리</span>
-      <span style="font-size:11px;">(30년 전 꽃집 사진 등 — 나중에 교체)</span>
+    <!-- 사진 슬라이드: 나중에 각 slide의 내용을 <img src="/대표1.jpg"> 등으로 교체하면 됩니다 -->
+    <div class="hero-slide" id="heroSlide">
+      <div class="slide on"><span>📷 대표 사진 1</span><span class="ph-name">(대표1.jpg)</span></div>
+      <div class="slide"><span>📷 대표 사진 2</span><span class="ph-name">(대표2.jpg)</span></div>
+      <div class="slide"><span>📷 대표 사진 3</span><span class="ph-name">(대표3.jpg)</span></div>
+      <div class="hero-dots" id="heroDots">
+        <span class="on"></span><span></span><span></span>
+      </div>
     </div>
     <h1>꽃길 30년,<br>거품은 뺐습니다</h1>
     <p class="lede">청첩장·부고 링크만 보내주세요.<br>알맞은 화환을 정리해드리고, <b>도착 확인 사진</b>까지 보내드립니다.</p>
@@ -688,6 +700,19 @@ function handleCatalogParam(){
   if(ctype) window.__presetType=ctype;
   cleanUrl();
 }
+
+// hero 사진 슬라이드 자동 전환 (천천히, 5초 간격)
+(function(){
+  const slides=document.querySelectorAll("#heroSlide .slide");
+  const dots=document.querySelectorAll("#heroDots span");
+  if(slides.length<2) return;
+  let i=0;
+  setInterval(()=>{
+    slides[i].classList.remove("on"); dots[i]?.classList.remove("on");
+    i=(i+1)%slides.length;
+    slides[i].classList.add("on"); dots[i]?.classList.add("on");
+  }, 5000);
+})();
 
 handleRedirect();
 handleCatalogParam();
