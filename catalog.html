@@ -146,7 +146,7 @@
       <div class="special-sub">1993년부터, 사장님이 직접 만드는 수제 상품입니다.<br>맞춤 제작이라 전화로 상담 주문해주세요.</div>
     </div>
     <div class="special-grid" id="specialArea"></div>
-    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">INSTAGRAM @amazonflower3003 — 제작 사진 더 보기</a>
+    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">📷 INSTAGRAM @amazonflower3003 — 제작 사진 더 보기</a>
   </div>
 
   <div class="note">
@@ -204,7 +204,7 @@ function showSpecial(key){
         <div class="snm">${it.nm}</div>
         <div class="sdesc">${it.d}</div>
         <div class="sprice">${it.price}</div>
-        <a class="scall" href="tel:031-314-3003">전화 상담</a>
+        <a class="scall" href="tel:031-314-3003">📞 전화 상담</a>
       </div>
     </div>`).join("");
 }
@@ -250,7 +250,7 @@ function showCat(key){
           <div class="price">${it.price.toLocaleString()}원</div>
           <div class="desc">${it.d}</div>
           <button class="order" onclick="goOrder('${orderType}',${it.price})">주문하기</button>
-          <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">공유하기</button>
+          <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">🔗 공유하기</button>
         </div>
       </div>`;
   }
