@@ -40,13 +40,13 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
-  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.65; font-size: 16px; padding-bottom: 60px; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 17px; padding-bottom: 60px; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; }
 
   /* ── 헤더: 미니멀 ── */
   header { text-align: center; padding: 36px 18px 4px; }
-  .brand { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
-  .brand-sub { font-size: 11px; color: var(--ink-faint); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+  .brand { font-family: var(--font-display); font-size: 25px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
+  .brand-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
 
   /* ── 가는 구분선 ── */
   .divider { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
@@ -62,18 +62,18 @@
   @keyframes strip-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .hero-strip:hover .strip-track { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) { .strip-track { animation: none; } }
-  .hero h1 { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.4; color: var(--ink); letter-spacing: -0.5px; }
-  .hero .lede { font-size: 14px; color: var(--ink-soft); line-height: 1.8; margin-top: 14px; }
+  .hero h1 { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.4; color: var(--ink); letter-spacing: -0.5px; }
+  .hero .lede { font-size: 16px; color: var(--ink-soft); line-height: 1.85; margin-top: 16px; }
 
   /* ── 약식 배지 (3개, 이모지 없음) ── */
   .marks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 16px 0; }
   .mark { text-align: center; padding: 4px 6px; border-right: 1px solid var(--line-soft); }
   .mark:last-child { border-right: none; }
-  .mark .mt { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--ink); }
-  .mark .md { font-size: 11px; color: var(--ink-faint); margin-top: 4px; letter-spacing: 0.5px; }
+  .mark .mt { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); }
+  .mark .md { font-size: 12px; color: var(--ink-faint); margin-top: 4px; letter-spacing: 0.3px; }
 
   /* ── catalogue 진입 버튼: 보조 텍스트 링크 톤 ── */
-  .catalogue-link { display: block; text-align: center; margin-top: 22px; padding: 13px; border: 1px solid var(--ink); border-radius: 2px; font-size: 14px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: 0.5px; transition: background .15s; }
+  .catalogue-link { display: block; text-align: center; margin-top: 22px; padding: 15px; border: 1px solid var(--ink); border-radius: 2px; font-size: 15px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: 0.5px; transition: background .15s; }
   .catalogue-link:hover { background: var(--ink); color: var(--paper); }
 
   /* ── 카드 — 그림자 없이 선만 ── */
@@ -81,18 +81,28 @@
 
   /* ── 단계 헤더 ── */
   .step-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
-  .step-num { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--accent); flex: 0 0 auto; min-width: 24px; }
-  .step-title { font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--ink); }
-  .step-sub { font-size: 13px; color: var(--ink-soft); margin: 4px 0 18px 36px; line-height: 1.7; }
+  .step-num { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--accent); flex: 0 0 auto; min-width: 26px; }
+  .step-title { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--ink); }
+  .step-sub { font-size: 14px; color: var(--ink-soft); margin: 6px 0 18px 38px; line-height: 1.75; }
 
   /* ── 입력 필드 ── */
-  label.fl { display: block; font-size: 12px; color: var(--ink-soft); margin: 16px 0 6px; font-weight: 600; letter-spacing: 0.3px; }
-  input[type=text], input[type=tel], input[type=email], textarea { width: 100%; font-size: 15px; font-family: var(--font-body); padding: 12px 13px; border: 1px solid var(--line); border-radius: 4px; background: #fcfbf8; color: var(--ink); }
+  label.fl { display: block; font-size: 13px; color: var(--ink-soft); margin: 16px 0 6px; font-weight: 600; letter-spacing: 0.3px; }
+  input[type=text], input[type=tel], input[type=email], textarea { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 4px; background: #fcfbf8; color: var(--ink); }
   input:focus, textarea:focus { outline: none; border-color: var(--ink); background: #fff; }
-  textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+  textarea { resize: vertical; min-height: 92px; line-height: 1.6; }
+
+  /* 필수 입력 표시 */
+  .required-mark { color: var(--danger); font-weight: 700; margin-left: 2px; }
+  input.input-error { border-color: var(--danger); background: #fdf5f3; }
+
+  /* ─── 약식 명세표 (hero 아래) ─── */
+  .spec { margin-top: 28px; padding: 22px 4px 22px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 15px; line-height: 2.1; color: var(--ink); }
+  .spec dl { display: grid; grid-template-columns: 90px 1fr; gap: 4px 16px; }
+  .spec dt { color: var(--ink-faint); font-size: 13px; letter-spacing: 0.5px; font-weight: 600; }
+  .spec dd { color: var(--ink); }
 
   /* ── 버튼 ── */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 15px; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-body); background: var(--ink); color: var(--paper); transition: background .15s, transform .05s; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 16px; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-body); background: var(--ink); color: var(--paper); transition: background .15s, transform .05s; }
   .btn:hover { background: var(--accent-deep); } .btn:active { transform: translateY(1px); } .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--ink); } .btn-ghost:hover { background: var(--ink); color: var(--paper); }
   .btn-mini { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); width: auto; letter-spacing: 0.3px; }
@@ -120,7 +130,7 @@
 
   /* ── 칩(신랑/신부) ── */
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-  .chip { border: 1px solid var(--line); border-radius: 3px; padding: 11px 18px; cursor: pointer; font-size: 15px; font-weight: 600; background: transparent; color: var(--ink-soft); user-select: none; transition: all .15s; }
+  .chip { border: 1px solid var(--line); border-radius: 3px; padding: 13px 22px; cursor: pointer; font-size: 16px; font-weight: 600; background: transparent; color: var(--ink-soft); user-select: none; transition: all .15s; }
   .chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .side .chip.on { background: var(--gold); border-color: var(--gold); }
 
@@ -132,17 +142,18 @@
 
   /* ── 가격 탭 ── */
   .price-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-  .price-tab { border: 1px solid var(--line); border-radius: 3px; padding: 11px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: 12px; line-height: 1.5; transition: all .15s; }
-  .price-tab b { font-size: 14px; font-weight: 700; font-family: var(--font-display); }
+  .price-tab { border: 1px solid var(--line); border-radius: 3px; padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: 13px; line-height: 1.5; transition: all .15s; }
+  .price-tab b { font-size: 15px; font-weight: 700; font-family: var(--font-display); }
   .price-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .design-detail { display: flex; gap: 16px; align-items: stretch; margin-top: 6px; }
   .design-photo { flex: 0 0 130px; aspect-ratio: 3/4; background: var(--line-soft); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; text-align: center; overflow: hidden; }
   .design-photo img { width: 100%; height: 100%; object-fit: cover; }
   .design-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
-  .design-name { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); }
+  .design-name { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--ink); }
   .design-code { font-size: 11px; color: var(--ink-faint); letter-spacing: 1px; }
-  .design-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.7; margin-top: 4px; }
-  .design-price { font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); }
+  .design-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin-top: 4px; }
+  .design-price { font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); }
+  .design-confirm { margin-top: 14px; }
 
   /* ── 법인 안내 — 가로선 위 한 줄 ── */
   .corp-line { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--ink-soft); text-align: center; line-height: 1.7; cursor: pointer; }
@@ -174,15 +185,15 @@
 
   /* ── 톤 탭 ── */
   .tone-tabs { display: flex; gap: 6px; margin: 4px 0 12px; }
-  .tone-tab { flex: 1; text-align: center; padding: 9px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .tone-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .tone-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .ribbon-opts { display: flex; flex-direction: column; gap: 8px; }
-  .ribbon-opt { border: 1px solid var(--line); border-radius: 4px; padding: 11px 13px; cursor: pointer; font-size: 14px; background: transparent; }
+  .ribbon-opt { border: 1px solid var(--line); border-radius: 4px; padding: 13px 14px; cursor: pointer; font-size: 15px; background: transparent; }
   .ribbon-opt.on { border-color: var(--ink); background: #faf8f3; }
 
   /* ── 결제 ── */
-  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 14px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-  .total-row .amt { font-size: 26px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 15px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .total-row .amt { font-size: 30px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
   #pay-method, #pay-agree { margin-top: 8px; }
   .delivery-note { font-size: 12px; color: var(--ink-soft); margin: 10px 0 16px; line-height: 1.7; padding: 10px 12px; background: #faf8f3; border-radius: 4px; }
   .delivery-note span { color: var(--ink-faint); font-size: 11px; }
@@ -217,6 +228,28 @@
   #catalogBanner div { color: var(--paper) !important; }
   #catalogBanner .pick-label { font-size: 11px; letter-spacing: 1px; opacity: 0.7; }
   #catalogBanner .pick-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-top: 2px; }
+
+  /* ─── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ─── */
+  @media (min-width: 1000px) {
+    body {
+      background: var(--bg);
+      background-image: linear-gradient(180deg, #f0ebdf 0%, #f7f4ee 380px);
+      background-attachment: fixed;
+    }
+    .wrap {
+      max-width: 600px;
+      background: var(--paper);
+      box-shadow: 0 0 0 1px var(--line-soft), 0 2px 18px rgba(31,29,24,0.04);
+      padding: 0 28px 30px;
+      min-height: 100vh;
+    }
+    header { padding-top: 44px; }
+    .hero h1 { font-size: 40px; }
+    .hero .lede { font-size: 17px; }
+    .step-title { font-size: 24px; }
+    .strip-track img { height: 200px; }
+    .spec { font-size: 16px; }
+  }
 </style>
 </head>
 <body>
@@ -259,6 +292,17 @@
         <div class="mt">전국</div>
         <div class="md">당일 배송</div>
       </div>
+    </div>
+
+    <div class="spec">
+      <dl>
+        <dt>취급</dt><dd>근조 화환 · 축하 화환 · 부케 · 근조 바구니</dd>
+        <dt>가격</dt><dd>59,000원 ~ 129,000원 (4단계 정찰제)</dd>
+        <dt>배송</dt><dd>전국 당일 배송 (기본 배송비 무료)</dd>
+        <dt>주문</dt><dd>청첩장 · 부고 링크 붙여넣기 또는 직접 입력</dd>
+        <dt>주문 후</dt><dd>배송 완료 시 현장 사진을 입력하신 번호로 회신</dd>
+        <dt>경력</dt><dd>1993년부터 한 자리에서, 사장님이 직접</dd>
+      </dl>
     </div>
 
     <a class="catalogue-link" href="/catalog.html">전체 화환 둘러보기 →</a>
@@ -340,11 +384,11 @@
       </div>
     </div>
 
-    <label class="fl">보내는 분 성함</label>
-    <input type="text" id="senderName" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft()" />
-    <label class="fl">연락처 <span style="font-weight:400;color:var(--ink-faint);">(도착 확인 사진을 이 번호로 보내드립니다)</span></label>
-    <input type="tel" id="senderPhone" placeholder="010-0000-0000" inputmode="tel" />
-    <label class="fl">리본 — 왼편 (보내는 분)</label>
+    <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
+    <input type="text" id="senderName" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this)" />
+    <label class="fl">연락처 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:12px;">— 도착 확인 사진을 이 번호로 보내드립니다</span></label>
+    <input type="tel" id="senderPhone" placeholder="010-0000-0000" inputmode="tel" oninput="clearErr(this)" />
+    <label class="fl">리본 — 왼편 (보내는 분) <span style="font-weight:400;color:var(--ink-faint);font-size:12px;">— 비우면 위 성함이 자동으로 들어갑니다</span></label>
     <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
     <label class="fl">리본 — 오른편 (문구)</label>
     <div class="tone-tabs" id="toneTabs"></div>
@@ -525,10 +569,14 @@ function applyParsed(r){
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
-  // 카탈로그에서 가격대를 고르고 넘어온 경우 자동 선택 (가격 → tier 인덱스)
+  // 카탈로그에서 가격대를 고르고 넘어온 경우: 그 가격 자동 선택 + 결제 카드 바로 오픈
+  // (이미 가격까지 정하고 온 사용자라 빠르게 결제로 안내)
   if(window.__presetPrice){
     const idx=TIERS.findIndex(t=>t.price===Number(window.__presetPrice));
-    if(idx>=0) selTier(idx);
+    if(idx>=0) selTier(idx, true);  // autoOpen=true: 결제 카드까지 열기
+  } else {
+    // 일반 진입: 중급형(인덱스 1)을 미리 선택해서 사진·설명 노출, 결제 카드는 안 열림
+    selTier(1, false);
   }
   scrollTo("confirmCard");
 }
@@ -562,7 +610,7 @@ const TIERS = [
   {key:"4", grade:"최고급형", price:129000, desc:"4단 특대형. 거래처·회사 명의에 적합합니다."},
 ];
 
-function selTier(i){
+function selTier(i, autoOpen){
   const t=TIERS[i];
   order.price=t.price;
   const tabs=document.querySelectorAll("#priceTabs .price-tab");
@@ -587,10 +635,21 @@ function selTier(i){
         <div class="design-desc">${t.desc}</div>
         <div class="design-price">${t.price.toLocaleString()}원</div>
       </div>
-    </div>`;
-  document.getElementById("totalAmt").textContent=t.price.toLocaleString()+"원";
+    </div>
+    <button class="btn design-confirm" onclick="confirmTier()">이 화환으로 주문하기</button>`;
+  // 결제 카드는 명시적 호출일 때만 열림
+  if(autoOpen){
+    document.getElementById("totalAmt").textContent=t.price.toLocaleString()+"원";
+    document.getElementById("payCard").classList.remove("hidden");
+    initPay(t.price);
+    scrollTo("payCard");
+  }
+}
+function confirmTier(){
+  // '이 화환으로 주문하기' 버튼 — 결제 카드를 명시적으로 열고 스크롤
+  document.getElementById("totalAmt").textContent=order.price.toLocaleString()+"원";
   document.getElementById("payCard").classList.remove("hidden");
-  initPay(t.price);
+  initPay(order.price);
   scrollTo("payCard");
 }
 function pickDesign(el){
@@ -657,15 +716,29 @@ async function initPay(amount){
   }catch(e){ console.error(e); showErr(document.getElementById("payErr"),"결제 모듈 로딩 오류가 발생했습니다."); }
 }
 
+// 입력칸 에러 표시/해제 헬퍼
+function markErr(inputEl){
+  inputEl.classList.add("input-error");
+  inputEl.scrollIntoView({behavior:"smooth",block:"center"});
+  setTimeout(()=>inputEl.focus(),250);
+}
+function clearErr(inputEl){
+  inputEl.classList.remove("input-error");
+}
+
 async function requestPay(){
   const err=document.getElementById("payErr"); err.classList.add("hidden");
-  order.senderName=document.getElementById("senderName").value.trim();
-  order.senderPhone=document.getElementById("senderPhone").value.trim();
+  const senderNameEl=document.getElementById("senderName");
+  const senderPhoneEl=document.getElementById("senderPhone");
+  order.senderName=senderNameEl.value.trim();
+  order.senderPhone=senderPhoneEl.value.trim();
   order.ribbonLeft=document.getElementById("ribbonLeft").value.trim();
   order.ribbonRight=document.getElementById("ribbonRight").value.trim();
   if(!order.price) return showErr(err,"가격대를 선택해주세요.");
-  if(!order.senderName) return showErr(err,"보내는 분 성함을 입력해주세요.");
-  if(!order.senderPhone) return showErr(err,"연락처를 입력해주세요.");
+  if(!order.senderName){ markErr(senderNameEl); return showErr(err,"보내는 분 성함을 입력해주세요."); }
+  if(!order.senderPhone){ markErr(senderPhoneEl); return showErr(err,"연락처를 입력해주세요."); }
+  // 리본 왼편이 비어있으면 보내는 분 성함으로 자동 채움
+  if(!order.ribbonLeft){ order.ribbonLeft = order.senderName; document.getElementById("ribbonLeft").value = order.senderName; }
 
   if(order.buyerType==="corp"){
     order.corpName=document.getElementById("corpName").value.trim();
@@ -673,9 +746,9 @@ async function requestPay(){
     order.corpCeo=document.getElementById("corpCeo").value.trim();
     order.corpAddr=document.getElementById("corpAddr").value.trim();
     order.corpEmail=document.getElementById("corpEmail").value.trim();
-    if(!order.corpName) return showErr(err,"계산서 발행을 위해 상호(회사명)를 입력해주세요.");
-    if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))) return showErr(err,"사업자등록번호를 정확히 입력해주세요. (예: 000-00-00000)");
-    if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)) return showErr(err,"계산서를 받으실 이메일을 정확히 입력해주세요.");
+    if(!order.corpName){ markErr(document.getElementById("corpName")); return showErr(err,"계산서 발행을 위해 상호(회사명)를 입력해주세요."); }
+    if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호를 정확히 입력해주세요. (예: 000-00-00000)"); }
+    if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)){ markErr(document.getElementById("corpEmail")); return showErr(err,"계산서를 받으실 이메일을 정확히 입력해주세요."); }
   }
 
   if(!widgets) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
