@@ -4,133 +4,151 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>전체 화환 둘러보기 — 아마존플라워</title>
-<meta name="description" content="아마존플라워의 근조화환·축하화환을 가격대별로 둘러보세요. 전국 당일배송." />
+<meta name="description" content="근조 · 축하 화환을 가격대별로 둘러보세요. 1993년부터, 전국 당일배송." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="전체 화환 둘러보기 — 아마존플라워" />
-<meta property="og:description" content="근조화환·축하화환 가격대별 모음 · 전국 당일배송" />
+<meta property="og:title" content="전체 화환 — 아마존플라워" />
+<meta property="og:description" content="근조 · 축하 화환 · 전국 당일배송. 1993년부터." />
 <meta property="og:image" content="/og_preview.png" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
   :root {
-    --bg:#f7f4ee; --paper:#fff; --ink:#2b2a26; --ink-soft:#6b6860; --ink-faint:#9a978d;
-    --line:#e3ddd1; --accent:#3a6b4f; --accent-deep:#2a5640; --accent-soft:#eef3ef;
-    --gold:#b08945; --condo:#46505c; --radius:14px;
-    --shadow:0 2px 10px rgba(43,42,38,0.06),0 8px 30px rgba(43,42,38,0.06);
-    --font-display:"Gowun Batang","Nanum Myeongjo",serif;
-    --font-body:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+    --bg: #f7f4ee;
+    --paper: #ffffff;
+    --ink: #1f1d18;
+    --ink-soft: #5a564d;
+    --ink-faint: #9e9a8f;
+    --line: #d9d3c4;
+    --line-soft: #ebe6da;
+    --accent: #2d4a38;
+    --accent-deep: #1e3526;
+    --accent-soft: #ecf0eb;
+    --gold: #8a6a32;
+    --condo: #3d4248;
+    --radius: 6px;
+    --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
+    --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
   }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  html { -webkit-text-size-adjust:100%; }
-  body { font-family:var(--font-body); background:var(--bg); color:var(--ink); line-height:1.6; font-size:17px; padding-bottom:60px; }
-  .wrap { max-width:680px; margin:0 auto; padding:0 18px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.65; font-size: 16px; padding-bottom: 60px; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
 
-  .topbar { display:flex; align-items:center; gap:12px; padding:18px 0 8px; }
-  .back { display:inline-flex; align-items:center; gap:5px; font-size:14px; color:var(--accent-deep); text-decoration:none; font-weight:600; background:#fff; border:1px solid var(--line); padding:8px 14px; border-radius:20px; }
-  .back:hover { background:var(--accent-soft); }
+  .topbar { padding: 18px 0 4px; }
+  .back { display: inline-block; font-size: 12px; color: var(--ink-soft); text-decoration: none; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: 3px; letter-spacing: 0.5px; }
+  .back:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-  header { text-align:center; padding:14px 18px 6px; }
-  .brand { font-family:var(--font-display); font-size:24px; font-weight:800; color:var(--accent-deep); }
-  .subtitle { font-size:14px; color:var(--ink-soft); margin-top:6px; }
+  header { text-align: center; padding: 18px 18px 6px; }
+  .brand { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
+  .brand-sub { font-size: 11px; color: var(--ink-faint); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+  .subtitle { font-size: 13px; color: var(--ink-soft); margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line-soft); display: inline-block; padding-left: 32px; padding-right: 32px; }
 
-  .seg { display:flex; gap:8px; background:#efeadf; border-radius:12px; padding:5px; margin:18px 0 8px; }
-  .seg button { flex:1; padding:11px; border:none; border-radius:9px; background:transparent; cursor:pointer; font-size:15px; font-weight:700; font-family:var(--font-body); color:var(--ink-soft); }
-  .seg button.on { background:#fff; color:var(--accent-deep); box-shadow:0 1px 4px rgba(0,0,0,.08); }
-  .seg button.on.condo { color:var(--condo); }
+  /* 세그먼트 탭 — 단정한 라인 스타일 */
+  .seg { display: flex; gap: 0; margin: 28px 0 8px; border-bottom: 1px solid var(--line); }
+  .seg button { flex: 1; padding: 14px 8px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; font-family: var(--font-body); color: var(--ink-faint); border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.5px; }
+  .seg button.on { color: var(--ink); border-bottom-color: var(--ink); }
+  .seg button.on.condo { color: var(--condo); border-bottom-color: var(--condo); }
 
-  .section-label { font-family:var(--font-display); font-size:18px; font-weight:700; margin:22px 0 4px; }
-  .section-desc { font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
+  .section-label { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 28px 0 6px; }
+  .section-desc { font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; line-height: 1.7; }
 
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .item { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
-  .item .photo { aspect-ratio:3/4; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; }
-  .item .body { padding:13px 14px 15px; display:flex; flex-direction:column; gap:4px; flex:1; }
-  .item .nm { font-weight:700; font-size:15px; }
-  .item .code { font-size:11px; color:var(--ink-faint); margin-top:-2px; }
-  .item .price { font-family:var(--font-display); font-size:19px; font-weight:800; color:var(--accent-deep); }
-  .item .price.condo { color:var(--condo); }
-  .item .desc { font-size:12px; color:var(--ink-soft); line-height:1.5; }
-  .item .order { margin-top:8px; padding:11px; border:none; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); }
-  .item .order:hover { background:var(--accent-deep); }
-  .item .order.condo { background:var(--condo); }
-  .item .share-btn { margin-top:6px; padding:8px; border:1px solid var(--line); border-radius:9px; background:#fcfbf8; color:var(--ink-soft); font-size:13px; cursor:pointer; font-family:var(--font-body); width:100%; }
-  .item .share-btn:hover { background:var(--accent-soft); color:var(--accent-deep); }
-  .item.highlight { outline:2px solid var(--accent); outline-offset:2px; }
+  /* 상품 카드 */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s; }
+  .item:hover { border-color: var(--ink); }
+  .item .photo { aspect-ratio: 3/4; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; overflow: hidden; }
+  .item .photo img { width: 100%; height: 100%; object-fit: cover; }
+  .item .body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .item .nm { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); }
+  .item .code { font-size: 10px; color: var(--ink-faint); letter-spacing: 1px; margin-top: -2px; }
+  .item .price { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+  .item .desc { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-top: 4px; }
+  .item .order { margin-top: 12px; padding: 11px; border: none; border-radius: 3px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 13px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
+  .item .order:hover { background: var(--accent-deep); }
+  .item .share-btn { margin-top: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--ink-soft); font-size: 12px; cursor: pointer; font-family: var(--font-body); width: 100%; letter-spacing: 0.3px; }
+  .item .share-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .item.highlight { border-color: var(--ink); border-width: 2px; }
 
-  .special { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); }
-  .special-head { margin-bottom:16px; }
-  .special-title { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--accent-deep); }
-  .special-sub { font-size:13px; color:var(--ink-soft); margin-top:6px; line-height:1.6; }
-  .special-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .special-item { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
-  .special-photo { aspect-ratio:4/3; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; text-align:center; }
-  .special-photo span { font-size:11px; }
-  .special-body { padding:13px 14px 15px; display:flex; flex-direction:column; gap:6px; flex:1; }
-  .snm { font-weight:700; font-size:16px; }
-  .sdesc { font-size:12px; color:var(--ink-soft); line-height:1.5; flex:1; }
-  .sprice { font-family:var(--font-display); font-size:17px; font-weight:800; color:var(--accent-deep); }
-  .scall { margin-top:6px; padding:10px; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:13px; text-align:center; text-decoration:none; }
-  .scall:hover { background:var(--accent-deep); }
-  .insta-more { display:block; text-align:center; margin-top:16px; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:13px; color:var(--accent-deep); text-decoration:none; background:#fcfbf8; }
-  .insta-more:hover { background:var(--accent-soft); }
-  .channels { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); text-align:center; }
-  .channels-title { font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
-  .channels-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-  .ch { display:flex; flex-direction:column; align-items:center; gap:6px; width:92px; padding:14px 8px; border-radius:14px; text-decoration:none; color:#fff; font-weight:700; transition:transform .1s; }
-  .ch:hover { transform:translateY(-2px); }
-  .ch-ic { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; }
-  .ch-nm { font-size:12px; }
-  .ch-insta { background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); }
-  .ch-naver { background:#03c75a; }
-  .ch-kakao { background:#fae100; color:#3a1d1d; }
-  .ch-kakao .ch-ic { background:rgba(58,29,29,0.12); }
-  .note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:13px 15px; border-radius:10px; margin-top:22px; line-height:1.7; }
-  footer { text-align:center; color:var(--ink-faint); font-size:12px; margin-top:26px; line-height:1.8; }
-  .hidden { display:none !important; }
+  /* 특별 제작 */
+  .special { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+  .special-head { margin-bottom: 22px; text-align: center; }
+  .special-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); }
+  .special-sub { font-size: 13px; color: var(--ink-soft); margin-top: 8px; line-height: 1.7; padding: 0 20px; }
+  .special-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .special-item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+  .special-photo { aspect-ratio: 4/3; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; text-align: center; overflow: hidden; padding: 6px; }
+  .special-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .special-photo span { font-size: 10px; }
+  .special-body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .snm { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); }
+  .sdesc { font-size: 12px; color: var(--ink-soft); line-height: 1.6; flex: 1; }
+  .sprice { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+  .scall { margin-top: 8px; padding: 10px; border-radius: 3px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 12px; text-align: center; text-decoration: none; letter-spacing: 0.5px; }
+  .scall:hover { background: var(--accent-deep); }
+  .insta-more { display: block; text-align: center; margin-top: 18px; padding: 12px; border: 1px solid var(--line); border-radius: 3px; font-size: 12px; color: var(--ink-soft); text-decoration: none; letter-spacing: 0.5px; }
+  .insta-more:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* 채널 */
+  .channels { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); text-align: center; }
+  .channels-title { font-size: 11px; color: var(--ink-faint); margin-bottom: 16px; letter-spacing: 2px; text-transform: uppercase; }
+  .channels-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .ch { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 88px; padding: 14px 8px; border: 1px solid var(--line); border-radius: 4px; text-decoration: none; color: var(--ink); font-weight: 600; transition: all .15s; background: transparent; }
+  .ch:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ch:hover .ch-ic { color: inherit; }
+  .ch-ic { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; background: transparent; border: 1px solid var(--line); color: var(--ink-soft); }
+  .ch:hover .ch-ic { border-color: var(--paper); color: var(--paper); }
+  .ch-nm { font-size: 11px; letter-spacing: 0.5px; }
+
+  .note { font-size: 12px; color: var(--ink-soft); padding: 16px 0 0; border-top: 1px solid var(--line-soft); margin-top: 26px; line-height: 1.8; }
+  .note b { color: var(--ink); }
+
+  footer { text-align: center; color: var(--ink-faint); font-size: 11px; margin-top: 36px; line-height: 1.9; padding-top: 28px; border-top: 1px solid var(--line); letter-spacing: 0.5px; }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
-    <a class="back" href="/">← 주문하러 가기</a>
+    <a class="back" href="/">← 주문하기</a>
   </div>
 
   <header>
     <div class="brand">아마존플라워</div>
-    <div class="subtitle">전국 어디든 당일배송 · 가격대별로 둘러보세요</div>
+    <div class="brand-sub">AMAZON FLOWER · SINCE 1993</div>
+    <div class="subtitle">가격대별로 둘러보세요 · 전국 당일배송</div>
   </header>
 
   <div class="seg">
-    <button id="tabCongrats" class="on" onclick="showCat('congrats')">축하화환</button>
-    <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조화환</button>
+    <button id="tabCongrats" class="on" onclick="showCat('congrats')">축하 화환</button>
+    <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조 화환</button>
   </div>
 
   <div id="catArea"></div>
 
   <div class="special">
     <div class="special-head">
-      <div class="special-title">✿ 특별 제작 — 1993년부터, 사장님이 직접 제작</div>
-      <div class="special-sub">스탠드 화환 외에도, 사장님이 직접 만드는 수제 상품입니다. 맞춤 제작이라 전화로 상담 주문해주세요.</div>
+      <div class="special-title">특별 제작</div>
+      <div class="special-sub">1993년부터, 사장님이 직접 만드는 수제 상품입니다.<br>맞춤 제작이라 전화로 상담 주문해주세요.</div>
     </div>
     <div class="special-grid" id="specialArea"></div>
-    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">📷 실제 제작 사진 더 보기 (인스타그램 @amazonflower3003)</a>
+    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">INSTAGRAM @amazonflower3003 — 제작 사진 더 보기</a>
   </div>
 
   <div class="note">
-    ※ 사진은 준비 중입니다. 실제 상품 사진으로 곧 교체됩니다.<br>
-    원하시는 화환의 <b>주문하기</b>를 누르면, 받는 곳 정보만 입력하고 바로 주문하실 수 있어요.
+    사진은 준비 중입니다. 실제 상품 사진으로 곧 교체됩니다.<br>
+    원하시는 화환의 <b>주문하기</b>를 누르면 받는 곳 정보만 입력하고 바로 주문하실 수 있습니다.
   </div>
 
   <div class="channels">
-    <div class="channels-title">아마존플라워 채널</div>
+    <div class="channels-title">CHANNELS</div>
     <div class="channels-row">
-      <a class="ch ch-insta" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">
-        <span class="ch-ic">📷</span><span class="ch-nm">인스타그램</span>
+      <a class="ch" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">
+        <span class="ch-ic">IG</span><span class="ch-nm">인스타그램</span>
       </a>
-      <a class="ch ch-naver" href="#" target="_blank" rel="noopener" data-pending="네이버 스토어 주소 준비 중">
+      <a class="ch" href="#" target="_blank" rel="noopener" data-pending="네이버 스토어 주소 준비 중">
         <span class="ch-ic">N</span><span class="ch-nm">네이버 스토어</span>
       </a>
-      <a class="ch ch-kakao" href="#" target="_blank" rel="noopener" data-pending="카카오톡 채널 준비 중">
-        <span class="ch-ic">💬</span><span class="ch-nm">카카오톡 채널</span>
+      <a class="ch" href="#" target="_blank" rel="noopener" data-pending="카카오톡 채널 준비 중">
+        <span class="ch-ic">K</span><span class="ch-nm">카카오톡 채널</span>
       </a>
     </div>
   </div>
@@ -146,49 +164,54 @@
 // 특별 제작 (탭별로 다르게 노출)
 const SPECIAL = {
   congrats: [
-    {nm:"결혼식 당일 부케", photo:"결혼당일부케.jpg", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다."},
-    {nm:"웨딩 촬영용 부케", photo:"촬영용부케.jpg", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다."},
+    {nm:"결혼식 당일 부케", photo:"특별제작/부케_결혼당일.jpg", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다."},
+    {nm:"웨딩 촬영용 부케", photo:"특별제작/부케_촬영용.jpg", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다."},
   ],
   condolence: [
-    {nm:"근조 바구니 (기본)", photo:"근조바구니_기본.jpg", price:"가격 상담", d:"장례식장에 보내는 근조 꽃바구니. 단정하고 정성스럽게 제작합니다."},
-    {nm:"근조 바구니 (고급)", photo:"근조바구니_고급.jpg", price:"가격 상담", d:"꽃 물량을 늘린 고급형 근조 바구니."},
-    {nm:"제단 장식 · 국화 등", photo:"제단장식.jpg", price:"맞춤 상담", d:"빈소 제단 장식, 국화 낱개 송이 등 장례 관련 꽃을 맞춤으로 제작합니다."},
+    {nm:"근조 바구니 (기본)", photo:"특별제작/근조바구니_기본.jpg", price:"50,000원~", d:"장례식장에 보내는 근조 꽃바구니. 단정하고 정성스럽게 제작합니다. 정확한 가격은 전화 상담 후 확정됩니다."},
+    {nm:"근조 바구니 (고급)", photo:"특별제작/근조바구니_고급.jpg", price:"80,000원~", d:"꽃 물량을 늘린 고급형 근조 바구니. 정확한 가격은 전화 상담 후 확정됩니다."},
+    {nm:"제단 장식 · 국화 등", photo:"특별제작/제단장식.jpg", price:"맞춤 상담", d:"빈소 제단 장식, 국화 낱개 송이 등 장례 관련 꽃을 맞춤으로 제작합니다."},
   ],
 };
+
+// 사진 자동 로드 — img 태그로 시도, 실패 시 placeholder 표시
+function photoBox(srcPath, fallbackLabel){
+  return `<img src="/photos/${srcPath}" alt="" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;text-align:center;line-height:1.6;&quot;>사진 준비 중<br>${fallbackLabel||''}</div>';">`;
+}
 
 function showSpecial(key){
   const items=SPECIAL[key]||[];
   document.getElementById("specialArea").innerHTML=items.map(it=>`
     <div class="special-item">
-      <div class="special-photo">사진 준비 중<br><span>(${it.photo})</span></div>
+      <div class="special-photo">${photoBox(it.photo)}</div>
       <div class="special-body">
         <div class="snm">${it.nm}</div>
         <div class="sdesc">${it.d}</div>
         <div class="sprice">${it.price}</div>
-        <a class="scall" href="tel:031-314-3003">📞 전화 상담하기</a>
+        <a class="scall" href="tel:031-314-3003">전화 상담</a>
       </div>
     </div>`).join("");
 }
 
 const TIERS = {
   condolence: {
-    label:"근조화환", cls:"condo",
-    desc:"장례식장에 보내는 근조화환입니다.",
+    label:"근조 화환", cls:"condo",
+    desc:"장례식장에 보내는 근조 화환입니다.",
     items:[
-      {price:59000, nm:"근조화환 일반형", code:"AF-C01", d:"3단 기본형. 단정하게 조의를 표합니다."},
-      {price:79000, nm:"근조화환 중급형", code:"AF-C02", d:"3단 풍성형. 꽃 물량을 늘려 더 정성스럽게."},
-      {price:99000, nm:"근조화환 고급형", code:"AF-C03", d:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
-      {price:129000, nm:"근조화환 최고급형", code:"AF-C04", d:"4단 특대형. 거래처·회사 명의에 적합."},
+      {price:59000, nm:"근조 일반형", code:"AF-C01", grade:"일반형", d:"3단 기본형. 단정하게 조의를 표합니다."},
+      {price:79000, nm:"근조 중급형", code:"AF-C02", grade:"중급형", d:"3단 풍성형. 꽃 물량을 늘려 더 정성스럽게."},
+      {price:99000, nm:"근조 고급형", code:"AF-C03", grade:"고급형", d:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
+      {price:129000, nm:"근조 최고급형", code:"AF-C04", grade:"최고급형", d:"4단 특대형. 거래처·회사 명의에 적합."},
     ],
   },
   congrats: {
-    label:"축하화환", cls:"",
-    desc:"결혼식·개업·승진 등에 보내는 축하화환입니다.",
+    label:"축하 화환", cls:"",
+    desc:"결혼식·개업·승진 등에 보내는 축하 화환입니다.",
     items:[
-      {price:59000, nm:"축하화환 일반형", code:"AF-G01", d:"3단 기본형. 부담 없이 축하 마음을 전합니다."},
-      {price:79000, nm:"축하화환 중급형", code:"AF-G02", d:"3단 풍성형. 화사하고 눈에 띄는 구성."},
-      {price:99000, nm:"축하화환 고급형", code:"AF-G03", d:"3단 고급형. 개업·결혼식장에서 돋보입니다."},
-      {price:129000, nm:"축하화환 최고급형", code:"AF-G04", d:"4단 특대형. 거래처·회사 명의에 적합."},
+      {price:59000, nm:"축하 일반형", code:"AF-G01", grade:"일반형", d:"3단 기본형. 부담 없이 축하 마음을 전합니다."},
+      {price:79000, nm:"축하 중급형", code:"AF-G02", grade:"중급형", d:"3단 풍성형. 화사하고 눈에 띄는 구성."},
+      {price:99000, nm:"축하 고급형", code:"AF-G03", grade:"고급형", d:"3단 고급형. 개업·결혼식장에서 돋보입니다."},
+      {price:129000, nm:"축하 최고급형", code:"AF-G04", grade:"최고급형", d:"4단 특대형. 거래처·회사 명의에 적합."},
     ],
   },
 };
@@ -197,20 +220,21 @@ function showCat(key){
   const t=TIERS[key];
   document.getElementById("tabCondo").classList.toggle("on", key==="condolence");
   document.getElementById("tabCongrats").classList.toggle("on", key==="congrats");
-  const condoCls = t.cls==="condo" ? "condo" : "";
   const orderType = key==="condolence" ? "funeral" : "wedding";
+  const subPath = key==="condolence" ? "화환/근조" : "화환/축하";
   let html=`<div class="section-label">${t.label}</div><div class="section-desc">${t.desc}</div><div class="grid">`;
   for(const it of t.items){
+    const photoPath = `${subPath}/${it.grade}.jpg`;
     html+=`
       <div class="item">
-        <div class="photo">사진 준비 중</div>
+        <div class="photo">${photoBox(photoPath, it.grade)}</div>
         <div class="body">
           <div class="nm">${it.nm}</div>
           <div class="code">${it.code}</div>
-          <div class="price ${condoCls}">${it.price.toLocaleString()}원</div>
+          <div class="price">${it.price.toLocaleString()}원</div>
           <div class="desc">${it.d}</div>
-          <button class="order ${condoCls}" onclick="goOrder('${orderType}',${it.price})">이 화환 주문하기</button>
-          <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">🔗 공유하기</button>
+          <button class="order" onclick="goOrder('${orderType}',${it.price})">주문하기</button>
+          <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">공유하기</button>
         </div>
       </div>`;
   }

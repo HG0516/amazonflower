@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>아마존플라워 — 꽃길 30년, 거품은 뺐습니다</title>
-<meta name="description" content="모바일 청첩장·부고 링크만 보내면 알맞은 화환을 정리해드립니다. 정직한 가격, 전국 당일배송, 도착 확인 사진까지." />
+<title>아마존플라워 — 1993년부터, 단정한 꽃</title>
+<meta name="description" content="청첩장·부고 링크만 보내주세요. 1993년부터 한 자리에서, 사장님이 직접 챙겨드립니다. 근조 · 축하 화환 · 전국 당일배송." />
 <!-- 오픈그래프: 카톡·문자 등에 링크 공유 시 미리보기 카드로 뜸 -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content="아마존플라워 — 꽃길 30년, 거품은 뺐습니다" />
-<meta property="og:description" content="전국 당일배송 · 축하화환 · 근조화환 · 정직한 가격" />
+<meta property="og:title" content="아마존플라워 — 1993년부터, 단정한 꽃" />
+<meta property="og:description" content="근조 · 축하 화환 · 전국 당일배송. 1993년부터 한 자리에서." />
 <meta property="og:image" content="/og_preview.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -17,143 +17,206 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
   :root {
-    --bg: #f7f4ee; --paper: #ffffff; --ink: #2b2a26; --ink-soft: #6b6860; --ink-faint: #9a978d;
-    --line: #e3ddd1; --accent: #3a6b4f; --accent-deep: #2a5640; --accent-soft: #eef3ef;
-    --gold: #b08945; --condo: #46505c; --danger: #b3463a; --auto: #2f6db5; --auto-bg: #e9f1fb;
-    --radius: 14px; --shadow: 0 2px 10px rgba(43,42,38,0.06), 0 8px 30px rgba(43,42,38,0.06);
+    /* 톤: 따뜻한 종이 배경 + 무채색 잉크. 강조는 짙은 녹갈색 1개. */
+    --bg: #f7f4ee;
+    --paper: #ffffff;
+    --ink: #1f1d18;           /* 본문 글자: 거의 검정에 가까운 짙은 갈색 */
+    --ink-soft: #5a564d;      /* 보조 글자 */
+    --ink-faint: #9e9a8f;     /* 약한 글자 */
+    --line: #d9d3c4;          /* 가는 선 (조금 진하게) */
+    --line-soft: #ebe6da;     /* 더 옅은 선 */
+    --accent: #2d4a38;        /* 강조 짙은 녹갈색 (한 곳에만 사용) */
+    --accent-deep: #1e3526;
+    --accent-soft: #ecf0eb;
+    --gold: #8a6a32;          /* 신부 측 등 보조 강조 */
+    --condo: #3d4248;         /* 근조 톤 (좀 더 차분하게) */
+    --danger: #963a30;
+    --auto: #355d8a;
+    --auto-bg: #eaf0f6;
+    --radius: 6px;            /* 모서리 둥글기 약화 — 더 격식 있게 */
+    --shadow: none;           /* 그림자 제거 */
     --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
     --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
-  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.6; font-size: 17px; padding-bottom: 50px; }
-  .wrap { max-width: 560px; margin: 0 auto; padding: 0 18px; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.65; font-size: 16px; padding-bottom: 60px; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; }
 
-  header { text-align: center; padding: 30px 18px 8px; }
-  .brand { font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--accent-deep); letter-spacing:-0.5px; }
-  .loc { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--ink-soft); background:#fff; border:1px solid var(--line); padding:4px 11px; border-radius:20px; margin-top:10px; }
+  /* ── 헤더: 미니멀 ── */
+  header { text-align: center; padding: 36px 18px 4px; }
+  .brand { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
+  .brand-sub { font-size: 11px; color: var(--ink-faint); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
 
-  .hero { background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 22px; margin-top:16px; text-align:center; }
-  .hero-photo { width:100%; max-width:300px; margin:0 auto 18px; aspect-ratio:16/9;
-    background: repeating-linear-gradient(45deg,#f0ece2,#f0ece2 10px,#ece7da 10px,#ece7da 20px);
-    border:1px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; color:var(--ink-faint); font-size:13px; }
-  .hero-strip { width:100%; max-width:340px; margin:0 auto 18px; border-radius:12px; overflow:hidden; border:1px solid var(--line); }
-  .strip-track { display:flex; gap:8px; width:max-content; animation:strip-scroll 28s linear infinite; }
-  .strip-track img { height:150px; width:auto; border-radius:8px; object-fit:cover; display:block; }
-  @keyframes strip-scroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
-  .hero-strip:hover .strip-track { animation-play-state:paused; }
-  @media (prefers-reduced-motion: reduce){ .strip-track{ animation:none; } }
-  .hero h1 { font-family: var(--font-display); font-size: 27px; font-weight:800; line-height:1.35; color:var(--ink); }
-  .hero .lede { font-size:15px; color:var(--ink-soft); line-height:1.7; margin-top:12px; }
-  .hero .lede b { color: var(--accent-deep); font-weight:700; }
-  .badges-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
-  .badge-lg { background:var(--accent-soft); border-radius:11px; padding:14px; text-align:left; display:flex; gap:10px; align-items:center; }
-  .badge-lg .ic { font-size:22px; flex:0 0 auto; }
-  .badge-lg .t { font-size:14px; font-weight:700; color:var(--accent-deep); }
-  .badge-lg .d { font-size:12px; color:var(--ink-soft); margin-top:1px; }
-  .badges-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
-  .badge-sm { background:#f6f3ec; border-radius:10px; padding:12px 6px; text-align:center; }
-  .badge-sm .ic { font-size:19px; }
-  .badge-sm .t { font-size:13px; font-weight:700; margin-top:3px; color:var(--ink); }
+  /* ── 가는 구분선 ── */
+  .divider { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+  .divider-thin { border: none; border-top: 1px solid var(--line-soft); margin: 18px 0; }
+  .divider-center { text-align: center; margin: 26px 0; position: relative; }
+  .divider-center::before, .divider-center::after { content: ""; display: inline-block; vertical-align: middle; width: 38px; border-top: 1px solid var(--line); margin: 0 12px; }
 
-  .card { background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-top:16px; }
-  .step-head { display:flex; align-items:center; gap:9px; margin-bottom:6px; }
-  .step-num { width:27px;height:27px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:0 0 auto; }
-  .step-title { font-family:var(--font-display); font-weight:700; font-size:18px; }
-  .step-sub { font-size:13px; color:var(--ink-soft); margin:0 0 14px 36px; }
+  /* ── hero: 사진 + 카피, 카드 없음 ── */
+  .hero { padding: 18px 0 8px; text-align: center; }
+  .hero-strip { width: 100%; margin: 0 auto 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line-soft); }
+  .strip-track { display: flex; gap: 6px; width: max-content; animation: strip-scroll 32s linear infinite; }
+  .strip-track img { height: 170px; width: auto; object-fit: cover; display: block; }
+  @keyframes strip-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .hero-strip:hover .strip-track { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .strip-track { animation: none; } }
+  .hero h1 { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.4; color: var(--ink); letter-spacing: -0.5px; }
+  .hero .lede { font-size: 14px; color: var(--ink-soft); line-height: 1.8; margin-top: 14px; }
 
-  label.fl { display:block; font-size:13px; color:var(--ink-soft); margin:14px 0 5px; font-weight:600; }
-  input[type=text], input[type=tel], textarea { width:100%; font-size:16px; font-family:var(--font-body); padding:12px 13px; border:1px solid var(--line); border-radius:10px; background:#fcfbf8; color:var(--ink); }
-  input:focus, textarea:focus { outline:2px solid var(--accent); border-color:var(--accent); background:#fff; }
-  textarea { resize:vertical; min-height:84px; }
+  /* ── 약식 배지 (3개, 이모지 없음) ── */
+  .marks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 16px 0; }
+  .mark { text-align: center; padding: 4px 6px; border-right: 1px solid var(--line-soft); }
+  .mark:last-child { border-right: none; }
+  .mark .mt { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--ink); }
+  .mark .md { font-size: 11px; color: var(--ink-faint); margin-top: 4px; letter-spacing: 0.5px; }
 
-  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:15px; font-size:17px; font-weight:700; border:none; border-radius:11px; cursor:pointer; font-family:var(--font-body); background:var(--accent); color:#fff; transition:background .15s, transform .05s; }
-  .btn:hover { background:var(--accent-deep); } .btn:active { transform:translateY(1px); } .btn:disabled { opacity:.5; cursor:not-allowed; }
-  .btn-ghost { background:#fff; color:var(--accent-deep); border:1px solid var(--accent); } .btn-ghost:hover { background:var(--accent-soft); }
+  /* ── catalogue 진입 버튼: 보조 텍스트 링크 톤 ── */
+  .catalogue-link { display: block; text-align: center; margin-top: 22px; padding: 13px; border: 1px solid var(--ink); border-radius: 2px; font-size: 14px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: 0.5px; transition: background .15s; }
+  .catalogue-link:hover { background: var(--ink); color: var(--paper); }
 
-  .hint { font-size:13px; color:var(--ink-soft); margin-top:8px; }
-  .hidden { display:none !important; }
-  .err { color:var(--danger); font-size:14px; margin-top:10px; font-weight:600; }
-  .loading { display:flex; align-items:center; gap:10px; color:var(--ink-soft); font-size:15px; padding:6px 0; }
-  .spinner { width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
+  /* ── 카드 — 그림자 없이 선만 ── */
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; margin-top: 20px; }
 
-  .type-pill { display:inline-flex; align-items:center; gap:6px; background:#f3f1ec; border-radius:9px; padding:5px 12px; font-size:13px; font-weight:600; margin-bottom:14px; }
-  .type-pill.t-wed { background:var(--accent-soft); color:var(--accent-deep); }
-  .type-pill.t-fun { background:#eceef1; color:var(--condo); }
-  .af-field { margin-bottom:12px; }
-  .af-field label { display:block; font-size:13px; color:var(--ink-soft); margin-bottom:4px; font-weight:600; }
-  .af-input-wrap { display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:10px; background:#fcfbf8; padding:0 12px; }
-  .af-input-wrap:focus-within { border-color:var(--accent); outline:2px solid var(--accent); background:#fff; }
-  .af-input-wrap input { border:none; outline:none; background:transparent; padding:11px 0; flex:1; font-size:15px; }
-  .af-auto { font-size:11px; color:var(--auto); background:var(--auto-bg); padding:2px 8px; border-radius:7px; flex:0 0 auto; font-weight:600; }
+  /* ── 단계 헤더 ── */
+  .step-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .step-num { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--accent); flex: 0 0 auto; min-width: 24px; }
+  .step-title { font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--ink); }
+  .step-sub { font-size: 13px; color: var(--ink-soft); margin: 4px 0 18px 36px; line-height: 1.7; }
 
-  .chips { display:flex; flex-wrap:wrap; gap:9px; }
-  .chip { border:1px solid var(--line); border-radius:30px; padding:10px 16px; cursor:pointer; font-size:15px; font-weight:600; background:#fcfbf8; color:var(--ink-soft); user-select:none; }
-  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .side .chip.on { background:var(--gold); border-color:var(--gold); }
+  /* ── 입력 필드 ── */
+  label.fl { display: block; font-size: 12px; color: var(--ink-soft); margin: 16px 0 6px; font-weight: 600; letter-spacing: 0.3px; }
+  input[type=text], input[type=tel], input[type=email], textarea { width: 100%; font-size: 15px; font-family: var(--font-body); padding: 12px 13px; border: 1px solid var(--line); border-radius: 4px; background: #fcfbf8; color: var(--ink); }
+  input:focus, textarea:focus { outline: none; border-color: var(--ink); background: #fff; }
+  textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
 
-  .reco { margin-top:14px; padding:13px 15px; border-radius:10px; background:linear-gradient(135deg,#fff7e9,#fdf0d6); border:1px solid #ecd9a8; }
-  .reco .rh { font-weight:700; color:var(--gold); font-size:14px; }
-  .reco .rp { font-size:19px; font-weight:800; color:var(--ink); margin:5px 0 3px; font-family:var(--font-display); }
-  .reco .rw { font-size:13px; color:var(--ink-soft); }
+  /* ── 버튼 ── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 15px; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-body); background: var(--ink); color: var(--paper); transition: background .15s, transform .05s; }
+  .btn:hover { background: var(--accent-deep); } .btn:active { transform: translateY(1px); } .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--ink); } .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+  .btn-mini { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); width: auto; letter-spacing: 0.3px; }
+  .btn-mini:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-  .price-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
-  .price-tab { border:1px solid var(--line); border-radius:10px; padding:10px 4px; flex:1; min-width:70px; text-align:center; cursor:pointer; font-weight:500; background:#fcfbf8; color:var(--ink); font-size:13px; line-height:1.5; }
-  .price-tab b { font-size:14px; font-weight:700; }
-  .price-tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .design-detail { display:flex; gap:14px; align-items:stretch; }
-  .design-photo { flex:0 0 130px; aspect-ratio:3/4; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; text-align:center; }
-  .design-info { flex:1; display:flex; flex-direction:column; justify-content:center; gap:6px; }
-  .design-name { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--accent-deep); }
-  .design-code { font-size:12px; color:var(--ink-faint); }
-  .design-desc { font-size:14px; color:var(--ink-soft); line-height:1.6; }
-  .design-price { font-size:20px; font-weight:700; color:var(--ink); margin-top:4px; }
-  .design-honest { font-size:12px; color:var(--accent); font-weight:500; margin-left:4px; }
-  .corp-badge { margin-top:14px; background:var(--accent-soft); border:1px dashed var(--accent); border-radius:10px; padding:11px 14px; font-size:13px; color:var(--accent-deep); cursor:pointer; line-height:1.5; }
-  .corp-badge b { font-weight:700; }
-  .phone-order { margin-top:14px; padding:12px 14px; background:#f3f1ec; border-radius:10px; font-size:13px; color:var(--ink); line-height:1.6; }
-  .phone-order b { color:var(--accent-deep); font-size:15px; }
-  .phone-order span { font-size:12px; color:var(--ink-soft); }
-  .designs { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .design { border:1px solid var(--line); border-radius:12px; overflow:hidden; cursor:pointer; background:#fcfbf8; }
-  .design.on { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset; }
-  .design .ph { aspect-ratio:1/1; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 8px,#ece7da 8px,#ece7da 16px); display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:12px; }
-  .design .nm { padding:10px; font-size:14px; font-weight:600; text-align:center; }
-  .soon-note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:12px 14px; border-radius:10px; }
+  .hint { font-size: 13px; color: var(--ink-soft); margin-top: 8px; }
+  .hidden { display: none !important; }
+  .err { color: var(--danger); font-size: 14px; margin-top: 10px; font-weight: 600; }
+  .loading { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: 14px; padding: 6px 0; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .tone-tabs { display:flex; gap:8px; margin:4px 0 10px; }
-  .tone-tab { flex:1; text-align:center; padding:8px; border:1px solid var(--line); border-radius:9px; background:#fcfbf8; cursor:pointer; font-size:14px; font-weight:600; color:var(--ink-soft); }
-  .tone-tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .ribbon-opts { display:flex; flex-direction:column; gap:8px; }
-  .ribbon-opt { border:1px solid var(--line); border-radius:9px; padding:11px 13px; cursor:pointer; font-size:15px; background:#fcfbf8; }
-  .ribbon-opt.on { border-color:var(--accent); background:var(--accent-soft); }
+  /* ── 종류 표시 ── */
+  .type-pill { display: inline-block; font-family: var(--font-display); font-size: 13px; font-weight: 700; padding: 4px 12px; border: 1px solid var(--ink); border-radius: 3px; margin-bottom: 14px; letter-spacing: 0.5px; }
+  .type-pill.t-wed { color: var(--accent-deep); border-color: var(--accent); }
+  .type-pill.t-fun { color: var(--condo); border-color: var(--condo); }
 
-  .total-row { display:flex; justify-content:space-between; align-items:center; margin:16px 0; font-size:17px; }
-  .total-row .amt { font-size:24px; font-weight:800; font-family:var(--font-display); color:var(--accent-deep); }
-  #pay-method, #pay-agree { margin-top:8px; }
-  .notice { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:12px 14px; border-radius:10px; margin-top:14px; line-height:1.6; }
-  .share-row { display:flex; gap:10px; margin-top:14px; }
-  footer { text-align:center; color:var(--ink-soft); font-size:12px; margin-top:28px; line-height:1.9; }
+  /* ── 자동입력 필드 ── */
+  .af-field { margin-bottom: 14px; }
+  .af-field label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 5px; font-weight: 600; }
+  .af-input-wrap { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 4px; background: #fcfbf8; padding: 0 12px; }
+  .af-input-wrap:focus-within { border-color: var(--ink); background: #fff; }
+  .af-input-wrap input { border: none; outline: none; background: transparent; padding: 11px 0; flex: 1; font-size: 15px; }
+  .af-auto { font-size: 10px; color: var(--auto); background: var(--auto-bg); padding: 2px 7px; border-radius: 2px; flex: 0 0 auto; font-weight: 600; letter-spacing: 0.5px; }
 
-  .buyer-tabs { display:flex; gap:8px; margin-bottom:6px; }
-  .buyer-tab { flex:1; text-align:center; padding:11px; border:1px solid var(--line); border-radius:10px; background:#fcfbf8; cursor:pointer; font-size:15px; font-weight:600; color:var(--ink-soft); }
-  .buyer-tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .corp-box { margin-top:8px; padding:14px; border:1px solid var(--line); border-radius:10px; background:#faf8f3; }
-  .corp-note { font-size:13px; color:var(--ink-soft); line-height:1.6; margin-bottom:4px; }
+  /* ── 칩(신랑/신부) ── */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { border: 1px solid var(--line); border-radius: 3px; padding: 11px 18px; cursor: pointer; font-size: 15px; font-weight: 600; background: transparent; color: var(--ink-soft); user-select: none; transition: all .15s; }
+  .chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .side .chip.on { background: var(--gold); border-color: var(--gold); }
 
-  .foot-brand { font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--accent-deep); margin-bottom:8px; }
-  .foot-sub { font-size:12px; color:var(--ink-soft); margin-bottom:12px; }
-  .foot-info { font-size:12px; color:var(--ink-soft); line-height:1.8; }
-  .foot-links { margin:12px 0 8px; font-size:12px; }
-  .foot-links a { color:var(--accent-deep); text-decoration:none; }
-  .foot-copy { font-size:12px; color:var(--ink-faint); margin-top:8px; }
+  /* ── 추천 박스 ── */
+  .reco { margin-top: 14px; padding: 14px 16px; border-radius: 4px; background: #faf6ec; border: 1px solid #e3d6b3; }
+  .reco .rh { font-family: var(--font-display); font-weight: 700; color: var(--gold); font-size: 13px; letter-spacing: 0.5px; }
+  .reco .rp { font-size: 18px; font-weight: 700; color: var(--ink); margin: 4px 0 2px; font-family: var(--font-display); }
+  .reco .rw { font-size: 13px; color: var(--ink-soft); }
 
-  .modal-bg { position:fixed; inset:0; background:rgba(43,42,38,0.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:100; }
-  .modal { background:#fff; border-radius:14px; max-width:480px; width:100%; max-height:80vh; overflow:auto; }
-  .modal-head { display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid var(--line); font-weight:700; font-family:var(--font-display); }
-  .modal-x { background:none; border:none; font-size:18px; cursor:pointer; color:var(--ink-soft); }
-  .modal-body { padding:18px; font-size:14px; line-height:1.7; color:var(--ink); white-space:pre-line; }
+  /* ── 가격 탭 ── */
+  .price-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .price-tab { border: 1px solid var(--line); border-radius: 3px; padding: 11px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: 12px; line-height: 1.5; transition: all .15s; }
+  .price-tab b { font-size: 14px; font-weight: 700; font-family: var(--font-display); }
+  .price-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .design-detail { display: flex; gap: 16px; align-items: stretch; margin-top: 6px; }
+  .design-photo { flex: 0 0 130px; aspect-ratio: 3/4; background: var(--line-soft); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; text-align: center; overflow: hidden; }
+  .design-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .design-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+  .design-name { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); }
+  .design-code { font-size: 11px; color: var(--ink-faint); letter-spacing: 1px; }
+  .design-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.7; margin-top: 4px; }
+  .design-price { font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); }
+
+  /* ── 법인 안내 — 가로선 위 한 줄 ── */
+  .corp-line { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--ink-soft); text-align: center; line-height: 1.7; cursor: pointer; }
+  .corp-line b { color: var(--ink); font-weight: 600; }
+
+  /* ── 전화 안내 — 단정한 가로 막대 ── */
+  .phone-order { margin-top: 18px; padding: 14px 16px; background: transparent; border: 1px solid var(--line); border-radius: 4px; font-size: 13px; color: var(--ink); line-height: 1.7; }
+  .phone-order b { color: var(--ink); font-size: 14px; font-family: var(--font-display); font-weight: 700; }
+  .phone-order span { font-size: 12px; color: var(--ink-soft); display: block; margin-top: 4px; }
+
+  /* ── 특별제작 안내 — 점선 박스 제거, 가로선 + 작은 화살표 링크 ── */
+  .special-hint { margin-top: 18px; padding: 14px 0 0; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .special-hint a { display: inline-block; margin-top: 4px; color: var(--ink); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--ink); padding-bottom: 1px; }
+
+  /* ── 리본 가이드 — 박스 제거, 사진 + 텍스트만 ── */
+  .ribbon-guide { display: flex; gap: 16px; align-items: center; padding: 4px 0 18px; border-bottom: 1px solid var(--line-soft); margin-bottom: 4px; }
+  .ribbon-photo-placeholder { flex-shrink: 0; width: 120px; aspect-ratio: 4/3; background: var(--line-soft); border-radius: 4px; display: flex; align-items: center; justify-content: center; padding: 6px; overflow: hidden; }
+  .ribbon-photo-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+  .ribbon-guide-text { flex: 1; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .ribbon-guide-text b { color: var(--ink); font-weight: 700; }
+
+  /* ── 디자인 그리드 (현재 미사용이지만 유지) ── */
+  .designs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .design { border: 1px solid var(--line); border-radius: 4px; overflow: hidden; cursor: pointer; background: transparent; }
+  .design.on { border-color: var(--ink); }
+  .design .ph { aspect-ratio: 1/1; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; }
+  .design .nm { padding: 10px; font-size: 13px; font-weight: 600; text-align: center; }
+  .soon-note { font-size: 13px; color: var(--ink-soft); padding: 12px 0; border-top: 1px solid var(--line-soft); }
+
+  /* ── 톤 탭 ── */
+  .tone-tabs { display: flex; gap: 6px; margin: 4px 0 12px; }
+  .tone-tab { flex: 1; text-align: center; padding: 9px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  .tone-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ribbon-opts { display: flex; flex-direction: column; gap: 8px; }
+  .ribbon-opt { border: 1px solid var(--line); border-radius: 4px; padding: 11px 13px; cursor: pointer; font-size: 14px; background: transparent; }
+  .ribbon-opt.on { border-color: var(--ink); background: #faf8f3; }
+
+  /* ── 결제 ── */
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 14px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .total-row .amt { font-size: 26px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
+  #pay-method, #pay-agree { margin-top: 8px; }
+  .delivery-note { font-size: 12px; color: var(--ink-soft); margin: 10px 0 16px; line-height: 1.7; padding: 10px 12px; background: #faf8f3; border-radius: 4px; }
+  .delivery-note span { color: var(--ink-faint); font-size: 11px; }
+  .notice { font-size: 12px; color: var(--ink-soft); padding: 12px 0 0; border-top: 1px solid var(--line-soft); margin-top: 18px; line-height: 1.7; }
+  .share-row { display: flex; gap: 10px; margin-top: 14px; }
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 40px; line-height: 1.9; padding-top: 30px; border-top: 1px solid var(--line); }
+
+  /* ── 법인 탭 ── */
+  .buyer-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+  .buyer-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+  .buyer-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .corp-box { margin-top: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 4px; background: #faf8f3; }
+  .corp-note { font-size: 12px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 4px; }
+
+  /* ── 푸터 ── */
+  .foot-brand { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; letter-spacing: 0.5px; }
+  .foot-sub { font-size: 11px; color: var(--ink-faint); margin-bottom: 16px; letter-spacing: 0.5px; }
+  .foot-info { font-size: 11px; color: var(--ink-soft); line-height: 2.0; }
+  .foot-links { margin: 14px 0 10px; font-size: 11px; }
+  .foot-links a { color: var(--ink-soft); text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 1px; }
+  .foot-copy { font-size: 10px; color: var(--ink-faint); margin-top: 12px; letter-spacing: 0.5px; }
+
+  /* ── 모달 ── */
+  .modal-bg { position: fixed; inset: 0; background: rgba(31,29,24,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+  .modal { background: var(--paper); border-radius: 4px; max-width: 480px; width: 100%; max-height: 80vh; overflow: auto; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); font-weight: 700; font-family: var(--font-display); font-size: 16px; }
+  .modal-x { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ink-soft); }
+  .modal-body { padding: 20px; font-size: 13px; line-height: 1.8; color: var(--ink); white-space: pre-line; }
+
+  /* ── 카탈로그 배너 (sticky) ── */
+  #catalogBanner { background: var(--ink) !important; border: none !important; color: var(--paper); padding: 12px 16px !important; }
+  #catalogBanner div { color: var(--paper) !important; }
+  #catalogBanner .pick-label { font-size: 11px; letter-spacing: 1px; opacity: 0.7; }
+  #catalogBanner .pick-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -161,72 +224,83 @@
 
   <header>
     <div class="brand">아마존플라워</div>
-    <div class="loc">📍 경기 시흥시 신천3길 23</div>
+    <div class="brand-sub">AMAZON FLOWER · SINCE 1993</div>
   </header>
 
   <section class="hero">
-    <!-- 사진 슬라이드: 나중에 각 slide의 내용을 <img src="/대표1.jpg"> 등으로 교체하면 됩니다 -->
     <div class="hero-strip" id="heroStrip">
       <div class="strip-track">
-        <img src="/photos/대표1.jpg" alt="1996년 아마존플라워 꽃집">
-        <img src="/photos/대표2.jpg" alt="아마존플라워 옛 꽃집 전경">
-        <img src="/photos/제단장식.jpg" alt="흰 백합 꽃 장식">
-        <img src="/photos/축하_고급형.jpg" alt="축하 꽃 장식">
-        <img src="/photos/축하바구니.jpg" alt="축하 꽃바구니">
-        <img src="/photos/대표1.jpg" alt="">
-        <img src="/photos/대표2.jpg" alt="">
-        <img src="/photos/제단장식.jpg" alt="">
-        <img src="/photos/축하_고급형.jpg" alt="">
-        <img src="/photos/축하바구니.jpg" alt="">
+        <img src="/photos/hero/대표1.jpg" alt="1996년 아마존플라워 꽃집">
+        <img src="/photos/hero/대표2.jpg" alt="아마존플라워 옛 꽃집 전경">
+        <img src="/photos/특별제작/제단장식.jpg" alt="제단 장식">
+        <img src="/photos/화환/축하/고급형.jpg" alt="축하 화환 고급형">
+        <img src="/photos/특별제작/축하바구니.jpg" alt="축하 꽃바구니">
+        <img src="/photos/hero/대표1.jpg" alt="">
+        <img src="/photos/hero/대표2.jpg" alt="">
+        <img src="/photos/특별제작/제단장식.jpg" alt="">
+        <img src="/photos/화환/축하/고급형.jpg" alt="">
+        <img src="/photos/특별제작/축하바구니.jpg" alt="">
       </div>
     </div>
-    <h1>꽃길 30년,<br>거품은 뺐습니다</h1>
-    <p class="lede">청첩장·부고 링크만 보내주세요.<br>나머지는 저희가 알아서 챙겨드립니다.</p>
-    <div class="badges-2">
-      <div class="badge-lg"><span class="ic">🔗</span><div><div class="t">링크 하나면 끝</div><div class="d">복잡한 입력 없이</div></div></div>
-      <div class="badge-lg"><span class="ic">📸</span><div><div class="t">도착 확인 사진</div><div class="d">현장 사진으로 안심</div></div></div>
+
+    <h1>1993년부터,<br>단정한 꽃</h1>
+    <p class="lede">청첩장·부고 링크만 보내주세요.<br>한 자리에서 30년, 사장님이 직접 챙겨드립니다.</p>
+
+    <div class="marks">
+      <div class="mark">
+        <div class="mt">1993—</div>
+        <div class="md">33년 한 자리</div>
+      </div>
+      <div class="mark">
+        <div class="mt">근조 · 축하</div>
+        <div class="md">전 등급 정찰</div>
+      </div>
+      <div class="mark">
+        <div class="mt">전국</div>
+        <div class="md">당일 배송</div>
+      </div>
     </div>
-    <div class="badges-3">
-      <div class="badge-sm"><div class="ic">🏅</div><div class="t">1993년부터</div></div>
-      <div class="badge-sm"><div class="ic">🏷️</div><div class="t">정직한 가격</div></div>
-      <div class="badge-sm"><div class="ic">🚚</div><div class="t">전국 당일배송</div></div>
-    </div>
-    <a class="btn btn-ghost" href="/catalog.html" style="margin-top:14px;text-decoration:none;">💐 전체 화환 둘러보기</a>
-    <div class="corp-badge" onclick="document.getElementById('payCard')?.scrollIntoView({behavior:'smooth'})">
-      🧾 <b>법인 거래처 주문 환영</b> · 계산서 즉시 발행해드립니다
+
+    <a class="catalogue-link" href="/catalog.html">전체 화환 둘러보기 →</a>
+
+    <div class="corp-line" onclick="document.getElementById('payCard')?.scrollIntoView({behavior:'smooth'})">
+      <b>법인 거래처</b> — 계산서 즉시 발행, 후불 결제 상담 가능
     </div>
   </section>
 
-  <section class="card hidden" id="catalogBanner" style="border-color:var(--accent);background:var(--accent-soft);">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:22px;">💐</span>
-      <div style="flex:1;">
-        <div style="font-weight:700;color:var(--accent-deep);">선택하신 화환: <span id="catalogPick"></span></div>
-        <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">아래에서 받는 곳 정보만 입력하시면 이 화환으로 주문돼요.</div>
-      </div>
-    </div>
+  <section class="card hidden" id="catalogBanner" style="position:sticky;top:8px;z-index:10;">
+    <div class="pick-label">SELECTED</div>
+    <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
   <section class="card">
-    <div class="step-head"><span class="step-num">1</span><span class="step-title">어디로 화환을 보낼까요?</span></div>
-    <div class="step-sub">청첩장·부고 링크를 붙여넣으면 자동으로 정리해드려요. 링크가 없으면 장소·날짜를 직접 적으셔도 됩니다.</div>
+    <div class="step-head"><span class="step-num">1.</span><span class="step-title">어디로 화환을 보낼까요?</span></div>
+    <div class="step-sub">청첩장·부고 링크를 붙여넣으면 자동으로 정리해드립니다. 링크가 없으면 장소·날짜를 직접 적으셔도 됩니다.</div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">붙여넣기</button>
+    </div>
     <textarea id="src" placeholder="청첩장·부고 링크를 붙여넣으세요.&#10;또는 직접 입력: 센트럴병원 장례식장 특실 201호, 5월 27일 발인"></textarea>
-    <button class="btn btn-ghost" id="pasteBtn" onclick="pasteFromClipboard()" style="margin-top:10px;">📋 복사한 링크 붙여넣기</button>
-    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:10px;">화환 주문 시작하기</button>
+    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">화환 주문 시작하기</button>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
-    <div class="phone-order">📞 직접 주문·상담도 가능합니다 — <b>031-314-3003</b><br><span>특수 제작(부케·근조바구니)이나 급한 주문은 전화 주시면 1993년부터 꽃을 다뤄온 사장님이 직접 챙겨드립니다.</span></div>
+
+    <div class="special-hint">
+      부케 · 근조바구니 · 제단 장식도 주문 가능합니다. 1993년부터 사장님이 직접 제작해 드립니다.<br>
+      <a href="/catalog.html">전체 상품 보기 →</a>
+    </div>
+
+    <div class="phone-order"><b>전화 주문 · 상담  031-314-3003</b><span>특수 제작이나 급한 주문은 전화 주시면 사장님이 직접 챙겨드립니다.</span></div>
   </section>
 
   <section class="card hidden" id="confirmCard">
-    <div class="step-head"><span class="step-num">2</span><span class="step-title">자동으로 채웠어요</span></div>
+    <div class="step-head"><span class="step-num">2.</span><span class="step-title">자동으로 채웠어요</span></div>
     <div class="step-sub">맞는지만 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
     <div id="typePill"></div>
     <div id="afFields"></div>
   </section>
 
   <section class="card hidden" id="sideCard">
-    <div class="step-head"><span class="step-num" id="n-side">3</span><span class="step-title">어느 쪽에 보내시나요?</span></div>
+    <div class="step-head"><span class="step-num" id="n-side">3.</span><span class="step-title">어느 쪽에 보내시나요?</span></div>
     <div class="step-sub">리본 문구에 반영됩니다.</div>
     <div class="chips side" id="sideChips">
       <div class="chip" onclick="selSide('groom')">신랑 측</div>
@@ -235,7 +309,7 @@
   </section>
 
   <section class="card hidden" id="prodCard">
-    <div class="step-head"><span class="step-num" id="n-prod">4</span><span class="step-title">가격대 → 디자인 선택</span></div>
+    <div class="step-head"><span class="step-num" id="n-prod">4.</span><span class="step-title">가격대 선택</span></div>
     <div class="step-sub">친구·지인은 보통 일반형·중급형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요.</div>
     <div class="price-tabs" id="priceTabs">
       <div class="price-tab" onclick="selTier(0)"><b>일반형</b><br>59,000원</div>
@@ -249,14 +323,29 @@
   </section>
 
   <section class="card hidden" id="senderCard">
-    <div class="step-head"><span class="step-num" id="n-send">6</span><span class="step-title">보내는 분 / 리본 문구</span></div>
+    <div class="step-head"><span class="step-num" id="n-send">6.</span><span class="step-title">보내는 분 · 리본 문구</span></div>
     <div class="step-sub">보내는 분 정보는 직접 입력해주세요. 리본 문구는 자동으로 맞춰드립니다.</div>
+
+    <div class="ribbon-guide">
+      <div class="ribbon-photo-placeholder">
+        <img src="/photos/안내/리본_예시.jpg" alt="리본 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div style="display:none;font-size:11px;color:var(--ink-faint);text-align:center;line-height:1.6;">
+          리본 예시 사진<br>
+          <span style="font-size:10px;">(준비 중)</span>
+        </div>
+      </div>
+      <div class="ribbon-guide-text">
+        화환 양쪽에 달리는 리본입니다.<br>
+        <b>왼편</b> 보내는 분 · <b>오른편</b> 인사 문구
+      </div>
+    </div>
+
     <label class="fl">보내는 분 성함</label>
-    <input type="text" id="senderName" placeholder="홍길동" oninput="syncRibbonLeft()" />
+    <input type="text" id="senderName" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft()" />
     <label class="fl">연락처 <span style="font-weight:400;color:var(--ink-faint);">(도착 확인 사진을 이 번호로 보내드립니다)</span></label>
     <input type="tel" id="senderPhone" placeholder="010-0000-0000" inputmode="tel" />
     <label class="fl">리본 — 왼편 (보내는 분)</label>
-    <input type="text" id="ribbonLeft" placeholder="예) 홍길동 드림" />
+    <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
     <label class="fl">리본 — 오른편 (문구)</label>
     <div class="tone-tabs" id="toneTabs"></div>
     <div class="ribbon-opts" id="ribbonOpts"></div>
@@ -264,7 +353,7 @@
   </section>
 
   <section class="card hidden" id="payCard">
-    <div class="step-head"><span class="step-num" id="n-pay">7</span><span class="step-title">결제</span></div>
+    <div class="step-head"><span class="step-num" id="n-pay">7.</span><span class="step-title">결제</span></div>
     <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
 
     <label class="fl">주문 유형</label>
@@ -309,7 +398,7 @@
       <a href="#" onclick="showPolicy('refund');return false;">교환·환불 안내</a> ·
       <a href="#" onclick="showPolicy('privacy');return false;">개인정보처리방침</a>
     </div>
-    <div class="foot-copy">꽃길 30년 · 축하화환 · 근조화환 · 전국 당일배송</div>
+    <div class="foot-copy">1993년부터, 단정한 꽃  ·  근조 · 축하 화환  ·  전국 당일배송</div>
   </footer>
 </div>
 
@@ -410,7 +499,7 @@ function applyParsed(r){
   });
   const isWed=order.type==="wedding", isFun=order.type==="funeral";
   document.getElementById("typePill").innerHTML =
-    `<span class="type-pill ${isWed?'t-wed':isFun?'t-fun':''}">🌸 ${isWed?'결혼식 · 축하화환':isFun?'장례식 · 근조화환':'구분 미확인'}</span>`;
+    `<span class="type-pill ${isWed?'t-wed':isFun?'t-fun':''}">${isWed?'결혼식 · 축하화환':isFun?'장례식 · 근조화환':'구분 미확인'}</span>`;
 
   const field=(key,label,val)=>`
     <div class="af-field"><label>${label}</label>
@@ -445,10 +534,10 @@ function applyParsed(r){
 }
 
 function renumber(hasSide){
-  document.getElementById("n-side").textContent=3;
-  document.getElementById("n-prod").textContent=hasSide?4:3;
-  document.getElementById("n-send").textContent=hasSide?5:4;
-  document.getElementById("n-pay").textContent=hasSide?6:5;
+  document.getElementById("n-side").textContent="3.";
+  document.getElementById("n-prod").textContent=(hasSide?4:3)+".";
+  document.getElementById("n-send").textContent=(hasSide?5:4)+".";
+  document.getElementById("n-pay").textContent=(hasSide?6:5)+".";
 }
 
 function selSide(s){
@@ -484,16 +573,19 @@ function selTier(i){
   const kind=isFun?"근조화환":"축하화환";
   const codeLabel=(isFun?"AF-C0":"AF-G0")+t.key;
   order.productLabel=kind+" "+t.grade+" ("+codeLabel+")";
-  // 사진 파일명 규칙: 근조_일반형.jpg / 축하_중급형.jpg ... (나중에 이 이름으로 업로드)
-  const photoName=(isFun?"근조_":"축하_")+t.grade+".jpg";
+  // 새 폴더 구조: photos/화환/근조/일반형.jpg 등. 사진 있으면 표시, 없으면 placeholder.
+  const sub = isFun ? "근조" : "축하";
+  const photoPath = `/photos/화환/${sub}/${t.grade}.jpg`;
   const area=document.getElementById("designArea");
   area.innerHTML=`<div class="design-detail">
-      <div class="design-photo" id="designPhoto">사진 준비 중<br><span style="font-size:11px;">(${photoName})</span></div>
+      <div class="design-photo">
+        <img src="${photoPath}" alt="${kind} ${t.grade}" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:11px;color:#9e9a8f;\\'>사진 준비 중</span>';">
+      </div>
       <div class="design-info">
         <div class="design-name">${kind} ${t.grade}</div>
         <div class="design-code">${codeLabel}</div>
         <div class="design-desc">${t.desc}</div>
-        <div class="design-price">${t.price.toLocaleString()}원 <span class="design-honest">거품 뺀 가격</span></div>
+        <div class="design-price">${t.price.toLocaleString()}원</div>
       </div>
     </div>`;
   document.getElementById("totalAmt").textContent=t.price.toLocaleString()+"원";
@@ -540,8 +632,10 @@ function pickRibbon(el,txt){
 }
 function syncRibbonLeft(){
   order.senderName=document.getElementById("senderName").value.trim();
+  // 보내는 분 이름이 입력되면 왼편 리본도 같은 값으로 자동 채움 (사용자가 직접 수정하지 않았을 때만)
+  // '드림' 자동 추가는 하지 않음 — 법인·근조·개인마다 어울리는 어미가 달라서 사용자가 직접 적는 게 자연스러움
   const left=document.getElementById("ribbonLeft");
-  if(order.senderName && !left.dataset.touched){ left.value=order.senderName+" 드림"; order.ribbonLeft=left.value; }
+  if(order.senderName && !left.dataset.touched){ left.value=order.senderName; order.ribbonLeft=left.value; }
 }
 document.addEventListener("input",e=>{
   if(e.target.id==="ribbonRight") order.ribbonRight=e.target.value;
@@ -631,7 +725,7 @@ function renderDone(data,o){
       <div style="font-size:44px;">✿</div>
       <div class="step-title" style="margin:6px 0;">주문이 완료되었습니다</div>
       <p style="color:var(--ink-soft);margin-bottom:14px;">사장님이 확인 후 화환을 준비합니다.<br>배송이 끝나면 도착 확인 사진을 보내드려요.</p>
-      <div style="background:#f3f6f3;border:1px dashed var(--accent);border-radius:10px;padding:14px;text-align:left;font-size:15px;">
+      <div style="background:#faf8f3;border:1px solid var(--line);border-radius:4px;padding:16px;text-align:left;font-size:14px;line-height:1.9;">
         <div>상품: ${escapeHtml(o.productLabel||"")}</div>
         <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
         ${place?`<div>장소: ${escapeHtml(place)}</div>`:""}
@@ -639,7 +733,7 @@ function renderDone(data,o){
         <div>주문번호: ${escapeHtml(p.orderId||"")}</div>
       </div>
       <div class="share-row">
-        <button class="btn btn-ghost" onclick="shareSite()">🔗 친구에게 알리기</button>
+        <button class="btn btn-ghost" onclick="shareSite()">친구에게 알리기</button>
         ${p.receiptUrl?`<a class="btn btn-ghost" href="${p.receiptUrl}" target="_blank">영수증</a>`:""}
       </div>
       <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
@@ -677,7 +771,7 @@ function showPolicy(key){
 
 function shareSite(){
   const url=location.origin;
-  const text="꽃길 30년, 거품 없는 정직한 화환 — 아마존플라워";
+  const text="1993년부터, 단정한 꽃 — 아마존플라워";
   if(navigator.share){ navigator.share({title:"아마존플라워",text,url}).catch(()=>{}); }
   else { navigator.clipboard?.writeText(url); alert("링크가 복사되었습니다.\n"+url); }
 }
@@ -703,6 +797,11 @@ function handleCatalogParam(){
   if(cprice) window.__presetPrice=Number(cprice);
   if(ctype) window.__presetType=ctype;
   cleanUrl();
+  // 1번 카드(받는 곳 입력)로 자동 스크롤 — 사용자가 추가 스크롤 없이 바로 입력 시작
+  setTimeout(()=>{
+    const firstCard=document.querySelector(".card:not(#catalogBanner):not(.hidden)");
+    if(firstCard) firstCard.scrollIntoView({behavior:"smooth",block:"start"});
+  },200);
 }
 
 handleRedirect();
