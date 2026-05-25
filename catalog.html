@@ -53,6 +53,20 @@
   .item .order:hover { background:var(--accent-deep); }
   .item .order.condo { background:var(--condo); }
 
+  .special { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); }
+  .special-head { margin-bottom:16px; }
+  .special-title { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--accent-deep); }
+  .special-sub { font-size:13px; color:var(--ink-soft); margin-top:6px; line-height:1.6; }
+  .special-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .special-item { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .special-photo { aspect-ratio:4/3; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; text-align:center; }
+  .special-photo span { font-size:11px; }
+  .special-body { padding:13px 14px 15px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .snm { font-weight:700; font-size:16px; }
+  .sdesc { font-size:12px; color:var(--ink-soft); line-height:1.5; flex:1; }
+  .sprice { font-family:var(--font-display); font-size:17px; font-weight:800; color:var(--accent-deep); }
+  .scall { margin-top:6px; padding:10px; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:13px; text-align:center; text-decoration:none; }
+  .scall:hover { background:var(--accent-deep); }
   .note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:13px 15px; border-radius:10px; margin-top:22px; line-height:1.7; }
   footer { text-align:center; color:var(--ink-faint); font-size:12px; margin-top:26px; line-height:1.8; }
   .hidden { display:none !important; }
@@ -70,11 +84,38 @@
   </header>
 
   <div class="seg">
-    <button id="tabCondo" class="on condo" onclick="showCat('condolence')">근조화환</button>
-    <button id="tabCongrats" onclick="showCat('congrats')">축하화환</button>
+    <button id="tabCongrats" class="on" onclick="showCat('congrats')">축하화환</button>
+    <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조화환</button>
   </div>
 
   <div id="catArea"></div>
+
+  <div class="special">
+    <div class="special-head">
+      <div class="special-title">✿ 특별 제작 — 30년 경력 직접 제작</div>
+      <div class="special-sub">스탠드 화환 외에도, 사장님이 직접 만드는 수제 상품입니다. 맞춤 제작이라 전화로 상담 주문해주세요.</div>
+    </div>
+    <div class="special-grid">
+      <div class="special-item">
+        <div class="special-photo">사진 준비 중<br><span>(신부부케.jpg)</span></div>
+        <div class="special-body">
+          <div class="snm">신부 부케</div>
+          <div class="sdesc">결혼식 신부 부케. 생화로 직접 제작합니다. 원하시는 색·꽃 종류에 맞춰 맞춤 제작해요.</div>
+          <div class="sprice">맞춤 상담</div>
+          <a class="scall" href="tel:031-314-3003">📞 전화 상담 031-314-3003</a>
+        </div>
+      </div>
+      <div class="special-item">
+        <div class="special-photo">사진 준비 중<br><span>(근조바구니.jpg)</span></div>
+        <div class="special-body">
+          <div class="snm">근조 바구니</div>
+          <div class="sdesc">장례식장에 보내는 근조 바구니(꽃바구니). 단정하고 정성스럽게 제작합니다.</div>
+          <div class="sprice">100,000원</div>
+          <a class="scall" href="tel:031-314-3003">📞 전화 주문 031-314-3003</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="note">
     ※ 사진은 준비 중입니다. 실제 상품 사진으로 곧 교체됩니다.<br>
@@ -141,7 +182,7 @@ function goOrder(type, price){
   location.href = "/?type="+type+"&price="+price;
 }
 
-showCat("condolence");
+showCat("congrats");
 </script>
 </body>
 </html>
