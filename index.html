@@ -3,633 +3,657 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>아마존플라워 — 화환 주문</title>
+<title>아마존플라워 — 꽃길 30년, 거품은 뺐습니다</title>
+<meta name="description" content="모바일 청첩장·부고 링크만 보내면 알맞은 화환을 정리해드립니다. 정직한 가격, 전국 당일배송, 도착 확인 사진까지." />
+<!-- 오픈그래프: 카톡·문자 등에 링크 공유 시 미리보기 카드로 뜸 -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="아마존플라워 — 꽃길 30년, 거품은 뺐습니다" />
+<meta property="og:description" content="전국 당일배송 · 축하화환 · 근조화환 · 정직한 가격" />
+<meta property="og:image" content="/og_preview.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
   :root {
-    --bg: #f7f4ee;
-    --paper: #ffffff;
-    --ink: #2b2a26;
-    --ink-soft: #6b6860;
-    --line: #e3ddd1;
-    --accent: #3a6b4f;      /* 차분한 그린 */
-    --accent-deep: #2a5640;
-    --gold: #b08945;
-    --condo: #46505c;       /* 근조 톤 */
-    --danger: #b3463a;
-    --radius: 14px;
-    --shadow: 0 2px 10px rgba(43,42,38,0.06), 0 8px 30px rgba(43,42,38,0.06);
+    --bg: #f7f4ee; --paper: #ffffff; --ink: #2b2a26; --ink-soft: #6b6860; --ink-faint: #9a978d;
+    --line: #e3ddd1; --accent: #3a6b4f; --accent-deep: #2a5640; --accent-soft: #eef3ef;
+    --gold: #b08945; --condo: #46505c; --danger: #b3463a; --auto: #2f6db5; --auto-bg: #e9f1fb;
+    --radius: 14px; --shadow: 0 2px 10px rgba(43,42,38,0.06), 0 8px 30px rgba(43,42,38,0.06);
     --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
     --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
   }
-  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
-  body {
-    font-family: var(--font-body);
-    background: var(--bg);
-    color: var(--ink);
-    line-height: 1.6;
-    font-size: 17px;
-    padding-bottom: 40px;
-  }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.6; font-size: 17px; padding-bottom: 50px; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 18px; }
 
-  header {
-    text-align: center;
-    padding: 32px 18px 20px;
-    border-bottom: 1px solid var(--line);
-    background: linear-gradient(180deg, #fbf9f4, var(--bg));
-  }
-  header .logo {
-    font-family: var(--font-display);
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--accent-deep);
-  }
-  header .sub { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+  header { text-align: center; padding: 30px 18px 8px; }
+  .brand { font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--accent-deep); letter-spacing:-0.5px; }
+  .loc { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--ink-soft); background:#fff; border:1px solid var(--line); padding:4px 11px; border-radius:20px; margin-top:10px; }
 
-  .card {
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px;
-    margin-top: 20px;
-  }
-  .step-label {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--font-display);
-    font-weight: 700; font-size: 19px; color: var(--ink);
-    margin-bottom: 14px;
-  }
-  .step-num {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--accent); color: #fff;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700; font-family: var(--font-body);
-    flex: 0 0 auto;
-  }
+  .hero { background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 22px; margin-top:16px; text-align:center; }
+  .hero-photo { width:100%; max-width:300px; margin:0 auto 18px; aspect-ratio:16/9;
+    background: repeating-linear-gradient(45deg,#f0ece2,#f0ece2 10px,#ece7da 10px,#ece7da 20px);
+    border:1px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; color:var(--ink-faint); font-size:13px; }
+  .hero h1 { font-family: var(--font-display); font-size: 27px; font-weight:800; line-height:1.35; color:var(--ink); }
+  .hero .lede { font-size:15px; color:var(--ink-soft); line-height:1.7; margin-top:12px; }
+  .hero .lede b { color: var(--accent-deep); font-weight:700; }
+  .badges-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
+  .badge-lg { background:var(--accent-soft); border-radius:11px; padding:14px; text-align:left; display:flex; gap:10px; align-items:center; }
+  .badge-lg .ic { font-size:22px; flex:0 0 auto; }
+  .badge-lg .t { font-size:14px; font-weight:700; color:var(--accent-deep); }
+  .badge-lg .d { font-size:12px; color:var(--ink-soft); margin-top:1px; }
+  .badges-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
+  .badge-sm { background:#f6f3ec; border-radius:10px; padding:12px 6px; text-align:center; }
+  .badge-sm .ic { font-size:19px; }
+  .badge-sm .t { font-size:13px; font-weight:700; margin-top:3px; color:var(--ink); }
 
-  label.field-label { display:block; font-size: 14px; color: var(--ink-soft); margin: 14px 0 6px; font-weight: 600; }
-  input[type="text"], input[type="tel"], textarea {
-    width: 100%; font-size: 16px; font-family: var(--font-body);
-    padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px;
-    background: #fcfbf8; color: var(--ink);
-  }
-  input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); background:#fff; }
-  textarea { resize: vertical; min-height: 90px; }
+  .card { background: var(--paper); border:1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-top:16px; }
+  .step-head { display:flex; align-items:center; gap:9px; margin-bottom:6px; }
+  .step-num { width:27px;height:27px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:0 0 auto; }
+  .step-title { font-family:var(--font-display); font-weight:700; font-size:18px; }
+  .step-sub { font-size:13px; color:var(--ink-soft); margin:0 0 14px 36px; }
 
-  .tabs { display:flex; gap: 8px; margin-bottom: 14px; }
-  .tab {
-    flex:1; text-align:center; padding: 11px; border:1px solid var(--line);
-    border-radius: 10px; background:#fcfbf8; cursor:pointer; font-weight:600; font-size:15px;
-    color: var(--ink-soft);
-  }
-  .tab.active { background: var(--accent); color:#fff; border-color: var(--accent); }
+  label.fl { display:block; font-size:13px; color:var(--ink-soft); margin:14px 0 5px; font-weight:600; }
+  input[type=text], input[type=tel], textarea { width:100%; font-size:16px; font-family:var(--font-body); padding:12px 13px; border:1px solid var(--line); border-radius:10px; background:#fcfbf8; color:var(--ink); }
+  input:focus, textarea:focus { outline:2px solid var(--accent); border-color:var(--accent); background:#fff; }
+  textarea { resize:vertical; min-height:84px; }
 
-  .btn {
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; padding: 15px; font-size: 17px; font-weight: 700;
-    border: none; border-radius: 11px; cursor: pointer; font-family: var(--font-body);
-    background: var(--accent); color:#fff; transition: background .15s, transform .05s;
-  }
-  .btn:hover { background: var(--accent-deep); }
-  .btn:active { transform: translateY(1px); }
-  .btn:disabled { opacity:.5; cursor: not-allowed; }
-  .btn-ghost { background:#fff; color: var(--accent-deep); border:1px solid var(--accent); }
-  .btn-ghost:hover { background:#f0f5f1; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:15px; font-size:17px; font-weight:700; border:none; border-radius:11px; cursor:pointer; font-family:var(--font-body); background:var(--accent); color:#fff; transition:background .15s, transform .05s; }
+  .btn:hover { background:var(--accent-deep); } .btn:active { transform:translateY(1px); } .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-ghost { background:#fff; color:var(--accent-deep); border:1px solid var(--accent); } .btn-ghost:hover { background:var(--accent-soft); }
 
-  .hint { font-size: 13px; color: var(--ink-soft); margin-top: 8px; }
+  .hint { font-size:13px; color:var(--ink-soft); margin-top:8px; }
+  .hidden { display:none !important; }
+  .err { color:var(--danger); font-size:14px; margin-top:10px; font-weight:600; }
+  .loading { display:flex; align-items:center; gap:10px; color:var(--ink-soft); font-size:15px; padding:6px 0; }
+  .spinner { width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
-  .hidden { display: none !important; }
+  .type-pill { display:inline-flex; align-items:center; gap:6px; background:#f3f1ec; border-radius:9px; padding:5px 12px; font-size:13px; font-weight:600; margin-bottom:14px; }
+  .type-pill.t-wed { background:var(--accent-soft); color:var(--accent-deep); }
+  .type-pill.t-fun { background:#eceef1; color:var(--condo); }
+  .af-field { margin-bottom:12px; }
+  .af-field label { display:block; font-size:13px; color:var(--ink-soft); margin-bottom:4px; font-weight:600; }
+  .af-input-wrap { display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:10px; background:#fcfbf8; padding:0 12px; }
+  .af-input-wrap:focus-within { border-color:var(--accent); outline:2px solid var(--accent); background:#fff; }
+  .af-input-wrap input { border:none; outline:none; background:transparent; padding:11px 0; flex:1; font-size:15px; }
+  .af-auto { font-size:11px; color:var(--auto); background:var(--auto-bg); padding:2px 8px; border-radius:7px; flex:0 0 auto; font-weight:600; }
 
-  .loading { display:flex; align-items:center; gap:10px; color: var(--ink-soft); font-size:15px; padding: 8px 0; }
-  .spinner {
-    width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--accent);
-    border-radius:50%; animation: spin .8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* 파싱 결과 박스 */
-  .parsed { background:#f3f6f3; border:1px dashed var(--accent); border-radius:10px; padding:14px; margin-top:12px; }
-  .parsed .type-badge {
-    display:inline-block; font-size:13px; font-weight:700; padding:3px 10px; border-radius:20px;
-    color:#fff; margin-bottom:8px;
-  }
-  .parsed .type-wedding { background: var(--accent); }
-  .parsed .type-funeral { background: var(--condo); }
-  .parsed dl { display:grid; grid-template-columns: 80px 1fr; gap:6px 10px; font-size:15px; }
-  .parsed dt { color: var(--ink-soft); }
-  .conf-low { color: var(--danger); font-size:13px; margin-top:8px; }
-
-  /* 체크박스 그룹 */
   .chips { display:flex; flex-wrap:wrap; gap:9px; }
-  .chip {
-    border:1px solid var(--line); border-radius: 30px; padding: 10px 16px;
-    cursor:pointer; font-size:15px; font-weight:600; background:#fcfbf8; color:var(--ink-soft);
-    user-select:none;
-  }
-  .chip.active { background: var(--accent); color:#fff; border-color:var(--accent); }
-  .side-choice .chip.active { background: var(--gold); border-color: var(--gold); }
+  .chip { border:1px solid var(--line); border-radius:30px; padding:10px 16px; cursor:pointer; font-size:15px; font-weight:600; background:#fcfbf8; color:var(--ink-soft); user-select:none; }
+  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .side .chip.on { background:var(--gold); border-color:var(--gold); }
 
-  /* AI 추천 */
-  .reco {
-    margin-top:14px; padding:14px 16px; border-radius:10px;
-    background: linear-gradient(135deg,#fff7e9,#fdf0d6); border:1px solid #ecd9a8;
-  }
-  .reco .reco-head { font-weight:700; color: var(--gold); font-size:15px; display:flex; align-items:center; gap:7px; }
-  .reco .reco-price { font-size:21px; font-weight:800; color:var(--ink); margin:6px 0 4px; font-family:var(--font-display); }
-  .reco .reco-why { font-size:14px; color: var(--ink-soft); }
+  .reco { margin-top:14px; padding:13px 15px; border-radius:10px; background:linear-gradient(135deg,#fff7e9,#fdf0d6); border:1px solid #ecd9a8; }
+  .reco .rh { font-weight:700; color:var(--gold); font-size:14px; }
+  .reco .rp { font-size:19px; font-weight:800; color:var(--ink); margin:5px 0 3px; font-family:var(--font-display); }
+  .reco .rw { font-size:13px; color:var(--ink-soft); }
 
-  /* 상품 */
-  .products { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:6px; }
-  .product {
-    border:1px solid var(--line); border-radius:12px; padding:16px 14px; cursor:pointer;
-    background:#fcfbf8; position:relative; text-align:center;
-  }
-  .product.active { border-color: var(--accent); background:#f1f6f2; box-shadow:0 0 0 2px var(--accent) inset; }
-  .product .p-name { font-weight:700; font-size:16px; }
-  .product .p-price { font-size:19px; font-weight:800; font-family:var(--font-display); margin-top:4px; }
-  .product .p-tag {
-    position:absolute; top:-10px; left:50%; transform:translateX(-50%);
-    background: var(--gold); color:#fff; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap;
-  }
-  .product.reco-match { border-color: var(--gold); }
+  .price-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .price-tab { border:1px solid var(--line); border-radius:10px; padding:10px 4px; flex:1; min-width:70px; text-align:center; cursor:pointer; font-weight:500; background:#fcfbf8; color:var(--ink); font-size:13px; line-height:1.5; }
+  .price-tab b { font-size:14px; font-weight:700; }
+  .price-tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .design-detail { display:flex; gap:14px; align-items:stretch; }
+  .design-photo { flex:0 0 130px; aspect-ratio:3/4; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; text-align:center; }
+  .design-info { flex:1; display:flex; flex-direction:column; justify-content:center; gap:6px; }
+  .design-name { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--accent-deep); }
+  .design-code { font-size:12px; color:var(--ink-faint); }
+  .design-desc { font-size:14px; color:var(--ink-soft); line-height:1.6; }
+  .design-price { font-size:20px; font-weight:700; color:var(--ink); margin-top:4px; }
+  .design-honest { font-size:12px; color:var(--accent); font-weight:500; margin-left:4px; }
+  .corp-badge { margin-top:14px; background:var(--accent-soft); border:1px dashed var(--accent); border-radius:10px; padding:11px 14px; font-size:13px; color:var(--accent-deep); cursor:pointer; line-height:1.5; }
+  .corp-badge b { font-weight:700; }
+  .designs { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .design { border:1px solid var(--line); border-radius:12px; overflow:hidden; cursor:pointer; background:#fcfbf8; }
+  .design.on { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset; }
+  .design .ph { aspect-ratio:1/1; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 8px,#ece7da 8px,#ece7da 16px); display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:12px; }
+  .design .nm { padding:10px; font-size:14px; font-weight:600; text-align:center; }
+  .soon-note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:12px 14px; border-radius:10px; }
 
-  .total-row { display:flex; justify-content:space-between; align-items:center; margin:18px 0; font-size:17px; }
-  .total-row .amount { font-size:24px; font-weight:800; font-family:var(--font-display); color: var(--accent-deep); }
+  .tone-tabs { display:flex; gap:8px; margin:4px 0 10px; }
+  .tone-tab { flex:1; text-align:center; padding:8px; border:1px solid var(--line); border-radius:9px; background:#fcfbf8; cursor:pointer; font-size:14px; font-weight:600; color:var(--ink-soft); }
+  .tone-tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .ribbon-opts { display:flex; flex-direction:column; gap:8px; }
+  .ribbon-opt { border:1px solid var(--line); border-radius:9px; padding:11px 13px; cursor:pointer; font-size:15px; background:#fcfbf8; }
+  .ribbon-opt.on { border-color:var(--accent); background:var(--accent-soft); }
 
-  #payment-method, #agreement { margin-top: 10px; }
+  .total-row { display:flex; justify-content:space-between; align-items:center; margin:16px 0; font-size:17px; }
+  .total-row .amt { font-size:24px; font-weight:800; font-family:var(--font-display); color:var(--accent-deep); }
+  #pay-method, #pay-agree { margin-top:8px; }
+  .notice { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:12px 14px; border-radius:10px; margin-top:14px; line-height:1.6; }
+  .share-row { display:flex; gap:10px; margin-top:14px; }
+  footer { text-align:center; color:var(--ink-soft); font-size:12px; margin-top:28px; line-height:1.9; }
 
-  .notice { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:12px 14px; border-radius:10px; margin-top:14px; }
-  .err { color: var(--danger); font-size:14px; margin-top:10px; font-weight:600; }
+  .buyer-tabs { display:flex; gap:8px; margin-bottom:6px; }
+  .buyer-tab { flex:1; text-align:center; padding:11px; border:1px solid var(--line); border-radius:10px; background:#fcfbf8; cursor:pointer; font-size:15px; font-weight:600; color:var(--ink-soft); }
+  .buyer-tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .corp-box { margin-top:8px; padding:14px; border:1px solid var(--line); border-radius:10px; background:#faf8f3; }
+  .corp-note { font-size:13px; color:var(--ink-soft); line-height:1.6; margin-bottom:4px; }
 
-  footer { text-align:center; color:var(--ink-soft); font-size:12px; margin-top:30px; line-height:1.8; }
+  .foot-brand { font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--accent-deep); margin-bottom:8px; }
+  .foot-sub { font-size:12px; color:var(--ink-soft); margin-bottom:12px; }
+  .foot-info { font-size:12px; color:var(--ink-soft); line-height:1.8; }
+  .foot-links { margin:12px 0 8px; font-size:12px; }
+  .foot-links a { color:var(--accent-deep); text-decoration:none; }
+  .foot-copy { font-size:12px; color:var(--ink-faint); margin-top:8px; }
+
+  .modal-bg { position:fixed; inset:0; background:rgba(43,42,38,0.45); display:flex; align-items:center; justify-content:center; padding:20px; z-index:100; }
+  .modal { background:#fff; border-radius:14px; max-width:480px; width:100%; max-height:80vh; overflow:auto; }
+  .modal-head { display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid var(--line); font-weight:700; font-family:var(--font-display); }
+  .modal-x { background:none; border:none; font-size:18px; cursor:pointer; color:var(--ink-soft); }
+  .modal-body { padding:18px; font-size:14px; line-height:1.7; color:var(--ink); white-space:pre-line; }
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">아마존플라워</div>
-  <div class="sub">경기 시흥시 신천3길 23 · 축하·근조화환 주문</div>
-</header>
-
 <div class="wrap">
 
-  <!-- STEP 1: 정보 입력 -->
+  <header>
+    <div class="brand">아마존플라워</div>
+    <div class="loc">📍 경기 시흥시 신천3길 23</div>
+  </header>
+
+  <section class="hero">
+    <!-- 옛날 꽃집 사진 자리: 나중에 아래 div를 <img src="/your-photo.jpg" style="width:100%;max-width:300px;border-radius:10px;margin:0 auto 18px;display:block;"> 로 교체 -->
+    <div class="hero-photo" id="heroPhoto">
+      <span>📷 사진 자리</span>
+      <span style="font-size:11px;">(30년 전 꽃집 사진 등 — 나중에 교체)</span>
+    </div>
+    <h1>꽃길 30년,<br>거품은 뺐습니다</h1>
+    <p class="lede">청첩장·부고 링크만 보내주세요.<br>알맞은 화환을 정리해드리고, <b>도착 확인 사진</b>까지 보내드립니다.</p>
+    <div class="badges-2">
+      <div class="badge-lg"><span class="ic">🔗</span><div><div class="t">링크 하나면 끝</div><div class="d">복잡한 입력 없이</div></div></div>
+      <div class="badge-lg"><span class="ic">📸</span><div><div class="t">도착 확인 사진</div><div class="d">현장 사진으로 안심</div></div></div>
+    </div>
+    <div class="badges-3">
+      <div class="badge-sm"><div class="ic">🏅</div><div class="t">30년 경력</div></div>
+      <div class="badge-sm"><div class="ic">🏷️</div><div class="t">정직한 가격</div></div>
+      <div class="badge-sm"><div class="ic">🚚</div><div class="t">전국 당일배송</div></div>
+    </div>
+    <a class="btn btn-ghost" href="/catalog.html" style="margin-top:14px;text-decoration:none;">💐 전체 화환 둘러보기</a>
+    <div class="corp-badge" onclick="document.getElementById('payCard')?.scrollIntoView({behavior:'smooth'})">
+      🧾 <b>법인 거래처 주문 환영</b> · 세금계산서 즉시 발행해드립니다
+    </div>
+  </section>
+
+  <section class="card hidden" id="catalogBanner" style="border-color:var(--accent);background:var(--accent-soft);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">💐</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;color:var(--accent-deep);">선택하신 화환: <span id="catalogPick"></span></div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">아래에서 받는 곳 정보만 입력하시면 이 화환으로 주문돼요.</div>
+      </div>
+    </div>
+  </section>
+
   <section class="card">
-    <div class="step-label"><span class="step-num">1</span> 행사 정보 입력</div>
-    <div class="tabs">
-      <div class="tab active" data-mode="url" onclick="switchMode('url')">청첩장/부고 링크</div>
-      <div class="tab" data-mode="text" onclick="switchMode('text')">직접 입력</div>
-    </div>
-
-    <div id="mode-url">
-      <label class="field-label">청첩장 또는 부고 URL을 붙여넣으세요</label>
-      <input type="text" id="sourceUrl" placeholder="https://..." inputmode="url" />
-      <p class="hint">링크를 분석해 날짜·장소·받는분을 자동으로 채워드립니다.</p>
-    </div>
-
-    <div id="mode-text" class="hidden">
-      <label class="field-label">안내 문구를 붙여넣거나 직접 적어주세요</label>
-      <textarea id="sourceText" placeholder="예) 故 홍길동님 별세. 빈소: ○○병원 장례식장 특실 201호. 발인 5월 25일..."></textarea>
-    </div>
-
-    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">AI로 분석하기</button>
-    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 분석 중입니다…</div>
+    <div class="step-head"><span class="step-num">1</span><span class="step-title">어디로 화환을 보낼까요?</span></div>
+    <div class="step-sub">청첩장·부고 링크를 붙여넣으면 자동으로 정리해드려요. 링크가 없으면 장소·날짜를 직접 적으셔도 됩니다.</div>
+    <textarea id="src" placeholder="청첩장·부고 링크를 붙여넣으세요.&#10;또는 직접 입력: 센트럴병원 장례식장 특실 201호, 5월 27일 발인"></textarea>
+    <button class="btn btn-ghost" id="pasteBtn" onclick="pasteFromClipboard()" style="margin-top:10px;">📋 복사한 링크 붙여넣기</button>
+    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:10px;">화환 주문 시작하기</button>
+    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
-
-    <div class="parsed hidden" id="parsedBox"></div>
   </section>
 
-  <!-- STEP 2: 측 선택 (청첩장만) -->
+  <section class="card hidden" id="confirmCard">
+    <div class="step-head"><span class="step-num">2</span><span class="step-title">자동으로 채웠어요</span></div>
+    <div class="step-sub">맞는지만 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
+    <div id="typePill"></div>
+    <div id="afFields"></div>
+  </section>
+
   <section class="card hidden" id="sideCard">
-    <div class="step-label"><span class="step-num">2</span> 어느 쪽에 보내시나요?</div>
-    <div class="chips side-choice" id="sideChips">
-      <div class="chip" data-side="groom" onclick="selectSide('groom')">신랑 측</div>
-      <div class="chip" data-side="bride" onclick="selectSide('bride')">신부 측</div>
+    <div class="step-head"><span class="step-num" id="n-side">3</span><span class="step-title">어느 쪽에 보내시나요?</span></div>
+    <div class="step-sub">리본 문구에 반영됩니다.</div>
+    <div class="chips side" id="sideChips">
+      <div class="chip" onclick="selSide('groom')">신랑 측</div>
+      <div class="chip" onclick="selSide('bride')">신부 측</div>
     </div>
   </section>
 
-  <!-- STEP 3: 관계 선택 -->
-  <section class="card hidden" id="relCard">
-    <div class="step-label"><span class="step-num" id="relNum">3</span> 받는 분과의 관계</div>
-    <div class="chips" id="relChips">
-      <div class="chip" data-rel="friend" onclick="selectRel('friend')">친구</div>
-      <div class="chip" data-rel="acquaintance" onclick="selectRel('acquaintance')">지인·아는사이</div>
-      <div class="chip" data-rel="coworker" onclick="selectRel('coworker')">직장동료</div>
-      <div class="chip" data-rel="business" onclick="selectRel('business')">거래처</div>
-      <div class="chip" data-rel="family" onclick="selectRel('family')">친척·가족</div>
-      <div class="chip" data-rel="company" onclick="selectRel('company')">회사명의</div>
+  <section class="card hidden" id="prodCard">
+    <div class="step-head"><span class="step-num" id="n-prod">4</span><span class="step-title">가격대 → 디자인 선택</span></div>
+    <div class="step-sub">친구·지인은 보통 일반형·중급형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요.</div>
+    <div class="price-tabs" id="priceTabs">
+      <div class="price-tab" onclick="selTier(0)"><b>일반형</b><br>59,000원</div>
+      <div class="price-tab" onclick="selTier(1)"><b>중급형</b><br>79,000원</div>
+      <div class="price-tab" onclick="selTier(2)"><b>고급형</b><br>99,000원</div>
+      <div class="price-tab" onclick="selTier(3)"><b>최고급형</b><br>129,000원</div>
     </div>
-    <div class="reco hidden" id="recoBox">
-      <div class="reco-head">✿ 추천 가격대</div>
-      <div class="reco-price" id="recoPrice"></div>
-      <div class="reco-why" id="recoWhy"></div>
+    <div id="designArea">
+      <div class="soon-note">가격대를 선택하면 디자인이 표시됩니다. (실제 상품 사진·디자인은 준비 중)</div>
     </div>
   </section>
 
-  <!-- STEP 4: 상품 선택 -->
-  <section class="card hidden" id="productCard">
-    <div class="step-label"><span class="step-num" id="prodNum">4</span> 화환 선택</div>
-    <div class="products" id="productGrid"></div>
+  <section class="card hidden" id="senderCard">
+    <div class="step-head"><span class="step-num" id="n-send">6</span><span class="step-title">보내는 분 / 리본 문구</span></div>
+    <div class="step-sub">보내는 분 정보는 직접 입력해주세요. 리본 문구는 자동으로 맞춰드립니다.</div>
+    <label class="fl">보내는 분 성함</label>
+    <input type="text" id="senderName" placeholder="홍길동" oninput="syncRibbonLeft()" />
+    <label class="fl">연락처 <span style="font-weight:400;color:var(--ink-faint);">(도착 확인 사진을 이 번호로 보내드립니다)</span></label>
+    <input type="tel" id="senderPhone" placeholder="010-0000-0000" inputmode="tel" />
+    <label class="fl">리본 — 왼편 (보내는 분)</label>
+    <input type="text" id="ribbonLeft" placeholder="예) 홍길동 드림" />
+    <label class="fl">리본 — 오른편 (문구)</label>
+    <div class="tone-tabs" id="toneTabs"></div>
+    <div class="ribbon-opts" id="ribbonOpts"></div>
+    <input type="text" id="ribbonRight" placeholder="직접 입력도 가능합니다" style="margin-top:8px;" />
   </section>
 
-  <!-- STEP 5: 주문자 정보 + 리본 -->
-  <section class="card hidden" id="ordererCard">
-    <div class="step-label"><span class="step-num" id="ordNum">5</span> 주문자 / 리본 문구</div>
-    <label class="field-label">주문자 성함</label>
-    <input type="text" id="ordererName" placeholder="홍길동" />
-    <label class="field-label">연락처</label>
-    <input type="tel" id="ordererPhone" placeholder="010-0000-0000" inputmode="tel" />
-    <label class="field-label">리본 문구 <span style="font-weight:400;">(비워두면 기본 문구가 들어갑니다)</span></label>
-    <input type="text" id="ribbonText" placeholder="" />
-    <p class="hint" id="ribbonHint"></p>
-  </section>
-
-  <!-- STEP 6: 결제 -->
   <section class="card hidden" id="payCard">
-    <div class="step-label"><span class="step-num" id="payNum">6</span> 결제</div>
-    <div class="total-row">
-      <span>결제 금액</span>
-      <span class="amount" id="totalAmount">0원</span>
+    <div class="step-head"><span class="step-num" id="n-pay">7</span><span class="step-title">결제</span></div>
+    <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
+
+    <label class="fl">주문 유형</label>
+    <div class="buyer-tabs">
+      <div class="buyer-tab on" id="buyerPersonal" onclick="selBuyer('personal')">개인</div>
+      <div class="buyer-tab" id="buyerCorp" onclick="selBuyer('corp')">법인 · 세금계산서</div>
     </div>
-    <div id="payment-method"></div>
-    <div id="agreement"></div>
-    <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:16px;">결제하기</button>
+
+    <div class="corp-box hidden" id="corpBox">
+      <div class="corp-note">세금계산서 발행을 위해 사업자 정보를 입력해주세요. 세금계산서는 (주)아마존인테리어 명의로 발행됩니다.</div>
+      <label class="fl">상호 (회사명)</label>
+      <input type="text" id="corpName" placeholder="(주)○○상사" />
+      <label class="fl">사업자등록번호</label>
+      <input type="text" id="corpRegNo" placeholder="000-00-00000" inputmode="numeric" />
+      <label class="fl">대표자 성함</label>
+      <input type="text" id="corpCeo" placeholder="홍길동" />
+      <label class="fl">사업장 주소</label>
+      <input type="text" id="corpAddr" placeholder="서울시 ○○구 ○○로 00" />
+      <label class="fl">담당자 이메일 <span style="font-weight:400;color:var(--ink-faint);">(세금계산서 받으실 주소)</span></label>
+      <input type="text" id="corpEmail" placeholder="name@company.com" inputmode="email" />
+    </div>
+
+    <div id="pay-method"></div>
+    <div id="pay-agree"></div>
+    <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:14px;">결제하기</button>
     <div class="err hidden" id="payErr"></div>
-    <div class="notice">
-      결제 완료 후 사장님이 주문을 확인하고 화환을 준비합니다.
-      받는 분 정보(장소·시간·호실)에 오류가 없는지 한 번 더 확인해주세요.
-    </div>
+    <div class="notice">결제 완료 후 사장님이 주문을 확인하고 화환을 준비합니다. 배송이 끝나면 도착 확인 사진을 입력하신 번호로 보내드립니다.</div>
+    <div class="notice hidden" id="corpNotice">세금계산서는 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 발행됩니다.</div>
   </section>
 
   <footer>
-    아마존플라워 · 경기 시흥시 신천3길 23<br/>
-    축하화환 · 근조화환 전문
+    <div class="foot-brand">아마존플라워</div>
+    <div class="foot-sub">(주)아마존인테리어가 운영하는 화환 전문 브랜드입니다</div>
+    <div class="foot-info">
+      상호 (주)아마존인테리어 · 대표 권점숙<br>
+      사업자등록번호 234-86-00344<br>
+      통신판매업 신고 신고 예정<br>
+      주소 경기도 시흥시 신천3길 23, 103호(신천동)<br>
+      고객센터 031-314-3003 (전국 화환 주문·상담)
+    </div>
+    <div class="foot-links">
+      <a href="#" onclick="showPolicy('refund');return false;">교환·환불 안내</a> ·
+      <a href="#" onclick="showPolicy('privacy');return false;">개인정보처리방침</a>
+    </div>
+    <div class="foot-copy">꽃길 30년 · 축하화환 · 근조화환 · 전국 당일배송</div>
   </footer>
 </div>
 
+<div class="modal-bg hidden" id="policyModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal">
+    <div class="modal-head"><span id="policyTitle"></span><button class="modal-x" onclick="document.getElementById('policyModal').classList.add('hidden')">✕</button></div>
+    <div class="modal-body" id="policyBody"></div>
+  </div>
+</div>
+
 <script>
-// ─────────────────────────────────────────────────────────
-//  ⚠️ 토스페이먼츠 클라이언트 키 (공개 가능 키 — 시크릿 키 아님!)
-//  아래는 토스 공식 "테스트 클라이언트 키"입니다.
-//  실 결제 전환 시 토스 개발자센터의 "라이브 클라이언트 키"로 교체하세요.
-//  시크릿 키는 절대 여기 넣지 마세요 — 서버(api/confirm-payment.js)에서만 사용합니다.
-const TOSS_CLIENT_KEY = "test_ck_docs_Ovk5rk1EwklEnvz3lmeM92Po"; // 토스 공개 테스트 키
-// ─────────────────────────────────────────────────────────
+const TOSS_CLIENT_KEY = "test_ck_docs_Ovk5rk1EwklEnvz3lmeM92Po";
 
-// 전역 주문 상태
 const order = {
-  mode: "url",
-  sourceUrl: "",
-  sourceText: "",
-  type: "unknown",       // wedding | funeral | unknown
-  side: "",              // groom | bride (청첩장만)
-  rel: "",               // 관계 코드
-  productCode: "",       // 선택 상품
-  productLabel: "",
-  amount: 0,
-  // 파싱 결과
-  recipientName: "", date: "", time: "", venueName: "", venueAddress: "",
-  venueDetail: "", groomName: "", brideName: "", chiefMourner: "",
-  ordererName: "", ordererPhone: "", ribbonText: "",
+  src:"", type:"unknown", side:"",
+  recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"",
+  groomName:"", brideName:"", chiefMourner:"",
+  price:0, productCode:"", productLabel:"",
+  senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"",
+  buyerType:"personal", corpName:"", corpRegNo:"", corpCeo:"", corpAddr:"", corpEmail:"",
 };
 
-// 관계별 추천 (가격대 + 이유). type(wedding/funeral)에 따라 약간 다른 멘트.
-const RECO = {
-  friend:       { price: "5만 ~ 7만원",  why: "가까운 사이이므로 부담스럽지 않은 선에서 마음을 전하기 좋습니다." },
-  acquaintance: { price: "5만원",        why: "가벼운 인사로 충분합니다. 기본 화환이 무난합니다." },
-  coworker:     { price: "7만원",        why: "직장 동료 간 일반적으로 가장 많이 선택하는 가격대입니다." },
-  business:     { price: "10만 ~ 15만원", why: "거래처에는 격식을 갖춘 화환으로 예의를 표하는 것이 좋습니다." },
-  family:       { price: "10만원",       why: "친척·가족에게는 정성을 담아 조금 더 좋은 화환을 권합니다." },
-  company:      { price: "10만 ~ 15만원", why: "회사 명의는 받는 곳에 잘 보이도록 큰 화환을 선택하는 경우가 많습니다." },
+const RIBBON = {
+  funeral: {
+    tones: [["formal","정통"],["religion","종교"]],
+    formal: ["삼가 고인의 명복을 빕니다","삼가 조의를 표합니다","깊은 애도를 표합니다"],
+    religion: ["하나님의 위로가 함께하시길 바랍니다","극락왕생을 기원합니다"],
+  },
+  wedding: {
+    tones: [["formal","정통"],["casual","캐주얼"]],
+    formal: ["결혼을 진심으로 축하합니다","백년해로하시기 바랍니다","화촉을 밝히심을 축하합니다"],
+    casual: ["결혼 축하해요, 행복하게 사세요","두 분 언제나 행복하길","평생 꽃길만 걸어요"],
+  },
 };
 
-// 상품 정의
-const PRODUCTS = {
-  wedding: [
-    { code:"congrats_5",  name:"축하화환", price:50000 },
-    { code:"congrats_7",  name:"축하화환", price:70000 },
-    { code:"congrats_10", name:"축하화환", price:100000 },
-    { code:"congrats_15", name:"축하화환", price:150000 },
-  ],
-  funeral: [
-    { code:"condolence_5",  name:"근조화환", price:50000 },
-    { code:"condolence_7",  name:"근조화환", price:70000 },
-    { code:"condolence_10", name:"근조화환", price:100000 },
-    { code:"condolence_15", name:"근조화환", price:150000 },
-  ],
-};
+let widgets=null, widgetsRendered=false;
+function isUrl(s){ return /^https?:\/\//i.test(s.trim()); }
 
-// 추천 코드 → 추천 상품 매핑 (태그 표시용 대표 1개)
-const RECO_PRODUCT = {
-  friend:"_5", acquaintance:"_5", coworker:"_7",
-  business:"_10", family:"_10", company:"_10",
-};
-
-let widgets = null;       // 토스 위젯 인스턴스
-let widgetsRendered = false;
-
-function switchMode(mode) {
-  order.mode = mode;
-  document.querySelectorAll(".tab").forEach(t =>
-    t.classList.toggle("active", t.dataset.mode === mode));
-  document.getElementById("mode-url").classList.toggle("hidden", mode !== "url");
-  document.getElementById("mode-text").classList.toggle("hidden", mode !== "text");
+async function pasteFromClipboard(){
+  const err=document.getElementById("parseErr"); err.classList.add("hidden");
+  try{
+    const txt = await navigator.clipboard.readText();
+    if(txt && txt.trim()){
+      document.getElementById("src").value = txt.trim();
+    } else {
+      showErr(err,"복사된 내용이 없어요. 먼저 청첩장·부고 링크를 복사해주세요.");
+    }
+  }catch(e){
+    // 클립보드 권한이 없거나 미지원 — 직접 붙여넣기 안내
+    showErr(err,"자동 붙여넣기가 막혀 있어요. 입력칸을 길게 눌러 '붙여넣기'를 선택해주세요.");
+  }
 }
 
-async function runParse() {
-  const errEl = document.getElementById("parseErr");
-  errEl.classList.add("hidden");
-  const btn = document.getElementById("parseBtn");
-  const loading = document.getElementById("parseLoading");
-
-  const url = document.getElementById("sourceUrl").value.trim();
-  const text = document.getElementById("sourceText").value.trim();
-
-  if (order.mode === "url" && !url) return showErr(errEl, "URL을 입력해주세요.");
-  if (order.mode === "text" && !text) return showErr(errEl, "내용을 입력해주세요.");
-
-  order.sourceUrl = order.mode === "url" ? url : "";
-  order.sourceText = order.mode === "text" ? text : "";
-
-  btn.disabled = true; loading.classList.remove("hidden");
-
-  try {
-    const res = await fetch("/api/parse-url", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(order.mode === "url" ? { url } : { text }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "분석에 실패했습니다.");
-
+async function runParse(){
+  const err=document.getElementById("parseErr"); err.classList.add("hidden");
+  const btn=document.getElementById("parseBtn"), load=document.getElementById("parseLoading");
+  const val=document.getElementById("src").value.trim();
+  if(!val) return showErr(err,"링크나 내용을 입력해주세요.");
+  if(/amazonflower\.vercel\.app/i.test(val) || (isUrl(val) && val.replace(/^https?:\/\//,'').replace(/\/.*$/,'')===location.host)){
+    return showErr(err,"이건 이 사이트 주소예요. 받으신 청첩장·부고 링크나 행사 내용을 넣어주세요.");
+  }
+  order.src=val;
+  btn.disabled=true; load.classList.remove("hidden");
+  try{
+    const body = isUrl(val) ? {url:val} : {text:val};
+    const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||"분석에 실패했습니다.");
     applyParsed(data.result);
-  } catch (e) {
-    showErr(errEl, e.message);
-  } finally {
-    btn.disabled = false; loading.classList.add("hidden");
-  }
+  }catch(e){ showErr(err,e.message); }
+  finally{ btn.disabled=false; load.classList.add("hidden"); }
 }
 
-function applyParsed(r) {
-  Object.assign(order, {
-    type: r.type || "unknown",
-    recipientName: r.recipientName || "",
-    date: r.date || "", time: r.time || "",
-    venueName: r.venueName || "", venueAddress: r.venueAddress || "",
-    venueDetail: r.venueDetail || "",
-    groomName: r.groomName || "", brideName: r.brideName || "",
-    chiefMourner: r.chiefMourner || "",
+function applyParsed(r){
+  Object.assign(order,{
+    type:r.type||"unknown", recipientName:r.recipientName||"",
+    venue:r.venueName||"", venueDetail:r.venueDetail||"", address:r.venueAddress||"",
+    date:r.date||"", time:r.time||"",
+    groomName:r.groomName||"", brideName:r.brideName||"", chiefMourner:r.chiefMourner||"",
   });
+  const isWed=order.type==="wedding", isFun=order.type==="funeral";
+  document.getElementById("typePill").innerHTML =
+    `<span class="type-pill ${isWed?'t-wed':isFun?'t-fun':''}">🌸 ${isWed?'결혼식 · 축하화환':isFun?'장례식 · 근조화환':'구분 미확인'}</span>`;
 
-  // 파싱 결과 표시
-  const box = document.getElementById("parsedBox");
-  const isWed = order.type === "wedding";
-  const isFun = order.type === "funeral";
-  const typeLabel = isWed ? "결혼식" : isFun ? "장례식" : "구분 미확인";
-  let html = `<span class="type-badge ${isWed?'type-wedding':'type-funeral'}">${typeLabel}</span><dl>`;
-  const row = (k,v) => v ? `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>` : "";
-  html += row("받는분", order.recipientName);
-  if (isWed) { html += row("신랑", order.groomName); html += row("신부", order.brideName); }
-  if (isFun) { html += row("상주", order.chiefMourner); }
-  html += row("날짜", [order.date, order.time].filter(Boolean).join(" "));
-  html += row("장소", [order.venueName, order.venueDetail].filter(Boolean).join(" "));
-  html += row("주소", order.venueAddress);
-  html += "</dl>";
-  if (r.confidence === "low") {
-    html += `<div class="conf-low">⚠ 자동 분석 정보가 부족합니다. 직접 입력 탭에서 보완하거나, 결제 후 사장님이 원문을 보고 확인합니다.</div>`;
+  const field=(key,label,val)=>`
+    <div class="af-field"><label>${label}</label>
+      <div class="af-input-wrap">
+        <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="(비어있음 — 직접 입력)"/>
+        ${val?'<span class="af-auto">자동</span>':''}
+      </div></div>`;
+  let html="";
+  html+=field("recipientName","받는 분",order.recipientName);
+  if(isWed){ html+=field("groomName","신랑",order.groomName); html+=field("brideName","신부",order.brideName); }
+  if(isFun){ html+=field("chiefMourner","상주",order.chiefMourner); }
+  html+=field("venue","장소",order.venue);
+  html+=field("venueDetail","빈소 · 홀",order.venueDetail);
+  html+=field("address","주소",order.address);
+  html+=field("date","날짜",order.date);
+  html+=field("time","시간",order.time);
+  document.getElementById("afFields").innerHTML=html;
+  document.getElementById("confirmCard").classList.remove("hidden");
+
+  const hasSide=isWed;
+  document.getElementById("sideCard").classList.toggle("hidden",!hasSide);
+  renumber(hasSide);
+  document.getElementById("prodCard").classList.remove("hidden");
+  document.getElementById("senderCard").classList.remove("hidden");
+  buildRibbon();
+  // 카탈로그에서 가격대를 고르고 넘어온 경우 자동 선택 (가격 → tier 인덱스)
+  if(window.__presetPrice){
+    const idx=TIERS.findIndex(t=>t.price===Number(window.__presetPrice));
+    if(idx>=0) selTier(idx);
   }
-  box.innerHTML = html;
-  box.classList.remove("hidden");
-
-  // 측 선택은 결혼식일 때만
-  const sideCard = document.getElementById("sideCard");
-  if (isWed) {
-    sideCard.classList.remove("hidden");
-    renumber(true);
-  } else {
-    sideCard.classList.add("hidden");
-    order.side = "";
-    renumber(false);
-  }
-
-  // 관계 카드 표시
-  document.getElementById("relCard").classList.remove("hidden");
-  // 상품 카드 준비
-  buildProducts();
-  document.getElementById("ribbonHint").textContent =
-    isFun ? "기본: 삼가 고인의 명복을 빕니다" :
-    isWed ? "기본: 결혼을 진심으로 축하합니다" : "";
-  scrollToEl(box);
+  scrollTo("confirmCard");
 }
 
-// 단계 번호 재조정 (측 선택 카드가 있으면 이후 번호 +1)
-function renumber(hasSide) {
-  document.getElementById("relNum").textContent  = hasSide ? 3 : 2;
-  document.getElementById("prodNum").textContent = hasSide ? 4 : 3;
-  document.getElementById("ordNum").textContent  = hasSide ? 5 : 4;
-  document.getElementById("payNum").textContent  = hasSide ? 6 : 5;
+function renumber(hasSide){
+  document.getElementById("n-side").textContent=3;
+  document.getElementById("n-prod").textContent=hasSide?4:3;
+  document.getElementById("n-send").textContent=hasSide?5:4;
+  document.getElementById("n-pay").textContent=hasSide?6:5;
 }
 
-function selectSide(side) {
-  order.side = side;
-  document.querySelectorAll("#sideChips .chip").forEach(c =>
-    c.classList.toggle("active", c.dataset.side === side));
+function selSide(s){
+  order.side=s;
+  [...document.querySelectorAll("#sideChips .chip")].forEach((c,i)=>c.classList.toggle("on",(i===0&&s==="groom")||(i===1&&s==="bride")));
 }
 
-function selectRel(rel) {
-  order.rel = rel;
-  document.querySelectorAll("#relChips .chip").forEach(c =>
-    c.classList.toggle("active", c.dataset.rel === rel));
+const TIERS = [
+  {key:"1", grade:"일반형", price:59000, desc:"3단 기본형. 단정하게 마음을 전합니다."},
+  {key:"2", grade:"중급형", price:79000, desc:"3단 풍성형. 꽃 물량을 늘려 더 정성스럽게."},
+  {key:"3", grade:"고급형", price:99000, desc:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
+  {key:"4", grade:"최고급형", price:129000, desc:"4단 특대형. 거래처·회사 명의에 적합합니다."},
+];
 
-  // AI 추천 표시
-  const reco = RECO[rel];
-  document.getElementById("recoPrice").textContent = reco.price;
-  document.getElementById("recoWhy").textContent = reco.why;
-  document.getElementById("recoBox").classList.remove("hidden");
-
-  // 추천 상품 태그 갱신
-  buildProducts();
-  document.getElementById("productCard").classList.remove("hidden");
-  document.getElementById("ordererCard").classList.remove("hidden");
-  scrollToEl(document.getElementById("recoBox"));
-}
-
-function buildProducts() {
-  const list = order.type === "funeral" ? PRODUCTS.funeral
-             : PRODUCTS.wedding; // wedding 또는 unknown은 축하 기본
-  const grid = document.getElementById("productGrid");
-  const recoSuffix = order.rel ? RECO_PRODUCT[order.rel] : null;
-  grid.innerHTML = list.map(p => {
-    const isReco = recoSuffix && p.code.endsWith(recoSuffix);
-    return `<div class="product ${order.productCode===p.code?'active':''} ${isReco?'reco-match':''}"
-                 data-code="${p.code}" data-price="${p.price}" data-label="${p.name} ${p.price/10000}만원"
-                 onclick="selectProduct('${p.code}',${p.price},'${p.name} ${p.price/10000}만원')">
-      ${isReco?'<span class="p-tag">✿ 추천</span>':''}
-      <div class="p-name">${p.name}</div>
-      <div class="p-price">${(p.price/10000)}만원</div>
-    </div>`;
-  }).join("");
-}
-
-function selectProduct(code, price, label) {
-  order.productCode = code; order.amount = price; order.productLabel = label;
-  document.querySelectorAll("#productGrid .product").forEach(el =>
-    el.classList.toggle("active", el.dataset.code === code));
-  document.getElementById("totalAmount").textContent = price.toLocaleString() + "원";
-  document.getElementById("payCard").classList.remove("hidden");
-  initPaymentWidget(price);
-  scrollToEl(document.getElementById("payCard"));
-}
-
-// ── 토스페이먼츠 결제위젯 v2 ──────────────────────────────
-async function initPaymentWidget(amount) {
-  try {
-    const tossPayments = TossPayments(TOSS_CLIENT_KEY);
-    // 비회원 결제: ANONYMOUS
-    const customerKey = TossPayments.ANONYMOUS;
-    widgets = tossPayments.widgets({ customerKey });
-
-    await widgets.setAmount({ currency: "KRW", value: amount });
-
-    if (!widgetsRendered) {
-      await Promise.all([
-        widgets.renderPaymentMethods({ selector: "#payment-method", variantKey: "DEFAULT" }),
-        widgets.renderAgreement({ selector: "#agreement", variantKey: "AGREEMENT" }),
-      ]);
-      widgetsRendered = true;
-    }
-  } catch (e) {
-    console.error(e);
-    showErr(document.getElementById("payErr"), "결제 모듈 로딩 중 오류가 발생했습니다.");
-  }
-}
-
-async function requestPay() {
-  const errEl = document.getElementById("payErr");
-  errEl.classList.add("hidden");
-
-  // 필수값 검증
-  order.ordererName  = document.getElementById("ordererName").value.trim();
-  order.ordererPhone = document.getElementById("ordererPhone").value.trim();
-  order.ribbonText   = document.getElementById("ribbonText").value.trim();
-
-  if (!order.productCode) return showErr(errEl, "화환을 선택해주세요.");
-  if (!order.ordererName)  return showErr(errEl, "주문자 성함을 입력해주세요.");
-  if (!order.ordererPhone) return showErr(errEl, "연락처를 입력해주세요.");
-  if (!widgets) return showErr(errEl, "결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
-
-  // 리본 기본 문구
-  if (!order.ribbonText) {
-    order.ribbonText = order.type === "funeral" ? "삼가 고인의 명복을 빕니다"
-                     : "결혼을 진심으로 축하합니다";
-  }
-
-  const orderId = "AF" + new Date().toISOString().slice(0,10).replace(/-/g,"")
-                + "-" + Math.random().toString(36).slice(2,8).toUpperCase();
-
-  // 주문 정보를 successUrl로 넘기기엔 길고 민감하므로, sessionStorage에 저장.
-  // (성공 페이지에서 꺼내 confirm-payment로 전송)
-  try {
-    sessionStorage.setItem("af_order_" + orderId, JSON.stringify(order));
-  } catch (_) {}
-
-  const orderName = order.productLabel || "화환 주문";
-
-  try {
-    await widgets.requestPayment({
-      orderId,
-      orderName,
-      successUrl: window.location.origin + "/?payresult=success",
-      failUrl: window.location.origin + "/?payresult=fail",
-      customerName: order.ordererName,
-      customerMobilePhone: order.ordererPhone.replace(/[^0-9]/g, ""),
-    });
-  } catch (e) {
-    console.error(e);
-    showErr(errEl, e.message || "결제 요청 중 오류가 발생했습니다.");
-  }
-}
-
-// ── 결제 성공 후 리다이렉트 처리 ──────────────────────────
-async function handleRedirect() {
-  const params = new URLSearchParams(window.location.search);
-  const result = params.get("payresult");
-  if (!result) return;
-
-  if (result === "fail") {
-    alert("결제가 취소되었거나 실패했습니다.\n" + (params.get("message") || ""));
-    cleanUrl();
-    return;
-  }
-
-  if (result === "success") {
-    const paymentKey = params.get("paymentKey");
-    const orderId = params.get("orderId");
-    const amount = params.get("amount");
-
-    document.querySelector(".wrap").innerHTML =
-      `<section class="card"><div class="loading"><div class="spinner"></div> 결제를 확인하고 있습니다…</div></section>`;
-
-    let savedOrder = {};
-    try { savedOrder = JSON.parse(sessionStorage.getItem("af_order_" + orderId) || "{}"); } catch(_) {}
-
-    try {
-      const res = await fetch("/api/confirm-payment", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ paymentKey, orderId, amount: Number(amount), order: savedOrder }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "결제 승인에 실패했습니다.");
-
-      sessionStorage.removeItem("af_order_" + orderId);
-      renderDone(data, savedOrder);
-    } catch (e) {
-      document.querySelector(".wrap").innerHTML =
-        `<section class="card"><div class="step-label">결제 확인 오류</div>
-         <p class="err">${escapeHtml(e.message)}</p>
-         <p class="hint">결제가 출금되었는데 이 화면이 보인다면 사장님(아마존플라워)께 주문번호 <b>${escapeHtml(orderId||"")}</b>로 문의해주세요.</p>
-         <button class="btn btn-ghost" onclick="location.href='/'" style="margin-top:14px;">처음으로</button></section>`;
-    }
-  }
-}
-
-function renderDone(data, ord) {
-  const p = data.payment || {};
-  const place = [ord.venueName, ord.venueDetail].filter(Boolean).join(" ");
-  document.querySelector(".wrap").innerHTML = `
-    <section class="card" style="text-align:center;">
-      <div style="font-size:46px;">✿</div>
-      <div class="step-label" style="justify-content:center; display:flex;">주문이 완료되었습니다</div>
-      <p style="color:var(--ink-soft); margin-bottom:14px;">사장님이 확인 후 화환을 준비합니다.</p>
-      <div class="parsed" style="text-align:left;">
-        <dl>
-          <dt>상품</dt><dd>${escapeHtml(ord.productLabel||"")}</dd>
-          <dt>금액</dt><dd>${(p.totalAmount||0).toLocaleString()}원</dd>
-          ${place?`<dt>장소</dt><dd>${escapeHtml(place)}</dd>`:""}
-          ${ord.date?`<dt>일시</dt><dd>${escapeHtml(ord.date)} ${escapeHtml(ord.time||"")}</dd>`:""}
-          <dt>주문번호</dt><dd>${escapeHtml(p.orderId||"")}</dd>
-        </dl>
+function selTier(i){
+  const t=TIERS[i];
+  order.price=t.price;
+  const tabs=document.querySelectorAll("#priceTabs .price-tab");
+  tabs.forEach((el,idx)=>el.classList.toggle("on",idx===i));
+  const isFun=order.type==="funeral";
+  const prefix=isFun?"condolence_c":"congrats_g";
+  order.productCode=prefix+t.key;
+  const kind=isFun?"근조화환":"축하화환";
+  const codeLabel=(isFun?"AF-C0":"AF-G0")+t.key;
+  order.productLabel=kind+" "+t.grade+" ("+codeLabel+")";
+  // 사진 파일명 규칙: 근조_일반형.jpg / 축하_중급형.jpg ... (나중에 이 이름으로 업로드)
+  const photoName=(isFun?"근조_":"축하_")+t.grade+".jpg";
+  const area=document.getElementById("designArea");
+  area.innerHTML=`<div class="design-detail">
+      <div class="design-photo" id="designPhoto">사진 준비 중<br><span style="font-size:11px;">(${photoName})</span></div>
+      <div class="design-info">
+        <div class="design-name">${kind} ${t.grade}</div>
+        <div class="design-code">${codeLabel}</div>
+        <div class="design-desc">${t.desc}</div>
+        <div class="design-price">${t.price.toLocaleString()}원 <span class="design-honest">거품 뺀 가격</span></div>
       </div>
-      ${p.receiptUrl?`<a class="btn btn-ghost" href="${p.receiptUrl}" target="_blank" style="margin-top:14px;">영수증 보기</a>`:""}
+    </div>`;
+  document.getElementById("totalAmt").textContent=t.price.toLocaleString()+"원";
+  document.getElementById("payCard").classList.remove("hidden");
+  initPay(t.price);
+  scrollTo("payCard");
+}
+function pickDesign(el){
+  [...el.parentElement.children].forEach(c=>c.classList.remove("on"));
+  el.classList.add("on");
+}
+
+let ribbonTone="formal";
+function buildRibbon(){
+  const set = RIBBON[order.type] || RIBBON.wedding;
+  document.getElementById("toneTabs").innerHTML = set.tones.map(([k,label],i)=>
+    `<div class="tone-tab ${i===0?'on':''}" onclick="selTone('${k}')">${label}</div>`).join("");
+  ribbonTone = set.tones[0][0];
+  renderRibbonOpts();
+  syncRibbonLeft();
+}
+function selTone(t){
+  ribbonTone=t;
+  document.querySelectorAll("#toneTabs .tone-tab").forEach(el=>el.classList.toggle("on",el.textContent===toneLabel(t)));
+  renderRibbonOpts();
+}
+function toneLabel(t){ const m={formal:"정통",casual:"캐주얼",religion:"종교"}; return m[t]||t; }
+function renderRibbonOpts(){
+  const set = RIBBON[order.type] || RIBBON.wedding;
+  const opts = set[ribbonTone] || [];
+  document.getElementById("ribbonOpts").innerHTML = opts.map((txt,i)=>
+    `<div class="ribbon-opt ${i===0?'on':''}" onclick="pickRibbon(this,'${escapeAttr(txt)}')">${txt}</div>`).join("");
+  if(opts.length){ order.ribbonRight=opts[0]; document.getElementById("ribbonRight").value=opts[0]; }
+}
+function pickRibbon(el,txt){
+  document.querySelectorAll("#ribbonOpts .ribbon-opt").forEach(o=>o.classList.remove("on"));
+  el.classList.add("on");
+  order.ribbonRight=txt; document.getElementById("ribbonRight").value=txt;
+}
+function syncRibbonLeft(){
+  order.senderName=document.getElementById("senderName").value.trim();
+  const left=document.getElementById("ribbonLeft");
+  if(order.senderName && !left.dataset.touched){ left.value=order.senderName+" 드림"; order.ribbonLeft=left.value; }
+}
+document.addEventListener("input",e=>{
+  if(e.target.id==="ribbonRight") order.ribbonRight=e.target.value;
+  if(e.target.id==="ribbonLeft"){ e.target.dataset.touched="1"; order.ribbonLeft=e.target.value; }
+});
+
+async function initPay(amount){
+  try{
+    const tp=TossPayments(TOSS_CLIENT_KEY);
+    widgets=tp.widgets({customerKey:TossPayments.ANONYMOUS});
+    await widgets.setAmount({currency:"KRW",value:amount});
+    if(!widgetsRendered){
+      await Promise.all([
+        widgets.renderPaymentMethods({selector:"#pay-method",variantKey:"DEFAULT"}),
+        widgets.renderAgreement({selector:"#pay-agree",variantKey:"AGREEMENT"}),
+      ]);
+      widgetsRendered=true;
+    }
+  }catch(e){ console.error(e); showErr(document.getElementById("payErr"),"결제 모듈 로딩 오류가 발생했습니다."); }
+}
+
+async function requestPay(){
+  const err=document.getElementById("payErr"); err.classList.add("hidden");
+  order.senderName=document.getElementById("senderName").value.trim();
+  order.senderPhone=document.getElementById("senderPhone").value.trim();
+  order.ribbonLeft=document.getElementById("ribbonLeft").value.trim();
+  order.ribbonRight=document.getElementById("ribbonRight").value.trim();
+  if(!order.price) return showErr(err,"가격대를 선택해주세요.");
+  if(!order.senderName) return showErr(err,"보내는 분 성함을 입력해주세요.");
+  if(!order.senderPhone) return showErr(err,"연락처를 입력해주세요.");
+
+  if(order.buyerType==="corp"){
+    order.corpName=document.getElementById("corpName").value.trim();
+    order.corpRegNo=document.getElementById("corpRegNo").value.trim();
+    order.corpCeo=document.getElementById("corpCeo").value.trim();
+    order.corpAddr=document.getElementById("corpAddr").value.trim();
+    order.corpEmail=document.getElementById("corpEmail").value.trim();
+    if(!order.corpName) return showErr(err,"세금계산서 발행을 위해 상호(회사명)를 입력해주세요.");
+    if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))) return showErr(err,"사업자등록번호를 정확히 입력해주세요. (예: 000-00-00000)");
+    if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)) return showErr(err,"세금계산서를 받으실 이메일을 정확히 입력해주세요.");
+  }
+
+  if(!widgets) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
+
+  const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,8).toUpperCase();
+  try{ sessionStorage.setItem("af_"+orderId, JSON.stringify(order)); }catch(_){}
+  try{
+    await widgets.requestPayment({
+      orderId, orderName:order.productLabel||"화환 주문",
+      successUrl:location.origin+"/?payresult=success",
+      failUrl:location.origin+"/?payresult=fail",
+      customerName:order.senderName,
+      customerMobilePhone:order.senderPhone.replace(/[^0-9]/g,""),
+    });
+  }catch(e){ console.error(e); showErr(err,e.message||"결제 요청 중 오류가 발생했습니다."); }
+}
+
+async function handleRedirect(){
+  const q=new URLSearchParams(location.search);
+  const r=q.get("payresult"); if(!r) return;
+  if(r==="fail"){ alert("결제가 취소되었거나 실패했습니다.\n"+(q.get("message")||"")); cleanUrl(); return; }
+  if(r==="success"){
+    const paymentKey=q.get("paymentKey"), orderId=q.get("orderId"), amount=q.get("amount");
+    document.querySelector(".wrap").innerHTML=`<section class="card"><div class="loading"><div class="spinner"></div> 결제를 확인하고 있습니다…</div></section>`;
+    let saved={}; try{ saved=JSON.parse(sessionStorage.getItem("af_"+orderId)||"{}"); }catch(_){}
+    try{
+      const res=await fetch("/api/confirm-payment",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({paymentKey,orderId,amount:Number(amount),order:saved})});
+      const data=await res.json();
+      if(!res.ok) throw new Error(data.error||"결제 승인에 실패했습니다.");
+      sessionStorage.removeItem("af_"+orderId);
+      renderDone(data,saved);
+    }catch(e){
+      document.querySelector(".wrap").innerHTML=`<section class="card"><div class="step-head"><span class="step-title">결제 확인 오류</span></div>
+        <p class="err">${escapeHtml(e.message)}</p>
+        <p class="hint">결제가 출금됐는데 이 화면이 보이면 아마존플라워로 주문번호 <b>${escapeHtml(orderId||"")}</b>를 알려주세요.</p>
+        <button class="btn btn-ghost" onclick="location.href='/'" style="margin-top:14px;">처음으로</button></section>`;
+    }
+  }
+}
+
+function renderDone(data,o){
+  const p=data.payment||{};
+  const place=[o.venue,o.venueDetail].filter(Boolean).join(" ");
+  document.querySelector(".wrap").innerHTML=`
+    <section class="card" style="text-align:center;">
+      <div style="font-size:44px;">✿</div>
+      <div class="step-title" style="margin:6px 0;">주문이 완료되었습니다</div>
+      <p style="color:var(--ink-soft);margin-bottom:14px;">사장님이 확인 후 화환을 준비합니다.<br>배송이 끝나면 도착 확인 사진을 보내드려요.</p>
+      <div style="background:#f3f6f3;border:1px dashed var(--accent);border-radius:10px;padding:14px;text-align:left;font-size:15px;">
+        <div>상품: ${escapeHtml(o.productLabel||"")}</div>
+        <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
+        ${place?`<div>장소: ${escapeHtml(place)}</div>`:""}
+        ${o.date?`<div>일시: ${escapeHtml(o.date)} ${escapeHtml(o.time||"")}</div>`:""}
+        <div>주문번호: ${escapeHtml(p.orderId||"")}</div>
+      </div>
+      <div class="share-row">
+        <button class="btn btn-ghost" onclick="shareSite()">🔗 친구에게 알리기</button>
+        ${p.receiptUrl?`<a class="btn btn-ghost" href="${p.receiptUrl}" target="_blank">영수증</a>`:""}
+      </div>
       <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
     </section>`;
 }
 
-function cleanUrl(){ history.replaceState({}, "", window.location.origin + window.location.pathname); }
+function selBuyer(type){
+  order.buyerType=type;
+  const isCorp=type==="corp";
+  document.getElementById("buyerPersonal").classList.toggle("on",!isCorp);
+  document.getElementById("buyerCorp").classList.toggle("on",isCorp);
+  document.getElementById("corpBox").classList.toggle("hidden",!isCorp);
+  document.getElementById("corpNotice").classList.toggle("hidden",!isCorp);
+}
 
-// ── 유틸 ─────────────────────────────────────────────────
-function showErr(el, msg){ el.textContent = msg; el.classList.remove("hidden"); }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function scrollToEl(el){ setTimeout(()=>el.scrollIntoView({behavior:"smooth", block:"center"}), 80); }
+const POLICY = {
+  refund: ["교환·환불 안내",
+    "· 화환 제작 전(주문 접수 후 사장님 확인 전)에는 전액 환불이 가능합니다.\n"+
+    "· 화환 제작이 시작된 후에는 상품 특성상 환불이 어렵습니다.\n"+
+    "· 배송 후 상품에 하자가 있는 경우(파손, 주문과 다른 상품 등) 사진 확인 후 재배송 또는 환불해드립니다.\n"+
+    "· 자세한 사항은 전화로 문의해주세요."],
+  privacy: ["개인정보처리방침",
+    "· 수집 항목: 주문자 성함, 연락처, (법인) 사업자 정보, 받는 곳 정보\n"+
+    "· 수집 목적: 화환 주문 처리, 배송, 도착 확인 사진 발송, 세금계산서 발행\n"+
+    "· 보유 기간: 관련 법령에 따라 보관 후 파기\n"+
+    "· 입력하신 정보는 주문 처리 목적으로만 사용되며, 제3자에게 제공되지 않습니다.\n"+
+    "· 자세한 사항은 전화로 문의해주세요."],
+};
+function showPolicy(key){
+  const [title,body]=POLICY[key];
+  document.getElementById("policyTitle").textContent=title;
+  document.getElementById("policyBody").textContent=body;
+  document.getElementById("policyModal").classList.remove("hidden");
+}
 
-// 시작 시: 결제 리다이렉트인지 확인
+function shareSite(){
+  const url=location.origin;
+  const text="꽃길 30년, 거품 없는 정직한 화환 — 아마존플라워";
+  if(navigator.share){ navigator.share({title:"아마존플라워",text,url}).catch(()=>{}); }
+  else { navigator.clipboard?.writeText(url); alert("링크가 복사되었습니다.\n"+url); }
+}
+
+function cleanUrl(){ history.replaceState({},"",location.origin+location.pathname); }
+function showErr(el,m){ el.textContent=m; el.classList.remove("hidden"); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+function scrollTo(id){ setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"center"}),80); }
+
+function handleCatalogParam(){
+  const q=new URLSearchParams(location.search);
+  const ctype=q.get("type"), cprice=q.get("price");
+  if(!ctype && !cprice) return;
+  // 카탈로그에서 상품을 고르고 넘어온 경우: 안내 배너 표시
+  const banner=document.getElementById("catalogBanner");
+  if(banner){
+    const label=(ctype==="funeral"?"근조화환":ctype==="wedding"?"축하화환":"화환")+(cprice?" "+(cprice/10000)+"만원":"");
+    banner.querySelector("#catalogPick").textContent=label;
+    banner.classList.remove("hidden");
+  }
+  // 선택한 상품을 기억해뒀다가, 주문 흐름에서 가격대 자동 선택에 사용
+  if(cprice) window.__presetPrice=Number(cprice);
+  if(ctype) window.__presetType=ctype;
+  cleanUrl();
+}
+
 handleRedirect();
+handleCatalogParam();
 </script>
 </body>
 </html>
