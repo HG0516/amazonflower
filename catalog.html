@@ -91,12 +91,11 @@
   .channels { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); text-align: center; }
   .channels-title { font-size: 11px; color: var(--ink-faint); margin-bottom: 16px; letter-spacing: 2px; text-transform: uppercase; }
   .channels-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .ch { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 88px; padding: 14px 8px; border: 1px solid var(--line); border-radius: 4px; text-decoration: none; color: var(--ink); font-weight: 600; transition: all .15s; background: transparent; }
-  .ch:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .ch:hover .ch-ic { color: inherit; }
-  .ch-ic { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; background: transparent; border: 1px solid var(--line); color: var(--ink-soft); }
-  .ch:hover .ch-ic { border-color: var(--paper); color: var(--paper); }
-  .ch-nm { font-size: 11px; letter-spacing: 0.5px; }
+  .ch { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 92px; padding: 14px 8px; border: 1px solid var(--line); border-radius: 4px; text-decoration: none; color: var(--ink); font-weight: 600; transition: all .15s; background: var(--paper); }
+  .ch:hover { background: #faf8f3; border-color: var(--ink); }
+  .ch-ic { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .ch-ic svg { width: 100%; height: 100%; display: block; }
+  .ch-nm { font-size: 11px; letter-spacing: 0.5px; color: var(--ink); }
 
   .note { font-size: 12px; color: var(--ink-soft); padding: 16px 0 0; border-top: 1px solid var(--line-soft); margin-top: 26px; line-height: 1.8; }
   .note b { color: var(--ink); }
@@ -158,13 +157,42 @@
     <div class="channels-title">CHANNELS</div>
     <div class="channels-row">
       <a class="ch" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">
-        <span class="ch-ic">IG</span><span class="ch-nm">인스타그램</span>
+        <span class="ch-ic">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38">
+            <defs>
+              <radialGradient id="igGrad" cx="0.3" cy="1.1" r="1.2">
+                <stop offset="0" stop-color="#FFD600"/>
+                <stop offset="0.2" stop-color="#FF7A00"/>
+                <stop offset="0.45" stop-color="#FF0069"/>
+                <stop offset="0.75" stop-color="#D300C5"/>
+                <stop offset="1" stop-color="#7638FA"/>
+              </radialGradient>
+            </defs>
+            <rect width="38" height="38" rx="10" fill="url(#igGrad)"/>
+            <rect x="9" y="9" width="20" height="20" rx="6" fill="none" stroke="#fff" stroke-width="2"/>
+            <circle cx="19" cy="19" r="5" fill="none" stroke="#fff" stroke-width="2"/>
+            <circle cx="25.5" cy="12.5" r="1.4" fill="#fff"/>
+          </svg>
+        </span>
+        <span class="ch-nm">인스타그램</span>
       </a>
       <a class="ch" href="#" target="_blank" rel="noopener" data-pending="네이버 스토어 주소 준비 중">
-        <span class="ch-ic">N</span><span class="ch-nm">네이버 스토어</span>
+        <span class="ch-ic">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38">
+            <rect width="38" height="38" rx="9" fill="#03C75A"/>
+            <path d="M12 11h4.7l5 7.4V11H26.4v16h-4.7l-5-7.4V27H12V11z" fill="#fff"/>
+          </svg>
+        </span>
+        <span class="ch-nm">네이버 스토어</span>
       </a>
       <a class="ch" href="#" target="_blank" rel="noopener" data-pending="카카오톡 채널 준비 중">
-        <span class="ch-ic">K</span><span class="ch-nm">카카오톡 채널</span>
+        <span class="ch-ic">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 38 38">
+            <rect width="38" height="38" rx="9" fill="#FEE500"/>
+            <path d="M19 10c-5.4 0-9.7 3.4-9.7 7.7 0 2.8 1.9 5.3 4.7 6.6L13 28c-.1.3.3.6.6.4L18 25.5c.3 0 .7 0 1 0 5.4 0 9.7-3.4 9.7-7.7S24.4 10 19 10z" fill="#3C1E1E"/>
+          </svg>
+        </span>
+        <span class="ch-nm">카카오톡 채널</span>
       </a>
     </div>
   </div>

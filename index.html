@@ -96,10 +96,10 @@
   input.input-error { border-color: var(--danger); background: #fdf5f3; }
 
   /* ─── 약식 명세표 (hero 아래) ─── */
-  .spec { margin-top: 28px; padding: 24px 4px 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 16px; line-height: 2.1; color: var(--ink); }
-  .spec dl { display: grid; grid-template-columns: 100px 1fr; gap: 6px 18px; }
-  .spec dt { color: var(--ink-faint); font-size: 14px; letter-spacing: 0.5px; font-weight: 600; }
-  .spec dd { color: var(--ink); }
+  .spec { margin-top: 28px; padding: 24px 4px 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 16px; line-height: 1.85; color: var(--ink); }
+  .spec dl { display: grid; grid-template-columns: 70px 1fr; gap: 10px 14px; align-items: start; }
+  .spec dt { color: var(--ink-faint); font-size: 13px; letter-spacing: 0.5px; font-weight: 600; padding-top: 2px; text-align: left; }
+  .spec dd { color: var(--ink); text-align: left; word-break: keep-all; }
 
   /* ── 버튼 ── */
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 16px; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-body); background: var(--ink); color: var(--paper); transition: background .15s, transform .05s; }
@@ -195,8 +195,10 @@
   .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 15px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .total-row .amt { font-size: 30px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
   #pay-method, #pay-agree { margin-top: 8px; }
-  .delivery-note { font-size: 12px; color: var(--ink-soft); margin: 10px 0 16px; line-height: 1.7; padding: 10px 12px; background: #faf8f3; border-radius: 4px; }
-  .delivery-note span { color: var(--ink-faint); font-size: 11px; }
+  .delivery-note { font-size: 13px; color: var(--ink-soft); margin: 14px 0 16px; line-height: 1.75; padding: 13px 14px; background: #faf8f3; border-radius: 4px; }
+  .delivery-note b { color: var(--ink); font-size: 14px; }
+  .delivery-note span { color: var(--ink-faint); font-size: 12px; }
+  .delivery-note a:hover { color: var(--accent-deep); }
   .notice { font-size: 12px; color: var(--ink-soft); padding: 12px 0 0; border-top: 1px solid var(--line-soft); margin-top: 18px; line-height: 1.7; }
   .share-row { display: flex; gap: 10px; margin-top: 14px; }
   footer { text-align: center; color: var(--ink-soft); font-size: 12px; margin-top: 40px; line-height: 1.9; padding-top: 30px; border-top: 1px solid var(--line); }
@@ -221,7 +223,7 @@
   .modal { background: var(--paper); border-radius: 4px; max-width: 480px; width: 100%; max-height: 80vh; overflow: auto; }
   .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); font-weight: 700; font-family: var(--font-display); font-size: 16px; }
   .modal-x { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ink-soft); }
-  .modal-body { padding: 20px; font-size: 13px; line-height: 1.8; color: var(--ink); white-space: pre-line; }
+  .modal-body { padding: 22px 22px 30px; font-size: 14px; line-height: 1.85; color: var(--ink); white-space: pre-line; }
 
   /* ── 카탈로그 배너 (sticky) ── */
   #catalogBanner { background: var(--ink) !important; border: none !important; color: var(--paper); padding: 12px 16px !important; }
@@ -277,7 +279,7 @@
     </div>
 
     <h1>1993년부터,<br>단정한 꽃</h1>
-    <p class="lede">청첩장·부고 링크만 보내주세요.<br>한 자리에서 30년, 사장님이 직접 챙겨드립니다.</p>
+    <p class="lede">근조·축하 화환부터 부케·근조바구니까지.<br>청첩장·부고 링크만 보내주세요.<br>한 자리에서 30년, 사장님이 직접 챙겨드립니다.</p>
 
     <div class="marks">
       <div class="mark">
@@ -364,7 +366,7 @@
   </section>
 
   <section class="card hidden" id="senderCard">
-    <div class="step-head"><span class="step-num" id="n-send">6.</span><span class="step-title">보내는 분 · 리본 문구</span></div>
+    <div class="step-head"><span class="step-num" id="n-send">5.</span><span class="step-title">보내는 분 · 리본 문구</span></div>
     <div class="step-sub">보내는 분 정보는 직접 입력해주세요. 리본 문구는 자동으로 맞춰드립니다.</div>
 
     <div class="ribbon-guide">
@@ -391,10 +393,13 @@
     <div class="tone-tabs" id="toneTabs"></div>
     <div class="ribbon-opts" id="ribbonOpts"></div>
     <input type="text" id="ribbonRight" placeholder="직접 입력도 가능합니다" style="margin-top:8px;" />
+
+    <label class="fl" style="margin-top:22px;">사장님께 한 줄 부탁 <span style="font-weight:400;color:var(--ink-faint);font-size:12px;">— 원하시는 게 있으면 적어주세요 (선택)</span></label>
+    <input type="text" id="senderNote" placeholder="예) 진한 자주색 위주로 · 리본 글자 잘 보이게 · 흰 국화 비중 높게" />
   </section>
 
   <section class="card hidden" id="payCard">
-    <div class="step-head"><span class="step-num" id="n-pay">7.</span><span class="step-title">결제</span></div>
+    <div class="step-head"><span class="step-num" id="n-pay">6.</span><span class="step-title">결제</span></div>
     <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
 
     <label class="fl">주문 유형</label>
@@ -419,6 +424,13 @@
 
     <div id="pay-method"></div>
     <div id="pay-agree"></div>
+
+    <div class="delivery-note">
+      <b>배송 안내</b><br>
+      평일 18시 / 주말 16시까지 주문 시 당일 배송됩니다. 도서산간·일부 지역은 추가 배송비가 발생할 수 있으며, 사장님이 확인 후 별도 연락드립니다. 꽃은 생물이라 제작·출고 후 환불이 불가합니다.<br>
+      <a href="#" onclick="showPolicy('delivery');return false;" style="color:var(--ink);font-weight:600;text-decoration:underline;">전체 배송 안내 보기 →</a>
+    </div>
+
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:14px;">결제하기</button>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제 완료 후 사장님이 주문을 확인하고 화환을 준비합니다. 배송이 끝나면 도착 확인 사진을 입력하신 번호로 보내드립니다.</div>
@@ -436,6 +448,7 @@
       고객센터 031-314-3003 (전국 화환 주문·상담)
     </div>
     <div class="foot-links">
+      <a href="#" onclick="showPolicy('delivery');return false;">배송 안내</a> ·
       <a href="#" onclick="showPolicy('refund');return false;">교환·환불 안내</a> ·
       <a href="#" onclick="showPolicy('privacy');return false;">개인정보처리방침</a>
     </div>
@@ -458,7 +471,7 @@ const order = {
   recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"",
   groomName:"", brideName:"", chiefMourner:"",
   price:0, productCode:"", productLabel:"",
-  senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"",
+  senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"", senderNote:"",
   buyerType:"personal", corpName:"", corpRegNo:"", corpCeo:"", corpAddr:"", corpEmail:"",
 };
 
@@ -731,6 +744,7 @@ async function requestPay(){
   order.senderPhone=senderPhoneEl.value.trim();
   order.ribbonLeft=document.getElementById("ribbonLeft").value.trim();
   order.ribbonRight=document.getElementById("ribbonRight").value.trim();
+  order.senderNote=document.getElementById("senderNote").value.trim();
   if(!order.price) return showErr(err,"가격대를 선택해주세요.");
   if(!order.senderName){ markErr(senderNameEl); return showErr(err,"보내는 분 성함을 입력해주세요."); }
   if(!order.senderPhone){ markErr(senderPhoneEl); return showErr(err,"연락처를 입력해주세요."); }
@@ -820,11 +834,133 @@ function selBuyer(type){
 }
 
 const POLICY = {
+  delivery: ["배송 안내",
+    "[ 배송 시간 ]\n"+
+    "· 평일 18:00까지 주문 → 당일 배송\n"+
+    "· 평일 18:00 이후 주문 → 익일 배송\n"+
+    "· 주말(토·일) 16:00까지 주문 → 당일 배송\n"+
+    "\n"+
+    "[ 배송 안내 ]\n"+
+    "· 특정 상품·배송 장소에 따라 배송 추가금이 발생할 수 있습니다.\n"+
+    "· 도서산간 지역을 제외한 모든 지역은 주문 시 당일 배송됩니다 (3시간 내 발송).\n"+
+    "· 도서산간 지역 / 읍·면·리 단위 지역은 추가금이 발생할 수 있으며, 미리 고객센터로 상담 전화 부탁드립니다.\n"+
+    "· 상품이 출고된 이후에는 주문 취소·환불이 불가능하니 미리 확인 부탁드립니다.\n"+
+    "\n"+
+    "[ 특정 기념일 ]\n"+
+    "· 크리스마스·기념일·어버이날 등은 시간 지정 배송이 불가능하며, 배송이 다소 지연될 수 있습니다.\n"+
+    "· 특정 기념일에는 하루 전 미리 예약 주문을 부탁드립니다.\n"+
+    "· 결혼식의 경우에도 하루 전 또는 한 주 전 예약 주문을 부탁드립니다.\n"+
+    "\n"+
+    "[ 배송비 추가 지역 ]\n"+
+    "※ 배송비 추가 지역은 배송지 사정에 따라 변경될 수 있습니다.\n"+
+    "\n"+
+    "▸ 경기도\n"+
+    "  1만원 추가 · 연천, 가평, 양평, 의정부, 양주, 포천\n"+
+    "  배송 불가 · 화성 공룡알화석지, 대부도\n"+
+    "\n"+
+    "▸ 인천\n"+
+    "  1~2만원 추가 · 운서동\n"+
+    "  2만원 추가 · 대부도, 영종도\n"+
+    "  배송 불가 · 옹왕린, 옹진군\n"+
+    "\n"+
+    "▸ 강원도\n"+
+    "  1만원 추가 · 영월, 원주, 삼척, 철원, 양구, 속초, 인제, 양양, 홍천, 강릉, 동해, 춘천\n"+
+    "  1~2만원 추가 · 횡성\n"+
+    "  2만원 추가 · 고성, 화천, 평창, 정선\n"+
+    "  배송 불가 · 임계면\n"+
+    "\n"+
+    "▸ 충청북도\n"+
+    "  1만원 추가 · 영동, 오창읍, 내수읍, 괴산, 단양\n"+
+    "  2만원 추가 · 보은, 진천, 증평\n"+
+    "\n"+
+    "▸ 충청남도\n"+
+    "  1만원 추가 · 청양, 논산\n"+
+    "\n"+
+    "▸ 전라북도\n"+
+    "  1만원 추가 · 무주, 진안, 장수, 남원, 순창, 완주, 고창, 임실\n"+
+    "  배송 불가 · 변산반도\n"+
+    "\n"+
+    "▸ 전라남도\n"+
+    "  1만원 추가 · 곡성, 장흥, 진도, 해남, 나주, 광양, 보성, 완도, 영암, 구례\n"+
+    "  2만원 추가 · 고흥\n"+
+    "  배송 불가 · 땅끝마을, 소록도, 신안군 일부 지역, 기타 외곽 섬마을\n"+
+    "\n"+
+    "▸ 경상북도\n"+
+    "  1만원 추가 · 울주, 의성, 영양, 군위, 청송, 고령, 영천, 문경, 상주, 영주, 영덕, 안동(풍산·풍전면), 대구 달성군, 경주시 일부 지역\n"+
+    "  2만원 추가 · 울진\n"+
+    "  배송 불가 · 감포읍\n"+
+    "\n"+
+    "▸ 경상남도\n"+
+    "  1만원 추가 · 의령, 산청, 하동\n"+
+    "  2만원 추가 · 합천, 밀양\n"+
+    "\n"+
+    "▸ 부산\n"+
+    "  기타 비용 추가 · 강서, 기장, 정관 일부 지역\n"+
+    "\n"+
+    "▸ 제주\n"+
+    "  1~2만원 추가 · 서귀포, 제주시 일부 지역\n"+
+    "\n"+
+    "[ 지정 상품만 배송 가능한 장소 ]\n"+
+    "아래 장소에서는 지정된 상품만 배송됩니다. 확인 후 담당자가 개별로 연락드리며, 대체 상품으로 교체됩니다.\n"+
+    "\n"+
+    "▸ 서울 지역\n"+
+    "  쌀화환만 반입 가능 · 용산구 한강성당, 중구 정동프란체스코성당, 서초구 서초동성당, 서초구 방배동성당\n"+
+    "  화환 반입 금지 · 역삼동 라움, 대한성공회 서울주교좌성당, 양천구 양천성당, 종로구 종로성당, 종로구 혜화동성당, 영등포구 당산동성당, 중구 영락교회본당, 중구 명동성당, 장안동 장안평성당, 강남구 대치2동성당, 서초구 사랑의교회\n"+
+    "  오브제만 반입 가능 · 더조은요양병원\n"+
+    "\n"+
+    "▸ 경기 지역\n"+
+    "  화환 반입 금지 · 남양주시 진건성당\n"+
+    "  오브제만 반입 가능 · 수원 연화장\n"+
+    "  흰서양란만 반입 가능 · 분당 성요한성당 장례식장\n"+
+    "  서양란만 반입 가능 · 송림고등학교 분당우리교회\n"+
+    "\n"+
+    "▸ 대전 지역\n"+
+    "  쌀화환만 반입 가능 · 유성 전민동성당\n"+
+    "  오브제만 반입 가능 · 유성한가족병원\n"+
+    "\n"+
+    "▸ 부산 지역\n"+
+    "  오브제만 반입 가능 · 부산영락공원, 기장원자력병원, 착한전문장례식장\n"+
+    "\n"+
+    "▸ 경상남도 지역\n"+
+    "  쌀화환만 반입 가능 · 밀양 한솔병원\n"+
+    "  오브제만 반입 가능 · 거창, 양산장례식장\n"+
+    "  근조바구니만 반입 가능 · 창원 시립삼북공원장례식장, 창원 마산의료원 장례식장, 함안 하늘공원\n"+
+    "  자체 쌀화환만 반입 가능 · 창원 리베라컨벤션웨딩홀, 창원 엘시티, 창원 유로스퀘어, 창원 스카이웨딩홀, 창원 진해더연리지\n"+
+    "\n"+
+    "▸ 울산 지역\n"+
+    "  오브제만 반입 가능 · 울산 하늘공원장례식장\n"+
+    "\n"+
+    "▸ 경상북도 지역\n"+
+    "  쌀화환만 반입 가능 · 청도\n"+
+    "  근조바구니만 반입 가능 · 고령\n"+
+    "\n"+
+    "▸ 충청북도 지역\n"+
+    "  쌀화환만 반입 가능 · 더빈컨벤션, 청주 아모르컨벤션웨딩\n"+
+    "  화환 반입 금지 · 청주 교자성당\n"+
+    "\n"+
+    "▸ 세종 지역\n"+
+    "  오브제만 반입 가능 · 세종시 은하수공원장례식장\n"+
+    "\n"+
+    "▸ 전라남도 지역\n"+
+    "  쌀화환만 반입 가능 · 완도장례식장\n"+
+    "  오브제만 반입 가능 · 여수\n"+
+    "\n"+
+    "▸ 전라북도 지역\n"+
+    "  오브제만 반입 가능 · 부안, 정읍\n"+
+    "\n"+
+    "※ 추가 금액, 배송 불가 지역, 반입 가능 상품은 주기적으로 변경될 수 있으니 참고 바랍니다.\n"+
+    "※ 위 정보 외 자세한 사항은 고객센터 031-314-3003 으로 문의 부탁드립니다."],
   refund: ["교환·환불 안내",
+    "[ 교환·환불 ]\n"+
+    "· 꽃은 생물이기 때문에 제작/출고된 제품은 교환과 환불이 불가능합니다.\n"+
+    "· 고객님의 단순 변심이나 배송지 정보 오류로 인한 취소·교환은 어렵습니다. 미리 한 번 더 확인 부탁드립니다.\n"+
+    "· 꽃의 특성상 계절과 지역에 따라 기존 제품 사진과 다를 수 있습니다. 이 사유로는 취소·교환·환불이 불가능합니다.\n"+
+    "· 상품에 명백한 하자(파손, 주문과 다른 상품 등)가 있는 경우, 사진 확인 후 재배송 또는 환불해드립니다.\n"+
+    "\n"+
+    "[ 주문 취소 ]\n"+
     "· 화환 제작 전(주문 접수 후 사장님 확인 전)에는 전액 환불이 가능합니다.\n"+
     "· 화환 제작이 시작된 후에는 상품 특성상 환불이 어렵습니다.\n"+
-    "· 배송 후 상품에 하자가 있는 경우(파손, 주문과 다른 상품 등) 사진 확인 후 재배송 또는 환불해드립니다.\n"+
-    "· 자세한 사항은 전화로 문의해주세요."],
+    "· 자세한 사항은 031-314-3003 으로 문의 부탁드립니다."],
   privacy: ["개인정보처리방침",
     "· 수집 항목: 주문자 성함, 연락처, (법인) 사업자 정보, 받는 곳 정보\n"+
     "· 수집 목적: 화환 주문 처리, 배송, 도착 확인 사진 발송, 계산서 발행\n"+
