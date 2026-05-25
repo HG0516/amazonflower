@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>전체 화환 둘러보기 — 아마존플라워</title>
+<meta name="description" content="아마존플라워의 근조화환·축하화환을 가격대별로 둘러보세요. 전국 당일배송." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="전체 화환 둘러보기 — 아마존플라워" />
+<meta property="og:description" content="근조화환·축하화환 가격대별 모음 · 전국 당일배송" />
+<meta property="og:image" content="/og_preview.png" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+  :root {
+    --bg:#f7f4ee; --paper:#fff; --ink:#2b2a26; --ink-soft:#6b6860; --ink-faint:#9a978d;
+    --line:#e3ddd1; --accent:#3a6b4f; --accent-deep:#2a5640; --accent-soft:#eef3ef;
+    --gold:#b08945; --condo:#46505c; --radius:14px;
+    --shadow:0 2px 10px rgba(43,42,38,0.06),0 8px 30px rgba(43,42,38,0.06);
+    --font-display:"Gowun Batang","Nanum Myeongjo",serif;
+    --font-body:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; }
+  body { font-family:var(--font-body); background:var(--bg); color:var(--ink); line-height:1.6; font-size:17px; padding-bottom:60px; }
+  .wrap { max-width:680px; margin:0 auto; padding:0 18px; }
+
+  .topbar { display:flex; align-items:center; gap:12px; padding:18px 0 8px; }
+  .back { display:inline-flex; align-items:center; gap:5px; font-size:14px; color:var(--accent-deep); text-decoration:none; font-weight:600; background:#fff; border:1px solid var(--line); padding:8px 14px; border-radius:20px; }
+  .back:hover { background:var(--accent-soft); }
+
+  header { text-align:center; padding:14px 18px 6px; }
+  .brand { font-family:var(--font-display); font-size:24px; font-weight:800; color:var(--accent-deep); }
+  .subtitle { font-size:14px; color:var(--ink-soft); margin-top:6px; }
+
+  .seg { display:flex; gap:8px; background:#efeadf; border-radius:12px; padding:5px; margin:18px 0 8px; }
+  .seg button { flex:1; padding:11px; border:none; border-radius:9px; background:transparent; cursor:pointer; font-size:15px; font-weight:700; font-family:var(--font-body); color:var(--ink-soft); }
+  .seg button.on { background:#fff; color:var(--accent-deep); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .seg button.on.condo { color:var(--condo); }
+
+  .section-label { font-family:var(--font-display); font-size:18px; font-weight:700; margin:22px 0 4px; }
+  .section-desc { font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .item { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .item .photo { aspect-ratio:3/4; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; }
+  .item .body { padding:13px 14px 15px; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .item .nm { font-weight:700; font-size:15px; }
+  .item .code { font-size:11px; color:var(--ink-faint); margin-top:-2px; }
+  .item .price { font-family:var(--font-display); font-size:19px; font-weight:800; color:var(--accent-deep); }
+  .item .price.condo { color:var(--condo); }
+  .item .desc { font-size:12px; color:var(--ink-soft); line-height:1.5; }
+  .item .order { margin-top:8px; padding:11px; border:none; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); }
+  .item .order:hover { background:var(--accent-deep); }
+  .item .order.condo { background:var(--condo); }
+
+  .note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:13px 15px; border-radius:10px; margin-top:22px; line-height:1.7; }
+  footer { text-align:center; color:var(--ink-faint); font-size:12px; margin-top:26px; line-height:1.8; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="/">← 주문하러 가기</a>
+  </div>
+
+  <header>
+    <div class="brand">아마존플라워</div>
+    <div class="subtitle">전국 어디든 당일배송 · 가격대별로 둘러보세요</div>
+  </header>
+
+  <div class="seg">
+    <button id="tabCondo" class="on condo" onclick="showCat('condolence')">근조화환</button>
+    <button id="tabCongrats" onclick="showCat('congrats')">축하화환</button>
+  </div>
+
+  <div id="catArea"></div>
+
+  <div class="note">
+    ※ 사진은 준비 중입니다. 실제 상품 사진으로 곧 교체됩니다.<br>
+    원하시는 화환의 <b>주문하기</b>를 누르면, 받는 곳 정보만 입력하고 바로 주문하실 수 있어요.
+  </div>
+
+  <footer>
+    아마존플라워 · (주)아마존인테리어<br>
+    경기도 시흥시 신천3길 23, 103호 · 전국 당일배송
+  </footer>
+</div>
+
+<script>
+// 가격대 구성 (실제 상품 들어오면 desc/사진만 채우면 됨)
+const TIERS = {
+  condolence: {
+    label:"근조화환", cls:"condo",
+    desc:"장례식장에 보내는 근조화환입니다.",
+    items:[
+      {price:59000, nm:"근조화환 일반형", code:"AF-C01", d:"3단 기본형. 단정하게 조의를 표합니다."},
+      {price:79000, nm:"근조화환 중급형", code:"AF-C02", d:"3단 풍성형. 꽃 물량을 늘려 더 정성스럽게."},
+      {price:99000, nm:"근조화환 고급형", code:"AF-C03", d:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
+      {price:129000, nm:"근조화환 최고급형", code:"AF-C04", d:"4단 특대형. 거래처·회사 명의에 적합."},
+    ],
+  },
+  congrats: {
+    label:"축하화환", cls:"",
+    desc:"결혼식·개업·승진 등에 보내는 축하화환입니다.",
+    items:[
+      {price:59000, nm:"축하화환 일반형", code:"AF-G01", d:"3단 기본형. 부담 없이 축하 마음을 전합니다."},
+      {price:79000, nm:"축하화환 중급형", code:"AF-G02", d:"3단 풍성형. 화사하고 눈에 띄는 구성."},
+      {price:99000, nm:"축하화환 고급형", code:"AF-G03", d:"3단 고급형. 개업·결혼식장에서 돋보입니다."},
+      {price:129000, nm:"축하화환 최고급형", code:"AF-G04", d:"4단 특대형. 거래처·회사 명의에 적합."},
+    ],
+  },
+};
+
+function showCat(key){
+  const t=TIERS[key];
+  document.getElementById("tabCondo").classList.toggle("on", key==="condolence");
+  document.getElementById("tabCongrats").classList.toggle("on", key==="congrats");
+  const condoCls = t.cls==="condo" ? "condo" : "";
+  const orderType = key==="condolence" ? "funeral" : "wedding";
+  let html=`<div class="section-label">${t.label}</div><div class="section-desc">${t.desc}</div><div class="grid">`;
+  for(const it of t.items){
+    html+=`
+      <div class="item">
+        <div class="photo">사진 준비 중</div>
+        <div class="body">
+          <div class="nm">${it.nm}</div>
+          <div class="code">${it.code}</div>
+          <div class="price ${condoCls}">${it.price.toLocaleString()}원</div>
+          <div class="desc">${it.d}</div>
+          <button class="order ${condoCls}" onclick="goOrder('${orderType}',${it.price})">이 화환 주문하기</button>
+        </div>
+      </div>`;
+  }
+  html+=`</div>`;
+  document.getElementById("catArea").innerHTML=html;
+}
+
+function goOrder(type, price){
+  // 메인으로 이동하면서 선택한 상품 전달
+  location.href = "/?type="+type+"&price="+price;
+}
+
+showCat("condolence");
+</script>
+</body>
+</html>
