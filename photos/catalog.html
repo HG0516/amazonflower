@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>전체 화환 둘러보기 — 아마존플라워</title>
+<meta name="description" content="아마존플라워의 근조화환·축하화환을 가격대별로 둘러보세요. 전국 당일배송." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="전체 화환 둘러보기 — 아마존플라워" />
+<meta property="og:description" content="근조화환·축하화환 가격대별 모음 · 전국 당일배송" />
+<meta property="og:image" content="/og_preview.png" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+  :root {
+    --bg:#eef1ea; --paper:#fff; --ink:#2b2a26; --ink-soft:#6b6860; --ink-faint:#9a978d;
+    --line:#e3ddd1; --accent:#3a6b4f; --accent-deep:#2a5640; --accent-soft:#eef3ef;
+    --gold:#b08945; --condo:#46505c; --radius:14px;
+    --shadow:0 2px 8px rgba(43,58,45,0.06),0 10px 28px rgba(43,58,45,0.08);
+    --font-display:"Gowun Batang","Nanum Myeongjo",serif;
+    --font-body:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { -webkit-text-size-adjust:100%; }
+  body { font-family:var(--font-body); background:var(--bg); background-image:linear-gradient(180deg,#e8ede4 0%,#eef1ea 340px); background-attachment:fixed; color:var(--ink); line-height:1.6; font-size:17px; padding-bottom:60px; }
+  .wrap { max-width:680px; margin:0 auto; padding:0 18px; }
+
+  .topbar { display:flex; align-items:center; gap:12px; padding:18px 0 8px; }
+  .back { display:inline-flex; align-items:center; gap:5px; font-size:14px; color:var(--accent-deep); text-decoration:none; font-weight:600; background:#fff; border:1px solid var(--line); padding:8px 14px; border-radius:20px; }
+  .back:hover { background:var(--accent-soft); }
+
+  header { text-align:center; padding:14px 18px 6px; }
+  .brand { font-family:var(--font-display); font-size:24px; font-weight:800; color:var(--accent-deep); }
+  .subtitle { font-size:14px; color:var(--ink-soft); margin-top:6px; }
+
+  .seg { display:flex; gap:8px; background:#efeadf; border-radius:12px; padding:5px; margin:18px 0 8px; }
+  .seg button { flex:1; padding:11px; border:none; border-radius:9px; background:transparent; cursor:pointer; font-size:15px; font-weight:700; font-family:var(--font-body); color:var(--ink-soft); }
+  .seg button.on { background:#fff; color:var(--accent-deep); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .seg button.on.condo { color:var(--condo); }
+
+  .section-label { font-family:var(--font-display); font-size:18px; font-weight:700; margin:22px 0 4px; }
+  .section-desc { font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .item { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .item .photo { aspect-ratio:3/4; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; }
+  .item .body { padding:13px 14px 15px; display:flex; flex-direction:column; gap:4px; flex:1; }
+  .item .nm { font-weight:700; font-size:15px; }
+  .item .code { font-size:11px; color:var(--ink-faint); margin-top:-2px; }
+  .item .price { font-family:var(--font-display); font-size:19px; font-weight:800; color:var(--accent-deep); }
+  .item .price.condo { color:var(--condo); }
+  .item .desc { font-size:12px; color:var(--ink-soft); line-height:1.5; }
+  .item .order { margin-top:8px; padding:11px; border:none; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); }
+  .item .order:hover { background:var(--accent-deep); }
+  .item .order.condo { background:var(--condo); }
+  .item .share-btn { margin-top:6px; padding:8px; border:1px solid var(--line); border-radius:9px; background:#fcfbf8; color:var(--ink-soft); font-size:13px; cursor:pointer; font-family:var(--font-body); width:100%; }
+  .item .share-btn:hover { background:var(--accent-soft); color:var(--accent-deep); }
+  .item.highlight { outline:2px solid var(--accent); outline-offset:2px; }
+
+  .special { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); }
+  .special-head { margin-bottom:16px; }
+  .special-title { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--accent-deep); }
+  .special-sub { font-size:13px; color:var(--ink-soft); margin-top:6px; line-height:1.6; }
+  .special-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .special-item { background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; }
+  .special-photo { aspect-ratio:4/3; background:repeating-linear-gradient(45deg,#f0ece2,#f0ece2 9px,#ece7da 9px,#ece7da 18px); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--ink-faint); font-size:13px; text-align:center; }
+  .special-photo span { font-size:11px; }
+  .special-body { padding:13px 14px 15px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .snm { font-weight:700; font-size:16px; }
+  .sdesc { font-size:12px; color:var(--ink-soft); line-height:1.5; flex:1; }
+  .sprice { font-family:var(--font-display); font-size:17px; font-weight:800; color:var(--accent-deep); }
+  .scall { margin-top:6px; padding:10px; border-radius:9px; background:var(--accent); color:#fff; font-weight:700; font-size:13px; text-align:center; text-decoration:none; }
+  .scall:hover { background:var(--accent-deep); }
+  .insta-more { display:block; text-align:center; margin-top:16px; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:13px; color:var(--accent-deep); text-decoration:none; background:#fcfbf8; }
+  .insta-more:hover { background:var(--accent-soft); }
+  .channels { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); text-align:center; }
+  .channels-title { font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
+  .channels-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .ch { display:flex; flex-direction:column; align-items:center; gap:6px; width:92px; padding:14px 8px; border-radius:14px; text-decoration:none; color:#fff; font-weight:700; transition:transform .1s; }
+  .ch:hover { transform:translateY(-2px); }
+  .ch-ic { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; }
+  .ch-nm { font-size:12px; }
+  .ch-insta { background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#bc1888); }
+  .ch-naver { background:#03c75a; }
+  .ch-kakao { background:#fae100; color:#3a1d1d; }
+  .ch-kakao .ch-ic { background:rgba(58,29,29,0.12); }
+  .note { font-size:13px; color:var(--ink-soft); background:#f3f1ec; padding:13px 15px; border-radius:10px; margin-top:22px; line-height:1.7; }
+  footer { text-align:center; color:var(--ink-faint); font-size:12px; margin-top:26px; line-height:1.8; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="/">← 주문하러 가기</a>
+  </div>
+
+  <header>
+    <div class="brand">아마존플라워</div>
+    <div class="subtitle">전국 어디든 당일배송 · 가격대별로 둘러보세요</div>
+  </header>
+
+  <div class="seg">
+    <button id="tabCongrats" class="on" onclick="showCat('congrats')">축하화환</button>
+    <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조화환</button>
+  </div>
+
+  <div id="catArea"></div>
+
+  <div class="special">
+    <div class="special-head">
+      <div class="special-title">✿ 특별 제작 — 1993년부터, 사장님이 직접 제작</div>
+      <div class="special-sub">스탠드 화환 외에도, 사장님이 직접 만드는 수제 상품입니다. 맞춤 제작이라 전화로 상담 주문해주세요.</div>
+    </div>
+    <div class="special-grid" id="specialArea"></div>
+    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">📷 실제 제작 사진 더 보기 (인스타그램 @amazonflower3003)</a>
+  </div>
+
+  <div class="note">
+    ※ 사진은 준비 중입니다. 실제 상품 사진으로 곧 교체됩니다.<br>
+    원하시는 화환의 <b>주문하기</b>를 누르면, 받는 곳 정보만 입력하고 바로 주문하실 수 있어요.
+  </div>
+
+  <div class="channels">
+    <div class="channels-title">아마존플라워 채널</div>
+    <div class="channels-row">
+      <a class="ch ch-insta" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">
+        <span class="ch-ic">📷</span><span class="ch-nm">인스타그램</span>
+      </a>
+      <a class="ch ch-naver" href="#" target="_blank" rel="noopener" data-pending="네이버 스토어 주소 준비 중">
+        <span class="ch-ic">N</span><span class="ch-nm">네이버 스토어</span>
+      </a>
+      <a class="ch ch-kakao" href="#" target="_blank" rel="noopener" data-pending="카카오톡 채널 준비 중">
+        <span class="ch-ic">💬</span><span class="ch-nm">카카오톡 채널</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    아마존플라워 · (주)아마존인테리어<br>
+    경기도 시흥시 신천3길 23, 103호 · 전국 당일배송
+  </footer>
+</div>
+
+<script>
+// 가격대 구성 (실제 상품 들어오면 desc/사진만 채우면 됨)
+// 특별 제작 (탭별로 다르게 노출)
+const SPECIAL = {
+  congrats: [
+    {nm:"결혼식 당일 부케", photo:"결혼당일부케.jpg", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다."},
+    {nm:"웨딩 촬영용 부케", photo:"촬영용부케.jpg", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다."},
+  ],
+  condolence: [
+    {nm:"근조 바구니 (기본)", photo:"근조바구니_기본.jpg", price:"가격 상담", d:"장례식장에 보내는 근조 꽃바구니. 단정하고 정성스럽게 제작합니다."},
+    {nm:"근조 바구니 (고급)", photo:"근조바구니_고급.jpg", price:"가격 상담", d:"꽃 물량을 늘린 고급형 근조 바구니."},
+    {nm:"제단 장식 · 국화 등", photo:"제단장식.jpg", price:"맞춤 상담", d:"빈소 제단 장식, 국화 낱개 송이 등 장례 관련 꽃을 맞춤으로 제작합니다."},
+  ],
+};
+
+function showSpecial(key){
+  const items=SPECIAL[key]||[];
+  document.getElementById("specialArea").innerHTML=items.map(it=>`
+    <div class="special-item">
+      <div class="special-photo">사진 준비 중<br><span>(${it.photo})</span></div>
+      <div class="special-body">
+        <div class="snm">${it.nm}</div>
+        <div class="sdesc">${it.d}</div>
+        <div class="sprice">${it.price}</div>
+        <a class="scall" href="tel:031-314-3003">📞 전화 상담하기</a>
+      </div>
+    </div>`).join("");
+}
+
+const TIERS = {
+  condolence: {
+    label:"근조화환", cls:"condo",
+    desc:"장례식장에 보내는 근조화환입니다.",
+    items:[
+      {price:59000, nm:"근조화환 일반형", code:"AF-C01", d:"3단 기본형. 단정하게 조의를 표합니다."},
+      {price:79000, nm:"근조화환 중급형", code:"AF-C02", d:"3단 풍성형. 꽃 물량을 늘려 더 정성스럽게."},
+      {price:99000, nm:"근조화환 고급형", code:"AF-C03", d:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
+      {price:129000, nm:"근조화환 최고급형", code:"AF-C04", d:"4단 특대형. 거래처·회사 명의에 적합."},
+    ],
+  },
+  congrats: {
+    label:"축하화환", cls:"",
+    desc:"결혼식·개업·승진 등에 보내는 축하화환입니다.",
+    items:[
+      {price:59000, nm:"축하화환 일반형", code:"AF-G01", d:"3단 기본형. 부담 없이 축하 마음을 전합니다."},
+      {price:79000, nm:"축하화환 중급형", code:"AF-G02", d:"3단 풍성형. 화사하고 눈에 띄는 구성."},
+      {price:99000, nm:"축하화환 고급형", code:"AF-G03", d:"3단 고급형. 개업·결혼식장에서 돋보입니다."},
+      {price:129000, nm:"축하화환 최고급형", code:"AF-G04", d:"4단 특대형. 거래처·회사 명의에 적합."},
+    ],
+  },
+};
+
+function showCat(key){
+  const t=TIERS[key];
+  document.getElementById("tabCondo").classList.toggle("on", key==="condolence");
+  document.getElementById("tabCongrats").classList.toggle("on", key==="congrats");
+  const condoCls = t.cls==="condo" ? "condo" : "";
+  const orderType = key==="condolence" ? "funeral" : "wedding";
+  let html=`<div class="section-label">${t.label}</div><div class="section-desc">${t.desc}</div><div class="grid">`;
+  for(const it of t.items){
+    html+=`
+      <div class="item">
+        <div class="photo">사진 준비 중</div>
+        <div class="body">
+          <div class="nm">${it.nm}</div>
+          <div class="code">${it.code}</div>
+          <div class="price ${condoCls}">${it.price.toLocaleString()}원</div>
+          <div class="desc">${it.d}</div>
+          <button class="order ${condoCls}" onclick="goOrder('${orderType}',${it.price})">이 화환 주문하기</button>
+          <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">🔗 공유하기</button>
+        </div>
+      </div>`;
+  }
+  html+=`</div>`;
+  document.getElementById("catArea").innerHTML=html;
+  showSpecial(key);
+}
+
+function goOrder(type, price){
+  // 메인으로 이동하면서 선택한 상품 전달
+  location.href = "/?type="+type+"&price="+price;
+}
+
+function escapeJs(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+async function shareItem(key, code, name, price){
+  // 이 상품을 가리키는 공유 링크
+  const url = location.origin + "/catalog.html?item=" + encodeURIComponent(code);
+  const kind = key==="condolence" ? "근조화환" : "축하화환";
+  const text = `[아마존플라워] ${name} ${price.toLocaleString()}원 — ${kind} 전국 당일배송`;
+  // 모바일: 기본 공유창(카톡·문자 등) / PC: 링크 복사
+  if(navigator.share){
+    try{ await navigator.share({title:"아마존플라워", text, url}); }catch(e){}
+  } else {
+    try{
+      await navigator.clipboard.writeText(url);
+      alert("링크가 복사되었어요. 붙여넣기 해서 공유해보세요.\n\n"+url);
+    }catch(e){
+      prompt("아래 링크를 복사해서 공유하세요:", url);
+    }
+  }
+}
+
+// 공유 링크로 들어온 경우(?item=코드): 해당 탭을 열고 그 상품을 강조
+function openSharedItem(){
+  const q=new URLSearchParams(location.search);
+  const item=q.get("item");
+  if(!item) return;
+  const key = item.startsWith("AF-C") ? "condolence" : "congrats";
+  showCat(key);
+  setTimeout(()=>{
+    const cards=document.querySelectorAll("#catArea .item");
+    cards.forEach(c=>{
+      if(c.querySelector(".code")?.textContent===item){
+        c.classList.add("highlight");
+        c.scrollIntoView({behavior:"smooth",block:"center"});
+      }
+    });
+  },100);
+}
+
+showCat("congrats");
+openSharedItem();
+
+// 준비 중인 채널(네이버/카톡)은 주소가 들어오기 전까지 안내만
+document.querySelectorAll('.ch[data-pending]').forEach(el=>{
+  el.addEventListener('click', e=>{
+    if(el.getAttribute('href')==='#'){
+      e.preventDefault();
+      alert(el.getAttribute('data-pending'));
+    }
+  });
+});
+</script>
+</body>
+</html>
