@@ -18,27 +18,27 @@ const SOLAPI_SEND_URL = "https://api.solapi.com/messages/v4/send-many/detail";
 // 화환 상품 정가 (서버에서 금액 위변조를 검증하기 위한 신뢰 가능한 가격표)
 // 프론트가 보낸 금액을 그대로 믿지 않고, orderId/상품코드 기준으로 서버가 다시 확인한다.
 const PRODUCT_PRICES = {
-  // 축하화환
-  congrats_5: 50000,
-  congrats_7: 70000,
-  congrats_10: 100000,
-  congrats_15: 150000,
-  // 근조화환
-  condolence_5: 50000,
-  condolence_7: 70000,
-  condolence_10: 100000,
-  condolence_15: 150000,
+  // 축하화환 (등급제 4단계)
+  congrats_g1: 59000,   // 일반형 (3단 기본)
+  congrats_g2: 79000,   // 중급형 (3단 풍성)
+  congrats_g3: 99000,   // 고급형 (3단 고급)
+  congrats_g4: 129000,  // 최고급형 (4단 특대)
+  // 근조화환 (등급제 4단계)
+  condolence_c1: 59000, // 일반형 (3단 기본)
+  condolence_c2: 79000, // 중급형 (3단 풍성)
+  condolence_c3: 99000, // 고급형 (3단 고급)
+  condolence_c4: 129000,// 최고급형 (4단 특대)
 };
 
 const PRODUCT_LABELS = {
-  congrats_5: "축하화환 5만원",
-  congrats_7: "축하화환 7만원",
-  congrats_10: "축하화환 10만원",
-  congrats_15: "축하화환 15만원",
-  condolence_5: "근조화환 5만원",
-  condolence_7: "근조화환 7만원",
-  condolence_10: "근조화환 10만원",
-  condolence_15: "근조화환 15만원",
+  congrats_g1: "축하화환 일반형 (AF-G01)",
+  congrats_g2: "축하화환 중급형 (AF-G02)",
+  congrats_g3: "축하화환 고급형 (AF-G03)",
+  congrats_g4: "축하화환 최고급형 (AF-G04)",
+  condolence_c1: "근조화환 일반형 (AF-C01)",
+  condolence_c2: "근조화환 중급형 (AF-C02)",
+  condolence_c3: "근조화환 고급형 (AF-C03)",
+  condolence_c4: "근조화환 최고급형 (AF-C04)",
 };
 
 // ── 솔라피 HMAC-SHA256 서명 (Node crypto) ───────────────────────────────
