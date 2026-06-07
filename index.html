@@ -42,11 +42,12 @@
   html { -webkit-text-size-adjust: 100%; }
   body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 17px; padding-bottom: 60px; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; }
+  .version-badge { position: fixed; top: 12px; right: 12px; z-index: 999; background: rgba(31,29,24,0.88); color: #fff; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 999px; letter-spacing: 0.4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 
   /* ── 헤더: 미니멀 ── */
-  header { text-align: center; padding: 36px 18px 4px; }
+  header { text-align: center; padding: 14px 18px 4px; }
   .brand { font-family: var(--font-display); font-size: 25px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
-  .brand-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+  .brand-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 2px; margin-top: 2px; text-transform: uppercase; }
 
   /* ── 가는 구분선 ── */
   .divider { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
@@ -55,15 +56,15 @@
   .divider-center::before, .divider-center::after { content: ""; display: inline-block; vertical-align: middle; width: 38px; border-top: 1px solid var(--line); margin: 0 12px; }
 
   /* ── hero: 사진 + 카피, 카드 없음 ── */
-  .hero { padding: 14px 0 6px; text-align: center; }
-  .hero-strip { width: 100%; margin: 0 auto 16px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line-soft); }
+  .hero { padding: 8px 0 2px; text-align: center; }
+  .hero-strip { width: 100%; margin: 0 auto 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line-soft); }
   .strip-track { display: flex; gap: 6px; width: max-content; animation: strip-scroll 32s linear infinite; }
-  .strip-track img { height: 140px; width: auto; object-fit: cover; display: block; }
+  .strip-track img { height: 110px; width: auto; object-fit: cover; display: block; }
   @keyframes strip-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .hero-strip:hover .strip-track { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) { .strip-track { animation: none; } }
-  .hero h1 { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.4; color: var(--ink); letter-spacing: -0.5px; }
-  .hero .lede { font-size: 16px; color: var(--ink-soft); line-height: 1.85; margin-top: 16px; }
+  .hero h1 { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.4; color: var(--ink); letter-spacing: -0.5px; }
+  .hero .lede { font-size: 16px; color: var(--ink-soft); line-height: 1.6; margin-top: 8px; }
 
   /* ── 약식 배지 (3개, 이모지 없음) ── */
   .marks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 16px 0; }
@@ -273,16 +274,17 @@
       padding: 0 28px 30px;
       min-height: 100vh;
     }
-    header { padding-top: 44px; }
-    .hero h1 { font-size: 40px; }
-    .hero .lede { font-size: 17px; }
+    header { padding-top: 24px; }
+    .hero h1 { font-size: 34px; }
+    .hero .lede { font-size: 17px; line-height: 1.6; }
     .step-title { font-size: 24px; }
-    .strip-track img { height: 160px; }
+    .strip-track img { height: 140px; }
     .spec { font-size: 17px; }
   }
 </style>
 </head>
 <body>
+<div class="version-badge">v5</div>
 <div class="wrap">
 
   <header>
@@ -319,21 +321,7 @@
     <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
-  <section class="card" id="srcCard">
-    <div class="step-head"><span class="step-num">1.</span><span class="step-title">어디로 보낼까요?</span></div>
-    <div class="step-sub">카톡으로 받으신 부고·청첩장 링크를 그대로 붙여넣으세요. 장소·날짜·상주/혼주까지 자동으로 정리해드립니다. 링크가 없으면 직접 적으셔도 됩니다.</div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
-      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
-    </div>
-    <textarea id="src" rows="7" placeholder="1. 청첩장·부고 링크 붙여넣기&#10;   예)  https://www.smartwedd.com/abc&#10;&#10;2. 또는 직접 입력&#10;   예)  센트럴병원 장례식장 201호&#10;        5월 27일 발인"></textarea>
-    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">주문 시작하기</button>
-    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
-    <div class="err hidden" id="parseErr"></div>
-
-    <div class="phone-order"><b>📞 전화 주문 · 상담  031-314-3003</b><span>특수 제작이나 급한 주문은 전화 주시면 사장님이 직접 챙겨드립니다.</span></div>
-  </section>
-
-  <section style="margin-top:26px;">
+  <section style="margin-top:14px;">
     <div style="text-align:center;font-family:var(--font-display);font-size:19px;font-weight:700;margin-bottom:4px;">무엇을 보내시나요?</div>
     <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:14px;">고르고 시작해도, 링크부터 넣어도 됩니다 — 중간에 바꿀 수 있어요</div>
     <div class="cat-grid">
@@ -359,6 +347,20 @@
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
+  </section>
+
+  <section class="card" id="srcCard">
+    <div class="step-head"><span class="step-num">1.</span><span class="step-title">어디로 보낼까요?</span></div>
+    <div class="step-sub">카톡으로 받으신 부고·청첩장 링크를 그대로 붙여넣으세요. 장소·날짜·상주/혼주까지 자동으로 정리해드립니다. 링크가 없으면 직접 적으셔도 됩니다.</div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
+    </div>
+    <textarea id="src" rows="7" placeholder="1. 청첩장·부고 링크 붙여넣기&#10;   예)  https://www.smartwedd.com/abc&#10;&#10;2. 또는 직접 입력&#10;   예)  센트럴병원 장례식장 201호&#10;        5월 27일 발인"></textarea>
+    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">주문 시작하기</button>
+    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
+    <div class="err hidden" id="parseErr"></div>
+
+    <div class="phone-order"><b>📞 전화 주문 · 상담  031-314-3003</b><span>특수 제작이나 급한 주문은 전화 주시면 사장님이 직접 챙겨드립니다.</span></div>
   </section>
 
   <section style="margin-top:8px;">
