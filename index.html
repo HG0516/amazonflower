@@ -284,7 +284,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v5</div>
+<div class="version-badge">v6</div>
 <div class="wrap">
 
   <header>
@@ -292,52 +292,52 @@
     <div class="brand-sub">안부는, 꽃으로 · SINCE 1993</div>
   </header>
 
-  <section class="hero">
-    <h1>무엇을 보내시나요?</h1>
-    <p class="lede">받으신 링크를 넣어도 되고, 직접 내용을 적어도 주문할 수 있어요. 주문자 정보는 다음 단계에서 입력합니다.</p>
-    <div style="margin: 18px 0 0;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-        <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
-        <div class="hint" style="flex:1;min-width:180px;">• 링크가 없으면 직접 입력해도 됩니다.</div>
-      </div>
-      <textarea id="src" rows="6" placeholder="1. 청첩장·부고 링크 붙여넣기&#10;   예)  https://www.smartwedd.com/abc&#10;&#10;2. 또는 직접 입력&#10;   예)  센트럴병원 장례식장 201호&#10;        5월 27일 발인"></textarea>
-      <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">주문 시작하기</button>
-      <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
-      <div class="err hidden" id="parseErr"></div>
-    </div>
-  </section>
-
   <section class="card hidden" id="catalogBanner" style="position:sticky;top:8px;z-index:10;">
     <div class="pick-label">SELECTED</div>
     <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
-  <section style="margin-top:14px;">
-    <div style="text-align:center;font-family:var(--font-display);font-size:19px;font-weight:700;margin-bottom:4px;">원하시는 상품을 골라보세요</div>
-    <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:14px;">고르고 시작해도, 링크부터 넣어도 됩니다 — 중간에 바꿀 수 있어요</div>
+  <section style="margin-top:16px;">
+    <h1 style="text-align:center;font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.4;letter-spacing:-0.5px;margin-bottom:6px;">무엇을 보내시나요?</h1>
+    <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">아래에서 바로 고르셔도 되고, 사연을 적으면 어울리는 상품을 추천해드려요</div>
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCat('wreath','근조·축하 화환')">
         <div class="cat-photo"><img src="/photos/화환/축하/고급형.jpg" alt="화환" onerror="this.style.display='none'"></div>
         <div class="cat-name">근조 · 축하 화환</div>
-        <div class="cat-desc">49,000원부터 · 장례식·결혼·개업</div>
+        <div class="cat-desc">59,000원부터 · 장례식·결혼·개업</div>
       </div>
       <div class="cat-tile" onclick="goCat('orchid','동양란 · 서양란')">
         <div class="cat-photo"><img src="/photos/난/서양란_기본.jpg" alt="난" onerror="this.style.display='none'"></div>
         <div class="cat-name">동양란 · 서양란</div>
-        <div class="cat-desc">85,000원부터 · 승진·취임·개업 인사</div>
+        <div class="cat-desc">69,000원부터 · 승진·취임·개업 인사</div>
       </div>
       <div class="cat-tile" onclick="goCat('plant','관엽식물')">
         <div class="cat-photo"><img src="/photos/관엽/고급형.jpg" alt="관엽" onerror="this.style.display='none'"></div>
         <div class="cat-name">관엽식물</div>
-        <div class="cat-desc">69,000원부터 · 개업·이전·사무실</div>
+        <div class="cat-desc">59,000원부터 · 개업·이전·사무실</div>
       </div>
       <div class="cat-tile" onclick="goCat('basket','꽃바구니 · 꽃다발')">
         <div class="cat-photo"><img src="/photos/꽃바구니/꽃다발_고급.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
         <div class="cat-name">꽃바구니 · 꽃다발</div>
-        <div class="cat-desc">45,000원부터 · 웨딩 부케 전문</div>
+        <div class="cat-desc">49,000원부터 · 웨딩 부케 전문</div>
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
+  </section>
+
+  <section class="hero" id="srcCard" style="margin-top:26px;padding-top:0;">
+    <div class="divider-center"><span style="font-size:12px;color:var(--ink-faint);letter-spacing:1px;">또는, 사연·링크로 추천받기</span></div>
+    <p class="lede" style="margin-top:0;">청첩장·부고 링크는 물론, <b>"어머니 칠순"</b>, <b>"부모님 결혼 30주년"</b>, <b>"친구 개업"</b>처럼 적어주셔도 어울리는 상품을 추천해드려요.</p>
+    <div style="margin: 16px 0 0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
+        <div class="hint" style="flex:1;min-width:180px;">• 링크가 없으면 보내실 일을 적어도 됩니다.</div>
+      </div>
+      <textarea id="src" rows="6" placeholder="예)  어머니 칠순 잔치&#10;예)  부모님 결혼 30주년 기념일&#10;예)  친구 개업 / 거래처 승진&#10;&#10;또는 청첩장·부고 링크 붙여넣기&#10;예)  https://www.smartwedd.com/abc"></textarea>
+      <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">추천받고 시작하기</button>
+      <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
+      <div class="err hidden" id="parseErr"></div>
+    </div>
   </section>
 
   <section style="margin-top:8px;">
@@ -622,6 +622,32 @@ const RIBBON = {
       "새로운 출발을 진심으로 축하합니다",
     ],
   },
+  // 생신·기념일·개업·승진 등 일반 축하 (사연 추천에서 사용)
+  general: {
+    tones: [
+      ["congrat","축하"],
+      ["hangul","한글"],
+      ["work","직장·거래처"],
+    ],
+    congrat: [
+      "축하합니다",
+      "진심으로 축하드립니다",
+      "늘 건강하시고 행복하세요",
+      "祝 (축하)",
+    ],
+    hangul: [
+      "생신을 진심으로 축하합니다",
+      "건강과 행복이 가득하시길",
+      "늘 꽃길만 걸으시길 바랍니다",
+      "사랑과 감사를 담아",
+    ],
+    work: [
+      "축하합니다",
+      "번창을 기원합니다",
+      "새로운 출발을 축하합니다",
+      "祝 發展 (축 발전)",
+    ],
+  },
 };
 
 let widgets=null, widgetsRendered=false;
@@ -642,6 +668,67 @@ async function pasteFromClipboard(){
   }
 }
 
+// ── 사연 → 추천 상품 매핑 ───────────────────────────────
+// 결혼·장례는 AI 파싱(상세정보 추출)으로 보내고, 그 외 축하 사연만 로컬에서 추천한다.
+// cat: 추천 카테고리 / tier: 기본 선택 가격대 인덱스(0=가장 저렴) / label: 표시용
+const OCCASION_RULES = [
+  { re:/(생신|생일|환갑|회갑|진갑|칠순|고희|팔순|미수|구순|백수|돌잔치|돌\b)/, cat:"basket", tier:1, label:"생신·생일 축하" },
+  { re:/(결혼\s*기념일|혼인\s*기념일|\d+\s*주년|기념일|기념)/,                    cat:"basket", tier:1, label:"기념일 축하" },
+  { re:/(승진|취임|영전|부임|임명|당선|이·취임|연임)/,                            cat:"orchid", tier:0, label:"승진·취임 축하" },
+  { re:/(개업|개원|개점|오픈|창업|이전|확장|증축|준공|입주|창립)/,                cat:"plant",  tier:1, label:"개업·이전 축하" },
+  { re:/(출산|득남|득녀|순산|백일)/,                                              cat:"basket", tier:1, label:"출산 축하" },
+  { re:/(병문안|쾌유|문병|입원|퇴원)/,                                            cat:"basket", tier:0, label:"쾌유 기원" },
+  { re:/(프러포즈|고백|발렌타인|화이트데이|졸업|입학|합격|취업|전역)/,            cat:"basket", tier:1, label:"축하·기념" },
+];
+function classifyOccasion(text){
+  // 결혼식·장례식은 AI 파싱으로 (장소·날짜까지 뽑아야 하므로 추천에서 제외)
+  if(/(부고|장례|발인|빈소|상주|별세|소천|영결|조문|근조|영안)/.test(text)) return null;
+  if(/(청첩|예식|결혼식|혼인서약|화혼|신랑|신부|웨딩홀)/.test(text)) return null;
+  for(const r of OCCASION_RULES){ if(r.re.test(text)) return r; }
+  return null;
+}
+
+// 자동입력 칸 한 줄 생성 (applyParsed·applyOccasion 공용)
+function afField(key,label,val){
+  val = val || "";
+  return `
+    <div class="af-field"><label>${label}</label>
+      <div class="af-input-wrap">
+        <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="(비어있음 — 직접 입력)"/>
+        ${val?'<span class="af-auto">자동</span>':''}
+      </div></div>`;
+}
+
+// 사연 기반 추천: 카테고리를 미리 선택하고 주문 흐름을 연다
+function applyOccasion(reco, text){
+  Object.assign(order,{ type:"unknown", side:"",
+    recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"",
+    groomName:"", brideName:"", chiefMourner:"" });
+  document.getElementById("typePill").innerHTML =
+    `<span class="type-pill">${escapeHtml(reco.label)}</span>
+     <div class="reco" style="margin-top:12px;">
+       <div class="rh">추천 상품</div>
+       <div class="rp">${CATALOG[reco.cat].label}</div>
+       <div class="rw">‘${escapeHtml(text)}’에 어울리는 상품이에요. 아래에서 가격대를 고르거나 다른 상품으로 바꿀 수 있어요.</div>
+     </div>`;
+  document.getElementById("afFields").innerHTML =
+    afField("recipientName","받는 분")
+    + afField("address","받는 곳 주소")
+    + afField("date","받는 날짜")
+    + afField("time","받는 시간");
+  document.getElementById("confirmCard").classList.remove("hidden");
+  document.getElementById("sideCard").classList.add("hidden");
+  renumber(false);
+  document.getElementById("prodCard").classList.remove("hidden");
+  document.getElementById("senderCard").classList.remove("hidden");
+  buildRibbon();
+  order.category = reco.cat;
+  renderCatChips();
+  renderPriceTabs();
+  selTier(reco.tier!=null?reco.tier:1, false);
+  scrollTo("confirmCard");
+}
+
 async function runParse(){
   const err=document.getElementById("parseErr"); err.classList.add("hidden");
   const btn=document.getElementById("parseBtn"), load=document.getElementById("parseLoading");
@@ -651,6 +738,11 @@ async function runParse(){
     return showErr(err,"이건 이 사이트 주소예요. 받으신 청첩장·부고 링크나 행사 내용을 넣어주세요.");
   }
   order.src=val;
+  // 링크가 아니면 먼저 사연 기반 추천(생신·기념일·개업·승진 등)을 시도
+  if(!isUrl(val)){
+    const reco = classifyOccasion(val);
+    if(reco){ applyOccasion(reco, val); return; }
+  }
   btn.disabled=true; load.classList.remove("hidden");
   try{
     const body = isUrl(val) ? {url:val} : {text:val};
@@ -943,7 +1035,7 @@ function pickDesign(el){
 
 let ribbonTone="formal";
 function buildRibbon(){
-  const set = RIBBON[order.type] || RIBBON.wedding;
+  const set = RIBBON[order.type] || RIBBON.general;
   document.getElementById("toneTabs").innerHTML = set.tones.map(([k,label],i)=>
     `<div class="tone-tab ${i===0?'on':''}" onclick="selTone('${k}')">${label}</div>`).join("");
   ribbonTone = set.tones[0][0];
@@ -955,9 +1047,9 @@ function selTone(t){
   document.querySelectorAll("#toneTabs .tone-tab").forEach(el=>el.classList.toggle("on",el.textContent===toneLabel(t)));
   renderRibbonOpts();
 }
-function toneLabel(t){ const m={formal:"격식",hanja:"한자",hangul:"한글",work:"직장·거래처",personal:"지인·친지"}; return m[t]||t; }
+function toneLabel(t){ const m={formal:"격식",hanja:"한자",hangul:"한글",work:"직장·거래처",personal:"지인·친지",congrat:"축하"}; return m[t]||t; }
 function renderRibbonOpts(){
-  const set = RIBBON[order.type] || RIBBON.wedding;
+  const set = RIBBON[order.type] || RIBBON.general;
   const opts = set[ribbonTone] || [];
   // 결혼+한자: 측에 따라 기본 선택을 축결혼/축화혼으로
   let defaultTxt = opts[0];
