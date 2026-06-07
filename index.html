@@ -293,27 +293,18 @@
   </header>
 
   <section class="hero">
-    <div class="hero-strip" id="heroStrip">
-      <div class="strip-track">
-        <img src="/photos/hero/대표1.jpg" alt="1996년 꽃안부(구 아마존플라워) 꽃집">
-        <img src="/photos/hero/대표2.jpg" alt="옛 꽃집 전경 — 1993년부터 한 자리">
-        <img src="/photos/특별제작/제단장식.jpg" alt="제단 장식">
-        <img src="/photos/화환/축하/고급형.jpg" alt="축하 화환 고급형">
-        <img src="/photos/특별제작/축하바구니.jpg" alt="축하 꽃바구니">
-        <img src="/photos/난/서양란_기본.jpg" alt="호접란">
-        <img src="/photos/추가컷/꽃다발_파스텔.jpg" alt="꽃다발">
-        <img src="/photos/hero/대표1.jpg" alt="">
-        <img src="/photos/hero/대표2.jpg" alt="">
-        <img src="/photos/특별제작/제단장식.jpg" alt="">
-        <img src="/photos/화환/축하/고급형.jpg" alt="">
-        <img src="/photos/특별제작/축하바구니.jpg" alt="">
-        <img src="/photos/난/서양란_기본.jpg" alt="">
-        <img src="/photos/추가컷/꽃다발_파스텔.jpg" alt="">
+    <h1>무엇을 보내시나요?</h1>
+    <p class="lede">받으신 링크를 넣어도 되고, 직접 내용을 적어도 주문할 수 있어요. 주문자 정보는 다음 단계에서 입력합니다.</p>
+    <div style="margin: 18px 0 0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
+        <div class="hint" style="flex:1;min-width:180px;">• 링크가 없으면 직접 입력해도 됩니다.</div>
       </div>
+      <textarea id="src" rows="6" placeholder="1. 청첩장·부고 링크 붙여넣기&#10;   예)  https://www.smartwedd.com/abc&#10;&#10;2. 또는 직접 입력&#10;   예)  센트럴병원 장례식장 201호&#10;        5월 27일 발인"></textarea>
+      <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">주문 시작하기</button>
+      <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
+      <div class="err hidden" id="parseErr"></div>
     </div>
-
-    <h1>안부는,<br>꽃으로</h1>
-    <p class="lede">부고도 청첩장도 — 받으신 링크 그대로 보내주세요.<br>1993년부터 한 자리, 사장님이 직접 만들어 전합니다.</p>
   </section>
 
   <section class="card hidden" id="catalogBanner" style="position:sticky;top:8px;z-index:10;">
@@ -322,7 +313,7 @@
   </section>
 
   <section style="margin-top:14px;">
-    <div style="text-align:center;font-family:var(--font-display);font-size:19px;font-weight:700;margin-bottom:4px;">무엇을 보내시나요?</div>
+    <div style="text-align:center;font-family:var(--font-display);font-size:19px;font-weight:700;margin-bottom:4px;">원하시는 상품을 골라보세요</div>
     <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:14px;">고르고 시작해도, 링크부터 넣어도 됩니다 — 중간에 바꿀 수 있어요</div>
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCat('wreath','근조·축하 화환')">
@@ -347,21 +338,6 @@
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
-  </section>
-
-  <section class="card" id="srcCard">
-    <div class="step-head"><span class="step-num">1.</span><span class="step-title">어떻게 주문할까요?</span></div>
-    <div class="step-sub">카톡 링크, 직접 입력, 전화 주문 모두 가능합니다. 링크는 주문 옵션 중 하나일 뿐입니다.</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
-      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
-      <div class="hint" style="flex:1;min-width:180px;">• 링크 없으면 직접 입력, 전화 상담으로도 주문할 수 있어요.</div>
-    </div>
-    <textarea id="src" rows="7" placeholder="1. 청첩장·부고 링크 붙여넣기&#10;   예)  https://www.smartwedd.com/abc&#10;&#10;2. 또는 직접 입력&#10;   예)  센트럴병원 장례식장 201호&#10;        5월 27일 발인"></textarea>
-    <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">주문 시작하기</button>
-    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
-    <div class="err hidden" id="parseErr"></div>
-
-    <div class="phone-order"><b>📞 전화 주문 · 상담  031-314-3003</b><span>특수 제작이나 급한 주문은 전화 주시면 사장님이 직접 챙겨드립니다.</span></div>
   </section>
 
   <section style="margin-top:8px;">
