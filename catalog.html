@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>전체 화환 둘러보기 — 아마존플라워</title>
+<title>전체 상품 둘러보기 — 꽃안부</title>
 <meta name="description" content="근조 · 축하 화환을 가격대별로 둘러보세요. 1993년부터, 전국 당일배송." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="전체 화환 — 아마존플라워" />
+<meta property="og:title" content="전체 상품 — 꽃안부" />
 <meta property="og:description" content="근조 · 축하 화환 · 전국 당일배송. 1993년부터." />
 <meta property="og:image" content="/og_preview.png" />
 <style>
@@ -127,14 +127,17 @@
   </div>
 
   <header>
-    <div class="brand">아마존플라워</div>
-    <div class="brand-sub">AMAZON FLOWER · SINCE 1993</div>
-    <div class="subtitle">가격대별로 둘러보세요 · 전국 당일배송</div>
+    <div class="brand">꽃안부</div>
+    <div class="brand-sub">안부는, 꽃으로 · SINCE 1993</div>
+    <div class="subtitle">전 품목 정찰제 · 법인 계산서·후불 · 전국 당일배송</div>
   </header>
 
-  <div class="seg">
+  <div class="seg" style="flex-wrap:wrap;">
     <button id="tabCongrats" class="on" onclick="showCat('congrats')">축하 화환</button>
     <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조 화환</button>
+    <button id="tabOrchid" onclick="showCat('orchid')">동양란·서양란</button>
+    <button id="tabPlant" onclick="showCat('plant')">관엽식물</button>
+    <button id="tabBasket" onclick="showCat('basket')">꽃바구니·꽃다발</button>
   </div>
 
   <div id="catArea"></div>
@@ -198,7 +201,7 @@
   </div>
 
   <footer>
-    아마존플라워 · (주)아마존인테리어<br>
+    꽃안부 · (주)아마존 (구 아마존플라워)<br>
     경기도 시흥시 신천3길 23, 103호 · 전국 당일배송
   </footer>
 </div>
@@ -208,6 +211,7 @@
 // 특별 제작 (탭별로 다르게 노출)
 const SPECIAL = {
   congrats: [
+    {nm:"용돈 꽃바구니", photo:"특별제작/용돈바구니.jpg", price:"맞춤 상담", d:"부모님 생신·어버이날 인기 상품. 꽃 사이에 용돈을 연출해 드립니다. 금액 구성은 전화로 상담해주세요."},
     {nm:"결혼식 당일 부케", photo:"특별제작/부케_결혼당일.jpg", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다."},
     {nm:"웨딩 촬영용 부케", photo:"특별제작/부케_촬영용.jpg", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다."},
   ],
@@ -258,26 +262,64 @@ const TIERS = {
       {price:129000, nm:"축하 최고급형", code:"AF-G04", grade:"최고급형", d:"4단 특대형. 거래처·회사 명의에 적합."},
     ],
   },
+  // ※ 아래 세 카테고리 가격은 임시 정찰가 — 확정되면 숫자만 바꾸세요.
+  //    index.html 의 CATALOG, api/confirm-payment.js 의 PRODUCT_PRICES 와 같이 맞춰야 합니다.
+  orchid: {
+    label:"동양란 · 서양란", cls:"", cat:"orchid",
+    desc:"승진·취임·이전 인사와 개업 축하에 보내는 난입니다. 근조 자리에는 흰 호접란으로 보내드립니다.",
+    items:[
+      {price:69000, nm:"동양란 기본", code:"AF-O01", photo:"난/동양란_기본.jpg", d:"승진·취임·이전 인사에 가장 무난한 동양란."},
+      {price:99000, nm:"동양란 고급", code:"AF-O02", photo:"난/동양란_고급.jpg", d:"수형을 갖춘 고급 동양란. 임원·대표 명의에 적합."},
+      {price:79000, nm:"서양란(호접란) 기본", code:"AF-O03", photo:"난/서양란_기본.jpg", d:"화사한 호접란. 개업·축하 자리를 밝힙니다."},
+      {price:119000, nm:"서양란(호접란) 고급", code:"AF-O04", photo:"난/서양란_고급.jpg", d:"대주 호접란. 로비·식장에서 돋보이는 구성."},
+    ],
+  },
+  plant: {
+    label:"관엽식물", cls:"", cat:"plant",
+    desc:"개업·이전 선물과 사무실·매장에 두는 관엽식물입니다. 공간 크기에 맞춰 추천해드립니다.",
+    items:[
+      {price:59000, nm:"관엽 일반형", code:"AF-P01", photo:"관엽/일반형.jpg", d:"테이블·카운터 크기. 금전수 등 키우기 쉬운 수종."},
+      {price:79000, nm:"관엽 중급형", code:"AF-P02", photo:"관엽/중급형.jpg", d:"개업 선물 표준. 해피트리·뱅갈고무나무 등."},
+      {price:99000, nm:"관엽 고급형", code:"AF-P03", photo:"관엽/고급형.jpg", d:"사무실·매장 입구에 두는 중대형 화분."},
+      {price:129000, nm:"관엽 특대형", code:"AF-P04", photo:"관엽/특대형.jpg", d:"로비급 대형 수종. 회사 명의 개업 선물에 적합."},
+    ],
+  },
+  basket: {
+    label:"꽃바구니 · 꽃다발", cls:"", cat:"basket",
+    desc:"생일·기념일·승진 축하, 병문안에 보내는 꽃입니다. 사장님이 직접 만들어 보냅니다.",
+    items:[
+      {price:49000, nm:"꽃다발 기본", code:"AF-B01", photo:"꽃바구니/꽃다발_기본.jpg", d:"계절 꽃으로 단정하게 묶은 꽃다발."},
+      {price:69000, nm:"꽃다발 고급", code:"AF-B02", photo:"꽃바구니/꽃다발_고급.jpg", d:"꽃 물량을 늘린 풍성한 꽃다발. 기념일·프러포즈에."},
+      {price:59000, nm:"꽃바구니 기본", code:"AF-B03", photo:"꽃바구니/꽃바구니_기본.jpg", d:"그대로 두고 보는 꽃바구니. 병문안·축하 인사에."},
+      {price:89000, nm:"꽃바구니 고급", code:"AF-B04", photo:"꽃바구니/꽃바구니_고급.jpg", d:"풍성한 고급 꽃바구니. 회사 명의 축하에 적합."},
+    ],
+  },
 };
 
 function showCat(key){
   const t=TIERS[key];
-  document.getElementById("tabCondo").classList.toggle("on", key==="condolence");
-  document.getElementById("tabCongrats").classList.toggle("on", key==="congrats");
+  const tabMap={condolence:"tabCondo",congrats:"tabCongrats",orchid:"tabOrchid",plant:"tabPlant",basket:"tabBasket"};
+  for(const [k,id] of Object.entries(tabMap)){
+    document.getElementById(id)?.classList.toggle("on", k===key);
+  }
+  const isWreath = key==="condolence" || key==="congrats";
   const orderType = key==="condolence" ? "funeral" : "wedding";
   const subPath = key==="condolence" ? "화환/근조" : "화환/축하";
   let html=`<div class="section-label">${t.label}</div><div class="section-desc">${t.desc}</div><div class="grid">`;
   for(const it of t.items){
-    const photoPath = `${subPath}/${it.grade}.jpg`;
+    const photoPath = isWreath ? `${subPath}/${it.grade}.jpg` : it.photo;
+    const orderClick = isWreath
+      ? `goOrder('${orderType}',${it.price})`
+      : `goOrderCat('${t.cat}',${it.price})`;
     html+=`
       <div class="item">
-        <div class="photo">${photoBox(photoPath, it.grade)}</div>
+        <div class="photo">${photoBox(photoPath, it.grade||it.nm)}</div>
         <div class="body">
           <div class="nm">${it.nm}</div>
           <div class="code">${it.code}</div>
           <div class="price">${it.price.toLocaleString()}원</div>
           <div class="desc">${it.d}</div>
-          <button class="order" onclick="goOrder('${orderType}',${it.price})">주문하기</button>
+          <button class="order" onclick="${orderClick}">주문하기</button>
           <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">🔗 공유하기</button>
         </div>
       </div>`;
@@ -291,17 +333,21 @@ function goOrder(type, price){
   // 메인으로 이동하면서 선택한 상품 전달
   location.href = "/?type="+type+"&price="+price;
 }
+function goOrderCat(cat, price){
+  location.href = "/?cat="+cat+"&price="+price;
+}
 
 function escapeJs(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 async function shareItem(key, code, name, price){
   // 이 상품을 가리키는 공유 링크
   const url = location.origin + "/catalog.html?item=" + encodeURIComponent(code);
-  const kind = key==="condolence" ? "근조화환" : "축하화환";
-  const text = `[아마존플라워] ${name} ${price.toLocaleString()}원 — ${kind} 전국 당일배송`;
+  const kindMap={condolence:"근조화환",congrats:"축하화환",orchid:"동양란·서양란",plant:"관엽식물",basket:"꽃바구니·꽃다발"};
+  const kind = kindMap[key]||"꽃";
+  const text = `[꽃안부] ${name} ${price.toLocaleString()}원 — ${kind} 전국 당일배송`;
   // 모바일: 기본 공유창(카톡·문자 등) / PC: 링크 복사
   if(navigator.share){
-    try{ await navigator.share({title:"아마존플라워", text, url}); }catch(e){}
+    try{ await navigator.share({title:"꽃안부", text, url}); }catch(e){}
   } else {
     try{
       await navigator.clipboard.writeText(url);
@@ -317,7 +363,8 @@ function openSharedItem(){
   const q=new URLSearchParams(location.search);
   const item=q.get("item");
   if(!item) return;
-  const key = item.startsWith("AF-C") ? "condolence" : "congrats";
+  const prefixMap={"AF-C":"condolence","AF-G":"congrats","AF-O":"orchid","AF-P":"plant","AF-B":"basket"};
+  const key = prefixMap[item.slice(0,4)] || "congrats";
   showCat(key);
   setTimeout(()=>{
     const cards=document.querySelectorAll("#catArea .item");

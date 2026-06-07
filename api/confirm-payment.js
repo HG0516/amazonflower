@@ -28,6 +28,41 @@ const PRODUCT_PRICES = {
   condolence_c2: 79000, // 중급형 (3단 풍성)
   condolence_c3: 99000, // 고급형 (3단 고급)
   condolence_c4: 129000,// 최고급형 (4단 특대)
+  // 동양란·서양란 ※ 임시 정찰가 — 확정 시 index.html/catalog.html 과 같이 수정
+  orchid_o1: 69000,     // 동양란 기본
+  orchid_o2: 99000,     // 동양란 고급
+  orchid_o3: 79000,     // 서양란(호접란) 기본
+  orchid_o4: 119000,    // 서양란(호접란) 고급
+  // 관엽식물 ※ 임시 정찰가
+  plant_p1: 59000,      // 일반형 (테이블)
+  plant_p2: 79000,      // 중급형 (개업 표준)
+  plant_p3: 99000,      // 고급형 (중대형)
+  plant_p4: 129000,     // 특대형 (로비급)
+  // 꽃바구니·꽃다발 ※ 임시 정찰가
+  basket_b1: 49000,     // 꽃다발 기본
+  basket_b2: 69000,     // 꽃다발 고급
+  basket_b3: 59000,     // 꽃바구니 기본
+  basket_b4: 89000,     // 꽃바구니 고급
+};
+
+// 마음 얹기(토핑) 정가 — index.html 의 TOPPINGS 와 반드시 일치시킬 것 (※ 임시 가격)
+const TOPPING_PRICES = {
+  top_rice: 20000,    // 쌀 10kg
+  top_ribbon: 10000,  // 금박 고급 리본
+  top_pot: 20000,     // 도자기 분 업그레이드
+  top_plaque: 10000,  // 나무 명패
+  top_more: 20000,    // 더 풍성하게
+  top_wine: 30000,    // 와인 동봉
+  top_card: 5000,     // 손글씨 카드
+};
+const TOPPING_LABELS = {
+  top_rice: "쌀 10kg 얹기",
+  top_ribbon: "금박 고급 리본",
+  top_pot: "도자기 분 업그레이드",
+  top_plaque: "나무 명패",
+  top_more: "더 풍성하게",
+  top_wine: "와인 동봉",
+  top_card: "손글씨 카드",
 };
 
 const PRODUCT_LABELS = {
@@ -39,6 +74,18 @@ const PRODUCT_LABELS = {
   condolence_c2: "근조화환 중급형 (AF-C02)",
   condolence_c3: "근조화환 고급형 (AF-C03)",
   condolence_c4: "근조화환 최고급형 (AF-C04)",
+  orchid_o1: "동양란 기본 (AF-O01)",
+  orchid_o2: "동양란 고급 (AF-O02)",
+  orchid_o3: "서양란(호접란) 기본 (AF-O03)",
+  orchid_o4: "서양란(호접란) 고급 (AF-O04)",
+  plant_p1: "관엽식물 일반형 (AF-P01)",
+  plant_p2: "관엽식물 중급형 (AF-P02)",
+  plant_p3: "관엽식물 고급형 (AF-P03)",
+  plant_p4: "관엽식물 특대형 (AF-P04)",
+  basket_b1: "꽃다발 기본 (AF-B01)",
+  basket_b2: "꽃다발 고급 (AF-B02)",
+  basket_b3: "꽃바구니 기본 (AF-B03)",
+  basket_b4: "꽃바구니 고급 (AF-B04)",
 };
 
 // ── 솔라피 HMAC-SHA256 서명 (Node crypto) ───────────────────────────────
@@ -55,37 +102,56 @@ function buildSolapiAuthHeader(apiKey, apiSecret) {
 }
 
 // 사장님께 보낼 문자 본문 구성 (발주 복붙용 + 원문 대조용)
+// 프론트 order 객체의 실제 키(venue, ribbonLeft/Right, senderName/Phone, src)를 우선 사용하고,
+// 혹시 모를 구버전 키(venueName, ribbonText, ordererName...)도 함께 지원한다.
 function buildOwnerMessage(order, payment) {
   const lines = [];
-  lines.push("[새 주문] 아마존플라워");
+  lines.push("[새 주문] 꽃안부");
   lines.push("");
   lines.push(`상품: ${order.productLabel || "-"}`);
+  const tops = Array.isArray(order.toppings) ? order.toppings : [];
+  if (tops.length) {
+    lines.push(`얹기: ${tops.map((t) => TOPPING_LABELS[t] || t).join(" · ")}`);
+  }
   lines.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
   if (order.recipientName) lines.push(`받는분: ${order.recipientName}`);
-  if (order.venueName) {
-    let place = order.venueName;
+  const venueName = order.venue || order.venueName;
+  if (venueName) {
+    let place = venueName;
     if (order.venueDetail) place += ` ${order.venueDetail}`;
     lines.push(`장소: ${place}`);
   }
-  if (order.venueAddress) lines.push(`주소: ${order.venueAddress}`);
+  const addr = order.address || order.venueAddress;
+  if (addr) lines.push(`주소: ${addr}`);
   if (order.date) lines.push(`일시: ${order.date}${order.time ? " " + order.time : ""}`);
-  if (order.ribbonText) lines.push(`리본문구: ${order.ribbonText}`);
+  const ribbon =
+    order.ribbonText ||
+    [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ");
+  if (ribbon) lines.push(`리본문구: ${ribbon}`);
+  if (order.senderNote) lines.push(`부탁: ${order.senderNote}`);
   lines.push("");
-  lines.push(`주문자: ${order.ordererName || "-"} ${order.ordererPhone || ""}`.trim());
+  const orderer = order.senderName || order.ordererName;
+  const ordererPhone = order.senderPhone || order.ordererPhone;
+  lines.push(`주문자: ${orderer || "-"} ${ordererPhone || ""}`.trim());
+  if (order.buyerType === "corp" && order.corpName) {
+    lines.push(`법인: ${order.corpName} (${order.corpRegNo || "-"}) 계산서→${order.corpEmail || "-"}`);
+  }
   lines.push(`주문번호: ${payment.orderId}`);
 
   // ── 원문 대조용 ──
   lines.push("");
   lines.push("─ 원문(대조용) ─");
-  if (order.sourceUrl) {
-    lines.push(order.sourceUrl);
+  const srcUrl = order.sourceUrl || (typeof order.src === "string" && /^https?:\/\//i.test(order.src) ? order.src : "");
+  const srcText = order.sourceText || (!srcUrl ? order.src : "");
+  if (srcUrl) {
+    lines.push(srcUrl);
   }
-  if (order.sourceText) {
+  if (srcText) {
     // 너무 길면 잘라서 담는다 (전체 원문은 주문 데이터/관리자에서 확인)
-    const t = String(order.sourceText).replace(/\s+/g, " ").trim();
+    const t = String(srcText).replace(/\s+/g, " ").trim();
     lines.push(t.length > 600 ? t.slice(0, 600) + " …(이하 생략)" : t);
   }
-  if (!order.sourceUrl && !order.sourceText) {
+  if (!srcUrl && !srcText) {
     lines.push("(원문 없음 - 직접 입력 주문)");
   }
 
@@ -123,7 +189,7 @@ async function notifyOwners(order, payment) {
     from: String(sender).replace(/[^0-9]/g, ""),
     text: textBody,
     type: msgType,
-    ...(msgType === "LMS" ? { subject: "아마존플라워 새 주문" } : {}),
+    ...(msgType === "LMS" ? { subject: "꽃안부 새 주문" } : {}),
   }));
 
   try {
@@ -182,15 +248,30 @@ export default async function handler(req, res) {
     // 프론트가 보낸 amount를 그대로 믿지 않는다.
     // order.productCode 기준 정가와 대조한다.
     const productCode = order && order.productCode;
-    const expectedPrice = PRODUCT_PRICES[productCode];
-    if (expectedPrice == null) {
+    const basePrice = PRODUCT_PRICES[productCode];
+    if (basePrice == null) {
       return res
         .status(400)
         .json({ error: "알 수 없는 상품입니다.", productCode });
     }
+    // 토핑 합산 (중복 제거 + 알 수 없는 코드 거부)
+    const toppings = Array.isArray(order && order.toppings)
+      ? [...new Set(order.toppings)]
+      : [];
+    let toppingSum = 0;
+    for (const t of toppings) {
+      const tp = TOPPING_PRICES[t];
+      if (tp == null) {
+        return res
+          .status(400)
+          .json({ error: "알 수 없는 추가 옵션입니다.", topping: t });
+      }
+      toppingSum += tp;
+    }
+    const expectedPrice = basePrice + toppingSum;
     if (Number(amount) !== expectedPrice) {
       console.error(
-        `금액 불일치: 요청 ${amount} vs 정가 ${expectedPrice} (${productCode})`
+        `금액 불일치: 요청 ${amount} vs 정가 ${expectedPrice} (${productCode} + [${toppings.join(",")}])`
       );
       return res.status(400).json({
         error: "결제 금액이 상품 가격과 일치하지 않습니다.",
