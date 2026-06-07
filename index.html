@@ -55,10 +55,10 @@
   .divider-center::before, .divider-center::after { content: ""; display: inline-block; vertical-align: middle; width: 38px; border-top: 1px solid var(--line); margin: 0 12px; }
 
   /* ── hero: 사진 + 카피, 카드 없음 ── */
-  .hero { padding: 18px 0 8px; text-align: center; }
-  .hero-strip { width: 100%; margin: 0 auto 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line-soft); }
+  .hero { padding: 14px 0 6px; text-align: center; }
+  .hero-strip { width: 100%; margin: 0 auto 16px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line-soft); }
   .strip-track { display: flex; gap: 6px; width: max-content; animation: strip-scroll 32s linear infinite; }
-  .strip-track img { height: 170px; width: auto; object-fit: cover; display: block; }
+  .strip-track img { height: 140px; width: auto; object-fit: cover; display: block; }
   @keyframes strip-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .hero-strip:hover .strip-track { animation-play-state: paused; }
   @media (prefers-reduced-motion: reduce) { .strip-track { animation: none; } }
@@ -277,7 +277,7 @@
     .hero h1 { font-size: 40px; }
     .hero .lede { font-size: 17px; }
     .step-title { font-size: 24px; }
-    .strip-track img { height: 200px; }
+    .strip-track img { height: 160px; }
     .spec { font-size: 17px; }
   }
 </style>
