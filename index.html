@@ -150,6 +150,17 @@
   .reco .rp { font-size: 18px; font-weight: 700; color: var(--ink); margin: 4px 0 2px; font-family: var(--font-display); }
   .reco .rw { font-size: 13px; color: var(--ink-soft); }
 
+  /* ── 추천 상품 2개 카드 ── */
+  .reco-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .reco-opt { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; background: var(--paper); transition: border-color .15s; user-select: none; }
+  .reco-opt:hover { border-color: var(--ink); }
+  .reco-opt.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .reco-opt-photo { height: 116px; background: #f1ede4; overflow: hidden; }
+  .reco-opt-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .reco-opt-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 9px 12px 0; color: var(--ink); }
+  .reco-opt-price { font-size: 16px; font-weight: 700; padding: 2px 12px 12px; color: var(--ink); font-family: var(--font-display); }
+  .reco-opt-badge { display: inline-block; font-size: 10px; color: var(--accent); border: 1px solid var(--accent); border-radius: 2px; padding: 1px 6px; margin: 9px 0 0 12px; letter-spacing: 0.3px; font-weight: 600; }
+
   /* ── 가격 탭 ── */
   .price-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
   .price-tab { border: 1px solid var(--line); border-radius: 3px; padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: 13px; line-height: 1.5; transition: all .15s; }
@@ -284,7 +295,7 @@
 </style>
 </head>
 <body>
-<div class="version-badge">v6</div>
+<div class="version-badge">v7</div>
 <div class="wrap">
 
   <header>
@@ -390,6 +401,7 @@
     <div class="step-head"><span class="step-num" id="n-prod">4.</span><span class="step-title">상품 · 가격대 선택</span></div>
     <div class="step-sub" id="prodSub">친구·지인은 보통 일반형·중급형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요.</div>
     <div class="chips" id="catChips" style="margin-bottom:14px;"></div>
+    <div id="recoBox" style="margin-bottom:16px;"></div>
     <div class="price-tabs" id="priceTabs"></div>
     <div id="designArea">
       <div class="soon-note">가격대를 선택하면 디자인이 표시됩니다. (실제 상품 사진·디자인은 준비 중)</div>
@@ -725,6 +737,7 @@ function applyOccasion(reco, text){
   order.category = reco.cat;
   renderCatChips();
   renderPriceTabs();
+  renderRecoOptions(reco.tier);
   selTier(reco.tier!=null?reco.tier:1, false);
   scrollTo("confirmCard");
 }
@@ -793,6 +806,13 @@ function applyParsed(r){
   order.category = window.__presetCat || "wreath";
   renderCatChips();
   renderPriceTabs();
+  let __baseTier=1;
+  if(window.__presetPrice){
+    const items=getItems(order.category);
+    const idx=items.findIndex(t=>t.price===Number(window.__presetPrice));
+    if(idx>=0) __baseTier=idx;
+  }
+  renderRecoOptions(__baseTier);
   if(window.__presetPrice){
     const items=getItems(order.category);
     const idx=items.findIndex(t=>t.price===Number(window.__presetPrice));
@@ -977,6 +997,7 @@ function selCat(cat, keepIdx){
   order.toppings=[];
   renderCatChips();
   renderPriceTabs();
+  renderRecoOptions(1);
   // 카테고리를 바꾸면 기본 선택(두 번째 항목)으로 미리보기 — 결제 카드는 열지 않음
   if(!keepIdx) selTier(1, false);
 }
@@ -987,6 +1008,34 @@ function renderPriceTabs(){
     `<div class="price-tab" onclick="selTier(${i})"><div class="tier-dots">${"● ".repeat(i+1).trim()}</div><b>${it.tab}</b><br>${it.price.toLocaleString()}원</div>`).join("");
 }
 
+// 추천 상품 2개 카드 — baseTier 기준 인접 2개 가격대를 보여준다
+function renderRecoOptions(baseTier){
+  const box=document.getElementById("recoBox");
+  if(!box) return;
+  const items=getItems(order.category);
+  if(items.length<2){ box.innerHTML=""; return; }
+  let a = (baseTier==null) ? 1 : baseTier;
+  if(a>items.length-1) a=items.length-1;
+  if(a<0) a=0;
+  let b = a+1;
+  if(b>items.length-1){ b=a; a=Math.max(0,a-1); }
+  const idxs=[a,b];
+  box.innerHTML =
+    `<div style="font-size:13px;font-weight:700;margin:2px 0 9px;color:var(--ink);">추천 상품 <span style="font-weight:400;color:var(--ink-faint);font-size:12px;">— 많이 고르시는 두 가지예요. 눌러서 고르세요</span></div>
+     <div class="reco-options">`
+    + idxs.map((i,n)=>{
+        const t=items[i];
+        return `<div class="reco-opt" id="recoOpt_${i}" onclick="selTier(${i})">
+          <div class="reco-opt-photo"><img src="/photos/${t.photo}" alt="${escapeAttr(t.nm)}" onerror="this.style.display='none';this.parentElement.style.background='var(--line-soft)';"></div>
+          ${n===0?'<span class="reco-opt-badge">가장 인기</span>':''}
+          <div class="reco-opt-name">${t.tab}</div>
+          <div class="reco-opt-price">${t.price.toLocaleString()}원</div>
+        </div>`;
+      }).join("")
+    + `</div>
+     <div style="text-align:center;font-size:12px;color:var(--ink-faint);margin-top:10px;">다른 가격대도 아래에서 고를 수 있어요 ↓</div>`;
+}
+
 function selTier(i, autoOpen){
   const items=getItems(order.category);
   const t=items[i]; if(!t) return;
@@ -995,6 +1044,9 @@ function selTier(i, autoOpen){
   order.productLabel=t.nm+" ("+t.cl+")";
   const tabs=document.querySelectorAll("#priceTabs .price-tab");
   tabs.forEach((el,idx)=>el.classList.toggle("on",idx===i));
+  // 추천 카드 강조 동기화
+  document.querySelectorAll(".reco-opt").forEach(el=>el.classList.remove("on"));
+  document.getElementById("recoOpt_"+i)?.classList.add("on");
   // 사진 있으면 표시, 없으면 placeholder.
   const photoPath = `/photos/${t.photo}`;
   const area=document.getElementById("designArea");
