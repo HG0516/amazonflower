@@ -328,32 +328,33 @@
       <div class="cat-tile" onclick="goCat('wreath','근조·축하 화환')">
         <div class="cat-photo"><img src="/photos/화환/축하/고급형.jpg" alt="화환" onerror="this.style.display='none'"></div>
         <div class="cat-name">근조 · 축하 화환</div>
-        <div class="cat-desc">장례식 · 결혼식 · 개업</div>
+        <div class="cat-desc">49,000원부터 · 장례식·결혼·개업</div>
       </div>
       <div class="cat-tile" onclick="goCat('orchid','동양란 · 서양란')">
         <div class="cat-photo"><img src="/photos/난/서양란_기본.jpg" alt="난" onerror="this.style.display='none'"></div>
         <div class="cat-name">동양란 · 서양란</div>
-        <div class="cat-desc">승진 · 취임 · 개업 인사</div>
+        <div class="cat-desc">85,000원부터 · 승진·취임·개업 인사</div>
       </div>
       <div class="cat-tile" onclick="goCat('plant','관엽식물')">
         <div class="cat-photo"><img src="/photos/관엽/고급형.jpg" alt="관엽" onerror="this.style.display='none'"></div>
         <div class="cat-name">관엽식물</div>
-        <div class="cat-desc">개업 · 이전 · 사무실</div>
+        <div class="cat-desc">69,000원부터 · 개업·이전·사무실</div>
       </div>
       <div class="cat-tile" onclick="goCat('basket','꽃바구니 · 꽃다발')">
         <div class="cat-photo"><img src="/photos/꽃바구니/꽃다발_고급.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
         <div class="cat-name">꽃바구니 · 꽃다발</div>
-        <div class="cat-desc">생일 · 기념일 · 병문안</div>
+        <div class="cat-desc">45,000원부터 · 웨딩 부케 전문</div>
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
   </section>
 
   <section class="card" id="srcCard">
-    <div class="step-head"><span class="step-num">1.</span><span class="step-title">어디로 보낼까요?</span></div>
-    <div class="step-sub">카톡으로 받으신 부고·청첩장 링크를 그대로 붙여넣으세요. 장소·날짜·상주/혼주까지 자동으로 정리해드립니다. 링크가 없으면 직접 적으셔도 됩니다.</div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+    <div class="step-head"><span class="step-num">1.</span><span class="step-title">어떻게 주문할까요?</span></div>
+    <div class="step-sub">카톡 링크, 직접 입력, 전화 주문 모두 가능합니다. 링크는 주문 옵션 중 하나일 뿐입니다.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
       <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
+      <div class="hint" style="flex:1;min-width:180px;">• 링크 없으면 직접 입력, 전화 상담으로도 주문할 수 있어요.</div>
     </div>
     <textarea id="src" rows="7" placeholder="1. 청첩장·부고 링크 붙여넣기&#10;   예)  https://www.smartwedd.com/abc&#10;&#10;2. 또는 직접 입력&#10;   예)  센트럴병원 장례식장 201호&#10;        5월 27일 발인"></textarea>
     <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">주문 시작하기</button>
