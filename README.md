@@ -56,6 +56,26 @@ amazonflower/
 
 > ⚠️ **가격은 3곳 동기화**: `catalog.html`(TIERS) · `index.html`(CATALOG) · `api/confirm-payment.js`(PRODUCT_PRICES) 의 금액을 항상 같이 맞춰야 함.
 
+## 사진 직접 올리기 — 관리자 페이지 (`/admin`)
+
+부모님(사장님)이 폰에서 `amazonflower.vercel.app/admin` 에 들어가 사진을 올리면 카탈로그 "보유 종류"에 바로 뜬다. (코드 수정 불필요)
+
+### 한 번만 하는 설정
+1. **Supabase 프로젝트 생성** ([supabase.com](https://supabase.com), 무료)
+2. **SQL 실행**: 대시보드 → SQL Editor 에 `supabase-setup.sql` 붙여넣고 RUN (gallery_items 테이블 + gallery 버킷 생성)
+3. **Vercel 환경변수** (Settings → Environment Variables):
+   - `SUPABASE_URL` — 프로젝트 URL
+   - `SUPABASE_SERVICE_ROLE_KEY` — service_role 키 (서버 전용, 절대 프론트/깃 금지)
+   - `ADMIN_PASSWORD` — 부모님이 쓸 업로드 비번 (**길고 무작위로**)
+4. **`supabase-config.js`** 채우기: `url` + `anon`(public 키) — 카탈로그가 사진을 읽어올 때 사용 (anon 키는 공개돼도 안전, RLS로 보호)
+5. Redeploy (= git push)
+
+### 부모님 사용법
+`/admin` → 비번 입력(기기에 저장됨) → 종류 선택 → 사진 찍기/고르기 → (눕었으면 **↻ 돌리기**) → 꽃 이름 → **올리기**.
+
+### 보안
+- service_role 키·비번은 서버(Vercel env)에만, anon 키만 클라이언트. 업로드는 상수시간 비번검증 + JPEG 매직바이트 + 용량/하루 한도(100건) + 입력 정화(저장형 XSS 2차 방어), 카탈로그 출력도 HTML 이스케이프(1차 방어). 결제와 완전 분리.
+
 ## 배포 (Vercel)
 
 1. 이 폴더 전체를 GitHub `HG0516/amazonflower` 저장소에 push

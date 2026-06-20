@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>사진 올리기 — 꽃안부 관리자</title>
+<style>
+  :root{ --bg:#f7f4ee; --paper:#fff; --ink:#1f1d18; --ink-soft:#5a564d; --ink-faint:#9e9a8f; --line:#d9d3c4; --accent:#2d4a38; --accent-deep:#1e3526; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:17px;padding:0 0 60px;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 18px;}
+  header{text-align:center;padding:24px 0 8px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:18px;}
+  label{display:block;font-size:14px;font-weight:700;margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text],input[type=password],select{width:100%;font-size:16px;font-family:inherit;padding:13px 14px;border:1px solid var(--line);border-radius:7px;background:#fcfbf8;color:var(--ink);}
+  input:focus,select:focus{outline:none;border-color:var(--ink);}
+  .row{display:flex;gap:10px;}
+  .row>*{flex:1;}
+  .photo-pick{display:flex;flex-direction:column;align-items:center;gap:10px;border:2px dashed var(--line);border-radius:10px;padding:18px;text-align:center;color:var(--ink-faint);font-size:14px;cursor:pointer;}
+  .photo-pick.has{border-style:solid;border-color:var(--accent);padding:10px;}
+  #preview{max-width:100%;max-height:300px;border-radius:8px;display:none;}
+  .rotate-btn{margin-top:8px;display:none;padding:9px 16px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .btn{width:100%;margin-top:18px;padding:16px;font-size:17px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
+  .btn:disabled{background:var(--ink-faint);cursor:default;}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:8px;font-size:14px;display:none;}
+  .msg.ok{background:#eaf3ec;color:var(--accent-deep);display:block;}
+  .msg.err{background:#fbecea;color:#9a3b2e;display:block;}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+  canvas{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🌷 사진 올리기</h1>
+    <div class="sub">꽃안부 관리자 — 올린 사진은 사이트 "보유 종류"에 바로 떠요</div>
+  </header>
+
+  <div class="card">
+    <label>관리자 비밀번호</label>
+    <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" />
+    <div class="hint">한 번 입력하면 이 기기에 저장돼요.</div>
+
+    <label>어떤 종류예요?</label>
+    <div class="row">
+      <select id="category">
+        <option value="plant">관엽식물</option>
+        <option value="orchid">동양란·서양란</option>
+        <option value="basket">꽃바구니·꽃다발</option>
+        <option value="congrats">축하화환</option>
+        <option value="condolence">근조화환</option>
+      </select>
+      <select id="sub"><option value="">(세부 없음)</option></select>
+    </div>
+
+    <label>사진</label>
+    <div class="photo-pick" id="pickBox" onclick="document.getElementById('file').click()">
+      <div id="pickText">📷 눌러서 사진 선택 / 촬영</div>
+      <img id="preview" alt="" />
+    </div>
+    <input type="file" id="file" accept="image/*" style="display:none" />
+    <button type="button" class="rotate-btn" id="rotateBtn" onclick="rotate()">↻ 90° 돌리기 (눕었으면 눌러요)</button>
+    <canvas id="canvas"></canvas>
+
+    <label>꽃 이름</label>
+    <input type="text" id="name" placeholder="예) 호접란, 벤자민, 금전수" maxlength="40" />
+
+    <button class="btn" id="submit" onclick="upload()">올리기</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<script>
+const SUBS = {
+  orchid: ["", "동양란", "서양란"],
+  basket: ["", "꽃다발", "꽃바구니"],
+};
+const $ = id => document.getElementById(id);
+let img = null, rotation = 0;
+
+// 비번 기억
+$("pw").value = localStorage.getItem("af_admin_pw") || "";
+$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
+
+// 세부 분류 옵션 갱신
+$("category").addEventListener("change", syncSub);
+function syncSub(){
+  const opts = SUBS[$("category").value] || [""];
+  $("sub").innerHTML = opts.map(s => `<option value="${s}">${s || "(세부 없음)"}</option>`).join("");
+  $("sub").style.display = opts.length > 1 ? "" : "none";
+}
+syncSub();
+
+$("file").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    img = new Image();
+    img.onload = () => { rotation = 0; draw(); };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+});
+
+function draw(){
+  if (!img) return;
+  const maxd = 1080;
+  const scale = Math.min(1, maxd / Math.max(img.width, img.height));
+  const sw = Math.round(img.width * scale), sh = Math.round(img.height * scale);
+  const r = ((rotation % 360) + 360) % 360;
+  const swap = (r === 90 || r === 270);
+  const canvas = $("canvas");
+  canvas.width = swap ? sh : sw;
+  canvas.height = swap ? sw : sh;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(r * Math.PI / 180);
+  ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+  ctx.restore();
+  const prev = $("preview");
+  prev.src = canvas.toDataURL("image/jpeg", 0.85);
+  prev.style.display = "block";
+  $("pickText").style.display = "none";
+  $("pickBox").classList.add("has");
+  $("rotateBtn").style.display = "inline-block";
+}
+function rotate(){ rotation += 90; draw(); }
+
+async function upload(){
+  const msg = $("msg"); msg.className = "msg"; msg.style.display = "none";
+  const pw = $("pw").value.trim();
+  const name = $("name").value.trim();
+  if (!pw) return showMsg("err", "비밀번호를 입력해주세요.");
+  if (!img) return showMsg("err", "사진을 선택해주세요.");
+  if (!name) return showMsg("err", "꽃 이름을 입력해주세요.");
+  localStorage.setItem("af_admin_pw", pw);
+
+  let imageBase64 = $("canvas").toDataURL("image/jpeg", 0.85);
+  if (imageBase64.length > 3500000) imageBase64 = $("canvas").toDataURL("image/jpeg", 0.6); // 너무 크면 품질 낮춰 재인코딩(413 방지)
+  $("submit").disabled = true; $("submit").textContent = "올리는 중…";
+  try {
+    const r = await fetch("/api/gallery-add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password: pw, category: $("category").value, sub: $("sub").value,
+        name, imageBase64,
+      }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || "업로드 실패");
+    showMsg("ok", "✅ 올라갔어요! 사이트 '보유 종류'에 바로 떠요. 계속 올리시려면 다음 사진을 선택하세요.");
+    // 초기화(비번·카테고리는 유지)
+    img = null; rotation = 0; $("name").value = "";
+    $("preview").style.display = "none"; $("pickText").style.display = "block";
+    $("pickBox").classList.remove("has"); $("rotateBtn").style.display = "none"; $("file").value = "";
+  } catch (e) {
+    showMsg("err", "❌ " + (e.message || "업로드 실패"));
+  } finally {
+    $("submit").disabled = false; $("submit").textContent = "올리기";
+  }
+}
+function showMsg(type, text){ const m = $("msg"); m.className = "msg " + type; m.textContent = text; m.style.display = "block"; }
+</script>
+</body>
+</html>

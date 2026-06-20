@@ -249,6 +249,7 @@
   </footer>
 </div>
 
+<script src="/supabase-config.js"></script>
 <script src="/gallery-data.js"></script>
 <script>
 // 가격대 구성 (실제 상품 들어오면 desc/사진만 채우면 됨)
@@ -340,6 +341,9 @@ const TIERS = {
 
 const GAL = window.GALLERY || {};
 const CAT_TITLE = {congrats:"축하화환", condolence:"근조화환", orchid:"동양란·서양란", plant:"관엽식물", basket:"꽃바구니·꽃다발"};
+let currentCat = "congrats";
+// HTML 이스케이프 — 업로드된 이름/경로를 innerHTML에 넣기 전 항상 통과(저장형 XSS 방지)
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 // 가격대(등급) 상품 카드 한 장
 function bandCard(key, it){
@@ -368,15 +372,15 @@ let galFilter = {};
 function galleryHTML(key, filterSub){
   const items = GAL[key]||[];
   if(!items.length) return "";
-  const subs = [...new Set(items.map(i=>i.sub))];
+  const subs = [...new Set(items.map(i=>i.sub).filter(Boolean))];
   const show = filterSub ? items.filter(i=>i.sub===filterSub) : items;
   let chips="";
   if(subs.length>1){
     chips = `<div class="gallery-filter"><button class="gf ${!filterSub?'on':''}" onclick="setGalFilter('${key}','')">전체 ${items.length}</button>`
-      + subs.map(s=>`<button class="gf ${filterSub===s?'on':''}" onclick="setGalFilter('${key}','${s}')">${s} ${items.filter(i=>i.sub===s).length}</button>`).join("")
+      + subs.map(s=>`<button class="gf ${filterSub===s?'on':''}" onclick="setGalFilter('${key}','${escapeJs(s)}')">${esc(s)} ${items.filter(i=>i.sub===s).length}</button>`).join("")
       + `</div>`;
   }
-  const cards = show.map(i=>`<div class="gcard" onclick="pickFromGallery('${key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}</div></div>`).join("");
+  const cards = show.map(i=>`<div class="gcard" onclick="pickFromGallery('${key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}</div></div>`).join("");
   return `<div class="gallery-wrap">
     <div class="gallery-head"><div class="gallery-title">📷 보유 종류 둘러보기</div><div class="gallery-count">${items.length}종</div></div>
     <div class="gallery-sub">실제 보유·제작 가능한 ${CAT_TITLE[key]}입니다. 마음에 드는 느낌을 누르면 위 가격대로 이동해요 — 가격대를 고르고 주문하거나, 전화로 “이런 걸로” 말씀해 주세요.</div>
@@ -392,7 +396,27 @@ function pickFromGallery(key){
   if(cat){ cat.scrollIntoView({behavior:"smooth", block:"start"}); }
 }
 
+// 부모님이 관리자 페이지(/admin)에서 올린 사진을 Supabase에서 읽어와 갤러리에 합침.
+// 설정(supabase-config.js) 비어있거나 실패하면 조용히 무시 → 기본 갤러리 그대로.
+async function loadLiveGallery(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  try{
+    const r = await fetch(`${SUPA.url}/rest/v1/gallery_items?select=category,name,sub,color,photo_url&visible=eq.true&order=created_at.desc`,
+      { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
+    if(!r.ok) return;
+    const rows = await r.json();
+    if(!Array.isArray(rows) || !rows.length) return;
+    for(const it of rows){
+      if(!GAL[it.category]) GAL[it.category]=[];
+      GAL[it.category].unshift({ f:it.photo_url, nm:it.name, sub:it.sub||"", color:it.color||"" });
+    }
+    const si=document.getElementById("searchInput");
+    if(!si || !si.value.trim()) showCat(currentCat); // 검색 중이 아니면 현재 화면 새로고침
+  }catch(e){ /* 라이브 사진 못 불러와도 기본 갤러리는 그대로 */ }
+}
+
 function showCat(key){
+  currentCat = key;
   const t=TIERS[key];
   const tabMap={condolence:"tabCondo",congrats:"tabCongrats",orchid:"tabOrchid",plant:"tabPlant",basket:"tabBasket"};
   for(const [k,id] of Object.entries(tabMap)){
@@ -431,7 +455,7 @@ function doSearch(q){
     <div class="gallery-head"><div class="gallery-title">검색 결과</div><div class="gallery-count">${bandHits.length+gHits.length}건</div></div>`;
   if(bandHits.length){ html+=`<div class="gallery-sub">가격대 상품</div><div class="grid">`+bandHits.map(b=>bandCard(b.key,b.it)).join("")+`</div>`; }
   if(gHits.length){ html+=`<div class="gallery-sub" style="margin-top:18px;">보유 종류 ${gHits.length}건</div><div class="gallery-grid">`
-    + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]}</span></div></div>`).join("")+`</div>`; }
+    + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]}</span></div></div>`).join("")+`</div>`; }
   if(!bandHits.length && !gHits.length){ html+=`<div class="gempty">“${q}” 검색 결과가 없어요. 다른 이름으로 찾아보세요.</div>`; }
   html+=`</div>`;
   sa.innerHTML=html;
@@ -487,6 +511,7 @@ function openSharedItem(){
 
 showCat("congrats");
 openSharedItem();
+loadLiveGallery();
 
 // 준비 중인 채널(네이버/카톡)은 주소가 들어오기 전까지 안내만
 document.querySelectorAll('.ch[data-pending]').forEach(el=>{
