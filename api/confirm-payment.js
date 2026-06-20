@@ -214,6 +214,35 @@ async function notifyOwners(order, payment) {
   }
 }
 
+// 사장님께 텔레그램으로도 주문 알림 (문자와 같은 본문). 봇 토큰/챗id 없으면 생략(결제는 정상).
+// TELEGRAM_BOT_TOKEN(BotFather), TELEGRAM_CHAT_ID(개인/그룹), PROJECT_TAG(선택) 를 Vercel env에 설정.
+async function notifyTelegram(order, payment) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) {
+    console.warn("텔레그램 환경변수 미설정 → 텔레그램 알림 생략");
+    return { sent: false, reason: "telegram_env_missing" };
+  }
+  const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  const text = tag + buildOwnerMessage(order, payment);
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      console.error("텔레그램 발송 실패:", res.status, data);
+      return { sent: false, reason: "telegram_error", detail: data };
+    }
+    return { sent: true };
+  } catch (err) {
+    console.error("텔레그램 발송 예외:", err);
+    return { sent: false, reason: "telegram_exception", detail: err.message };
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -308,7 +337,11 @@ export default async function handler(req, res) {
         PRODUCT_LABELS[productCode] ||
         productCode,
     };
-    const notifyResult = await notifyOwners(orderInfo, payment);
+    // 문자(SOLAPI)와 텔레그램을 동시에 — 둘 다 실패해도 결제엔 영향 없음
+    const [smsResult, telegramResult] = await Promise.all([
+      notifyOwners(orderInfo, payment),
+      notifyTelegram(orderInfo, payment),
+    ]);
 
     // 알림 실패해도 결제는 성공 처리 (결제는 이미 승인됨)
     return res.status(200).json({
@@ -320,7 +353,7 @@ export default async function handler(req, res) {
         approvedAt: payment.approvedAt,
         receiptUrl: payment.receipt && payment.receipt.url,
       },
-      notified: notifyResult,
+      notified: { sms: smsResult, telegram: telegramResult },
     });
   } catch (err) {
     console.error("confirm-payment error:", err);
