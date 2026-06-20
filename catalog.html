@@ -122,7 +122,9 @@
   .gf { font-size: 12px; font-weight: 600; padding: 6px 13px; border: 1px solid var(--line); border-radius: 16px; background: transparent; color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); }
   .gf.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .gcard { border: 1px solid var(--line-soft); border-radius: 5px; overflow: hidden; background: var(--paper); }
+  .gcard { border: 1px solid var(--line-soft); border-radius: 5px; overflow: hidden; background: var(--paper); cursor: pointer; transition: border-color .15s, transform .05s; }
+  .gcard:hover { border-color: var(--ink); }
+  .gcard:active { transform: scale(0.98); }
   .gcard .gp { aspect-ratio: 3/4; background: var(--line-soft); overflow: hidden; }
   .gcard .gp img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .gcard .gn { font-size: 12px; color: var(--ink); padding: 7px 8px 9px; line-height: 1.4; font-weight: 600; text-align: center; }
@@ -376,13 +378,21 @@ function galleryHTML(key, filterSub){
       + subs.map(s=>`<button class="gf ${filterSub===s?'on':''}" onclick="setGalFilter('${key}','${s}')">${s} ${items.filter(i=>i.sub===s).length}</button>`).join("")
       + `</div>`;
   }
-  const cards = show.map(i=>`<div class="gcard"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}</div></div>`).join("");
+  const cards = show.map(i=>`<div class="gcard" onclick="pickFromGallery('${key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}</div></div>`).join("");
   return `<div class="gallery-wrap">
     <div class="gallery-head"><div class="gallery-title">📷 보유 종류 둘러보기</div><div class="gallery-count">${items.length}종</div></div>
-    <div class="gallery-sub">실제 보유·제작 가능한 ${CAT_TITLE[key]}입니다. 마음에 드는 느낌을 고르신 뒤 위 가격대로 주문하거나, 전화로 “이런 걸로” 말씀해 주세요.</div>
+    <div class="gallery-sub">실제 보유·제작 가능한 ${CAT_TITLE[key]}입니다. 마음에 드는 느낌을 누르면 위 가격대로 이동해요 — 가격대를 고르고 주문하거나, 전화로 “이런 걸로” 말씀해 주세요.</div>
     ${chips}<div class="gallery-grid">${cards}</div></div>`;
 }
 function setGalFilter(key, sub){ galFilter[key]=sub; document.getElementById("galleryArea").innerHTML=galleryHTML(key, sub); }
+// 갤러리/검색 사진 클릭 → 해당 카테고리 가격대로 이동
+function pickFromGallery(key){
+  const si=document.getElementById("searchInput"); if(si) si.value="";
+  doSearch("");
+  showCat(key);
+  const cat=document.getElementById("catArea");
+  if(cat){ cat.scrollIntoView({behavior:"smooth", block:"start"}); }
+}
 
 function showCat(key){
   const t=TIERS[key];
@@ -423,7 +433,7 @@ function doSearch(q){
     <div class="gallery-head"><div class="gallery-title">검색 결과</div><div class="gallery-count">${bandHits.length+gHits.length}건</div></div>`;
   if(bandHits.length){ html+=`<div class="gallery-sub">가격대 상품</div><div class="grid">`+bandHits.map(b=>bandCard(b.key,b.it)).join("")+`</div>`; }
   if(gHits.length){ html+=`<div class="gallery-sub" style="margin-top:18px;">보유 종류 ${gHits.length}건</div><div class="gallery-grid">`
-    + gHits.map(i=>`<div class="gcard"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]}</span></div></div>`).join("")+`</div>`; }
+    + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]}</span></div></div>`).join("")+`</div>`; }
   if(!bandHits.length && !gHits.length){ html+=`<div class="gempty">“${q}” 검색 결과가 없어요. 다른 이름으로 찾아보세요.</div>`; }
   html+=`</div>`;
   sa.innerHTML=html;
