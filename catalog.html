@@ -103,6 +103,32 @@
   footer { text-align: center; color: var(--ink-faint); font-size: 11px; margin-top: 36px; line-height: 1.9; padding-top: 28px; border-top: 1px solid var(--line); letter-spacing: 0.5px; }
   .hidden { display: none !important; }
 
+  /* 검색바 + 용도 바로가기 */
+  .searchbar { margin: 22px 0 4px; position: relative; }
+  .searchbar input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 14px 42px 14px 16px; border: 1px solid var(--line); border-radius: 6px; background: #fcfbf8; color: var(--ink); }
+  .searchbar input:focus { outline: none; border-color: var(--ink); }
+  .searchbar .si { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); font-size: 15px; pointer-events: none; }
+  .uses { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 2px; }
+  .use-chip { font-size: 13px; font-weight: 600; padding: 8px 14px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); letter-spacing: 0.3px; }
+  .use-chip:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* 보유 종류 갤러리 */
+  .gallery-wrap { margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--line); }
+  .gallery-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .gallery-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--ink); }
+  .gallery-count { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.5px; }
+  .gallery-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; line-height: 1.7; }
+  .gallery-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .gf { font-size: 12px; font-weight: 600; padding: 6px 13px; border: 1px solid var(--line); border-radius: 16px; background: transparent; color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); }
+  .gf.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .gcard { border: 1px solid var(--line-soft); border-radius: 5px; overflow: hidden; background: var(--paper); }
+  .gcard .gp { aspect-ratio: 3/4; background: var(--line-soft); overflow: hidden; }
+  .gcard .gp img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gcard .gn { font-size: 12px; color: var(--ink); padding: 7px 8px 9px; line-height: 1.4; font-weight: 600; text-align: center; }
+  .gempty { text-align: center; color: var(--ink-faint); font-size: 14px; padding: 36px 0; }
+  @media (max-width: 480px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+
   /* ── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ── */
   @media (min-width: 1000px) {
     body {
@@ -117,6 +143,7 @@
       min-height: 100vh;
     }
     .grid { grid-template-columns: 1fr 1fr 1fr; }
+    .gallery-grid { grid-template-columns: repeat(4, 1fr); }
   }
 </style>
 </head>
@@ -132,7 +159,20 @@
     <div class="subtitle">전 품목 정찰제 · 법인 계산서·후불 · 전국 당일배송</div>
   </header>
 
-  <div class="seg" style="flex-wrap:wrap;">
+  <div class="searchbar">
+    <input id="searchInput" type="text" autocomplete="off" placeholder="꽃·식물 이름으로 검색 (예: 호접란, 벤자민, 근조)" oninput="doSearch(this.value)" />
+    <span class="si">🔍</span>
+  </div>
+  <div class="uses">
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('condolence')">🕊 장례·근조</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('congrats')">🎉 결혼·개업 축하</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('orchid')">🌿 승진·취임(난)</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('plant')">🪴 사무실·집들이</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('basket')">💐 생일·병문안</button>
+  </div>
+  <div id="searchArea" class="hidden"></div>
+
+  <div class="seg" id="segTabs" style="flex-wrap:wrap;">
     <button id="tabCongrats" class="on" onclick="showCat('congrats')">축하 화환</button>
     <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조 화환</button>
     <button id="tabOrchid" onclick="showCat('orchid')">동양란·서양란</button>
@@ -141,6 +181,7 @@
   </div>
 
   <div id="catArea"></div>
+  <div id="galleryArea"></div>
 
   <div class="special">
     <div class="special-head">
@@ -206,6 +247,7 @@
   </footer>
 </div>
 
+<script src="/gallery-data.js"></script>
 <script>
 // 가격대 구성 (실제 상품 들어오면 desc/사진만 채우면 됨)
 // 특별 제작 (탭별로 다르게 노출)
@@ -296,22 +338,18 @@ const TIERS = {
   },
 };
 
-function showCat(key){
+const GAL = window.GALLERY || {};
+const CAT_TITLE = {congrats:"축하화환", condolence:"근조화환", orchid:"동양란·서양란", plant:"관엽식물", basket:"꽃바구니·꽃다발"};
+
+// 가격대(등급) 상품 카드 한 장
+function bandCard(key, it){
   const t=TIERS[key];
-  const tabMap={condolence:"tabCondo",congrats:"tabCongrats",orchid:"tabOrchid",plant:"tabPlant",basket:"tabBasket"};
-  for(const [k,id] of Object.entries(tabMap)){
-    document.getElementById(id)?.classList.toggle("on", k===key);
-  }
   const isWreath = key==="condolence" || key==="congrats";
   const orderType = key==="condolence" ? "funeral" : "wedding";
   const subPath = key==="condolence" ? "화환/근조" : "화환/축하";
-  let html=`<div class="section-label">${t.label}</div><div class="section-desc">${t.desc}</div><div class="grid">`;
-  for(const it of t.items){
-    const photoPath = isWreath ? `${subPath}/${it.grade}.jpg` : it.photo;
-    const orderClick = isWreath
-      ? `goOrder('${orderType}',${it.price})`
-      : `goOrderCat('${t.cat}',${it.price})`;
-    html+=`
+  const photoPath = isWreath ? `${subPath}/${it.grade}.jpg` : it.photo;
+  const orderClick = isWreath ? `goOrder('${orderType}',${it.price})` : `goOrderCat('${t.cat}',${it.price})`;
+  return `
       <div class="item">
         <div class="photo">${photoBox(photoPath, it.grade||it.nm)}</div>
         <div class="body">
@@ -323,10 +361,72 @@ function showCat(key){
           <button class="share-btn" onclick="shareItem('${key}','${it.code}','${escapeJs(it.nm)}',${it.price})">🔗 공유하기</button>
         </div>
       </div>`;
+}
+
+// 보유 종류 갤러리
+let galFilter = {};
+function galleryHTML(key, filterSub){
+  const items = GAL[key]||[];
+  if(!items.length) return "";
+  const subs = [...new Set(items.map(i=>i.sub))];
+  const show = filterSub ? items.filter(i=>i.sub===filterSub) : items;
+  let chips="";
+  if(subs.length>1){
+    chips = `<div class="gallery-filter"><button class="gf ${!filterSub?'on':''}" onclick="setGalFilter('${key}','')">전체 ${items.length}</button>`
+      + subs.map(s=>`<button class="gf ${filterSub===s?'on':''}" onclick="setGalFilter('${key}','${s}')">${s} ${items.filter(i=>i.sub===s).length}</button>`).join("")
+      + `</div>`;
   }
+  const cards = show.map(i=>`<div class="gcard"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}</div></div>`).join("");
+  return `<div class="gallery-wrap">
+    <div class="gallery-head"><div class="gallery-title">📷 보유 종류 둘러보기</div><div class="gallery-count">${items.length}종</div></div>
+    <div class="gallery-sub">실제 보유·제작 가능한 ${CAT_TITLE[key]}입니다. 마음에 드는 느낌을 고르신 뒤 위 가격대로 주문하거나, 전화로 “이런 걸로” 말씀해 주세요.</div>
+    ${chips}<div class="gallery-grid">${cards}</div></div>`;
+}
+function setGalFilter(key, sub){ galFilter[key]=sub; document.getElementById("galleryArea").innerHTML=galleryHTML(key, sub); }
+
+function showCat(key){
+  const t=TIERS[key];
+  const tabMap={condolence:"tabCondo",congrats:"tabCongrats",orchid:"tabOrchid",plant:"tabPlant",basket:"tabBasket"};
+  for(const [k,id] of Object.entries(tabMap)){
+    document.getElementById(id)?.classList.toggle("on", k===key);
+  }
+  let html=`<div class="section-label">${t.label}</div><div class="section-desc">${t.desc}</div><div class="grid">`;
+  html += t.items.map(it=>bandCard(key,it)).join("");
   html+=`</div>`;
   document.getElementById("catArea").innerHTML=html;
+  document.getElementById("galleryArea").innerHTML = galleryHTML(key, galFilter[key]||"");
   showSpecial(key);
+}
+
+// 검색 — 가격대 상품 + 보유 종류 전체에서 이름/종류/색 매칭
+function doSearch(q){
+  q=(q||"").trim().toLowerCase();
+  const seg=document.getElementById("segTabs"), cat=document.getElementById("catArea"),
+        gal=document.getElementById("galleryArea"), sp=document.querySelector(".special"),
+        sa=document.getElementById("searchArea");
+  const toggle=(hide)=>{ [seg,cat,gal,sp].forEach(el=>el&&el.classList.toggle("hidden",hide)); sa.classList.toggle("hidden",!hide); };
+  if(!q){ toggle(false); return; }
+  toggle(true);
+  let bandHits=[];
+  for(const key of Object.keys(TIERS)){
+    for(const it of TIERS[key].items){
+      if((it.nm+" "+CAT_TITLE[key]+" "+(it.code||"")).toLowerCase().includes(q)) bandHits.push({key,it});
+    }
+  }
+  let gHits=[];
+  for(const key of Object.keys(GAL)){
+    for(const i of GAL[key]){
+      if((i.nm+" "+i.sub+" "+(i.color||"")+" "+CAT_TITLE[key]).toLowerCase().includes(q)) gHits.push({...i,key});
+    }
+  }
+  let html=`<div class="gallery-wrap" style="border-top:none;margin-top:14px;padding-top:0;">
+    <div class="gallery-head"><div class="gallery-title">검색 결과</div><div class="gallery-count">${bandHits.length+gHits.length}건</div></div>`;
+  if(bandHits.length){ html+=`<div class="gallery-sub">가격대 상품</div><div class="grid">`+bandHits.map(b=>bandCard(b.key,b.it)).join("")+`</div>`; }
+  if(gHits.length){ html+=`<div class="gallery-sub" style="margin-top:18px;">보유 종류 ${gHits.length}건</div><div class="gallery-grid">`
+    + gHits.map(i=>`<div class="gcard"><div class="gp"><img src="${i.f}" alt="${i.nm}" loading="lazy"></div><div class="gn">${i.nm}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]}</span></div></div>`).join("")+`</div>`; }
+  if(!bandHits.length && !gHits.length){ html+=`<div class="gempty">“${q}” 검색 결과가 없어요. 다른 이름으로 찾아보세요.</div>`; }
+  html+=`</div>`;
+  sa.innerHTML=html;
 }
 
 function goOrder(type, price){
