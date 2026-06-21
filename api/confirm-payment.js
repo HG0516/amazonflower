@@ -243,6 +243,68 @@ async function notifyTelegram(order, payment) {
   }
 }
 
+// 주문을 Supabase orders에 저장 — 배송사진 회신·마감알림의 토대. 실패해도 결제엔 영향 없음.
+// (개인정보 포함 → RLS로 공개읽기 차단된 테이블, service_role 로만 기록)
+async function saveOrder(order, payment) {
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    console.warn("Supabase env 미설정 → 주문 저장 생략");
+    return { saved: false, reason: "supabase_env_missing" };
+  }
+  // 식/발인 시각 계산 (date:YYYY-MM-DD, time:HH:MM, 한국시간)
+  // YYYY.MM.DD / YYYY/MM/DD / 한자리 월·일도 정규화해 조용한 누락 방지
+  let eventAt = null;
+  const t = String(order.time || "").trim();
+  let d = String(order.date || "").trim().replace(/[.\/]/g, "-").replace(/-+$/, "");
+  const dm = d.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (dm) {
+    d = `${dm[1]}-${dm[2].padStart(2, "0")}-${dm[3].padStart(2, "0")}`;
+    const dt = new Date(`${d}T${/^\d{1,2}:\d{2}$/.test(t) ? t.padStart(5, "0") : "00:00"}:00+09:00`);
+    if (!isNaN(dt.getTime())) eventAt = dt.toISOString();
+  } else {
+    d = String(order.date || "").trim(); // 정규화 실패 시 원본 보존
+  }
+  const row = {
+    order_id: payment.orderId || null,
+    product_label: order.productLabel || null,
+    product_code: order.productCode || null,
+    amount: Number(payment.totalAmount) || null,
+    category: order.category || null,
+    order_type: order.type || null,
+    recipient_name: order.recipientName || null,
+    venue: [order.venue, order.venueDetail].filter(Boolean).join(" ") || null,
+    address: order.address || order.venueAddress || null,
+    event_date: d || null,
+    event_time: t || null,
+    event_at: eventAt,
+    sender_name: order.senderName || null,
+    sender_phone: order.senderPhone || null,
+    ribbon: [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ") || null,
+    note: order.senderNote || null,
+  };
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: "POST",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(row),
+    });
+    if (!r.ok) {
+      console.error("주문 저장 실패:", r.status, await r.text().catch(() => ""));
+      return { saved: false, reason: "insert_error" };
+    }
+    return { saved: true };
+  } catch (err) {
+    console.error("주문 저장 예외:", err);
+    return { saved: false, reason: "exception", detail: err.message };
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -337,10 +399,11 @@ export default async function handler(req, res) {
         PRODUCT_LABELS[productCode] ||
         productCode,
     };
-    // 문자(SOLAPI)와 텔레그램을 동시에 — 둘 다 실패해도 결제엔 영향 없음
-    const [smsResult, telegramResult] = await Promise.all([
+    // 주문 저장 + 문자 + 텔레그램을 동시에 — 모두 실패해도 결제엔 영향 없음
+    const [smsResult, telegramResult, saveResult] = await Promise.all([
       notifyOwners(orderInfo, payment),
       notifyTelegram(orderInfo, payment),
+      saveOrder(orderInfo, payment),
     ]);
 
     // 알림 실패해도 결제는 성공 처리 (결제는 이미 승인됨)
@@ -354,6 +417,7 @@ export default async function handler(req, res) {
         receiptUrl: payment.receipt && payment.receipt.url,
       },
       notified: { sms: smsResult, telegram: telegramResult },
+      saved: saveResult,
     });
   } catch (err) {
     console.error("confirm-payment error:", err);
