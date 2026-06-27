@@ -17,4 +17,8 @@ drop policy if exists "read own orders" on public.orders;
 create policy "read own orders" on public.orders
   for select using (auth.uid() = user_id);
 
+-- 3) 발주 누락방지 — '발주 완료 처리' 시각 기록(없어도 status='ordered'로 동작, 있으면 더 정확)
+alter table public.orders
+  add column if not exists ordered_at timestamptz;
+
 -- 끝. 확인: 로그인 후 본인 user_id 의 주문만 select 됨.

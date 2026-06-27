@@ -225,11 +225,20 @@ async function notifyTelegram(order, payment) {
   }
   const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
   const text = tag + buildOwnerMessage(order, payment);
+  // 발주 누락방지: '발주 완료 처리' 버튼. 누르면 status=ordered 가 되어 마감 경고 대상에서 빠진다.
+  let reply_markup;
+  const oid = payment.orderId || "";
+  const cs = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+  if (oid && cs) {
+    const tk = crypto.createHmac("sha256", cs).update("confirm:" + oid).digest("hex").slice(0, 20);
+    const base = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
+    reply_markup = { inline_keyboard: [[{ text: "✅ 발주 완료 처리", url: `${base}/api/order-confirm?id=${encodeURIComponent(oid)}&t=${tk}` }]] };
+  }
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true, ...(reply_markup ? { reply_markup } : {}) }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
