@@ -333,6 +333,12 @@
     <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
+  <section class="card" id="quickStart" style="margin-top:16px;background:var(--accent-soft);border:1px solid var(--accent);">
+    <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--accent-deep);margin-bottom:4px;">부고 · 청첩장 링크 받으셨나요?</div>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">링크만 붙여넣으면 받는 분 · 장소 · 날짜를 자동으로 채워드려요.</div>
+    <button class="btn" onclick="pasteAndStart()" style="width:100%;">📋 링크 붙여넣고 바로 시작</button>
+  </section>
+
   <section style="margin-top:16px;">
     <h1 style="text-align:center;font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.4;letter-spacing:-0.5px;margin-bottom:6px;">무엇을 보내시나요?</h1>
     <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">아래에서 바로 고르셔도 되고, 사연을 적으면 어울리는 상품을 추천해드려요</div>
@@ -702,6 +708,25 @@ async function pasteFromClipboard(){
   }catch(e){
     // 클립보드 권한이 없거나 미지원 — 직접 붙여넣기 안내
     showErr(err,"자동 붙여넣기가 막혀 있어요. 입력칸을 길게 눌러 '붙여넣기'를 선택해주세요.");
+  }
+}
+
+// 첫 화면 '0단계 진입' — 링크 붙여넣고 즉시 파싱까지 한 번에
+async function pasteAndStart(){
+  const err=document.getElementById("parseErr"); if(err) err.classList.add("hidden");
+  let txt="";
+  try{ txt = await navigator.clipboard.readText(); }catch(e){}
+  const src=document.getElementById("src");
+  const card=document.getElementById("srcCard");
+  if(txt && txt.trim() && src){
+    src.value = txt.trim();
+    if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
+    runParse();
+  }else{
+    // 클립보드가 비었거나 막힘 → 입력칸으로 안내
+    if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
+    setTimeout(()=>{ if(src) src.focus({preventScroll:true}); },400);
+    if(err) showErr(err,"복사한 링크가 없어요. 청첩장·부고 링크를 복사한 뒤 다시 눌러주세요. (또는 아래 칸에 직접 붙여넣기)");
   }
 }
 
@@ -1450,6 +1475,51 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<'
 function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
 function scrollTo(id){ setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"center"}),80); }
 
+// 원탭 재주문 — 지난 주문(o)을 주문 폼에 그대로 채워 결제 직전까지 재현. 금액·상품은 서버가 다시 검증한다.
+function categoryFromPc(pc){
+  if(!pc) return null;
+  if(pc.indexOf("orchid")===0) return "orchid";
+  if(pc.indexOf("plant")===0) return "plant";
+  if(pc.indexOf("basket")===0) return "basket";
+  if(pc.indexOf("congrats")===0 || pc.indexOf("condolence")===0) return "wreath";
+  return null;
+}
+window.afReorder = function(o){
+  o = o || {};
+  const pc = o.product_code || "";
+  const cat = categoryFromPc(pc);
+  if(!cat){ alert("이 주문은 다시 담기가 어려워요. 상품을 직접 골라주세요."); return; }
+  let type = o.order_type || "unknown";
+  if(cat==="wreath") type = (pc.indexOf("condolence")===0) ? "funeral" : "wedding";
+  Object.assign(order, {
+    type:type, side:"",
+    recipientName:o.recipient_name||"", venue:o.venue||"", venueDetail:"", address:o.address||"",
+    date:o.event_date||"", time:o.event_time||"",
+    groomName:"", brideName:"", chiefMourner:"",
+    category:cat, toppings:[],
+  });
+  document.getElementById("afFields").innerHTML =
+    afField("recipientName","받는 분",order.recipientName)
+    + afField("address","받는 곳 주소",order.address)
+    + afField("date","받는 날짜",order.date)
+    + afField("time","받는 시간",order.time);
+  document.getElementById("typePill").innerHTML = '<span class="type-pill">지난 주문 다시 담기 — 확인 후 결제하세요</span>';
+  document.getElementById("confirmCard").classList.remove("hidden");
+  document.getElementById("sideCard").classList.add("hidden");
+  renumber(false);
+  document.getElementById("prodCard").classList.remove("hidden");
+  document.getElementById("senderCard").classList.remove("hidden");
+  buildRibbon();
+  renderCatChips();
+  renderPriceTabs();
+  renderRecoOptions(1);
+  const items=getItems(cat);
+  let idx=items.findIndex(it=>it.pc===pc);
+  if(idx<0) idx=1;
+  selTier(idx, false);
+  scrollTo("confirmCard");
+};
+
 function handleCatalogParam(){
   const q=new URLSearchParams(location.search);
   const ctype=q.get("type"), cprice=q.get("price"), ccat=q.get("cat");
@@ -1478,6 +1548,8 @@ function handleCatalogParam(){
 
 handleRedirect();
 handleCatalogParam();
+// 다른 페이지(내 주문 등)에서 '다시 주문'으로 넘어온 경우 폼 재현
+try{ var _rj=sessionStorage.getItem("af_reorder"); if(_rj){ sessionStorage.removeItem("af_reorder"); var _ro=JSON.parse(_rj); setTimeout(function(){ if(window.afReorder) window.afReorder(_ro); },300); } }catch(_e){}
 </script>
 </body>
 </html>

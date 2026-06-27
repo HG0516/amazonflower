@@ -122,16 +122,26 @@
 
   // 내 주문 조회 (RLS로 본인 것만). created_at 컬럼이 없을 수 있어 정렬 실패 시 재시도.
   function loadMyOrders() {
-    var cols = 'order_id,product_label,product_code,recipient_name,venue,amount,event_date,status,created_at';
+    var cols = 'order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status,created_at';
+    var fb = 'order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status';
     return sb.from('orders').select(cols).order('created_at', { ascending: false }).limit(30)
       .then(function (res) {
         if (res.error) {
-          return sb.from('orders').select('order_id,product_label,product_code,recipient_name,venue,amount,event_date,status').limit(30)
-            .then(function (r2) { return r2.data || []; });
+          return sb.from('orders').select(fb).limit(30).then(function (r2) { return r2.data || []; });
         }
         return res.data || [];
       })
       .catch(function () { return []; });
+  }
+
+  // 원탭 재주문 — index의 afReorder로 폼 재현. 다른 페이지면 sessionStorage 후 홈으로.
+  function startReorder(o) {
+    var ov = document.getElementById('af-auth-ov'); if (ov) ov.style.display = 'none';
+    if (typeof window.afReorder === 'function') { window.afReorder(o); }
+    else {
+      try { sessionStorage.setItem('af_reorder', JSON.stringify(o)); } catch (e) {}
+      location.href = '/?reorder=1';
+    }
   }
 
   function openAccountSheet() {
@@ -157,16 +167,21 @@
         return;
       }
       var head = '<div style="font-size:13px;font-weight:800;color:#1f1d18;margin:8px 0;">내 주문 (' + rows.length + ')</div>';
-      var list = '<div style="max-height:46vh;overflow:auto;margin-bottom:12px;">' + rows.map(function (o) {
+      var list = '<div style="max-height:46vh;overflow:auto;margin-bottom:12px;">' + rows.map(function (o, i) {
         var who = [o.recipient_name, o.venue].filter(Boolean).join(' · ');
         return '<div style="border:1px solid #ebe6da;border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
           + '<div style="font-size:14px;font-weight:700;color:#1f1d18;">' + esc(o.product_label || '주문') + '</div>'
           + (who ? '<div style="font-size:12.5px;color:#5a564d;margin-top:2px;">' + esc(who) + '</div>' : '')
           + (o.event_date ? '<div style="font-size:12px;color:#9e9a8f;margin-top:1px;">' + esc(o.event_date) + '</div>' : '')
-          + '<div style="margin-top:6px;font-size:13px;font-weight:700;color:#2d4a38;">' + fmtWon(o.amount) + '</div>'
-          + '</div>';
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'
+          + '<span style="font-size:13px;font-weight:700;color:#2d4a38;">' + fmtWon(o.amount) + '</span>'
+          + '<button class="af-reorder" data-i="' + i + '" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;">다시 주문</button>'
+          + '</div></div>';
       }).join('') + '</div>';
       box.innerHTML = head + list;
+      box.querySelectorAll('.af-reorder').forEach(function (b) {
+        b.onclick = function () { startReorder(rows[parseInt(b.getAttribute('data-i'), 10)]); };
+      });
     });
   }
 
