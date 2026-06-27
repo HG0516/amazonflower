@@ -9,6 +9,25 @@
 <meta property="og:title" content="전체 상품 — 꽃안부" />
 <meta property="og:description" content="근조 · 축하 화환 · 전국 당일배송. 1993년부터." />
 <meta property="og:image" content="/og_preview.png" />
+<!-- PWA: 설치형 앱 -->
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#2d4a38" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="꽃안부" />
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+    });
+  }
+</script>
+<script src="/pwa-install.js" defer></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
   :root {

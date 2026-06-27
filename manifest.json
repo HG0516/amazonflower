@@ -1,0 +1,37 @@
+{
+  "name": "꽃안부 — 안부는, 꽃으로",
+  "short_name": "꽃안부",
+  "description": "근조·축하 화환, 동양란·관엽·꽃바구니. 부고·청첩장 링크만 보내면 자동 주문. 법인 계산서·후불, 전국 당일배송. 1993년부터.",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "/?utm_source=pwa&utm_medium=app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f7f4ee",
+  "theme_color": "#2d4a38",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "화환 주문하기",
+      "short_name": "주문하기",
+      "description": "부고·청첩장 링크로 바로 주문",
+      "url": "/?utm_source=pwa&utm_medium=shortcut&from=order",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "상품 둘러보기",
+      "short_name": "둘러보기",
+      "description": "화환·난·관엽·꽃바구니 갤러리",
+      "url": "/catalog.html?utm_source=pwa&utm_medium=shortcut&from=catalog",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
