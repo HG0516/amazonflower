@@ -361,7 +361,7 @@ const TIERS = {
 
 const GAL = window.GALLERY || {};
 const CAT_TITLE = {congrats:"축하화환", condolence:"근조화환", orchid:"동양란·서양란", plant:"관엽식물", basket:"꽃바구니·꽃다발"};
-let currentCat = "congrats";
+let currentCat = "basket";
 // HTML 이스케이프 — 업로드된 이름/경로를 innerHTML에 넣기 전 항상 통과(저장형 XSS 방지)
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
