@@ -173,7 +173,7 @@
           + '<div style="font-size:14px;font-weight:700;color:#1f1d18;">' + esc(o.product_label || '주문') + '</div>'
           + (who ? '<div style="font-size:12.5px;color:#5a564d;margin-top:2px;">' + esc(who) + '</div>' : '')
           + (o.event_date ? '<div style="font-size:12px;color:#9e9a8f;margin-top:1px;">' + esc(o.event_date) + '</div>' : '')
-          + (o.completed_photo ? '<div style="margin-top:8px;"><img src="' + esc(o.completed_photo) + '" alt="배송완료" loading="lazy" style="width:100%;border-radius:6px;display:block;"/><div style="font-size:12px;color:#2d4a38;font-weight:700;margin-top:4px;">✅ 배송완료 사진이 도착했어요</div></div>' : '')
+          + (o.completed_photo ? '<div style="margin-top:8px;"><img data-po="' + esc(o.order_id) + '" alt="배송완료 사진" style="width:100%;border-radius:6px;display:none;"/><div style="font-size:12px;color:#2d4a38;font-weight:700;margin-top:4px;">✅ 배송완료 사진이 도착했어요</div></div>' : '')
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'
           + '<span style="font-size:13px;font-weight:700;color:#2d4a38;">' + fmtWon(o.amount) + '</span>'
           + '<button class="af-reorder" data-i="' + i + '" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;">다시 주문</button>'
@@ -182,6 +182,18 @@
       box.innerHTML = head + list;
       box.querySelectorAll('.af-reorder').forEach(function (b) {
         b.onclick = function () { startReorder(rows[parseInt(b.getAttribute('data-i'), 10)]); };
+      });
+      // 배송완료 사진은 비공개 버킷 — 본인 토큰으로 프록시 요청해 blob 으로만 표시(URL 노출 없음)
+      box.querySelectorAll('img[data-po]').forEach(function (im) {
+        var oid = im.getAttribute('data-po');
+        sb.auth.getSession().then(function (s) {
+          var tok = s && s.data && s.data.session && s.data.session.access_token;
+          if (!tok) return;
+          fetch('/api/order-photo-view?order=' + encodeURIComponent(oid), { headers: { Authorization: 'Bearer ' + tok } })
+            .then(function (r) { return r.ok ? r.blob() : null; })
+            .then(function (b) { if (b) { im.src = URL.createObjectURL(b); im.style.display = 'block'; } })
+            .catch(function () {});
+        });
       });
     });
   }

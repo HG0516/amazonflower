@@ -1,13 +1,15 @@
 // api/order-photo.js
-// 배송완료 사진 업로드 — 사장님(관리자 비번) 전용. Supabase Storage(gallery 버킷 orders/ 경로)에 저장 +
-// orders 테이블의 completed_photo/completed_at 갱신 + status='delivered'.
-// gallery-add.js 와 같은 보안 패턴(상수시간 비번, JPEG 매직바이트, 용량 한도, 보상 삭제).
+// 배송완료 사진 업로드 — 사장님(관리자 비번) 전용. '비공개' 버킷(order-photos)에 저장 +
+// orders.completed_photo 에는 공개 URL이 아니라 '객체 경로(path)'만 기록 + completed_at + status='delivered'.
+// 고객 조회는 /api/order-photo-view 가 로그인 본인 확인 후 프록시로만 내려준다(개인정보 보호).
+// 보안 패턴은 gallery-add.js 와 동일(상수시간 비번, JPEG 매직바이트, 용량 한도, 주문존재 확인, 보상 삭제).
 
 import crypto from "node:crypto";
 
 export const config = { runtime: "nodejs" };
 
 const ORIGIN = "https://amazonflower.vercel.app";
+const BUCKET = "order-photos";
 const MAX_B64 = 4_000_000;
 const MAX_BYTES = 3 * 1024 * 1024;
 
@@ -56,36 +58,38 @@ export default async function handler(req, res) {
     if (!Array.isArray(rows) || rows.length === 0) return res.status(404).json({ error: "그 주문번호를 찾을 수 없어요. 번호를 확인해주세요." });
   } catch { /* 확인 실패해도 업로드는 진행 */ }
 
-  const path = `orders/${oid}-${Date.now()}-${crypto.randomUUID().slice(0, 6)}.jpg`;
+  // 객체 경로(버킷 내부 경로만 — 버킷명 제외). 비공개 버킷이라 공개 URL은 만들지 않는다.
+  const path = `${oid}-${Date.now()}-${crypto.randomUUID().slice(0, 6)}.jpg`;
 
-  // 1) Storage 업로드 (gallery 버킷 재사용, orders/ 경로 — 공개 읽기)
-  const up = await fetch(`${SUPABASE_URL}/storage/v1/object/gallery/${encodeURI(path)}`, {
+  // 1) 비공개 버킷에 업로드
+  const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "image/jpeg", "x-upsert": "true" },
     body: buf,
   });
   if (!up.ok) {
-    console.error("order-photo storage fail", up.status, await up.text().catch(() => ""));
-    return res.status(502).json({ error: "사진 저장에 실패했습니다. 잠시 후 다시 시도해주세요." });
+    const t = await up.text().catch(() => "");
+    console.error("order-photo storage fail", up.status, t);
+    // 버킷이 아직 없을 수 있음 → 안내
+    return res.status(502).json({ error: "사진 저장 실패. (order-photos 비공개 버킷이 필요할 수 있어요: supabase-auth.sql 실행)" });
   }
-  const photo_url = `${SUPABASE_URL}/storage/v1/object/public/gallery/${encodeURI(path)}`;
 
-  // 2) orders 갱신 (completed_photo/completed_at + status=delivered)
+  // 2) orders 갱신 — completed_photo 에는 '경로'만 저장(공개 URL 아님)
   let patchOk = false;
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}`, {
       method: "PATCH",
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify({ completed_photo: photo_url, completed_at: new Date().toISOString(), status: "delivered" }),
+      body: JSON.stringify({ completed_photo: path, completed_at: new Date().toISOString(), status: "delivered" }),
     });
     patchOk = r.ok;
   } catch { patchOk = false; }
 
   if (!patchOk) {
-    // 컬럼이 아직 없거나 갱신 실패 → 방금 올린 고아 객체 삭제
-    fetch(`${SUPABASE_URL}/storage/v1/object/gallery/${encodeURI(path)}`, { method: "DELETE", headers: { Authorization: `Bearer ${SERVICE_KEY}` } }).catch(() => {});
+    // 갱신 실패(컬럼 없음 등) → 방금 올린 고아 객체 삭제
+    fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, { method: "DELETE", headers: { Authorization: `Bearer ${SERVICE_KEY}` } }).catch(() => {});
     return res.status(502).json({ error: "주문에 사진을 연결하지 못했어요. (supabase-auth.sql 의 completed_photo 컬럼이 필요할 수 있어요)" });
   }
 
-  return res.status(200).json({ ok: true, photo_url });
+  return res.status(200).json({ ok: true });
 }

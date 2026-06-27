@@ -27,4 +27,11 @@ alter table public.orders
 alter table public.orders
   add column if not exists completed_at timestamptz;
 
+-- 5) 완료사진 전용 '비공개' 버킷 — 배송 사진엔 주소·실명·인물이 담길 수 있어 공개 gallery 대신 사용.
+--    공개 읽기 정책을 두지 않음 → service_role(서버)만 접근. 고객에겐 /api/order-photo-view 가
+--    로그인 본인 확인 후 사진을 프록시로만 내려준다(URL이 새어도 타인은 못 봄).
+insert into storage.buckets (id, name, public)
+values ('order-photos', 'order-photos', false)
+on conflict (id) do update set public = false;
+
 -- 끝. 확인: 로그인 후 본인 user_id 의 주문만 select 됨.

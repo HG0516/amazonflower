@@ -1490,7 +1490,10 @@ window.afReorder = function(o){
   const cat = categoryFromPc(pc);
   if(!cat){ alert("이 주문은 다시 담기가 어려워요. 상품을 직접 골라주세요."); return; }
   let type = o.order_type || "unknown";
-  if(cat==="wreath") type = (pc.indexOf("condolence")===0) ? "funeral" : "wedding";
+  if(cat==="wreath"){
+    if(pc.indexOf("condolence")===0) type = "funeral";
+    else if(type !== "wedding") type = "unknown"; // 비결혼 축하화환은 일반 축하 톤으로(잘못된 '축 결혼' 기본값 방지)
+  }
   Object.assign(order, {
     type:type, side:"",
     recipientName:o.recipient_name||"", venue:o.venue||"", venueDetail:"", address:o.address||"",
@@ -1515,7 +1518,13 @@ window.afReorder = function(o){
   renderRecoOptions(1);
   const items=getItems(cat);
   let idx=items.findIndex(it=>it.pc===pc);
-  if(idx<0) idx=1;
+  if(idx<0){
+    // 단종/구성변경된 상품은 무음 대체 금지 — 엉뚱한 금액 결제를 막고 직접 고르게 한다.
+    order.productCode=""; order.price=0;
+    alert("예전에 주문하신 상품이 지금은 판매하지 않아요(구성이 바뀌었어요).\n비슷한 상품을 직접 골라 확인 후 결제해주세요.");
+    scrollTo("prodCard");
+    return;
+  }
   selTier(idx, false);
   scrollTo("confirmCard");
 };
