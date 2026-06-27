@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /admin-order
+Disallow: /admin-order.html
+Disallow: /api/
+
+Sitemap: https://amazonflower.vercel.app/sitemap.xml

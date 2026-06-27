@@ -1,0 +1,31 @@
+/* a11y.css — 접근성·고령 UX 보강 (index/catalog 공통) */
+
+/* iOS 입력 시 자동 확대(줌) 방지 — 입력 글씨 16px 이상 */
+input[type=text], input[type=tel], input[type=email], input[type=password],
+input[type=number], input[type=date], input[type=time], select, textarea {
+  font-size: 16px !important;
+}
+
+/* 키보드 포커스 또렷하게 (저시력·키보드 사용자) */
+:focus-visible {
+  outline: 3px solid #2d4a38;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 터치 타깃 최소 크기 보강 (작은 링크/버튼) */
+button, .btn, a.btn, .cat-tile { min-height: 44px; }
+
+/* 모션 최소화 선호 사용자 배려 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 고대비 선호 시 약한 회색 글자 진하게 */
+@media (prefers-contrast: more) {
+  :root { --ink-faint: #6b6358; --ink-soft: #3a362e; }
+}
