@@ -1301,6 +1301,11 @@ function renderDone(data,o){
         <div style="font-size:11px;letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">다음 주문은 더 빠르게</div>
         <div style="color:var(--ink-soft);">다음 주문도 같은 사업자 정보로 빠르게 진행하실 수 있어요. 정기 거래처 등록(후불·월 정산)은 031-314-3003 으로 문의해주세요.</div>
       </div>`:""}
+      <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;margin-top:12px;text-align:left;">
+        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">🌸 다음에 더 편하게</div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지 받을 수 있어요.</div>
+        <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">로그인하고 기념일 챙기기</button>
+      </div>
       <div class="share-row">
         <button class="btn btn-ghost" onclick="shareSite()">🔗 친구에게 알리기</button>
         ${p.receiptUrl?`<a class="btn btn-ghost" href="${p.receiptUrl}" target="_blank">영수증</a>`:""}

@@ -19,6 +19,10 @@
   });
   // 다른 스크립트(주문 저장 등)에서 현재 사용자 참조 가능하도록 노출
   window.afAuth = { client: sb, user: null };
+  // 외부(결제완료 화면 등)에서 로그인/계정 시트 열기
+  window.afOpenAuth = function () {
+    if (window.afAuth && window.afAuth.user) openAccountSheet(); else openLoginSheet();
+  };
 
   var ENABLED_PROVIDERS = [
     { id: 'kakao', label: '카카오로 시작하기', bg: '#FEE500', fg: '#191600' },
@@ -121,6 +125,15 @@
     });
   }
   function fmtWon(n) { return (Number(n) || 0).toLocaleString() + '원'; }
+  function statusBadge(s) {
+    var M = {
+      new: { t: '접수됨', c: '#9e9a8f', bg: '#f0eee8' },
+      ordered: { t: '준비 중', c: '#2d4a38', bg: '#e8f0ea' },
+      delivered: { t: '배송완료', c: '#355d8a', bg: '#eaf0f6' }
+    };
+    var x = M[s] || M.new;
+    return '<span style="font-size:11px;font-weight:700;color:' + x.c + ';background:' + x.bg + ';padding:3px 8px;border-radius:999px;white-space:nowrap;">' + x.t + '</span>';
+  }
 
   // 내 주문 조회 (RLS로 본인 것만). created_at 컬럼이 없을 수 있어 정렬 실패 시 재시도.
   function loadMyOrders() {
@@ -257,7 +270,10 @@
       var list = '<div style="max-height:46vh;overflow:auto;margin-bottom:12px;">' + rows.map(function (o, i) {
         var who = [o.recipient_name, o.venue].filter(Boolean).join(' · ');
         return '<div style="border:1px solid #ebe6da;border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
           + '<div style="font-size:14px;font-weight:700;color:#1f1d18;">' + esc(o.product_label || '주문') + '</div>'
+          + statusBadge(o.status)
+          + '</div>'
           + (who ? '<div style="font-size:12.5px;color:#5a564d;margin-top:2px;">' + esc(who) + '</div>' : '')
           + (o.event_date ? '<div style="font-size:12px;color:#9e9a8f;margin-top:1px;">' + esc(o.event_date) + '</div>' : '')
           + (o.completed_photo ? '<div style="margin-top:8px;"><img data-po="' + esc(o.order_id) + '" alt="배송완료 사진" style="width:100%;border-radius:6px;display:none;"/><div style="font-size:12px;color:#2d4a38;font-weight:700;margin-top:4px;">✅ 배송완료 사진이 도착했어요</div></div>' : '')
