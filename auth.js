@@ -122,8 +122,8 @@
 
   // 내 주문 조회 (RLS로 본인 것만). created_at 컬럼이 없을 수 있어 정렬 실패 시 재시도.
   function loadMyOrders() {
-    var cols = 'order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status,created_at';
-    var fb = 'order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status';
+    var cols = 'order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status,completed_photo,completed_at,created_at';
+    var fb = 'order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status,completed_photo,completed_at';
     return sb.from('orders').select(cols).order('created_at', { ascending: false }).limit(30)
       .then(function (res) {
         if (res.error) {
@@ -173,6 +173,7 @@
           + '<div style="font-size:14px;font-weight:700;color:#1f1d18;">' + esc(o.product_label || '주문') + '</div>'
           + (who ? '<div style="font-size:12.5px;color:#5a564d;margin-top:2px;">' + esc(who) + '</div>' : '')
           + (o.event_date ? '<div style="font-size:12px;color:#9e9a8f;margin-top:1px;">' + esc(o.event_date) + '</div>' : '')
+          + (o.completed_photo ? '<div style="margin-top:8px;"><img src="' + esc(o.completed_photo) + '" alt="배송완료" loading="lazy" style="width:100%;border-radius:6px;display:block;"/><div style="font-size:12px;color:#2d4a38;font-weight:700;margin-top:4px;">✅ 배송완료 사진이 도착했어요</div></div>' : '')
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'
           + '<span style="font-size:13px;font-weight:700;color:#2d4a38;">' + fmtWon(o.amount) + '</span>'
           + '<button class="af-reorder" data-i="' + i + '" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;">다시 주문</button>'

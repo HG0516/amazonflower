@@ -232,7 +232,10 @@ async function notifyTelegram(order, payment) {
   if (oid && cs) {
     const tk = crypto.createHmac("sha256", cs).update("confirm:" + oid).digest("hex").slice(0, 20);
     const base = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
-    reply_markup = { inline_keyboard: [[{ text: "✅ 발주 완료 처리", url: `${base}/api/order-confirm?id=${encodeURIComponent(oid)}&t=${tk}` }]] };
+    reply_markup = { inline_keyboard: [[
+      { text: "✅ 발주 완료 처리", url: `${base}/api/order-confirm?id=${encodeURIComponent(oid)}&t=${tk}` },
+      { text: "📷 완료사진", url: `${base}/admin-order?order=${encodeURIComponent(oid)}` }
+    ]] };
   }
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

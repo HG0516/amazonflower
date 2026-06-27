@@ -21,4 +21,10 @@ create policy "read own orders" on public.orders
 alter table public.orders
   add column if not exists ordered_at timestamptz;
 
+-- 4) 완료사진 회신 — 사장님이 배송완료 사진을 올리면 기록(고객이 '내 주문'에서 확인)
+alter table public.orders
+  add column if not exists completed_photo text;
+alter table public.orders
+  add column if not exists completed_at timestamptz;
+
 -- 끝. 확인: 로그인 후 본인 user_id 의 주문만 select 됨.
