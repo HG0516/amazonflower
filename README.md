@@ -16,6 +16,11 @@ amazonflower/
 ├── api/
 │   ├── parse-url.js          # URL/텍스트 → Claude API 파싱
 │   └── confirm-payment.js    # 토스 결제 승인 + 금액검증 + 사장님 문자
+├── manifest.json             # PWA 앱 정보 (이름·아이콘·바로가기)
+├── service-worker.js         # PWA 캐시/오프라인 (문서 network-first, /api·외부 미개입)
+├── pwa-install.js            # '홈 화면에 추가' 설치 유도 (Android 배너 / iOS 안내)
+├── offline.html             # 오프라인 안내 페이지
+├── icons/                    # 앱 아이콘 세트 (192/512/maskable/apple-touch/favicon)
 ├── vercel.json
 ├── .env.example              # 환경변수 목록
 └── .gitignore
@@ -31,6 +36,23 @@ amazonflower/
 6. 결제 승인 시 **금액 위변조 검증** 후 **사장님 두 분께만** 문자 발송
    - 문자엔 발주 복붙용 정보 + **원문(URL/텍스트)** 포함 → 사장님이 더블체크
    - 화환 제작/배송 하청 업체에는 자동 발송하지 않음 (사장님이 직접 발주)
+
+## 설치형 앱 (PWA)
+
+별도 앱스토어 심사 없이, 손님이 브라우저에서 **'홈 화면에 추가'** 하면 앱처럼 설치·실행됩니다. 기존 웹/결제 흐름은 그대로 두고 얹은 구조라 웹 출시와 따로 놀지 않습니다.
+
+- **manifest.json** — 앱 이름(꽃안부)·아이콘·테마색·바로가기(주문/둘러보기). 설치 진입은 `?utm_source=pwa` 로 추적.
+- **service-worker.js** — 오프라인 캐시. **안전 정책**: 페이지(문서)는 항상 네트워크 우선(=최신 보장), `/api/*`와 외부(토스 SDK·구글폰트·Supabase)는 **건드리지 않음**(결제·주문 영향 0). 같은 출처 정적자산(아이콘·사진)만 캐시하고, 결제 redirect URL은 캐시하지 않음.
+- **pwa-install.js** — Android/Chrome은 설치 배너, iOS/Safari는 '공유 → 홈 화면에 추가' 안내. 이미 설치됐거나 결제 중이면 숨김, 닫으면 7일간 안 보임.
+- **offline.html** — 연결이 끊겼을 때 전화주문 안내.
+
+### 캐시를 갱신하려면
+`service-worker.js` 상단의 `VERSION` 값을 올리면(예: `v1.0.0` → `v1.0.1`) 옛 캐시가 자동 정리됩니다. Vercel이 `service-worker.js`를 재검증(no-cache) 헤더로 서빙하므로 배포 후 곧 전파됩니다.
+
+### 설치 테스트
+- **Android**: 크롬에서 사이트 열기 → 하단 설치 배너 또는 메뉴 '앱 설치'
+- **iOS**: 사파리에서 열기 → 공유 ⬆️ → '홈 화면에 추가'
+- 설치 후 홈 아이콘으로 열면 주소창 없는 전체화면(standalone)으로 뜸
 
 ## 상품 카탈로그 (catalog.html)
 
