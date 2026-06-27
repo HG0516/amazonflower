@@ -243,6 +243,27 @@ async function notifyTelegram(order, payment) {
   }
 }
 
+// 로그인 사용자 식별 — Authorization: Bearer <access_token> 을 Supabase로 검증해 user.id 반환.
+// 없거나 검증 실패면 null(비회원 주문). 프론트가 보낸 값을 믿지 않고 서버가 토큰을 직접 검증한다.
+async function getUserId(req) {
+  const auth = req.headers.authorization || req.headers.Authorization || "";
+  const m = String(auth).match(/^Bearer\s+(.+)$/i);
+  if (!m) return null;
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !SERVICE_KEY) return null;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${m[1]}` },
+    });
+    if (!r.ok) return null;
+    const u = await r.json();
+    return u && u.id ? u.id : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // 주문을 Supabase orders에 저장 — 배송사진 회신·마감알림의 토대. 실패해도 결제엔 영향 없음.
 // (개인정보 포함 → RLS로 공개읽기 차단된 테이블, service_role 로만 기록)
 async function saveOrder(order, payment) {
@@ -282,6 +303,7 @@ async function saveOrder(order, payment) {
     sender_phone: order.senderPhone || null,
     ribbon: [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ") || null,
     note: order.senderNote || null,
+    user_id: order.user_id || null,
   };
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
@@ -392,12 +414,14 @@ export default async function handler(req, res) {
     }
 
     // ── 3. 사장님(어머니) 두 분께 알림 (하청 X) ───────────
+    const userId = await getUserId(req);
     const orderInfo = {
       ...(order || {}),
       productLabel:
         (order && order.productLabel) ||
         PRODUCT_LABELS[productCode] ||
         productCode,
+      user_id: userId,
     };
     // 주문 저장 + 문자 + 텔레그램을 동시에 — 모두 실패해도 결제엔 영향 없음
     const [smsResult, telegramResult, saveResult] = await Promise.all([

@@ -1230,8 +1230,10 @@ async function handleRedirect(){
     const paymentKey=q.get("paymentKey"), orderId=q.get("orderId"), amount=q.get("amount");
     document.querySelector(".wrap").innerHTML=`<section class="card"><div class="loading"><div class="spinner"></div> 결제를 확인하고 있습니다…</div></section>`;
     let saved={}; try{ saved=JSON.parse(sessionStorage.getItem("af_"+orderId)||"{}"); }catch(_){}
+    let _authH={"Content-Type":"application/json"};
+    try{ if(window.afAuth&&window.afAuth.client){ const _s=await window.afAuth.client.auth.getSession(); const _t=_s&&_s.data&&_s.data.session&&_s.data.session.access_token; if(_t) _authH["Authorization"]="Bearer "+_t; } }catch(_){}
     try{
-      const res=await fetch("/api/confirm-payment",{method:"POST",headers:{"Content-Type":"application/json"},
+      const res=await fetch("/api/confirm-payment",{method:"POST",headers:_authH,
         body:JSON.stringify({paymentKey,orderId,amount:Number(amount),order:saved})});
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||"결제 승인에 실패했습니다.");

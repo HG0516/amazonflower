@@ -113,20 +113,61 @@
     ov.querySelector('.af-auth-x').onclick = function () { ov.style.display = 'none'; };
   }
 
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function fmtWon(n) { return (Number(n) || 0).toLocaleString() + '원'; }
+
+  // 내 주문 조회 (RLS로 본인 것만). created_at 컬럼이 없을 수 있어 정렬 실패 시 재시도.
+  function loadMyOrders() {
+    var cols = 'order_id,product_label,product_code,recipient_name,venue,amount,event_date,status,created_at';
+    return sb.from('orders').select(cols).order('created_at', { ascending: false }).limit(30)
+      .then(function (res) {
+        if (res.error) {
+          return sb.from('orders').select('order_id,product_label,product_code,recipient_name,venue,amount,event_date,status').limit(30)
+            .then(function (r2) { return r2.data || []; });
+        }
+        return res.data || [];
+      })
+      .catch(function () { return []; });
+  }
+
   function openAccountSheet() {
     injectStyles();
     var ov = overlay();
     var user = window.afAuth.user;
     ov.innerHTML =
       '<div class="af-auth-sheet">'
-      + '<h3>' + (user ? shortName(user) : '내 계정') + '님</h3>'
-      + '<p>지난 주문·재주문·기념일 알림은 곧 추가됩니다.</p>'
+      + '<h3>' + (user ? esc(shortName(user)) : '내 계정') + '님</h3>'
+      + '<div id="af-orders"><p style="color:#5a564d;font-size:13px;">지난 주문을 불러오는 중…</p></div>'
       + '<button class="af-auth-btn" style="background:#f3efe6;color:#1f1d18;" id="af-logout">로그아웃</button>'
       + '<button class="af-auth-x">닫기</button>'
       + '</div>';
     ov.style.display = 'flex';
     ov.querySelector('#af-logout').onclick = logout;
     ov.querySelector('.af-auth-x').onclick = function () { ov.style.display = 'none'; };
+
+    loadMyOrders().then(function (rows) {
+      var box = document.getElementById('af-orders');
+      if (!box) return;
+      if (!rows.length) {
+        box.innerHTML = '<p style="color:#5a564d;font-size:13px;margin-bottom:14px;">아직 주문 내역이 없어요. 첫 주문을 해보세요 🌸</p>';
+        return;
+      }
+      var head = '<div style="font-size:13px;font-weight:800;color:#1f1d18;margin:8px 0;">내 주문 (' + rows.length + ')</div>';
+      var list = '<div style="max-height:46vh;overflow:auto;margin-bottom:12px;">' + rows.map(function (o) {
+        var who = [o.recipient_name, o.venue].filter(Boolean).join(' · ');
+        return '<div style="border:1px solid #ebe6da;border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
+          + '<div style="font-size:14px;font-weight:700;color:#1f1d18;">' + esc(o.product_label || '주문') + '</div>'
+          + (who ? '<div style="font-size:12.5px;color:#5a564d;margin-top:2px;">' + esc(who) + '</div>' : '')
+          + (o.event_date ? '<div style="font-size:12px;color:#9e9a8f;margin-top:1px;">' + esc(o.event_date) + '</div>' : '')
+          + '<div style="margin-top:6px;font-size:13px;font-weight:700;color:#2d4a38;">' + fmtWon(o.amount) + '</div>'
+          + '</div>';
+      }).join('') + '</div>';
+      box.innerHTML = head + list;
+    });
   }
 
   function login(provider) {
