@@ -8,7 +8,7 @@
 //
 // 코드를 바꾸면 VERSION 을 올려야 옛 캐시가 정리됩니다.
 
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.1.0';
 const CACHE = `kkotanbu-${VERSION}`;
 
 // 오프라인 폴백용 최소 앱셸 (하나라도 404면 install 실패하므로 확실한 것만)
@@ -85,4 +85,33 @@ self.addEventListener('fetch', (event) => {
 // 새 버전 즉시 적용용 (앱이 보내는 메시지)
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// ── 웹푸시 수신 (기념일 D-7 알림 등) ──
+self.addEventListener('push', (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) {}
+  const title = d.title || '꽃안부';
+  const body = d.body || '';
+  const url = d.url || '/';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url },
+      tag: d.tag || undefined,
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if (c.url.indexOf(url) !== -1 && 'focus' in c) return c.focus(); }
+      return clients.openWindow(url);
+    })
+  );
 });

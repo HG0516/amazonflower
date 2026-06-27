@@ -51,4 +51,18 @@ drop policy if exists "own anniversaries" on public.anniversaries;
 create policy "own anniversaries" on public.anniversaries
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- 7) 웹푸시 구독 — 기기별 구독 정보(기념일 D-7 알림 발송에 사용). 본인만 CRUD.
+create table if not exists public.push_subscriptions (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  endpoint   text not null unique,
+  p256dh     text not null,
+  auth       text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.push_subscriptions enable row level security;
+drop policy if exists "own push subs" on public.push_subscriptions;
+create policy "own push subs" on public.push_subscriptions
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 -- 끝. 확인: 로그인 후 본인 user_id 의 주문만 select 됨.

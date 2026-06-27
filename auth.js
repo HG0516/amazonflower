@@ -157,8 +157,10 @@
       + '<select id="af-anniv-month" style="font-size:14px;padding:9px 6px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;">' + months + '</select>'
       + '<select id="af-anniv-day" style="font-size:14px;padding:9px 6px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;">' + days + '</select>'
       + '<button id="af-anniv-add" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:inherit;">추가</button>'
-      + '</div>';
+      + '</div>'
+      + '<button id="af-anniv-push" style="width:100%;background:#fff;color:#2d4a38;border:1px solid #2d4a38;border-radius:8px;font-size:14px;font-weight:700;padding:10px;cursor:pointer;font-family:inherit;margin-bottom:6px;">🔔 기념일 알림 켜기</button>';
     document.getElementById('af-anniv-add').onclick = addAnniv;
+    document.getElementById('af-anniv-push').onclick = subscribePush;
     loadAnniv();
   }
   function loadAnniv() {
@@ -194,6 +196,35 @@
   }
   function delAnniv(id) {
     sb.from('anniversaries').delete().eq('id', id).then(function () { loadAnniv(); }).catch(function () {});
+  }
+
+  // ── 웹푸시 구독 (기념일 D-7 알림 수신) ── VAPID public 은 공개값(안전) ──
+  var VAPID_PUBLIC = 'BK4frAB9SMwq4pDiMapQf0uPlZG2nbfPbMR1qxiKs9JT5w5SVvre6dzkrW2NRJT9SWnVs1JE-UtEZ_24usKxFBE';
+  function urlB64ToUint8(b64) {
+    var pad = '='.repeat((4 - b64.length % 4) % 4);
+    var s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+    var raw = atob(s), arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+  function subscribePush() {
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIos && !standalone) { alert('아이폰은 먼저 ‘홈 화면에 추가’로 앱을 설치한 뒤, 앱에서 알림을 켜주세요.'); return; }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) { alert('이 기기는 푸시 알림을 지원하지 않아요.'); return; }
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== 'granted') { alert('알림이 꺼져 있어요. 브라우저/기기 설정에서 알림을 허용해주세요.'); return; }
+      navigator.serviceWorker.ready.then(function (reg) {
+        return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_PUBLIC) });
+      }).then(function (sub) {
+        var j = sub.toJSON();
+        var u = window.afAuth.user; if (!u) { alert('로그인이 필요해요.'); return; }
+        return sb.from('push_subscriptions').upsert({ user_id: u.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
+      }).then(function (r) {
+        if (r && r.error) { alert('알림 저장 실패: ' + r.error.message); return; }
+        alert('알림을 켰어요! 등록한 기념일 7일 전에 알려드릴게요. 🌸');
+      }).catch(function (e) { alert('알림 설정 실패: ' + (e && e.message || '')); });
+    });
   }
 
   function openAccountSheet() {
