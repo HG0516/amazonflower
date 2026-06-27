@@ -144,6 +144,58 @@
     }
   }
 
+  // ── 기념일(D-7 알림의 토대) ── 로그인 세션 + RLS로 본인 것만 CRUD ──
+  function renderAnnivSection() {
+    var box = document.getElementById('af-anniv'); if (!box) return;
+    var months = ''; for (var m = 1; m <= 12; m++) months += '<option value="' + m + '">' + m + '월</option>';
+    var days = ''; for (var d = 1; d <= 31; d++) days += '<option value="' + d + '">' + d + '일</option>';
+    box.innerHTML =
+      '<div style="font-size:13px;font-weight:800;margin:10px 0 8px;">🎂 기념일 <span style="font-weight:400;font-size:11px;color:#9e9a8f;">— 일주일 전에 알려드려요</span></div>'
+      + '<div id="af-anniv-list" style="margin-bottom:8px;"></div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">'
+      + '<input id="af-anniv-label" maxlength="30" placeholder="예) 어머니 생신" style="flex:1;min-width:120px;font-size:14px;padding:9px 10px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;"/>'
+      + '<select id="af-anniv-month" style="font-size:14px;padding:9px 6px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;">' + months + '</select>'
+      + '<select id="af-anniv-day" style="font-size:14px;padding:9px 6px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;">' + days + '</select>'
+      + '<button id="af-anniv-add" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:inherit;">추가</button>'
+      + '</div>';
+    document.getElementById('af-anniv-add').onclick = addAnniv;
+    loadAnniv();
+  }
+  function loadAnniv() {
+    sb.from('anniversaries').select('id,label,month,day,recipient')
+      .order('month', { ascending: true }).order('day', { ascending: true })
+      .then(function (res) { renderAnnivList((res && res.data) || []); })
+      .catch(function () {});
+  }
+  function renderAnnivList(rows) {
+    var el = document.getElementById('af-anniv-list'); if (!el) return;
+    if (!rows.length) { el.innerHTML = '<div style="font-size:12.5px;color:#9e9a8f;">등록한 기념일이 없어요. 추가해두면 일주일 전에 알려드려요.</div>'; return; }
+    el.innerHTML = rows.map(function (a) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #ebe6da;border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
+        + '<span style="font-size:13.5px;color:#1f1d18;"><b>' + a.month + '/' + a.day + '</b> · ' + esc(a.label) + (a.recipient ? ' <span style="color:#9e9a8f;">(' + esc(a.recipient) + ')</span>' : '') + '</span>'
+        + '<button class="af-anniv-del" data-id="' + esc(a.id) + '" style="background:transparent;border:none;color:#9a3b2e;font-size:13px;cursor:pointer;font-family:inherit;">삭제</button>'
+        + '</div>';
+    }).join('');
+    el.querySelectorAll('.af-anniv-del').forEach(function (b) { b.onclick = function () { delAnniv(b.getAttribute('data-id')); }; });
+  }
+  function addAnniv() {
+    var label = (document.getElementById('af-anniv-label').value || '').trim();
+    var month = parseInt(document.getElementById('af-anniv-month').value, 10);
+    var day = parseInt(document.getElementById('af-anniv-day').value, 10);
+    if (!label) { alert('기념일 이름을 적어주세요. (예: 어머니 생신)'); return; }
+    var u = window.afAuth.user; if (!u) { alert('로그인이 필요해요.'); return; }
+    sb.from('anniversaries').insert({ user_id: u.id, label: label, month: month, day: day })
+      .then(function (res) {
+        if (res.error) { alert('저장 실패: ' + res.error.message); return; }
+        document.getElementById('af-anniv-label').value = '';
+        loadAnniv();
+      })
+      .catch(function () { alert('저장 중 오류가 발생했어요.'); });
+  }
+  function delAnniv(id) {
+    sb.from('anniversaries').delete().eq('id', id).then(function () { loadAnniv(); }).catch(function () {});
+  }
+
   function openAccountSheet() {
     injectStyles();
     var ov = overlay();
@@ -151,6 +203,7 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>' + (user ? esc(shortName(user)) : '내 계정') + '님</h3>'
+      + '<div id="af-anniv"></div>'
       + '<div id="af-orders"><p style="color:#5a564d;font-size:13px;">지난 주문을 불러오는 중…</p></div>'
       + '<button class="af-auth-btn" style="background:#f3efe6;color:#1f1d18;" id="af-logout">로그아웃</button>'
       + '<button class="af-auth-x">닫기</button>'
@@ -159,6 +212,7 @@
     ov.querySelector('#af-logout').onclick = logout;
     ov.querySelector('.af-auth-x').onclick = function () { ov.style.display = 'none'; };
 
+    renderAnnivSection();
     loadMyOrders().then(function (rows) {
       var box = document.getElementById('af-orders');
       if (!box) return;

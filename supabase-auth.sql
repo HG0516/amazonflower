@@ -34,4 +34,21 @@ insert into storage.buckets (id, name, public)
 values ('order-photos', 'order-photos', false)
 on conflict (id) do update set public = false;
 
+-- 6) 기념일 — 회원이 등록한 반복 기념일(생일·결혼기념일·기일 등). D-7 푸시 알림의 토대.
+--    연도 무관(매년 반복)이라 월(month)·일(day)만 저장. 본인만 CRUD(RLS).
+create table if not exists public.anniversaries (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  label       text not null,                 -- 예: "어머니 생신", "결혼기념일"
+  month       int  not null check (month between 1 and 12),
+  day         int  not null check (day between 1 and 31),
+  recipient   text,                          -- 받는 분(선택)
+  notified_on text,                          -- 올해 알림 보낸 날(YYYY-MM-DD) — 중복 푸시 방지
+  created_at  timestamptz not null default now()
+);
+alter table public.anniversaries enable row level security;
+drop policy if exists "own anniversaries" on public.anniversaries;
+create policy "own anniversaries" on public.anniversaries
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 -- 끝. 확인: 로그인 후 본인 user_id 의 주문만 select 됨.
