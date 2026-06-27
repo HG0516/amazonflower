@@ -22,8 +22,10 @@
 
   var ENABLED_PROVIDERS = [
     { id: 'kakao', label: '카카오로 시작하기', bg: '#FEE500', fg: '#191600' },
-    { id: 'google', label: 'Google로 시작하기', bg: '#ffffff', fg: '#1f1d18', border: '#d9d3c4' }
-    // 네이버: Supabase 미지원(백엔드 커스텀 필요) — 후속. 애플: Apple Developer($99) 후 추가.
+    { id: 'naver', label: '네이버로 시작하기', bg: '#03C75A', fg: '#ffffff', custom: true },
+    { id: 'google', label: 'Google로 시작하기', bg: '#ffffff', fg: '#1f1d18', border: '#d9d3c4' },
+    { id: 'apple', label: 'Apple로 시작하기', bg: '#000000', fg: '#ffffff' }
+    // 네이버=Supabase 미지원이라 백엔드 OAuth(api/naver-*) + 매직링크로 처리(custom). 애플=Apple Developer($99) 후 Supabase 설정.
   ];
 
   function injectStyles() {
@@ -284,6 +286,8 @@
   }
 
   function login(provider) {
+    // 네이버는 Supabase 미지원 → 백엔드 OAuth 흐름으로(매직링크로 정식 세션 발급)
+    if (provider === 'naver') { location.href = '/api/naver-login'; return; }
     sb.auth.signInWithOAuth({
       provider: provider,
       options: { redirectTo: location.origin + location.pathname }
