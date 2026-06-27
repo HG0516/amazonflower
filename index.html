@@ -33,6 +33,7 @@
   }
 </script>
 <script src="/pwa-install.js" defer></script>
+<script src="/address-search.js" defer></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
@@ -723,12 +724,14 @@ function classifyOccasion(text){
 // 자동입력 칸 한 줄 생성 (applyParsed·applyOccasion 공용)
 function afField(key,label,val){
   val = val || "";
+  var search = key==='address' ? '<button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button>' : '';
+  var ph = key==='address' ? '주소 검색을 눌러 찾으세요 (동·호는 직접 추가)' : '(비어있음 — 직접 입력)';
   return `
     <div class="af-field"><label>${label}</label>
       <div class="af-input-wrap">
-        <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="(비어있음 — 직접 입력)"/>
+        <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="${ph}"/>
         ${val?'<span class="af-auto">자동</span>':''}
-      </div></div>`;
+      </div>${search}</div>`;
 }
 
 // 사연 기반 추천: 카테고리를 미리 선택하고 주문 흐름을 연다
@@ -803,7 +806,7 @@ function applyParsed(r){
       <div class="af-input-wrap">
         <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="(비어있음 — 직접 입력)"/>
         ${val?'<span class="af-auto">자동</span>':''}
-      </div></div>`;
+      </div>${key==='address'?'<button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button>':''}</div>`;
   let html="";
   html+=field("recipientName","받는 분",order.recipientName);
   if(isWed){ html+=field("groomName","신랑",order.groomName); html+=field("brideName","신부",order.brideName); }
