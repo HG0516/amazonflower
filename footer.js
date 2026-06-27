@@ -48,7 +48,7 @@
       '<div class="af-ft-wrap">'
       + '<div class="af-ft-name">' + BIZ.company + '</div>'
       + info
-      + '<div class="af-ft-links"><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
+      + '<div class="af-ft-links"><a href="/wedding.html">웨딩 부케</a><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
       + '<div class="af-ft-policy">신선식품 특성상 제작·발송 후 단순변심에 의한 교환·환불은 제한될 수 있습니다. '
       + '상품 하자·오배송은 수령 직후 사진과 함께 연락 주시면 재제작 또는 환불해 드립니다. 자세한 내용은 이용약관을 확인해주세요.</div>'
       + '<div class="af-ft-policy">© ' + BIZ.company + '. 1993년부터 한 송이의 마음을 전합니다.</div>'
