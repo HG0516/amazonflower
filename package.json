@@ -3,6 +3,9 @@
   "type": "module",
   "name": "amazonflower",
   "description": "꽃안부 화환 주문 사이트 — 서버리스 함수 의존성",
+  "scripts": {
+    "check-prices": "node scripts/check-prices.js"
+  },
   "dependencies": {
     "web-push": "^3.6.7"
   }
