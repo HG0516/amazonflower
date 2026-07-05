@@ -488,7 +488,7 @@
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
     <input type="text" id="senderName" autocomplete="name" enterkeyhint="next" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this)" />
     <label class="fl">연락처 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:12px;">— 도착 확인 사진을 이 번호로 보내드립니다</span></label>
-    <input type="tel" id="senderPhone" autocomplete="tel" enterkeyhint="done" placeholder="010-0000-0000" inputmode="tel" oninput="clearErr(this)" />
+    <input type="tel" id="senderPhone" autocomplete="tel" enterkeyhint="done" placeholder="010-0000-0000" inputmode="tel" oninput="formatPhone(this);clearErr(this)" />
     <div class="ribbon-only">
       <label class="fl">리본 — 왼편 (보내는 분) <span style="font-weight:400;color:var(--ink-faint);font-size:12px;">— 비우면 위 성함이 자동으로 들어갑니다</span></label>
       <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
@@ -1456,18 +1456,30 @@ function renderDone(data,o){
       </div>`;
   const sameFlowerBtn = (o.productCode && window.PRODUCTS && window.PRODUCTS.some(x=>x.pc===o.productCode))
     ? `<button class="btn btn-ghost" onclick="location.href='/?pc=${encodeURIComponent(o.productCode)}'" style="margin-top:10px;width:100%;">🌸 같은 꽃, 다른 분께도 보내기</button>` : "";
+  const orderId = escapeHtml(p.orderId||"");
+  // 진행 타임라인 + 도착 예정일(급행 경조사 손님의 최대 불안 '언제 도착'을 명확히)
+  const _edm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">📅 ${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>` : "";
+  const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
+      ${[["✅","주문 접수",1],["🎨","사장님 제작",0],["🚚","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="font-size:22px;">${s[0]}</div><div style="font-size:11.5px;margin-top:2px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
+    </div>`;
   document.querySelector(".wrap").innerHTML=`
     <section class="card" style="text-align:center;">
       <div style="font-size:44px;">✿</div>
       <div class="step-title" style="margin:6px 0;">주문이 완료되었습니다</div>
-      <p style="color:var(--ink-soft);margin-bottom:14px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
-      <div style="background:#faf8f3;border:1px solid var(--line);border-radius:4px;padding:16px;text-align:left;font-size:14px;line-height:1.9;">
+      <p style="color:var(--ink-soft);margin-bottom:4px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
+      ${timelineHtml}
+      ${etaLine}
+      <div style="background:#faf8f3;border:1px solid var(--line);border-radius:4px;padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
         <div>상품: ${escapeHtml(o.productLabel||"")}</div>
         ${(o.toppings&&o.toppings.length)?`<div>얹기: ${o.toppings.map(c=>escapeHtml((TOPPINGS[c]||{}).nm||c)).join(" · ")}</div>`:""}
         <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
         ${place?`<div>장소: ${escapeHtml(place)}</div>`:""}
         ${o.date?`<div>일시: ${escapeHtml(o.date)} ${escapeHtml(o.time||"")}</div>`:""}
-        <div>주문번호: ${escapeHtml(p.orderId||"")}</div>
+      </div>
+      <div style="margin-top:12px;background:#fff;border:1px dashed var(--accent);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
+        <div><div style="font-size:11px;color:var(--ink-faint);">주문번호</div><div style="font-size:16px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
+        <button onclick="try{navigator.clipboard.writeText('${orderId}');this.textContent='복사됨 ✓';}catch(e){}" style="min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:14px;cursor:pointer;white-space:nowrap;">복사</button>
       </div>
       ${o.senderNote?`
       <div style="background:transparent;border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-top:12px;text-align:left;font-size:13px;line-height:1.8;color:var(--ink-soft);">
@@ -1655,6 +1667,15 @@ function shareSite(){
 function cleanUrl(){ history.replaceState({},"",location.origin+location.pathname); }
 function showErr(el,m){ el.textContent=m; el.classList.remove("hidden"); }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// 연락처 자동 하이픈(입력 즉시 010-1234-5678 형태로 — 고령 입력 부담·오타 감소)
+function formatPhone(el){
+  var v=(el.value||"").replace(/\D/g,"").slice(0,11), p;
+  if(v.length<=3) p=v;
+  else if(v.length<=7) p=v.slice(0,3)+"-"+v.slice(3);
+  else if(v.length<=10) p=v.slice(0,3)+"-"+v.slice(3,6)+"-"+v.slice(6);
+  else p=v.slice(0,3)+"-"+v.slice(3,7)+"-"+v.slice(7);
+  el.value=p;
+}
 function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
 function scrollTo(id){ setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"center"}),80); }
 
