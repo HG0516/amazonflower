@@ -176,6 +176,10 @@
   .item .size-tag { font-size: 11px; color: var(--ink-faint); }
   .item .cutcount { font-size: 10px; color: var(--ink-faint); }
   .cat-empty { text-align: center; color: var(--ink-faint); font-size: 14px; padding: 30px 0; grid-column: 1/-1; }
+  /* 서브 그룹 헤더(꽃다발/꽃바구니, 동양란/서양란) */
+  .group-head { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--ink); margin: 22px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .group-head:first-of-type { margin-top: 8px; }
+  .group-count { font-size: 12px; font-weight: 400; color: var(--ink-faint); }
 
   /* 화환 URL 자동주문 박스 */
   .wreath-url { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 6px 0 20px; }
@@ -490,17 +494,19 @@ function showCat(key, keepFilter){
     renderSortBar();
     renderProducts();
   }
-  document.getElementById("galleryArea").innerHTML = galleryHTML(key, galFilter[key]||"");
+  // 화환 탭에는 '보유 종류 둘러보기' 갤러리를 넣지 않는다(사다리표·특별제작으로 충분)
+  const isWreath = (key==="congrats" || key==="condolence");
+  document.getElementById("galleryArea").innerHTML = isWreath ? "" : galleryHTML(key, galFilter[key]||"");
   showSpecial(key);
 }
 
 // 화환 5단 사다리(실속59/일반79 주력/대99/특대119/스페셜149) + URL 붙여넣기. 가격은 실물 상품(products.js)에서.
 const WREATH_LADDER = [
-  {label:"실속",   price:59000,  note:"단정한 기본형. 부담 없이 마음을 전합니다."},
-  {label:"일반",   price:79000,  note:"가장 많이 나가는 주력형입니다.", main:true},
-  {label:"대",     price:99000,  note:"격식을 갖춘 고급형."},
-  {label:"특대",   price:119000, note:"꽃 물량을 늘린 풍성한 대형."},
-  {label:"스페셜", price:149000, note:"거래처·회사 명의에 어울리는 최고급 특대형."},
+  {label:"기본형",   price:59000,  note:"3단 단정한 구성. 정성껏 마음을 전합니다."},
+  {label:"일반형",   price:79000,  note:"가장 많이 보내시는 주력 구성입니다.", main:true},
+  {label:"고급형",   price:99000,  note:"격식을 갖춘 3단 고급 구성."},
+  {label:"특대형",   price:119000, note:"꽃 물량을 늘린 풍성한 대형 구성."},
+  {label:"최고급형", price:149000, note:"거래처·회사 명의에 어울리는 4단 최고급 구성."},
 ];
 function renderWreath(key){
   const kindName = key==="congrats" ? "축하화환" : "근조화환";
@@ -525,9 +531,6 @@ function renderWreath(key){
         <div class="lr-price">${r.p.price.toLocaleString()}원</div>
         <button class="lr-order" onclick="goOrderPc('${esc(r.p.pc)}')">주문</button>
       </div>`).join("") + `</div>`;
-  if(key==="condolence"){
-    html += `<div class="wreath-extra">그 외 <b>근조 오브제(57,000원)·쌀화환·영정 바구니</b>도 제작합니다. 빈소 제단 장식·국화 등 맞춤 제작은 전화(031-314-3003)로 말씀해 주세요.</div>`;
-  }
   document.getElementById("catArea").innerHTML=html;
 }
 function wreathUrlGo(){
@@ -557,11 +560,23 @@ function renderSortBar(){
 }
 function renderProducts(){
   const ax=AXES[currentCat];
-  const list=productsFor(currentCat, currentSub, currentBand);
-  let html=`<div class="section-label">${ax.label}</div><div class="section-desc">${ax.desc}</div><div class="grid">`;
-  html += list.length ? list.map(productCard).join("")
-                      : `<div class="cat-empty">해당 조건의 상품이 없어요. 필터를 바꿔보세요.</div>`;
-  html+=`</div>`;
+  let html=`<div class="section-label">${ax.label}</div><div class="section-desc">${ax.desc}</div>`;
+  if(ax.subs.length && !currentSub){
+    // 전체 볼 때는 서브(꽃다발→꽃바구니, 동양란→서양란)별로 구분해 순서대로 보여준다
+    let any=false;
+    for(const s of ax.subs){
+      const list=productsFor(currentCat, s, currentBand);
+      if(!list.length) continue;
+      any=true;
+      html+=`<div class="group-head">${esc(s)} <span class="group-count">${list.length}</span></div>`;
+      html+=`<div class="grid">`+list.map(productCard).join("")+`</div>`;
+    }
+    if(!any) html+=`<div class="grid"><div class="cat-empty">해당 조건의 상품이 없어요. 필터를 바꿔보세요.</div></div>`;
+  } else {
+    const list=productsFor(currentCat, currentSub, currentBand);
+    html+=`<div class="grid">`+(list.length?list.map(productCard).join("")
+      :`<div class="cat-empty">해당 조건의 상품이 없어요. 필터를 바꿔보세요.</div>`)+`</div>`;
+  }
   document.getElementById("catArea").innerHTML=html;
 }
 
