@@ -41,7 +41,8 @@
       + '.af-pwa-x{flex:0 0 auto;background:transparent;border:none;color:#9e9a8f;font-size:22px;'
       + 'line-height:1;cursor:pointer;padding:6px;margin:-6px -4px -6px 0;}'
       + '.af-pwa-steps{font-size:13.5px;color:#1f1d18;line-height:1.9;margin-top:8px;}'
-      + '.af-pwa-steps b{color:#2d4a38;}';
+      + '.af-pwa-steps b{color:#2d4a38;}'
+      + 'body.af-pwa-open{padding-bottom:120px;}';
     var s = document.createElement('style');
     s.id = 'af-pwa-style';
     s.textContent = css;
@@ -50,8 +51,19 @@
 
   function remove(el) {
     if (!el) return;
+    document.body.classList.remove('af-pwa-open');
     el.classList.remove('show');
     setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 350);
+  }
+
+  // 주문/결제 진행 중이면 설치 배너를 띄우지 않는다(하단 CTA·결제버튼을 가리지 않게)
+  function orderInProgress() {
+    if (document.body.classList.contains('ordering')) return true;
+    var pc = document.getElementById('payCard');
+    var cc = document.getElementById('confirmCard');
+    if (pc && !pc.classList.contains('hidden')) return true;
+    if (cc && !cc.classList.contains('hidden')) return true;
+    return false;
   }
 
   function dismiss(el) {
@@ -62,6 +74,7 @@
   function showAndroidBanner() {
     injectStyles();
     if (document.getElementById('af-pwa-banner')) return;
+    if (orderInProgress()) return;
     var bar = document.createElement('div');
     bar.id = 'af-pwa-banner';
     bar.className = 'af-pwa';
@@ -76,6 +89,7 @@
       + '<button class="af-pwa-x" id="af-pwa-close" aria-label="닫기">&times;</button>'
       + '</div>';
     document.body.appendChild(bar);
+    document.body.classList.add('af-pwa-open');
     requestAnimationFrame(function () { bar.classList.add('show'); });
 
     document.getElementById('af-pwa-close').onclick = function () { dismiss(bar); };
@@ -92,6 +106,7 @@
   function showIosGuide() {
     injectStyles();
     if (document.getElementById('af-pwa-banner')) return;
+    if (orderInProgress()) return;
     var bar = document.createElement('div');
     bar.id = 'af-pwa-banner';
     bar.className = 'af-pwa';

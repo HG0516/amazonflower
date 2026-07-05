@@ -66,7 +66,7 @@
   .subtitle { font-size: 13px; color: var(--ink-soft); margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line-soft); display: inline-block; padding-left: 32px; padding-right: 32px; }
 
   /* 세그먼트 탭 — 단정한 라인 스타일 */
-  .seg { display: flex; gap: 0; margin: 28px 0 8px; border-bottom: 1px solid var(--line); }
+  .seg { display: flex; gap: 0; margin: 28px 0 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; background: var(--bg); }
   .seg button { flex: 1; padding: 14px 8px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; font-family: var(--font-body); color: var(--ink-faint); border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.5px; }
   .seg button.on { color: var(--ink); border-bottom-color: var(--ink); }
   .seg button.on.condo { color: var(--condo); border-bottom-color: var(--condo); }
@@ -86,8 +86,9 @@
   .item .nm-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: -2px; }
   .item .price { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 4px; }
   .item .desc { font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-top: 4px; }
-  .item .order { margin-top: 12px; padding: 13px; border: none; border-radius: 3px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
+  .item .order { margin-top: 12px; padding: 13px; border: none; border-radius: 3px; background: var(--accent); color: var(--paper); font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
   .item .order:hover { background: var(--accent-deep); }
+  .item .order:active { transform: scale(0.98); }
   .item .share-btn { margin-top: 6px; padding: 8px; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--ink-soft); font-size: 12px; cursor: pointer; font-family: var(--font-body); width: 100%; letter-spacing: 0.3px; }
   .item .share-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .item.highlight { border-color: var(--ink); border-width: 2px; }
