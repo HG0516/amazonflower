@@ -83,6 +83,7 @@
   .item .body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .item .nm { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
   .item .code { font-size: 10px; color: var(--ink-faint); letter-spacing: 1px; margin-top: -2px; }
+  .item .nm-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: -2px; }
   .item .price { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 4px; }
   .item .desc { font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-top: 4px; }
   .item .order { margin-top: 12px; padding: 13px; border: none; border-radius: 3px; background: var(--ink); color: var(--paper); font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
@@ -405,6 +406,7 @@ function productCard(p){
         <div class="photo"><img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
           <div class="nm">${esc(p.name)}${gradeTag}</div>
+          ${p.subtitle?`<div class="nm-sub">${esc(p.subtitle)}</div>`:""}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
           <div class="price">${p.price.toLocaleString()}원</div>
           <button class="order" onclick="goOrderPc('${esc(p.pc)}')">주문하기</button>
@@ -584,7 +586,7 @@ function doSearch(q){
   if(!q){ toggle(false); return; }
   toggle(true);
   // 개별상품 검색(이름·서브·밴드·코드)
-  let pHits = PRODUCTS.filter(p=> (p.name+" "+p.sub+" "+p.band+" "+p.pc+" "+CAT_TITLE[catAxis(p.cat)]).toLowerCase().includes(q));
+  let pHits = PRODUCTS.filter(p=> (p.name+" "+(p.subtitle||"")+" "+p.sub+" "+p.band+" "+p.pc+" "+CAT_TITLE[catAxis(p.cat)]).toLowerCase().includes(q));
   let gHits=[];
   for(const key of Object.keys(GAL)){
     for(const i of GAL[key]){
@@ -610,7 +612,7 @@ async function shareItem(pc){
   const p = PRODUCTS.find(x=>x.pc===pc); if(!p) return;
   const url = location.origin + "/catalog.html?item=" + encodeURIComponent(pc);
   const kind = CAT_TITLE[catAxis(p.cat)]||"꽃";
-  const text = `[꽃안부] ${p.name} ${p.price.toLocaleString()}원 — ${kind} 전국 당일배송`;
+  const text = `[꽃안부] ${p.name}${p.subtitle?" · "+p.subtitle:""} ${p.price.toLocaleString()}원 — ${kind} 전국 당일배송`;
   // 모바일: 기본 공유창(카톡·문자 등) / PC: 링크 복사
   if(navigator.share){
     try{ await navigator.share({title:"꽃안부", text, url}); }catch(e){}

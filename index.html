@@ -1042,7 +1042,7 @@ function renderBest(){
     <div class="cat-tile" onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'">
       <div class="cat-photo"><img src="${p.photos[0]||''}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'"></div>
       <div class="cat-name">${escapeHtml(p.name)}</div>
-      <div class="cat-desc">${p.price.toLocaleString()}원 · ${escapeHtml(p.sub)}</div>
+      <div class="cat-desc">${p.price.toLocaleString()}원 · ${escapeHtml(p.subtitle||p.sub)}</div>
     </div>`).join("");
   autoSlideBest(el);
 }
@@ -1363,7 +1363,7 @@ function upsellHtml(o){
       <div style="display:flex;gap:8px;">
         ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius:6px;overflow:hidden;">
           <div style="height:92px;background:#f6f2ea;overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
-          <div style="padding:7px 9px;"><div style="font-size:12.5px;font-weight:700;color:var(--ink);">${escapeHtml(p.name)}</div><div style="font-size:12px;color:var(--ink-faint);">${p.price.toLocaleString()}원</div></div>
+          <div style="padding:7px 9px;"><div style="font-size:12.5px;font-weight:700;color:var(--ink);">${escapeHtml(p.name)}</div><div style="font-size:12px;color:var(--ink-faint);">${p.subtitle?escapeHtml(p.subtitle)+" · ":""}${p.price.toLocaleString()}원</div></div>
         </div>`).join("")}
       </div>
     </div>`;
@@ -1713,7 +1713,7 @@ function selProduct(p){
   order.price=p.price;
   order.quantity=1;
   order.productCode=p.pc;
-  order.productLabel=p.name+((p.grade && !String(p.name).includes(p.grade))?" "+p.grade:"");
+  order.productLabel=p.name+(p.subtitle?" · "+p.subtitle:"")+((p.grade && !String(p.name).includes(p.grade))?" "+p.grade:"");
   order.category=productOrderCat(p);
   const photo=(p.photos&&p.photos[0])||"";
   const sizeLine = (p.cat==="plant"&&p.size) ? ("크기 H"+p.size.h+" × W"+p.size.w+"mm") : "사장님이 직접 만든 실물 상품입니다.";
@@ -1725,6 +1725,7 @@ function selProduct(p){
       </div>
       <div class="design-info">
         <div class="design-name">${escapeHtml(p.name)}${gradeTxt}</div>
+        ${p.subtitle?`<div style="font-size:13px;color:var(--ink-soft);margin-top:-2px;">${escapeHtml(p.subtitle)}</div>`:""}
         <div class="design-code">${escapeHtml(p.pc)}</div>
         <div class="design-desc">${escapeHtml(sizeLine)}</div>
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
@@ -1753,7 +1754,7 @@ function handleProductParam(){
     + afField("date","받는 날짜")
     + afField("time","받는 시간");
   const tp=document.getElementById("typePill");
-  if(tp) tp.innerHTML='<span class="type-pill">'+escapeHtml(P.name)+' '+P.price.toLocaleString()+'원 — 받는 곳부터 알려주세요</span>';
+  if(tp) tp.innerHTML='<span class="type-pill">'+escapeHtml(P.name+(P.subtitle?" · "+P.subtitle:""))+' '+P.price.toLocaleString()+'원 — 받는 곳부터 알려주세요</span>';
   document.getElementById("confirmCard").classList.remove("hidden");
   document.getElementById("sideCard").classList.add("hidden");
   renumber(false);

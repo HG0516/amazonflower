@@ -111,9 +111,15 @@ function parseFile(folderInfo, fname) {
   }
   const m = fname.match(RE_GENERAL);
   if (!m) return { error: "일반 파싱 실패", fname };
-  const [, name, group, cut, label, price, h, w] = m;
+  const [, rawName, group, cut, label, price, h, w] = m;
+  // 2단 작명 "이름·부제": '·' 앞 = 부르는 이름(상품 정체성 — ID 키에 들어감),
+  // '·' 뒤 = 보이는 부제(색·소재 설명 — 바꿔도 ID 안 바뀜). '·' 없으면 부제 없음.
+  const dot = rawName.indexOf("·");
+  const name = (dot >= 0 ? rawName.slice(0, dot) : rawName).trim();
+  const subtitle = dot >= 0 ? rawName.slice(dot + 1).trim() || null : null;
   return {
-    name: name.trim(),
+    name,
+    subtitle,
     group: parseInt(group, 10),
     cut: cut ? parseInt(cut, 10) : 1,
     label: (label || "").trim() || null,
@@ -173,6 +179,7 @@ for (const [folder, info] of Object.entries(FOLDER_MAP)) {
         cat: info.cat,
         sub: info.sub,
         name: info.wreath ? `${info.sub} ${p.grade}` : p.name,
+        subtitle: info.wreath ? null : p.subtitle || null,
         price: p.price,
         band: bandOf(p.price),
         grade: p.label || (info.wreath ? p.grade : null),
