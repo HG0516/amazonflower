@@ -368,6 +368,9 @@
       <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 붙여넣기</button>
       <span style="font-size:11.5px;color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
     </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13.5px;color:var(--ink-soft);">
+      전화가 편하시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:800;text-decoration:none;white-space:nowrap;">📞 031-314-3003</a> 로 바로 주문하셔도 돼요.
+    </div>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
   </section>
@@ -868,13 +871,17 @@ function applyParsed(r){
   html+=field("venue","장소",order.venue);
   html+=field("venueDetail","빈소 · 홀",order.venueDetail);
   html+=field("address","주소",order.address);
-  html+=field("date","날짜",order.date);
-  html+=field("time","시간",order.time);
+  html+=afField("date","날짜",order.date);   // 네이티브 달력(형식 맞으면 자동값 유지)
+  html+=afField("time","시간",order.time);
   document.getElementById("afFields").innerHTML=html;
   document.getElementById("confirmCard").classList.remove("hidden");
-  // 링크/내용 자동분석은 틀릴 수 있으니 한 번 더 확인 유도
+  // 실제로 뭔가 읽어냈을 때만 '자동으로 읽었다'고 안내(기대-현실 불일치 방지) + 못 읽으면 전화 대안
   const _cs=document.getElementById("confirmSub");
-  if(_cs) _cs.innerHTML='🔗 링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 받는 곳·날짜·시간이 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.';
+  const gotAny = !!(order.recipientName||order.venue||order.venueDetail||order.address||order.date||order.time||order.groomName||order.brideName||order.chiefMourner);
+  if(_cs) _cs.innerHTML = gotAny
+    ? '🔗 링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.'
+    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;">📞 전화 주문(031-314-3003)</a>도 편하게 이용하세요.';
+  enterOrderMode((isFun?'근조화환':isWed?'축하화환':'꽃')+' 주문');
 
   const hasSide=isWed;
   document.getElementById("sideCard").classList.toggle("hidden",!hasSide);
