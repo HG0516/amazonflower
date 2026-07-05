@@ -49,8 +49,11 @@ function parseIndex() {
 }
 
 const server = parseServer();
-const sources = { catalog: parseCatalog(), index: parseIndex() };
+// catalog.html 은 프롬프트3부터 products.js 로 완전 전환(하드코딩 가격 없음) → 검사 대상 아님.
+// index.html 은 아직 티어 주문플로우(CATALOG/WREATH_TIERS)를 하드코딩으로 유지 → 단일소스와 대조.
+const sources = { index: parseIndex() };
 const errors = [];
+void parseCatalog; // 미사용(전환 완료) — 파서는 후방호환용으로 남겨둠
 
 for (const [name, map] of Object.entries(sources)) {
   const keys = Object.keys(map);
@@ -65,4 +68,4 @@ if (errors.length) {
   console.error("❌ 가격 불일치:\n  " + errors.join("\n  "));
   process.exit(1);
 }
-console.log(`✅ 가격 3곳 일치 (server ${Object.keys(server).length} / catalog ${Object.keys(sources.catalog).length} / index ${Object.keys(sources.index).length})`);
+console.log(`✅ 가격 단일소스 일치 (products.mjs LEGACY_TIERS ${Object.keys(server).length}개 / index CATALOG·WREATH_TIERS ${Object.keys(sources.index).length}개)`);

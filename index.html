@@ -1540,6 +1540,73 @@ window.afReorder = function(o){
   scrollTo("confirmCard");
 };
 
+// ── 개별상품 주문(카탈로그 카드 → /?pc=PL-001) ──────────
+// 티어 플로우는 그대로 두고(무회귀), pc 파라미터가 있을 때만 개별상품 경로 활성.
+function productOrderCat(p){
+  if(p.cat==="bouquet"||p.cat==="basket") return "basket";
+  if(p.cat==="plant") return "plant";
+  if(p.cat==="orchid") return "orchid";
+  if(p.cat==="congrats"||p.cat==="condolence") return "wreath";
+  return "basket";
+}
+// 선택된 개별상품으로 주문 구성(selTier의 개별상품 버전). 결제검증은 서버가 priceOf(pc)로 재확인.
+function selProduct(p){
+  order.price=p.price;
+  order.productCode=p.pc;
+  order.productLabel=p.name+(p.grade?" "+p.grade:"");
+  order.category=productOrderCat(p);
+  const photo=(p.photos&&p.photos[0])||"";
+  const sizeLine = (p.cat==="plant"&&p.size) ? ("크기 H"+p.size.h+" × W"+p.size.w+"mm") : "사장님이 직접 만든 실물 상품입니다.";
+  const area=document.getElementById("designArea");
+  area.innerHTML=`<div class="design-detail">
+      <div class="design-photo">
+        <img src="${photo}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:11px;color:#9e9a8f;\\'>사진 준비 중</span>';">
+      </div>
+      <div class="design-info">
+        <div class="design-name">${escapeHtml(p.name)}${p.grade?" "+escapeHtml(p.grade):""}</div>
+        <div class="design-code">${escapeHtml(p.pc)}</div>
+        <div class="design-desc">${escapeHtml(sizeLine)}</div>
+        <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
+      </div>
+    </div>
+    <div id="toppingBox"></div>
+    <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>`;
+  renderToppings();
+  updateDesignTotal();
+}
+function handleProductParam(){
+  const q=new URLSearchParams(location.search);
+  const pc=q.get("pc"); if(!pc) return;
+  const P=(window.PRODUCTS||[]).find(x=>x.pc===pc);
+  if(!P) return; // 알 수 없는 상품코드면 무시 → 일반 첫 화면
+  Object.assign(order,{
+    type:"unknown", side:"",
+    recipientName:"", venue:"", venueDetail:"", address:"",
+    date:"", time:"", groomName:"", brideName:"", chiefMourner:"",
+    category:productOrderCat(P), toppings:[],
+  });
+  document.getElementById("afFields").innerHTML =
+    afField("recipientName","받는 분")
+    + afField("address","받는 곳 주소")
+    + afField("date","받는 날짜")
+    + afField("time","받는 시간");
+  const tp=document.getElementById("typePill");
+  if(tp) tp.innerHTML='<span class="type-pill">'+escapeHtml(P.name)+' '+P.price.toLocaleString()+'원 — 받는 곳부터 알려주세요</span>';
+  document.getElementById("confirmCard").classList.remove("hidden");
+  document.getElementById("sideCard").classList.add("hidden");
+  renumber(false);
+  document.getElementById("prodCard").classList.remove("hidden");
+  document.getElementById("senderCard").classList.remove("hidden");
+  buildRibbon();
+  // 개별상품은 티어 선택 UI 대신 선택 상품을 고정 표시
+  const pt=document.getElementById("priceTabs"); if(pt) pt.innerHTML="";
+  const cc=document.getElementById("catChips"); if(cc) cc.innerHTML="";
+  const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
+  selProduct(P);
+  cleanUrl();
+  scrollTo("confirmCard");
+}
+
 function handleCatalogParam(){
   const q=new URLSearchParams(location.search);
   const ctype=q.get("type"), cprice=q.get("price"), ccat=q.get("cat");
@@ -1567,6 +1634,7 @@ function handleCatalogParam(){
 }
 
 handleRedirect();
+handleProductParam();
 handleCatalogParam();
 // 다른 페이지(내 주문 등)에서 '다시 주문'으로 넘어온 경우 폼 재현
 try{ var _rj=sessionStorage.getItem("af_reorder"); if(_rj){ sessionStorage.removeItem("af_reorder"); var _ro=JSON.parse(_rj); setTimeout(function(){ if(window.afReorder) window.afReorder(_ro); },300); } }catch(_e){}
