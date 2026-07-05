@@ -1489,6 +1489,12 @@ function renderDone(data,o){
   // 완료 화면에서는 주문 모드·하단 주문바 종료
   document.body.classList.remove("ordering","buybar-pad");
   var _bb=document.getElementById("buyBar"); if(_bb) _bb.classList.remove("show");
+  // 비회원도 다음에 원탭 재주문할 수 있게 지난 주문을 로컬에 저장(afReorder가 읽는 snake_case 형태)
+  try{ localStorage.setItem("af_last_order", JSON.stringify({
+    product_code:o.productCode||"", order_type:o.type||"", recipient_name:o.recipientName||"",
+    venue:[o.venue,o.venueDetail].filter(Boolean).join(" ")||"", address:o.address||"",
+    event_date:o.date||"", event_time:o.time||""
+  })); }catch(_e){}
   const p=data.payment||{};
   const place=[o.venue,o.venueDetail].filter(Boolean).join(" ");
   const isCorp = o.buyerType==="corp";
@@ -2006,16 +2012,20 @@ window.addEventListener("hashchange",function(){ if(location.hash==="#corporate"
     }));
   }catch(_e){}
 })();
-// 로그인 회원에게 홈 상단 원탭 재주문 배너 노출(auth.js가 상태 변화마다 이벤트 발행)
-document.addEventListener("af-auth-change",function(e){
-  const u=e.detail&&e.detail.user;
+// 재주문 배너 — 로그인 회원은 서버 주문내역(openAccount), 비로그인이라도 로컬에 지난 주문이 있으면 원탭 재주문
+function afReorderBtn(onclick){
+  return '<button onclick="'+onclick+'" style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius:8px;font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">🌸 지난 주문 그대로 다시 보내기 →</button>';
+}
+function refreshReorderBanner(user){
   const el=document.getElementById("reorderBanner"); if(!el) return;
-  el.classList.toggle("hidden",!u);
-  if(u && !el.innerHTML) el.innerHTML =
-    '<button onclick="window.afAuth&&window.afAuth.openAccount&&window.afAuth.openAccount()" '
-    + 'style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius:8px;font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">'
-    + '🌸 지난 주문 그대로 다시 보내기 →</button>';
-});
+  if(user){ el.innerHTML=afReorderBtn("window.afAuth&&window.afAuth.openAccount&&window.afAuth.openAccount()"); el.classList.remove("hidden"); return; }
+  let lo=null; try{ lo=JSON.parse(localStorage.getItem("af_last_order")||"null"); }catch(_){}
+  if(lo && lo.product_code){ el.innerHTML=afReorderBtn("afReorderLocal()"); el.classList.remove("hidden"); return; }
+  el.classList.add("hidden");
+}
+window.afReorderLocal=function(){ try{ var lo=JSON.parse(localStorage.getItem("af_last_order")||"null"); if(lo && window.afReorder) window.afReorder(lo); }catch(_e){} };
+document.addEventListener("af-auth-change",function(e){ refreshReorderBanner(e.detail&&e.detail.user); });
+refreshReorderBanner((window.afAuth&&window.afAuth.user)||null);
 // 문자·알림톡 링크(/?reorder=1)로 온 경우: 내 주문 시트를 바로 연다(비로그인이면 로그인 시트)
 (function handleReorderParam(){
   if(!new URLSearchParams(location.search).get("reorder")) return;
