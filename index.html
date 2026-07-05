@@ -713,23 +713,6 @@ async function pasteFromClipboard(){
 }
 
 // 첫 화면 '0단계 진입' — 링크 붙여넣고 즉시 파싱까지 한 번에
-async function pasteAndStart(){
-  const err=document.getElementById("parseErr"); if(err) err.classList.add("hidden");
-  let txt="";
-  try{ txt = await navigator.clipboard.readText(); }catch(e){}
-  const src=document.getElementById("src");
-  const card=document.getElementById("quickStart");
-  if(txt && txt.trim() && src){
-    src.value = txt.trim();
-    if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
-    runParse();
-  }else{
-    // 클립보드가 비었거나 막힘 → 입력칸으로 안내
-    if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
-    setTimeout(()=>{ if(src) src.focus({preventScroll:true}); },400);
-    if(err) showErr(err,"복사한 링크가 없어요. 청첩장·부고 링크를 복사한 뒤 다시 눌러주세요. (또는 아래 칸에 직접 붙여넣기)");
-  }
-}
 
 // ── 사연 → 추천 상품 매핑 ───────────────────────────────
 // 결혼·장례는 AI 파싱(상세정보 추출)으로 보내고, 그 외 축하 사연만 로컬에서 추천한다.
