@@ -110,7 +110,7 @@
   .catalogue-link:hover { background: var(--ink); color: var(--paper); }
 
   /* ── 카테고리 타일 ── */
-  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cat-grid { display: flex; flex-direction: column; gap: 10px; }
   /* 이번 주 베스트 — 가로로 자연스럽게 흐르는 슬라이드(마퀴) */
   .best-slider { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .best-slider::-webkit-scrollbar { display: none; }
@@ -118,10 +118,16 @@
   @media (min-width: 1000px) { .best-slider .cat-tile { flex-basis: 30%; } }
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color .15s; user-select: none; }
   .cat-tile:hover { border-color: var(--ink); }
-  .cat-photo { height: 128px; background: #f6f2ea; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .cat-photo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+  .cat-photo { height: 150px; background: #f6f2ea; overflow: hidden; }
+  .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: 11.5px; color: var(--ink-faint); padding: 0 12px 12px; }
+  /* 카테고리 그리드: 세로 1열 · 가로 카드(사진 왼쪽, 글 오른쪽), 사진 꽉 채움 */
+  .cat-grid .cat-tile { display: grid; grid-template-columns: 118px 1fr; align-items: stretch; }
+  .cat-grid .cat-photo { height: auto; min-height: 96px; }
+  .cat-grid .cat-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; }
+  .cat-grid .cat-name { padding: 0; font-size: 16px; }
+  .cat-grid .cat-desc { padding: 4px 0 0; font-size: 12px; }
 
   /* ── 카드 — 그림자 없이 선만 ── */
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; margin-top: 20px; }
@@ -355,23 +361,19 @@
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCatalog('basket')">
         <div class="cat-photo"><img src="/photos/products/BQ-001_1.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
-        <div class="cat-name">꽃다발 · 꽃바구니</div>
-        <div class="cat-desc">5만원대부터 · 생일·기념일·축하</div>
+        <div class="cat-body"><div class="cat-name">꽃다발 · 꽃바구니</div><div class="cat-desc">5만원대부터 · 생일·기념일·축하</div></div>
       </div>
       <div class="cat-tile" onclick="goCatalog('plant')">
         <div class="cat-photo"><img src="/photos/products/PL-001_1.jpg" alt="관엽" onerror="this.style.display='none'"></div>
-        <div class="cat-name">관엽 · 식물</div>
-        <div class="cat-desc">5만원대부터 · 개업·이전·사무실</div>
+        <div class="cat-body"><div class="cat-name">관엽 · 식물</div><div class="cat-desc">5만원대부터 · 개업·이전·사무실</div></div>
       </div>
       <div class="cat-tile" onclick="goCatalog('orchid')">
         <div class="cat-photo"><img src="/photos/products/OR-016_1.jpg" alt="난" onerror="this.style.display='none'"></div>
-        <div class="cat-name">동양란 · 서양란</div>
-        <div class="cat-desc">6만원대부터 · 승진·취임·개업 인사</div>
+        <div class="cat-body"><div class="cat-name">동양란 · 서양란</div><div class="cat-desc">6만원대부터 · 승진·취임·개업 인사</div></div>
       </div>
       <div class="cat-tile" onclick="goCatalog('congrats')">
         <div class="cat-photo"><img src="/photos/products/WG-04_1.jpg" alt="화환" onerror="this.style.display='none'"></div>
-        <div class="cat-name">축하 · 근조 화환</div>
-        <div class="cat-desc">59,000원부터 · 장례식·결혼·개업</div>
+        <div class="cat-body"><div class="cat-name">축하 · 근조 화환</div><div class="cat-desc">59,000원부터 · 장례식·결혼·개업</div></div>
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
