@@ -1830,6 +1830,46 @@ function handleProductParam(){
   scrollTo("confirmCard");
 }
 
+// 카탈로그 화환 사다리(등급 주문) → 주문 플로우 티어 주문. 단일 기준 = WREATH_TIERS(59/79/99/129).
+// /?worder=funeral|congrats & tier=0..3
+function handleWorderParam(){
+  const q=new URLSearchParams(location.search);
+  const w=q.get("worder"); if(!w) return;
+  const isFun = w==="funeral";
+  const tier = Math.max(0, Math.min(WREATH_TIERS.length-1, parseInt(q.get("tier"),10)||0));
+  Object.assign(order,{
+    type: isFun?"funeral":"unknown", side:"",
+    recipientName:"", venue:"", venueDetail:"", address:"",
+    date:"", time:"", groomName:"", brideName:"", chiefMourner:"",
+    category:"wreath", toppings:[],
+  });
+  document.getElementById("typePill").innerHTML =
+    '<span class="type-pill '+(isFun?'t-fun':'')+'">'+(isFun?'장례식 · 근조화환':'축하화환')+'</span>';
+  document.getElementById("afFields").innerHTML =
+    afField("recipientName","받는 분")
+    + (isFun?afField("chiefMourner","상주",""):"")
+    + afField("venue","장소")
+    + afField("venueDetail",isFun?"빈소 · 홀":"홀")
+    + afField("address","주소")
+    + afField("date","날짜")
+    + afField("time","시간");
+  document.getElementById("confirmCard").classList.remove("hidden");
+  const _cs=document.getElementById("confirmSub");
+  if(_cs) _cs.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 홈에서 붙여넣으면 자동으로 채워져요.";
+  document.getElementById("sideCard").classList.add("hidden");
+  renumber(false);
+  document.getElementById("prodCard").classList.remove("hidden");
+  document.getElementById("senderCard").classList.remove("hidden");
+  buildRibbon();
+  renderCatChips();
+  renderPriceTabs();
+  renderRecoOptions(tier);
+  selTier(tier, false);
+  enterOrderMode((isFun?'근조화환':'축하화환')+' '+WREATH_TIERS[tier].grade+' <b>'+WREATH_TIERS[tier].price.toLocaleString()+'원</b>');
+  cleanUrl();
+  scrollTo("confirmCard");
+}
+
 function handleCatalogParam(){
   const q=new URLSearchParams(location.search);
   const ctype=q.get("type"), cprice=q.get("price"), ccat=q.get("cat");
@@ -1859,6 +1899,7 @@ function handleCatalogParam(){
 handleRedirect();
 renderBest();
 handleProductParam();
+handleWorderParam();
 handleCatalogParam();
 // 카탈로그 화환 URL 박스(/?src=링크)에서 넘어온 경우: 링크를 채우고 자동 분석 시작
 (function handleSrcParam(){

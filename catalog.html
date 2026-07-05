@@ -498,20 +498,23 @@ function showCat(key, keepFilter){
 }
 
 // 화환 5단 사다리(실속59/일반79 주력/대99/특대119/스페셜149) + URL 붙여넣기. 가격은 실물 상품(products.js)에서.
+// 화환 사다리 = 주문 플로우와 단일 기준(index.html WREATH_TIERS: 59/79/99/129). 등급으로 주문.
 const WREATH_LADDER = [
-  {label:"기본형",   price:59000,  note:"3단 단정한 구성. 정성껏 마음을 전합니다."},
-  {label:"일반형",   price:79000,  note:"가장 많이 보내시는 주력 구성입니다.", main:true},
-  {label:"고급형",   price:99000,  note:"격식을 갖춘 3단 고급 구성."},
-  {label:"특대형",   price:119000, note:"꽃 물량을 늘린 풍성한 대형 구성."},
-  {label:"최고급형", price:149000, note:"거래처·회사 명의에 어울리는 4단 최고급 구성."},
+  {label:"일반형",   price:59000,  note:"3단 기본형. 단정하게 마음을 전합니다."},
+  {label:"중급형",   price:79000,  note:"가장 많이 나가는 주력형입니다.", main:true},
+  {label:"고급형",   price:99000,  note:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
+  {label:"최고급형", price:129000, note:"4단 특대형. 거래처·회사 명의에 적합합니다."},
 ];
 function renderWreath(key){
   const kindName = key==="congrats" ? "축하화환" : "근조화환";
+  const worder = key==="condolence" ? "funeral" : "congrats";
   const products = PRODUCTS.filter(p=> p.cat===key);
-  const rows = WREATH_LADDER.map(t=>{
-    let p = products.find(x=>x.price===t.price);
-    return {...t, p};
-  }).filter(r=>r.p);
+  // 등급 대표 사진: 같은 화환군에서 가격이 가장 가까운 실제 상품 사진
+  const photoFor = (price)=>{
+    let best=null;
+    for(const p of products){ if(!best || Math.abs(p.price-price)<Math.abs(best.price-price)) best=p; }
+    return best ? (best.photos[0]||"") : "";
+  };
   const seo = key==="condolence"
     ? "근조화환 · 장례식장 전국 당일배송. 부고 문자 링크를 붙여넣으면 빈소·발인 정보로 자동 주문됩니다."
     : "축하화환 · 결혼식·개업·승진 전국 당일배송. 청첩장·초대 링크를 붙여넣으면 예식장·일시로 자동 주문됩니다.";
@@ -521,12 +524,12 @@ function renderWreath(key){
       <input id="wreathUrl" type="text" inputmode="url" placeholder="문자로 받은 링크를 붙여넣으세요" />
       <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>
     </div>`;
-  html += `<div class="ladder">` + rows.map(r=>`
-      <div class="ladder-row${r.main?" main":""}">
-        <div class="lr-photo"><img src="${esc(r.p.photos[0]||"")}" alt="${esc(r.label)}" loading="lazy" onerror="this.style.display='none'"></div>
-        <div class="lr-info"><div class="lr-tier">${r.label}${r.main?' <span class="lr-badge">주력</span>':''}</div><div class="lr-note">${esc(r.note)}</div></div>
-        <div class="lr-price">${r.p.price.toLocaleString()}원</div>
-        <button class="lr-order" onclick="goOrderPc('${esc(r.p.pc)}')">주문</button>
+  html += `<div class="ladder">` + WREATH_LADDER.map((t,i)=>`
+      <div class="ladder-row${t.main?" main":""}">
+        <div class="lr-photo"><img src="${esc(photoFor(t.price))}" alt="${esc(t.label)}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="lr-info"><div class="lr-tier">${t.label}${t.main?' <span class="lr-badge">주력</span>':''}</div><div class="lr-note">${esc(t.note)}</div></div>
+        <div class="lr-price">${t.price.toLocaleString()}원</div>
+        <button class="lr-order" onclick="location.href='/?worder=${worder}&tier=${i}'">주문</button>
       </div>`).join("") + `</div>`;
   document.getElementById("catArea").innerHTML=html;
 }
