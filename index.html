@@ -353,9 +353,15 @@
   </section>
 
   <section class="card" id="quickStart" style="margin-top:16px;background:var(--accent-soft);border:1px solid var(--accent);">
-    <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--accent-deep);margin-bottom:4px;">부고 · 청첩장 링크 받으셨나요?</div>
-    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">링크만 붙여넣으면 받는 분 · 장소 · 날짜를 자동으로 채워드려요.</div>
-    <button class="btn" onclick="pasteAndStart()" style="width:100%;">📋 링크 붙여넣고 바로 시작</button>
+    <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--accent-deep);margin-bottom:4px;">무엇을 보내시나요?</div>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">청첩장·부고 <b>링크</b>를 붙여넣거나 <b>보낼 일</b>을 적어주세요. 받는 분·날짜를 자동으로 채워드려요.</div>
+    <textarea id="src" rows="2" placeholder="예) 부고·청첩장 링크 붙여넣기    또는  '어머니 칠순'처럼 적기" style="width:100%;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);resize:none;line-height:1.6;"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn-ghost" id="pasteBtn" onclick="pasteFromClipboard()" style="width:auto;flex:0 0 auto;padding:13px 15px;min-height:48px;">📋 붙여넣기</button>
+      <button class="btn" id="parseBtn" onclick="runParse()" style="flex:1;min-height:48px;">주문 시작하기</button>
+    </div>
+    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
+    <div class="err hidden" id="parseErr"></div>
   </section>
 
   <section style="margin-top:16px;">
@@ -391,34 +397,6 @@
     <h2 style="text-align:center;font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">이번 주 베스트</h2>
     <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">사장님이 직접 만든 꽃다발·바구니, 5~9만원대 인기 구성</div>
     <div id="bestArea" class="best-slider"></div>
-    <a class="catalogue-link" href="/catalog.html?cat=basket" style="margin-top:14px;">꽃다발 · 바구니 전체 보기 →</a>
-  </section>
-
-  <!-- 관엽 구독 배너(21-C 6) -->
-  <section style="margin-top:20px;">
-    <div onclick="location.href='/catalog.html?cat=plant'" style="cursor:pointer;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
-      <div style="font-size:30px;">🪴</div>
-      <div style="flex:1;">
-        <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--accent-deep);">관엽 식물 — 사무실·집들이 선물</div>
-        <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">5만원대부터 · 공간 크기에 맞춰 추천해드려요</div>
-      </div>
-      <div style="font-size:18px;color:var(--accent);">→</div>
-    </div>
-  </section>
-
-  <section class="hero" id="srcCard" style="margin-top:26px;padding-top:0;">
-    <div class="divider-center"><span style="font-size:12px;color:var(--ink-faint);letter-spacing:1px;">또는, 사연·링크로 추천받기</span></div>
-    <p class="lede" style="margin-top:0;">청첩장·부고 링크는 물론, <b>"어머니 칠순"</b>, <b>"부모님 결혼 30주년"</b>, <b>"친구 개업"</b>처럼 적어주셔도 어울리는 상품을 추천해드려요.</p>
-    <div style="margin: 16px 0 0;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-        <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 링크 붙여넣기</button>
-        <div class="hint" style="flex:1;min-width:180px;">• 링크가 없으면 보내실 일을 적어도 됩니다.</div>
-      </div>
-      <textarea id="src" rows="6" placeholder="예)  어머니 칠순 잔치&#10;예)  부모님 결혼 30주년 기념일&#10;예)  친구 개업 / 거래처 승진&#10;&#10;또는 청첩장·부고 링크 붙여넣기&#10;예)  https://www.smartwedd.com/abc"></textarea>
-      <button class="btn" id="parseBtn" onclick="runParse()" style="margin-top:14px;">추천받고 시작하기</button>
-      <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
-      <div class="err hidden" id="parseErr"></div>
-    </div>
   </section>
 
   <section style="margin-top:8px;">
@@ -742,7 +720,7 @@ async function pasteAndStart(){
   let txt="";
   try{ txt = await navigator.clipboard.readText(); }catch(e){}
   const src=document.getElementById("src");
-  const card=document.getElementById("srcCard");
+  const card=document.getElementById("quickStart");
   if(txt && txt.trim() && src){
     src.value = txt.trim();
     if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
@@ -1082,6 +1060,23 @@ function renderBest(){
       <div class="cat-name">${escapeHtml(p.name)}</div>
       <div class="cat-desc">${p.price.toLocaleString()}원 · ${escapeHtml(p.sub)}</div>
     </div>`).join("");
+  autoSlideBest(el);
+}
+// 베스트 슬라이드 자동 넘김(3초마다 한 칸, 끝나면 처음으로). 손으로 만지면 잠깐 멈춤.
+function autoSlideBest(el){
+  if(!el || el.children.length<2 || el._auto) return;
+  el._auto=true;
+  let paused=false, pauseTimer=null;
+  const pause=()=>{ paused=true; clearTimeout(pauseTimer); pauseTimer=setTimeout(()=>{paused=false;}, 5000); };
+  el.addEventListener("pointerdown", pause);
+  el.addEventListener("wheel", pause, {passive:true});
+  setInterval(()=>{
+    if(paused || document.hidden) return;
+    const card=el.querySelector(".cat-tile"); if(!card) return;
+    const step=card.offsetWidth+12;
+    if(el.scrollLeft + el.clientWidth >= el.scrollWidth - 12) el.scrollTo({left:0, behavior:"smooth"});
+    else el.scrollBy({left:step, behavior:"smooth"});
+  }, 3000);
 }
 
 function goCat(cat, label){
@@ -1097,7 +1092,7 @@ function goCat(cat, label){
     scrollTo("prodCard");
     return;
   }
-  document.getElementById("srcCard").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("quickStart").scrollIntoView({behavior:"smooth",block:"start"});
   setTimeout(()=>document.getElementById("src").focus({preventScroll:true}),400);
 }
 
@@ -1711,7 +1706,7 @@ function handleCatalogParam(){
   // 카탈로그에서 '주문하기'로 넘어온 사람은 이미 결정한 사람 — 첫 화면이 아니라
   // 받는 곳 입력 카드에 바로 착지시킨다 (애니메이션 없이 즉시).
   setTimeout(()=>{
-    const sc=document.getElementById("srcCard");
+    const sc=document.getElementById("quickStart");
     if(sc){ sc.scrollIntoView({behavior:"instant",block:"start"}); document.getElementById("src")?.focus({preventScroll:true}); }
   },50);
 }
