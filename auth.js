@@ -107,7 +107,8 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>로그인 / 회원가입</h3>'
-      + '<p>한 번 로그인하면 지난 주문을 그대로 다시 보내고, 기념일 알림을 받을 수 있어요.</p>'
+      + '<div style="background:#ecf0eb;border:1px solid #2d4a38;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#1e3526;font-weight:700;">🎁 가입하면 바로 1,000원 적립 · 다음 주문에 현금처럼</div>'
+      + '<p>한 번 로그인하면 지난 주문을 그대로 다시 보내고, 가족 기념일을 일주일 전에 알려드려요.</p>'
       + btns
       + '<button class="af-auth-x">닫기</button>'
       + '<div class="af-auth-note">로그인 시 이용약관·개인정보 처리방침에 동의하게 됩니다.</div>'
