@@ -13,8 +13,8 @@ input[type=number], input[type=date], input[type=time], select, textarea {
   border-radius: 4px;
 }
 
-/* 터치 타깃 최소 크기 보강 (작은 링크/버튼) */
-button, .btn, a.btn, .cat-tile { min-height: 44px; }
+/* 터치 타깃 최소 크기 보강 — 고령·모바일 하드요건 48px 이상 */
+button, .btn, a.btn, .cat-tile, .chip, input[type=submit] { min-height: 48px; }
 
 /* 모션 최소화 선호 사용자 배려 */
 @media (prefers-reduced-motion: reduce) {

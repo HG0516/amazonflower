@@ -9,7 +9,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="꽃안부 — 안부는, 꽃으로" />
 <meta property="og:description" content="부고도 청첩장도, 링크만 보내세요. 화환 · 난 · 관엽 · 꽃바구니 — 법인 계산서·후불 · 전국 당일배송." />
-<meta property="og:image" content="/og_preview.png" />
+<meta property="og:image" content="https://amazonflower.vercel.app/og_preview.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -54,7 +54,7 @@
     --paper: #ffffff;
     --ink: #1f1d18;           /* 본문 글자: 거의 검정에 가까운 짙은 갈색 */
     --ink-soft: #5a564d;      /* 보조 글자 */
-    --ink-faint: #9e9a8f;     /* 약한 글자 */
+    --ink-faint: #6b6358;     /* 약한 글자 — 흰 배경 대비 4.5:1 이상(고령 가독성) */
     --line: #d9d3c4;          /* 가는 선 (조금 진하게) */
     --line-soft: #ebe6da;     /* 더 옅은 선 */
     --accent: #2d4a38;        /* 강조 짙은 녹갈색 (한 곳에만 사용) */
@@ -385,7 +385,7 @@
       </div>
       <div class="cat-tile" onclick="goCatalog('congrats')">
         <div class="cat-photo"><img src="/photos/products/WG-04_1.jpg" alt="화환" onerror="this.style.display='none'"></div>
-        <div class="cat-body"><div class="cat-name">축하 · 근조 화환</div><div class="cat-desc">59,000원부터 · 장례식·결혼·개업</div></div>
+        <div class="cat-body"><div class="cat-name">축하 · 근조 화환</div><div class="cat-desc">57,000원부터 · 장례식·결혼·개업</div></div>
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
@@ -1046,6 +1046,8 @@ function renderBest(){
 // 베스트 슬라이드 — 가로로 자연스럽게 계속 흐름(마퀴). 손으로 만지면 잠깐 멈췄다 이어감.
 function autoSlideBest(el){
   if(!el || el.children.length<2 || el._auto) return;
+  // 어지럼·저시력 배려: 모션 최소화를 선호하면 자동 흐름 없이 정지 표시
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   el._auto=true;
   el.innerHTML += el.innerHTML;   // 끊김 없는 무한 순환 위해 카드 2배 복제
   let paused=false, pauseTimer=null;
@@ -1578,6 +1580,34 @@ function categoryFromPc(pc){
 window.afReorder = function(o){
   o = o || {};
   const pc = o.product_code || "";
+  // 신규 개별상품 코드(PL-/BQ-/BS-/OR-/WG-/WC-)면 개별상품 재주문 경로로 재현
+  const Pnew = (window.PRODUCTS||[]).find(x=>x.pc===pc);
+  if(Pnew){
+    Object.assign(order,{
+      type:o.order_type||"unknown", side:"",
+      recipientName:o.recipient_name||"", venue:o.venue||"", venueDetail:"", address:o.address||"",
+      date:o.event_date||"", time:o.event_time||"", groomName:"", brideName:"", chiefMourner:"",
+      category:productOrderCat(Pnew), toppings:[],
+    });
+    document.getElementById("afFields").innerHTML =
+      afField("recipientName","받는 분",order.recipientName)
+      + afField("address","받는 곳 주소",order.address)
+      + afField("date","받는 날짜",order.date)
+      + afField("time","받는 시간",order.time);
+    document.getElementById("typePill").innerHTML = '<span class="type-pill">지난 주문 다시 담기 — 확인 후 결제하세요</span>';
+    document.getElementById("confirmCard").classList.remove("hidden");
+    document.getElementById("sideCard").classList.add("hidden");
+    renumber(false);
+    document.getElementById("prodCard").classList.remove("hidden");
+    document.getElementById("senderCard").classList.remove("hidden");
+    buildRibbon();
+    const pt=document.getElementById("priceTabs"); if(pt) pt.innerHTML="";
+    const cc=document.getElementById("catChips"); if(cc) cc.innerHTML="";
+    const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
+    selProduct(Pnew);
+    scrollTo("confirmCard");
+    return;
+  }
   const cat = categoryFromPc(pc);
   if(!cat){ alert("이 주문은 다시 담기가 어려워요. 상품을 직접 골라주세요."); return; }
   let type = o.order_type || "unknown";

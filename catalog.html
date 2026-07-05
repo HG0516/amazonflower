@@ -8,7 +8,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="전체 상품 — 꽃안부" />
 <meta property="og:description" content="근조 · 축하 화환 · 전국 당일배송. 1993년부터." />
-<meta property="og:image" content="/og_preview.png" />
+<meta property="og:image" content="https://amazonflower.vercel.app/og_preview.png" />
 <!-- PWA: 설치형 앱 -->
 <link rel="manifest" href="/manifest.json" />
 <meta name="theme-color" content="#2d4a38" />
@@ -39,7 +39,7 @@
     --paper: #ffffff;
     --ink: #1f1d18;
     --ink-soft: #5a564d;
-    --ink-faint: #9e9a8f;
+    --ink-faint: #6b6358;
     --line: #d9d3c4;
     --line-soft: #ebe6da;
     --accent: #2d4a38;
@@ -508,8 +508,8 @@ function renderWreath(key){
     return {...t, p};
   }).filter(r=>r.p);
   const seo = key==="condolence"
-    ? "근조화환 · 장례식장 당일배송(수도권). 부고 문자 링크를 붙여넣으면 빈소·발인 정보로 자동 주문됩니다."
-    : "축하화환 · 결혼식·개업·승진 당일배송(수도권). 청첩장·초대 링크를 붙여넣으면 예식장·일시로 자동 주문됩니다.";
+    ? "근조화환 · 장례식장 전국 당일배송. 부고 문자 링크를 붙여넣으면 빈소·발인 정보로 자동 주문됩니다."
+    : "축하화환 · 결혼식·개업·승진 전국 당일배송. 청첩장·초대 링크를 붙여넣으면 예식장·일시로 자동 주문됩니다.";
   let html = `<div class="section-label">${kindName}</div><div class="section-desc">${seo}</div>`;
   html += `<div class="wreath-url">
       <div class="wu-title">📩 부고·청첩장 링크로 자동주문</div>
