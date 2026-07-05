@@ -122,12 +122,10 @@
   .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: 11.5px; color: var(--ink-faint); padding: 0 12px 12px; }
-  /* 카테고리 그리드: 세로 1열 · 가로 카드(사진 왼쪽, 글 오른쪽), 사진 꽉 채움 */
-  .cat-grid .cat-tile { display: grid; grid-template-columns: 118px 1fr; align-items: stretch; }
-  .cat-grid .cat-photo { height: auto; min-height: 96px; }
-  .cat-grid .cat-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; }
-  .cat-grid .cat-name { padding: 0; font-size: 16px; }
-  .cat-grid .cat-desc { padding: 4px 0 0; font-size: 12px; }
+  /* 카테고리: 세로 1열, 사진 위(전체폭)·글 아래. 관엽·화환처럼 긴 상품도 다 보이게
+     contain + 배경을 페이지색과 맞춰 빈칸이 튀지 않게 */
+  .cat-grid .cat-photo { height: 180px; background: #f6f2ea; }
+  .cat-grid .cat-photo img { object-fit: contain; object-position: center; }
 
   /* ── 카드 — 그림자 없이 선만 ── */
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; margin-top: 20px; }
@@ -357,6 +355,20 @@
     <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
+  <section class="card" id="quickStart" style="margin-top:16px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
+    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">📩 청첩장·부고 링크로 자동주문</div>
+    <div style="display:flex;gap:8px;">
+      <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);">
+      <button class="btn" id="parseBtn" onclick="runParse()" style="width:auto;flex:0 0 auto;padding:12px 18px;min-height:48px;">시작</button>
+    </div>
+    <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 붙여넣기</button>
+      <span style="font-size:11.5px;color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
+    </div>
+    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
+    <div class="err hidden" id="parseErr"></div>
+  </section>
+
   <section style="margin-top:16px;">
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCatalog('basket')">
@@ -377,20 +389,6 @@
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
-  </section>
-
-  <section class="card" id="quickStart" style="margin-top:18px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
-    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">📩 청첩장·부고 링크로 자동주문</div>
-    <div style="display:flex;gap:8px;">
-      <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);">
-      <button class="btn" id="parseBtn" onclick="runParse()" style="width:auto;flex:0 0 auto;padding:12px 18px;min-height:48px;">시작</button>
-    </div>
-    <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 붙여넣기</button>
-      <span style="font-size:11.5px;color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
-    </div>
-    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
-    <div class="err hidden" id="parseErr"></div>
   </section>
 
   <!-- 이번 주 베스트(21-C 5): 실물 꽃다발·바구니 5~9만 -->
