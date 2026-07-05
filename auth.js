@@ -305,9 +305,12 @@
   function login(provider) {
     // 네이버는 Supabase 미지원 → 백엔드 OAuth 흐름으로(매직링크로 정식 세션 발급)
     if (provider === 'naver') { location.href = '/api/naver-login'; return; }
+    var opts = { redirectTo: location.origin + location.pathname };
+    // 카카오는 이메일(account_email) 빼고 닉네임만 요청 — 비즈니스 앱 심사(사업자) 없이 로그인 가능하게.
+    if (provider === 'kakao') opts.scopes = 'profile_nickname';
     sb.auth.signInWithOAuth({
       provider: provider,
-      options: { redirectTo: location.origin + location.pathname }
+      options: opts
     }).then(function (res) {
       if (res.error) {
         console.error('[auth] 로그인 실패:', res.error);
