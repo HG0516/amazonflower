@@ -78,8 +78,11 @@
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s; }
   .item:hover { border-color: var(--ink); }
-  .item .photo { aspect-ratio: 3/4; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; overflow: hidden; }
+  .item .photo { position: relative; aspect-ratio: 3/4; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; overflow: hidden; }
   .item .photo img { width: 100%; height: 100%; object-fit: cover; }
+  .item .sold-tag { position: absolute; top: 8px; left: 8px; z-index: 1; background: rgba(31,29,24,.82); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: .3px; }
+  .item.is-sold .photo img { filter: grayscale(1); opacity: .55; }
+  .item .order:disabled { background: var(--ink-faint); cursor: default; opacity: .8; }
   .item .body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
   .item .nm { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
   .item .code { font-size: 10px; color: var(--ink-faint); letter-spacing: 1px; margin-top: -2px; }
@@ -239,6 +242,14 @@
     <input id="searchInput" type="text" autocomplete="off" placeholder="꽃·식물 이름으로 검색 (예: 호접란, 벤자민, 근조)" oninput="doSearch(this.value)" />
     <span class="si">🔍</span>
   </div>
+  <!-- 용도(경조사) 바로가기 — 고령 손님이 상황으로 바로 찾게 -->
+  <div class="uses" id="useChips">
+    <button class="use-chip" onclick="showCat('condolence')">근조화환</button>
+    <button class="use-chip" onclick="showCat('congrats')">축하화환</button>
+    <button class="use-chip" onclick="showCat('plant')">개업·이전</button>
+    <button class="use-chip" onclick="showCat('orchid')">승진·취임</button>
+    <button class="use-chip" onclick="showCat('basket')">생일·병문안</button>
+  </div>
   <div id="searchArea" class="hidden"></div>
 
   <div class="seg" id="segTabs" style="flex-wrap:wrap;">
@@ -392,6 +403,7 @@ function productsFor(key, sub, band){
     pop:  (a,b)=> (BAND_ORDER[a.band]-BAND_ORDER[b.band]) || (a.price-b.price) || a.pc.localeCompare(b.pc,"en",{numeric:true}),
     new:  (a,b)=> b.pc.localeCompare(a.pc,"en",{numeric:true}),
     price:(a,b)=> a.price-b.price,
+    priceHigh:(a,b)=> b.price-a.price,
   };
   return list.sort(sorters[currentSort]||sorters.pop);
 }
@@ -402,15 +414,18 @@ function productCard(p){
   const sizeTag = (p.cat==="plant" && p.size) ? `<span class="size-tag">H${p.size.h}×W${p.size.w}</span>` : "";
   const cutTag = (p.photos&&p.photos.length>1) ? `<span class="cutcount">사진 ${p.photos.length}컷</span>` : "";
   const gradeTag = p.grade ? ` <span style="font-size:11px;color:var(--gold);">${esc(p.grade)}</span>` : "";
+  const sold = p.status && p.status !== "판매중";   // 품절·준비중 등
   return `
-      <div class="item" data-pc="${esc(p.pc)}">
-        <div class="photo"><img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
+      <div class="item${sold?' is-sold':''}" data-pc="${esc(p.pc)}">
+        <div class="photo">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
           <div class="nm">${esc(p.name)}${gradeTag}</div>
           ${p.subtitle?`<div class="nm-sub">${esc(p.subtitle)}</div>`:""}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
           <div class="price">${p.price.toLocaleString()}원</div>
-          <button class="order" onclick="goOrderPc('${esc(p.pc)}')">주문하기</button>
+          ${sold
+            ? `<button class="order" disabled>${esc(p.status)}</button>`
+            : `<button class="order" onclick="goOrderPc('${esc(p.pc)}')">주문하기</button>`}
           <button class="share-btn" onclick="shareItem('${esc(p.pc)}')">🔗 공유하기</button>
         </div>
       </div>`;
@@ -554,7 +569,7 @@ function renderBandChips(){
 }
 function renderSortBar(){
   const el=document.getElementById("sortBar");
-  const opts=[["pop","인기순"],["new","신상품"],["price","가격↓"]];
+  const opts=[["pop","인기순"],["new","신상품"],["price","낮은가격순"],["priceHigh","높은가격순"]];
   el.innerHTML = `<span class="sort-label">정렬</span>`
     + opts.map(([k,l])=>`<button class="sortbtn ${currentSort===k?"on":""}" onclick="setSort('${k}')">${l}</button>`).join("");
 }
@@ -580,21 +595,32 @@ function renderProducts(){
   document.getElementById("catArea").innerHTML=html;
 }
 
-// 검색 — 가격대 상품 + 보유 종류 전체에서 이름/종류/색 매칭
+// 고령 손님이 쓰는 상황말 → 상품 종류 매핑(검색 동의어). 예: "국화"·"부고"→근조
+const SEARCH_SYN = {
+  "국화":"근조","흰국화":"근조","부고":"근조","장례":"근조","조문":"근조","빈소":"근조","발인":"근조",
+  "결혼":"축하 꽃다발","청첩":"축하","개업":"축하 관엽","이전":"관엽 난","취임":"난","승진":"난",
+  "병문안":"꽃바구니","생일":"꽃다발","기념일":"꽃다발","프러포즈":"꽃다발","축하":"축하",
+  "어머니":"카네이션","어버이":"카네이션","카네이션":"카네이션","칠순":"축하","환갑":"축하","화분":"관엽"
+};
+// 검색 — 가격대 상품 + 보유 종류 전체에서 이름/종류/색 매칭 (+ 상황 동의어 확장)
 function doSearch(q){
   q=(q||"").trim().toLowerCase();
   const seg=document.getElementById("segTabs"), cat=document.getElementById("catArea"),
         gal=document.getElementById("galleryArea"), sp=document.querySelector(".special"),
-        sa=document.getElementById("searchArea");
-  const toggle=(hide)=>{ [seg,cat,gal,sp].forEach(el=>el&&el.classList.toggle("hidden",hide)); sa.classList.toggle("hidden",!hide); };
+        sa=document.getElementById("searchArea"), uc=document.getElementById("useChips");
+  const toggle=(hide)=>{ [seg,cat,gal,sp,uc].forEach(el=>el&&el.classList.toggle("hidden",hide)); sa.classList.toggle("hidden",!hide); };
   if(!q){ toggle(false); return; }
   toggle(true);
+  // 검색어 + 동의어(상황말)로 확장한 매칭 항목들
+  let terms=[q];
+  for(const k in SEARCH_SYN){ if(q.indexOf(k)>=0) terms.push(...SEARCH_SYN[k].split(" ")); }
+  const match=(s)=>{ s=(s||"").toLowerCase(); return terms.some(t=>t && s.indexOf(t)>=0); };
   // 개별상품 검색(이름·서브·밴드·코드)
-  let pHits = PRODUCTS.filter(p=> (p.name+" "+(p.subtitle||"")+" "+p.sub+" "+p.band+" "+p.pc+" "+CAT_TITLE[catAxis(p.cat)]).toLowerCase().includes(q));
+  let pHits = PRODUCTS.filter(p=> match(p.name+" "+(p.subtitle||"")+" "+p.sub+" "+p.band+" "+p.pc+" "+CAT_TITLE[catAxis(p.cat)]));
   let gHits=[];
   for(const key of Object.keys(GAL)){
     for(const i of GAL[key]){
-      if((i.nm+" "+i.sub+" "+(i.color||"")+" "+(CAT_TITLE[key]||"")).toLowerCase().includes(q)) gHits.push({...i,key});
+      if(match(i.nm+" "+i.sub+" "+(i.color||"")+" "+(CAT_TITLE[key]||""))) gHits.push({...i,key});
     }
   }
   let html=`<div class="gallery-wrap" style="border-top:none;margin-top:14px;padding-top:0;">
@@ -602,7 +628,12 @@ function doSearch(q){
   if(pHits.length){ html+=`<div class="gallery-sub">상품 ${pHits.length}건</div><div class="grid">`+pHits.map(productCard).join("")+`</div>`; }
   if(gHits.length){ html+=`<div class="gallery-sub" style="margin-top:18px;">보유 종류 ${gHits.length}건</div><div class="gallery-grid">`
     + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}','${esc(i.pc||"")}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]||""}</span></div></div>`).join("")+`</div>`; }
-  if(!pHits.length && !gHits.length){ html+=`<div class="gempty">“${q}” 검색 결과가 없어요. 다른 이름으로 찾아보세요.</div>`; }
+  if(!pHits.length && !gHits.length){ html+=`<div class="gempty">“${esc(q)}” 검색 결과가 없어요.<br>아래에서 골라보시거나 전화로 편하게 주문하세요.
+      <div class="uses" style="justify-content:center;margin-top:14px;">
+        ${[["condolence","근조화환"],["congrats","축하화환"],["basket","꽃다발·바구니"],["plant","관엽·식물"],["orchid","난"]].map(([k,l])=>`<button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('${k}')">${l}</button>`).join("")}
+      </div>
+      <a class="scall" href="tel:031-314-3003" style="display:inline-block;margin-top:14px;padding:12px 20px;">📞 전화 주문 031-314-3003</a>
+    </div>`; }
   html+=`</div>`;
   sa.innerHTML=html;
 }
