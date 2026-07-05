@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+:root{--bg:#f7f4ee;--paper:#fff;--ink:#1f1d18;--ink-soft:#5a564d;--ink-faint:#9e9a8f;--line:#d9d3c4;--line-soft:#ebe6da;--accent:#2d4a38;--accent-deep:#1e3526;--accent-soft:#ecf0eb;--condo:#3d4248;--fd:"Gowun Batang","Nanum Myeongjo",serif;--fb:-apple-system,"Apple SD Gothic Neo",sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--fb);background:#e7e2d6;color:var(--ink);padding:16px}
+.phone{max-width:400px;margin:0 auto 30px;background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid #cfc8b6;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.pad{padding:0 16px 16px}
+.lbl{background:#222;color:#fff;font-weight:800;font-size:14px;padding:8px 14px;border-radius:8px 8px 0 0}
+.lbl small{font-weight:400;opacity:.8}
+/* topbar */
+.tb{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 6px}
+.tb .lg{font-family:var(--fd);font-size:20px;font-weight:700}
+.tb .tel{font-size:12px;font-weight:700;color:var(--accent-deep);border:1px solid var(--accent);border-radius:16px;padding:5px 11px}
+.sub{text-align:center;font-size:10px;color:var(--ink-faint);letter-spacing:1.5px;padding-bottom:8px}
+/* hero variants */
+.h-url{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:14px;margin-top:6px}
+.h-url .t{font-family:var(--fd);font-weight:700;font-size:16px;color:var(--accent-deep);margin-bottom:8px}
+.h-url .row{display:flex;gap:8px}
+.h-url input{flex:1;min-width:0;font-size:14px;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.h-url .go{flex:0 0 auto;padding:11px 16px;background:var(--accent);color:#fff;font-weight:700;border:none;border-radius:8px;font-size:14px}
+.h-url .hint{font-size:11px;color:var(--ink-faint);margin-top:7px}
+.h-season{display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,#f3 e6 e6,#fdeecf);background:#fbe6cf;border-radius:10px;padding:11px 14px;margin-top:6px;font-size:13.5px;font-weight:700;color:#7a5b1e}
+.h-photo{position:relative;border-radius:12px;overflow:hidden;margin-top:6px;height:120px}
+.h-photo img{width:100%;height:100%;object-fit:cover;object-position:center 40%}
+.h-photo .cap{position:absolute;left:0;bottom:0;right:0;padding:14px 14px 12px;background:linear-gradient(0deg,rgba(20,25,20,.7),transparent);color:#fff}
+.h-photo .cap b{font-family:var(--fd);font-size:17px;display:block}
+.h-photo .cap span{font-size:11px;opacity:.9}
+.none-note{text-align:center;font-size:11px;color:var(--ink-faint);padding:8px 0 2px;font-style:italic}
+/* category horizontal card */
+.cards{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.card{display:grid;grid-template-columns:104px 1fr;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.card .ph{background:#f6f2ea;min-height:82px;overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.card .bd{padding:10px 12px;display:flex;flex-direction:column;justify-content:center}
+.card .nm{font-family:var(--fd);font-weight:700;font-size:15px}
+.card .ds{font-size:11.5px;color:var(--ink-faint);margin-top:3px}
+.urlmini{background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:11px 13px;margin-top:10px;font-size:12.5px;color:var(--accent-deep);font-weight:700}
+</style></head><body>
+
+<!-- A -->
+<div class="phone">
+  <div class="lbl">A — 히어로 없음 <small>(로고 → 바로 카테고리, URL박스는 아래)</small></div>
+  <div class="tb"><div class="lg">꽃안부 🌸</div><div class="tel">☎ 전화주문</div></div>
+  <div class="sub">안부는, 꽃으로 · SINCE 1993</div>
+  <div class="pad">
+    <div class="cards">
+      <div class="card"><div class="ph"><img src="https://amazonflower.vercel.app/photos/products/BQ-001_1.jpg"></div><div class="bd"><div class="nm">꽃다발 · 꽃바구니</div><div class="ds">5만원대부터 · 생일·기념일·축하</div></div></div>
+      <div class="card"><div class="ph"><img src="https://amazonflower.vercel.app/photos/products/WG-04_1.jpg"></div><div class="bd"><div class="nm">축하 · 근조 화환</div><div class="ds">59,000원부터 · 장례식·결혼·개업</div></div></div>
+    </div>
+    <div class="urlmini">📩 부고·청첩장 링크 자동주문 (아래에 위치)</div>
+  </div>
+</div>
+
+<!-- B -->
+<div class="phone">
+  <div class="lbl">B — 화환 URL 자동주문을 맨 위 <small>(급한 손님 바로)</small></div>
+  <div class="tb"><div class="lg">꽃안부 🌸</div><div class="tel">☎ 전화주문</div></div>
+  <div class="sub">안부는, 꽃으로 · SINCE 1993</div>
+  <div class="pad">
+    <div class="h-url">
+      <div class="t">📩 부고·청첩장 링크 받으셨어요?</div>
+      <div class="row"><input placeholder="링크 붙여넣기 또는 '어머니 칠순'"><button class="go">시작</button></div>
+      <div class="hint">붙여넣으면 받는 분·장소·날짜 자동입력</div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="ph"><img src="https://amazonflower.vercel.app/photos/products/BQ-001_1.jpg"></div><div class="bd"><div class="nm">꽃다발 · 꽃바구니</div><div class="ds">5만원대부터 · 생일·기념일·축하</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- C -->
+<div class="phone">
+  <div class="lbl">C — 시즌 얇은 띠 <small>(계절마다 자동)</small></div>
+  <div class="tb"><div class="lg">꽃안부 🌸</div><div class="tel">☎ 전화주문</div></div>
+  <div class="sub">안부는, 꽃으로 · SINCE 1993</div>
+  <div class="pad">
+    <div class="h-season">🌷 어버이날 카네이션·꽃바구니 예약 받습니다 →</div>
+    <div class="cards">
+      <div class="card"><div class="ph"><img src="https://amazonflower.vercel.app/photos/products/BQ-001_1.jpg"></div><div class="bd"><div class="nm">꽃다발 · 꽃바구니</div><div class="ds">5만원대부터 · 생일·기념일·축하</div></div></div>
+      <div class="card"><div class="ph"><img src="https://amazonflower.vercel.app/photos/products/PL-001_1.jpg"></div><div class="bd"><div class="nm">관엽 · 식물</div><div class="ds">5만원대부터 · 개업·이전·사무실</div></div></div>
+    </div>
+    <div class="urlmini">📩 부고·청첩장 링크 자동주문 (아래에 위치)</div>
+  </div>
+</div>
+
+<!-- D -->
+<div class="phone">
+  <div class="lbl">D — 얇은 대표 화보 띠 <small>(브랜드 느낌)</small></div>
+  <div class="tb"><div class="lg">꽃안부 🌸</div><div class="tel">☎ 전화주문</div></div>
+  <div class="sub">안부는, 꽃으로 · SINCE 1993</div>
+  <div class="pad">
+    <div class="h-photo"><img src="https://amazonflower.vercel.app/photos/products/BQ-001_2.jpg"><div class="cap"><b>30년 손끝의 마음</b><span>1993년부터, 그날 가장 좋은 꽃으로</span></div></div>
+    <div class="cards">
+      <div class="card"><div class="ph"><img src="https://amazonflower.vercel.app/photos/products/BQ-001_1.jpg"></div><div class="bd"><div class="nm">꽃다발 · 꽃바구니</div><div class="ds">5만원대부터 · 생일·기념일·축하</div></div></div>
+    </div>
+    <div class="urlmini">📩 부고·청첩장 링크 자동주문 (아래에 위치)</div>
+  </div>
+</div>
+
+</body></html>
