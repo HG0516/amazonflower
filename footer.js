@@ -3,14 +3,14 @@
 (function () {
   'use strict';
   var BIZ = {
-    company: '아마존플라워 (주식회사 아마존)',
-    owner: '',          // 대표자명 (예: 홍길동)
-    bizNo: '',          // 사업자등록번호 (예: 000-00-00000)
-    mailOrderNo: '',    // 통신판매업 신고번호 (예: 제2026-경기시흥-0000호)
-    addr: '경기 시흥시 신천3길 23',
+    company: '꽃안부 · 주식회사 아마존',
+    owner: '권점숙',              // 대표자명
+    bizNo: '234-86-00344',        // 사업자등록번호
+    mailOrderNo: '',              // ⚠️통신판매업 신고번호 — 신고 후 '제0000-경기시흥-0000호' 채우기(실결제 오픈 전 필수)
+    addr: '경기 시흥시 신천3길 23, 103호',
     tel: '031-314-3003',
-    email: '',          // 고객문의 이메일
-    privacyOfficer: ''  // 개인정보 보호책임자
+    email: '',                    // ⚠️고객문의 이메일 — 정해지면 채우기
+    privacyOfficer: '권점숙'      // 개인정보 보호책임자(대표자)
   };
 
   function row(label, val) { return val ? '<span class="af-ft-i"><b>' + label + '</b> ' + val + '</span>' : ''; }
@@ -49,6 +49,7 @@
       + '<div class="af-ft-name">' + BIZ.company + '</div>'
       + info
       + '<div class="af-ft-links"><a href="/wedding.html">웨딩 부케</a><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
+      + '<div class="af-ft-policy">원산지: 생화 국내산(품목별 상세 표기) · 계절·수급에 따라 사진과 일부 다를 수 있으며 같은 등급 이상으로 제작합니다.</div>'
       + '<div class="af-ft-policy">신선식품 특성상 제작·발송 후 단순변심에 의한 교환·환불은 제한될 수 있습니다. '
       + '상품 하자·오배송은 수령 직후 사진과 함께 연락 주시면 재제작 또는 환불해 드립니다. 자세한 내용은 이용약관을 확인해주세요.</div>'
       + '<div class="af-ft-policy">© ' + BIZ.company + '. 1993년부터 한 송이의 마음을 전합니다.</div>'
