@@ -111,6 +111,8 @@
 
   /* ── 카테고리 타일 ── */
   .cat-grid { display: flex; flex-direction: column; gap: 10px; }
+  /* 주문 모드: 상품을 직접 고른 사람에겐 홈 둘러보기 섹션을 숨겨 집중시킨다(새로고침 시 복원) */
+  body.ordering .home-sect { display: none; }
   /* 이번 주 베스트 — 가로로 자연스럽게 흐르는 슬라이드(마퀴) */
   .best-slider { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .best-slider::-webkit-scrollbar { display: none; }
@@ -355,7 +357,7 @@
     <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
-  <section class="card" id="quickStart" style="margin-top:16px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
+  <section class="card home-sect" id="quickStart" style="margin-top:16px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
     <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">📩 청첩장·부고 링크로 자동주문</div>
     <div style="display:flex;gap:8px;">
       <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);">
@@ -370,9 +372,9 @@
   </section>
 
   <!-- 로그인 회원 원탭 재주문 진입(로그인 상태에서만 JS로 노출) -->
-  <div id="reorderBanner" class="hidden" style="margin-top:10px;"></div>
+  <div id="reorderBanner" class="hidden home-sect" style="margin-top:10px;"></div>
 
-  <section style="margin-top:16px;">
+  <section class="home-sect" style="margin-top:16px;">
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCatalog('basket')">
         <div class="cat-photo"><img src="/photos/products/BQ-001_1.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
@@ -387,20 +389,25 @@
         <div class="cat-body"><div class="cat-name">동양란 · 서양란</div><div class="cat-desc">6만원대부터 · 승진·취임·개업 인사</div></div>
       </div>
       <div class="cat-tile" onclick="goCatalog('congrats')">
-        <div class="cat-photo"><img src="/photos/products/WG-04_1.jpg" alt="화환" onerror="this.style.display='none'"></div>
-        <div class="cat-body"><div class="cat-name">축하 · 근조 화환</div><div class="cat-desc">57,000원부터 · 장례식·결혼·개업</div></div>
+        <div class="cat-photo"><img src="/photos/products/WG-04_1.jpg" alt="축하화환" onerror="this.style.display='none'"></div>
+        <div class="cat-body"><div class="cat-name">축하화환</div><div class="cat-desc">59,000원부터 · 결혼·개업·승진</div></div>
+      </div>
+      <div class="cat-tile" onclick="goCatalog('condolence')">
+        <div class="cat-photo"><img src="/photos/products/WC-02_1.jpg" alt="근조화환" onerror="this.style.display='none'"></div>
+        <div class="cat-body"><div class="cat-name">근조화환</div><div class="cat-desc">57,000원부터 · 장례식장 전국 당일배송</div></div>
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
+    <a class="catalogue-link" href="/wedding.html" style="margin-top:8px;">💐 웨딩 부케 · 어머니의 생화 수제 (소수 예약제) →</a>
   </section>
 
   <!-- 이번 주 베스트(21-C 5): 실물 꽃다발·바구니 5~9만 -->
-  <section style="margin-top:24px;">
+  <section class="home-sect" style="margin-top:24px;">
     <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:10px;color:var(--ink);">이번 주 베스트</div>
     <div id="bestArea" class="best-slider"></div>
   </section>
 
-  <section style="margin-top:8px;">
+  <section class="home-sect" style="margin-top:8px;">
     <div class="marks">
       <div class="mark">
         <div class="mt">계산서 · 후불</div>
@@ -1654,6 +1661,7 @@ window.afReorder = function(o){
     const cc=document.getElementById("catChips"); if(cc) cc.innerHTML="";
     const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
     selProduct(Pnew);
+    enterOrderMode('지난 주문 다시 담기 — 확인 후 결제');
     scrollTo("confirmCard");
     return;
   }
@@ -1683,6 +1691,7 @@ window.afReorder = function(o){
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
+  enterOrderMode('지난 주문 다시 담기 — 확인 후 결제');
   renderCatChips();
   renderPriceTabs();
   renderRecoOptions(1);
@@ -1737,6 +1746,18 @@ function selProduct(p){
   renderToppings();
   updateDesignTotal();
 }
+// 상품을 직접 고른 사람은 '결정한 사람' — 홈 둘러보기 섹션(.home-sect)을 숨겨 주문에 집중시키고
+// 상단 고정 배너에 '선택한 상품 + 다른 상품 보기'만 남긴다. '처음으로'/새로고침 시 전체 복원.
+function enterOrderMode(labelHtml){
+  document.body.classList.add("ordering");
+  const b=document.getElementById("catalogBanner");
+  if(b){
+    b.innerHTML='<div class="pick-label">선택한 상품</div>'
+      +'<div class="pick-name">'+labelHtml+'</div>'
+      +'<a href="/catalog.html" style="display:inline-block;margin-top:6px;font-size:13px;color:var(--paper);text-decoration:underline;">다른 상품 보기 →</a>';
+    b.classList.remove("hidden");
+  }
+}
 function handleProductParam(){
   const q=new URLSearchParams(location.search);
   const pc=q.get("pc"); if(!pc) return;
@@ -1766,6 +1787,7 @@ function handleProductParam(){
   const cc=document.getElementById("catChips"); if(cc) cc.innerHTML="";
   const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
   selProduct(P);
+  enterOrderMode(escapeHtml(P.name)+(P.subtitle?' · '+escapeHtml(P.subtitle):'')+' <b>'+P.price.toLocaleString()+'원</b>');
   cleanUrl();
   scrollTo("confirmCard");
 }
