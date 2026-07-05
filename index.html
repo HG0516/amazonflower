@@ -910,6 +910,7 @@ function selSide(s){
 //    가격을 바꾸면 api/confirm-payment.js 의 PRODUCT_PRICES 도 같이 바꿔야 결제가 됩니다.
 const WREATH_TIERS = [
   {key:"1", grade:"일반형", price:59000, desc:"3단 기본형. 단정하게 마음을 전합니다."},
+  {key:"2", grade:"중급형", price:79000, desc:"가장 많이 나가는 주력형입니다."},
   {key:"3", grade:"고급형", price:99000, desc:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
   {key:"4", grade:"최고급형", price:129000, desc:"4단 특대형. 거래처·회사 명의에 적합합니다."},
 ];
@@ -1639,6 +1640,14 @@ function handleCatalogParam(){
 handleRedirect();
 handleProductParam();
 handleCatalogParam();
+// 카탈로그 화환 URL 박스(/?src=링크)에서 넘어온 경우: 링크를 채우고 자동 분석 시작
+(function handleSrcParam(){
+  const s=new URLSearchParams(location.search).get("src");
+  if(!s) return;
+  const el=document.getElementById("src"); if(!el) return;
+  el.value=s; cleanUrl();
+  if(typeof runParse==="function") setTimeout(runParse, 60);
+})();
 // 다른 페이지(내 주문 등)에서 '다시 주문'으로 넘어온 경우 폼 재현
 try{ var _rj=sessionStorage.getItem("af_reorder"); if(_rj){ sessionStorage.removeItem("af_reorder"); var _ro=JSON.parse(_rj); setTimeout(function(){ if(window.afReorder) window.afReorder(_ro); },300); } }catch(_e){}
 </script>

@@ -177,6 +177,28 @@
   .item .cutcount { font-size: 10px; color: var(--ink-faint); }
   .cat-empty { text-align: center; color: var(--ink-faint); font-size: 14px; padding: 30px 0; grid-column: 1/-1; }
 
+  /* 화환 URL 자동주문 박스 */
+  .wreath-url { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 6px 0 20px; }
+  .wu-title { font-weight: 700; font-size: 15px; color: var(--accent-deep); margin-bottom: 10px; }
+  .wreath-url input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+  .wreath-url input:focus { outline: none; border-color: var(--accent); }
+  .wu-btn { width: 100%; margin-top: 10px; padding: 14px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
+  .wu-btn:hover { background: var(--accent-deep); }
+  /* 화환 5단 사다리 */
+  .ladder { display: flex; flex-direction: column; gap: 10px; }
+  .ladder-row { display: grid; grid-template-columns: 64px 1fr auto auto; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--paper); }
+  .ladder-row.main { border-color: var(--accent); border-width: 2px; background: #fbfdfb; }
+  .lr-photo { width: 64px; height: 64px; border-radius: 6px; overflow: hidden; background: var(--line-soft); }
+  .lr-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .lr-tier { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
+  .lr-badge { font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: 9px; vertical-align: middle; }
+  .lr-note { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .lr-price { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); white-space: nowrap; }
+  .lr-order { padding: 11px 16px; border: none; border-radius: 6px; background: var(--ink); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); min-height: 44px; }
+  .lr-order:hover { background: var(--accent-deep); }
+  .wreath-extra { margin-top: 16px; font-size: 13px; color: var(--ink-soft); background: var(--line-soft); border-radius: 6px; padding: 12px 14px; line-height: 1.7; }
+  @media (max-width: 420px){ .ladder-row { grid-template-columns: 52px 1fr auto; } .lr-photo{width:52px;height:52px;} .lr-order{ grid-column: 1/-1; width:100%; } }
+
   /* ── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ── */
   @media (min-width: 1000px) {
     body {
@@ -457,11 +479,62 @@ function showCat(key, keepFilter){
     stEl.innerHTML = `<button class="subtab ${!currentSub?"on":""}" onclick="setSub('')">전체</button>`
       + ax.subs.map(s=>`<button class="subtab ${currentSub===s?"on":""}" onclick="setSub('${s}')">${esc(s)}</button>`).join("");
   } else stEl.innerHTML="";
-  renderBandChips();
-  renderSortBar();
-  renderProducts();
+  if(key==="congrats" || key==="condolence"){
+    // 화환은 상품 그리드 대신 5단 사다리표 + URL 자동주문(기획 21-C)
+    document.getElementById("bandChips").innerHTML="";
+    document.getElementById("sortBar").innerHTML="";
+    stEl.innerHTML="";
+    renderWreath(key);
+  } else {
+    renderBandChips();
+    renderSortBar();
+    renderProducts();
+  }
   document.getElementById("galleryArea").innerHTML = galleryHTML(key, galFilter[key]||"");
   showSpecial(key);
+}
+
+// 화환 5단 사다리(실속59/일반79 주력/대99/특대119/스페셜149) + URL 붙여넣기. 가격은 실물 상품(products.js)에서.
+const WREATH_LADDER = [
+  {label:"실속",   price:59000,  note:"단정한 기본형. 부담 없이 마음을 전합니다."},
+  {label:"일반",   price:79000,  note:"가장 많이 나가는 주력형입니다.", main:true},
+  {label:"대",     price:99000,  note:"격식을 갖춘 고급형."},
+  {label:"특대",   price:119000, note:"꽃 물량을 늘린 풍성한 대형."},
+  {label:"스페셜", price:149000, note:"거래처·회사 명의에 어울리는 최고급 특대형."},
+];
+function renderWreath(key){
+  const kindName = key==="congrats" ? "축하화환" : "근조화환";
+  const products = PRODUCTS.filter(p=> p.cat===key);
+  const rows = WREATH_LADDER.map(t=>{
+    let p = products.find(x=>x.price===t.price);
+    return {...t, p};
+  }).filter(r=>r.p);
+  const seo = key==="condolence"
+    ? "근조화환 · 장례식장 당일배송(수도권). 부고 문자 링크를 붙여넣으면 빈소·발인 정보로 자동 주문됩니다."
+    : "축하화환 · 결혼식·개업·승진 당일배송(수도권). 청첩장·초대 링크를 붙여넣으면 예식장·일시로 자동 주문됩니다.";
+  let html = `<div class="section-label">${kindName}</div><div class="section-desc">${seo}</div>`;
+  html += `<div class="wreath-url">
+      <div class="wu-title">📩 부고·청첩장 링크로 자동주문</div>
+      <input id="wreathUrl" type="text" inputmode="url" placeholder="문자로 받은 링크를 붙여넣으세요" />
+      <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>
+    </div>`;
+  html += `<div class="ladder">` + rows.map(r=>`
+      <div class="ladder-row${r.main?" main":""}">
+        <div class="lr-photo"><img src="${esc(r.p.photos[0]||"")}" alt="${esc(r.label)}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="lr-info"><div class="lr-tier">${r.label}${r.main?' <span class="lr-badge">주력</span>':''}</div><div class="lr-note">${esc(r.note)}</div></div>
+        <div class="lr-price">${r.p.price.toLocaleString()}원</div>
+        <button class="lr-order" onclick="goOrderPc('${esc(r.p.pc)}')">주문</button>
+      </div>`).join("") + `</div>`;
+  if(key==="condolence"){
+    html += `<div class="wreath-extra">그 외 <b>근조 오브제(57,000원)·쌀화환·영정 바구니</b>도 제작합니다. 빈소 제단 장식·국화 등 맞춤 제작은 전화(031-314-3003)로 말씀해 주세요.</div>`;
+  }
+  document.getElementById("catArea").innerHTML=html;
+}
+function wreathUrlGo(){
+  const el=document.getElementById("wreathUrl");
+  const v=(el && el.value || "").trim();
+  if(!v){ if(el) el.focus(); alert("문자로 받은 부고·청첩장 링크를 붙여넣어 주세요."); return; }
+  location.href = "/?src=" + encodeURIComponent(v);
 }
 function setSub(s){ currentSub=s; showCat(currentCat, true); }
 function setBand(b){ currentBand=b; renderBandChips(); renderProducts(); }
