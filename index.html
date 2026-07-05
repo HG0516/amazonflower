@@ -111,16 +111,15 @@
 
   /* ── 카테고리 타일 ── */
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  /* 이번 주 베스트 — 가로 한 줄 슬라이드 */
-  .best-slider { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-  .best-slider::-webkit-scrollbar { height: 6px; }
-  .best-slider::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-  .best-slider .cat-tile { flex: 0 0 46%; scroll-snap-align: start; }
+  /* 이번 주 베스트 — 가로로 자연스럽게 흐르는 슬라이드(마퀴) */
+  .best-slider { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .best-slider::-webkit-scrollbar { display: none; }
+  .best-slider .cat-tile { flex: 0 0 46%; }
   @media (min-width: 1000px) { .best-slider .cat-tile { flex-basis: 30%; } }
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color .15s; user-select: none; }
   .cat-tile:hover { border-color: var(--ink); }
-  .cat-photo { height: 120px; background: #f1ede4; overflow: hidden; }
-  .cat-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cat-photo { height: 155px; background: #f6f2ea; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .cat-photo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 15px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: 11.5px; color: var(--ink-faint); padding: 0 12px 12px; }
 
@@ -364,9 +363,7 @@
     <div class="err hidden" id="parseErr"></div>
   </section>
 
-  <section style="margin-top:16px;">
-    <h1 style="text-align:center;font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.4;letter-spacing:-0.5px;margin-bottom:6px;">무엇을 보내시나요?</h1>
-    <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">아래에서 바로 고르셔도 되고, 사연을 적으면 어울리는 상품을 추천해드려요</div>
+  <section style="margin-top:22px;">
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCatalog('basket')">
         <div class="cat-photo"><img src="/photos/products/BQ-001_1.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
@@ -393,9 +390,8 @@
   </section>
 
   <!-- 이번 주 베스트(21-C 5): 실물 꽃다발·바구니 5~9만 -->
-  <section style="margin-top:28px;">
-    <h2 style="text-align:center;font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">이번 주 베스트</h2>
-    <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">사장님이 직접 만든 꽃다발·바구니, 5~9만원대 인기 구성</div>
+  <section style="margin-top:24px;">
+    <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:10px;color:var(--ink);">이번 주 베스트</div>
     <div id="bestArea" class="best-slider"></div>
   </section>
 
@@ -1062,21 +1058,26 @@ function renderBest(){
     </div>`).join("");
   autoSlideBest(el);
 }
-// 베스트 슬라이드 자동 넘김(3초마다 한 칸, 끝나면 처음으로). 손으로 만지면 잠깐 멈춤.
+// 베스트 슬라이드 — 가로로 자연스럽게 계속 흐름(마퀴). 손으로 만지면 잠깐 멈췄다 이어감.
 function autoSlideBest(el){
   if(!el || el.children.length<2 || el._auto) return;
   el._auto=true;
+  el.innerHTML += el.innerHTML;   // 끊김 없는 무한 순환 위해 카드 2배 복제
   let paused=false, pauseTimer=null;
-  const pause=()=>{ paused=true; clearTimeout(pauseTimer); pauseTimer=setTimeout(()=>{paused=false;}, 5000); };
+  const pause=()=>{ paused=true; clearTimeout(pauseTimer); pauseTimer=setTimeout(()=>{paused=false;}, 3500); };
   el.addEventListener("pointerdown", pause);
+  el.addEventListener("touchstart", pause, {passive:true});
   el.addEventListener("wheel", pause, {passive:true});
-  setInterval(()=>{
-    if(paused || document.hidden) return;
-    const card=el.querySelector(".cat-tile"); if(!card) return;
-    const step=card.offsetWidth+12;
-    if(el.scrollLeft + el.clientWidth >= el.scrollWidth - 12) el.scrollTo({left:0, behavior:"smooth"});
-    else el.scrollBy({left:step, behavior:"smooth"});
-  }, 3000);
+  const SPEED=0.4;               // 프레임당 px — 은은하게 흐르는 속도
+  function tick(){
+    if(!paused && !document.hidden && el.scrollWidth>el.clientWidth){
+      el.scrollLeft += SPEED;
+      const half=el.scrollWidth/2;
+      if(el.scrollLeft>=half) el.scrollLeft-=half;   // 원본 세트 지나면 되감아 순환
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 function goCat(cat, label){
