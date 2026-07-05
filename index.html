@@ -1367,6 +1367,9 @@ async function handleRedirect(){
   if(r==="fail"){ alert("결제가 취소되었거나 실패했습니다.\n"+(q.get("message")||"")); cleanUrl(); return; }
   if(r==="success"){
     const paymentKey=q.get("paymentKey"), orderId=q.get("orderId"), amount=q.get("amount");
+    // 새로고침/뒤로가기 재진입 시 승인 재호출 방지 — 이미 완료된 주문이면 저장된 결과로 바로 렌더(중복 결제확인·중복 알림 차단)
+    let _d=null; try{ _d=JSON.parse(sessionStorage.getItem("af_done_"+orderId)||"null"); }catch(_){}
+    if(_d && _d.data){ renderDone(_d.data, _d.saved||{}); return; }
     document.querySelector(".wrap").innerHTML=`<section class="card"><div class="loading"><div class="spinner"></div> 결제를 확인하고 있습니다…</div></section>`;
     let saved={}; try{ saved=JSON.parse(sessionStorage.getItem("af_"+orderId)||"{}"); }catch(_){}
     let _authH={"Content-Type":"application/json"};
@@ -1377,6 +1380,7 @@ async function handleRedirect(){
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||"결제 승인에 실패했습니다.");
       sessionStorage.removeItem("af_"+orderId);
+      try{ sessionStorage.setItem("af_done_"+orderId, JSON.stringify({data:data, saved:saved})); }catch(_){}
       renderDone(data,saved);
     }catch(e){
       document.querySelector(".wrap").innerHTML=`<section class="card"><div class="step-head"><span class="step-title">결제 확인 오류</span></div>

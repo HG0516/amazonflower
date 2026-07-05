@@ -285,6 +285,19 @@ async function saveOrder(order, payment) {
     utm_campaign: String(order.utmCampaign || "").slice(0, 64) || null,
   };
   try {
+    // 멱등: 같은 order_id 가 이미 저장돼 있으면 재삽입·재알림 안 함(isNew:false)
+    if (row.order_id) {
+      const chk = await fetch(
+        `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(row.order_id)}&select=order_id&limit=1`,
+        { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+      );
+      if (chk.ok) {
+        const exist = await chk.json().catch(() => []);
+        if (Array.isArray(exist) && exist.length) {
+          return { saved: true, isNew: false, reason: "duplicate" };
+        }
+      }
+    }
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: "POST",
       headers: {
@@ -299,7 +312,7 @@ async function saveOrder(order, payment) {
       console.error("주문 저장 실패:", r.status, await r.text().catch(() => ""));
       return { saved: false, reason: "insert_error" };
     }
-    return { saved: true };
+    return { saved: true, isNew: true };
   } catch (err) {
     console.error("주문 저장 예외:", err);
     return { saved: false, reason: "exception", detail: err.message };
@@ -390,7 +403,33 @@ export default async function handler(req, res) {
     const payment = await confirmRes.json();
 
     if (!confirmRes.ok) {
-      // 토스가 거절한 경우 (이미 처리됨, 금액 불일치, 만료 등)
+      // 이미 승인된 결제(완료화면 새로고침·뒤로가기 재진입) → 오류가 아님.
+      // 기존 결제를 조회해 '완료'로 응답하고, 재저장·재알림은 하지 않는다(중복 주문/중복 문자 방지).
+      if (payment.code === "ALREADY_PROCESSED_PAYMENT") {
+        try {
+          const look = await fetch(
+            `https://api.tosspayments.com/v1/payments/orders/${encodeURIComponent(orderId)}`,
+            { headers: { Authorization: `Basic ${basicAuth}` } }
+          );
+          if (look.ok) {
+            const pay2 = await look.json();
+            return res.status(200).json({
+              ok: true,
+              alreadyDone: true,
+              payment: {
+                orderId: pay2.orderId,
+                totalAmount: pay2.totalAmount,
+                method: pay2.method,
+                approvedAt: pay2.approvedAt,
+                receiptUrl: pay2.receipt && pay2.receipt.url,
+              },
+            });
+          }
+        } catch (_e) {}
+        // 조회 실패해도 재출금은 없으므로 최소한 완료로 처리
+        return res.status(200).json({ ok: true, alreadyDone: true, payment: { orderId } });
+      }
+      // 그 외 거절 (금액 불일치·만료 등)
       console.error("토스 승인 실패:", confirmRes.status, payment);
       return res.status(confirmRes.status).json({
         error: payment.message || "결제 승인에 실패했습니다.",
@@ -409,12 +448,17 @@ export default async function handler(req, res) {
         productCode,
       user_id: userId,
     };
-    // 주문 저장 + 문자 + 텔레그램을 동시에 — 모두 실패해도 결제엔 영향 없음
-    const [smsResult, telegramResult, saveResult] = await Promise.all([
-      notifyOwners(orderInfo, payment),
-      notifyTelegram(orderInfo, payment),
-      saveOrder(orderInfo, payment),
-    ]);
+    // 저장을 먼저(멱등) — 같은 주문이 이미 있으면 문자·텔레그램 재발송을 건너뛴다(중복 알림 방지).
+    // 저장은 실패해도 결제엔 영향 없음.
+    const saveResult = await saveOrder(orderInfo, payment);
+    const isDuplicate = saveResult && saveResult.isNew === false;
+    let smsResult = null, telegramResult = null;
+    if (!isDuplicate) {
+      [smsResult, telegramResult] = await Promise.all([
+        notifyOwners(orderInfo, payment),
+        notifyTelegram(orderInfo, payment),
+      ]);
+    }
 
     // 알림 실패해도 결제는 성공 처리 (결제는 이미 승인됨)
     return res.status(200).json({
