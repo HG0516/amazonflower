@@ -111,6 +111,12 @@
 
   /* ── 카테고리 타일 ── */
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* 이번 주 베스트 — 가로 한 줄 슬라이드 */
+  .best-slider { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+  .best-slider::-webkit-scrollbar { height: 6px; }
+  .best-slider::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .best-slider .cat-tile { flex: 0 0 46%; scroll-snap-align: start; }
+  @media (min-width: 1000px) { .best-slider .cat-tile { flex-basis: 30%; } }
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color .15s; user-select: none; }
   .cat-tile:hover { border-color: var(--ink); }
   .cat-photo { height: 120px; background: #f1ede4; overflow: hidden; }
@@ -384,7 +390,7 @@
   <section style="margin-top:28px;">
     <h2 style="text-align:center;font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">이번 주 베스트</h2>
     <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">사장님이 직접 만든 꽃다발·바구니, 5~9만원대 인기 구성</div>
-    <div id="bestArea" class="cat-grid"></div>
+    <div id="bestArea" class="best-slider"></div>
     <a class="catalogue-link" href="/catalog.html?cat=basket" style="margin-top:14px;">꽃다발 · 바구니 전체 보기 →</a>
   </section>
 
@@ -1069,8 +1075,8 @@ function renderBest(){
   if(!el || !list.length){ if(el) el.closest("section").style.display="none"; return; }
   // 꽃다발·바구니 번갈아 섞어 다양하게, 6개
   const bq=list.filter(p=>p.cat==="bouquet"), bs=list.filter(p=>p.cat==="basket"), mix=[];
-  for(let i=0;i<Math.max(bq.length,bs.length) && mix.length<6;i++){ if(bq[i])mix.push(bq[i]); if(bs[i]&&mix.length<6)mix.push(bs[i]); }
-  el.innerHTML=mix.slice(0,6).map(p=>`
+  for(let i=0;i<Math.max(bq.length,bs.length) && mix.length<8;i++){ if(bq[i])mix.push(bq[i]); if(bs[i]&&mix.length<8)mix.push(bs[i]); }
+  el.innerHTML=mix.slice(0,8).map(p=>`
     <div class="cat-tile" onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'">
       <div class="cat-photo"><img src="${p.photos[0]||''}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'"></div>
       <div class="cat-name">${escapeHtml(p.name)}</div>
