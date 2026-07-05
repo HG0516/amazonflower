@@ -263,6 +263,9 @@ async function saveOrder(order, payment) {
     product_label: order.productLabel || null,
     product_code: order.productCode || null,
     amount: Number(payment.totalAmount) || null,
+    price: Number(order.price) || null,                 // 상품 정가(단가)
+    paid_amount: Number(payment.totalAmount) || null,   // 실제 결제금액
+    discount_points: Number(order.discount_points) || 0,
     category: order.category || null,
     order_type: order.type || null,
     recipient_name: order.recipientName || null,
