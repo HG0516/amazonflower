@@ -208,12 +208,14 @@ for (const prod of productMap.values()) {
 // pc 순 정렬(카테고리 접두어 → 연번)
 products.sort((a, b) => a.pc.localeCompare(b.pc, "en", { numeric: true }));
 
-// ── products.js 생성 (브라우저 window.PRODUCTS + 서버 export 겸용 UMD) ──
-const banner = `// products.js — 꽃안부 상품 단일 소스 (자동 생성물, 직접 수정 금지)
-// 생성: scripts/build-products.mjs  |  원장: 3.완성 사진 파일명(이름+가격)
-// 이 파일 하나를 프론트(catalog.html·index.html)와 결제검증 서버(api/confirm-payment.js)가 함께 읽는다.
+// ── products.js(브라우저 classic) + products.mjs(서버 ESM) 이중 생성 ──
+// 브라우저 classic <script src> 는 export 키워드를 못 읽고, Vercel 서버리스(type:module)는 import 가 필요.
+// → 같은 빌드에서 두 파일을 함께 뽑아 단일 소스를 유지한다(둘 다 자동 생성물, 손대지 말 것).
+const banner = (f, other) => `// ${f} — 꽃안부 상품 단일 소스 (자동 생성물, 직접 수정 금지)
+// 생성: scripts/build-products.mjs  |  원장: 3.완성 사진 파일명(이름+가격)  |  짝: ${other}
+// 프론트(catalog.html·index.html)는 products.js, 결제검증 서버(api/confirm-payment.js)는 products.mjs 를 읽는다.
 // ⚠️ public 레포이므로 원가·마진 등 내부 정보 필드 금지. 판매가·공개 스펙만.\n`;
-const body =
+const dataDefs =
   `const PRODUCTS = ${JSON.stringify(products, null, 1)};\n\n` +
   `const LEGACY_TIERS = ${JSON.stringify(LEGACY_TIERS, null, 1)};\n\n` +
   `const TOPPINGS = ${JSON.stringify(TOPPINGS, null, 1)};\n\n` +
@@ -224,12 +226,22 @@ const body =
   `  if (p) return p.price;\n` +
   `  if (code in LEGACY_TIERS) return LEGACY_TIERS[code];\n` +
   `  return null;\n}\n\n` +
-  `const API = { PRODUCTS, LEGACY_TIERS, TOPPINGS, TOPPINGS_BY_CAT, priceOf };\n` +
-  `if (typeof window !== "undefined") { Object.assign(window, API); window.AF_PRODUCTS = API; }\n` +
-  `if (typeof module !== "undefined" && module.exports) { module.exports = API; }\n` +
+  `const AF_PRODUCTS = { PRODUCTS, LEGACY_TIERS, TOPPINGS, TOPPINGS_BY_CAT, priceOf };\n`;
+// 브라우저용: IIFE로 감싸 전역 렉시컬 오염 방지(다른 classic script의 const TOPPINGS 등과 재선언 충돌 회피),
+// window 에만 노출. export 없음.
+const classicJs =
+  banner("products.js", "products.mjs") +
+  `(function () {\n` +
+  dataDefs +
+  `  if (typeof window !== "undefined") { Object.assign(window, AF_PRODUCTS); window.AF_PRODUCTS = AF_PRODUCTS; }\n` +
+  `})();\n`;
+// 서버용(ESM): export
+const esmJs =
+  banner("products.mjs", "products.js") + dataDefs +
   `export { PRODUCTS, LEGACY_TIERS, TOPPINGS, TOPPINGS_BY_CAT, priceOf };\n` +
-  `export default API;\n`;
-fs.writeFileSync(path.join(ROOT, "products.js"), banner + body, "utf8");
+  `export default AF_PRODUCTS;\n`;
+fs.writeFileSync(path.join(ROOT, "products.js"), classicJs, "utf8");
+fs.writeFileSync(path.join(ROOT, "products.mjs"), esmJs, "utf8");
 fs.writeFileSync(IDS_PATH, JSON.stringify(ids, null, 1), "utf8");
 fs.writeFileSync(path.join(ROOT, "photo-manifest.json"), JSON.stringify(manifest, null, 1), "utf8");
 

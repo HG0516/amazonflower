@@ -1,8 +1,7 @@
-// products.js — 꽃안부 상품 단일 소스 (자동 생성물, 직접 수정 금지)
-// 생성: scripts/build-products.mjs  |  원장: 3.완성 사진 파일명(이름+가격)  |  짝: products.mjs
+// products.mjs — 꽃안부 상품 단일 소스 (자동 생성물, 직접 수정 금지)
+// 생성: scripts/build-products.mjs  |  원장: 3.완성 사진 파일명(이름+가격)  |  짝: products.js
 // 프론트(catalog.html·index.html)는 products.js, 결제검증 서버(api/confirm-payment.js)는 products.mjs 를 읽는다.
 // ⚠️ public 레포이므로 원가·마진 등 내부 정보 필드 금지. 판매가·공개 스펙만.
-(function () {
 const PRODUCTS = [
  {
   "pc": "BQ-001",
@@ -1881,5 +1880,5 @@ function priceOf(code){
 }
 
 const AF_PRODUCTS = { PRODUCTS, LEGACY_TIERS, TOPPINGS, TOPPINGS_BY_CAT, priceOf };
-  if (typeof window !== "undefined") { Object.assign(window, AF_PRODUCTS); window.AF_PRODUCTS = AF_PRODUCTS; }
-})();
+export { PRODUCTS, LEGACY_TIERS, TOPPINGS, TOPPINGS_BY_CAT, priceOf };
+export default AF_PRODUCTS;

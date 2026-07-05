@@ -8,6 +8,8 @@
 //  - 사장님이 주문을 직접 확인하고 본인 판단으로 거래처에 발주한다.
 //  - 알림 문자에는 발주 복붙용 정리 정보 + 원문(URL/텍스트)을 함께 담아 사장님이 더블체크할 수 있게 한다.
 
+import { priceOf, TOPPINGS as TOPPINGS_SRC, PRODUCTS } from "../products.mjs";
+
 export const config = {
   runtime: "nodejs",
 };
@@ -15,55 +17,12 @@ export const config = {
 const TOSS_CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm";
 const SOLAPI_SEND_URL = "https://api.solapi.com/messages/v4/send-many/detail";
 
-// 화환 상품 정가 (서버에서 금액 위변조를 검증하기 위한 신뢰 가능한 가격표)
-// 프론트가 보낸 금액을 그대로 믿지 않고, orderId/상품코드 기준으로 서버가 다시 확인한다.
-const PRODUCT_PRICES = {
-  // 축하화환 (등급제 4단계)
-  congrats_g1: 59000,   // 일반형 (3단 기본)
-  congrats_g2: 79000,   // 중급형 (3단 풍성)
-  congrats_g3: 99000,   // 고급형 (3단 고급)
-  congrats_g4: 129000,  // 최고급형 (4단 특대)
-  // 근조화환 (등급제 4단계)
-  condolence_c1: 59000, // 일반형 (3단 기본)
-  condolence_c2: 79000, // 중급형 (3단 풍성)
-  condolence_c3: 99000, // 고급형 (3단 고급)
-  condolence_c4: 129000,// 최고급형 (4단 특대)
-  // 동양란·서양란 ※ 임시 정찰가 — 확정 시 index.html/catalog.html 과 같이 수정
-  orchid_o1: 69000,     // 동양란 기본
-  orchid_o2: 99000,     // 동양란 고급
-  orchid_o3: 79000,     // 서양란(호접란) 기본
-  orchid_o4: 119000,    // 서양란(호접란) 고급
-  // 관엽식물 ※ 임시 정찰가
-  plant_p1: 59000,      // 일반형 (테이블)
-  plant_p2: 79000,      // 중급형 (개업 표준)
-  plant_p3: 99000,      // 고급형 (중대형)
-  plant_p4: 129000,     // 특대형 (로비급)
-  // 꽃바구니·꽃다발 ※ 임시 정찰가
-  basket_b1: 49000,     // 꽃다발 기본
-  basket_b2: 69000,     // 꽃다발 고급
-  basket_b3: 59000,     // 꽃바구니 기본
-  basket_b4: 89000,     // 꽃바구니 고급
-};
-
-// 마음 얹기(토핑) 정가 — index.html 의 TOPPINGS 와 반드시 일치시킬 것 (※ 임시 가격)
-const TOPPING_PRICES = {
-  top_rice: 20000,    // 쌀 10kg
-  top_ribbon: 10000,  // 금박 고급 리본
-  top_pot: 20000,     // 도자기 분 업그레이드
-  top_plaque: 10000,  // 나무 명패
-  top_more: 20000,    // 더 풍성하게
-  top_wine: 30000,    // 와인 동봉
-  top_card: 5000,     // 손글씨 카드
-};
-const TOPPING_LABELS = {
-  top_rice: "쌀 10kg 얹기",
-  top_ribbon: "금박 고급 리본",
-  top_pot: "도자기 분 업그레이드",
-  top_plaque: "나무 명패",
-  top_more: "더 풍성하게",
-  top_wine: "와인 동봉",
-  top_card: "손글씨 카드",
-};
+// 상품 정가·토핑 = products.mjs 단일 소스에서 읽는다 (하드코딩 제거, 프롬프트2).
+//  - priceOf(code): 신규 개별상품(PL-001 등)과 구 티어코드(plant_p2 등) 모두 정가 반환 → 하위호환.
+//  - 금액 위변조 검증은 프론트가 보낸 금액을 믿지 않고 이 정가와 대조한다.
+const TOPPING_LABELS = Object.fromEntries(
+  Object.entries(TOPPINGS_SRC).map(([k, v]) => [k, v.nm])
+);
 
 const PRODUCT_LABELS = {
   congrats_g1: "축하화환 일반형 (AF-G01)",
@@ -373,7 +332,7 @@ export default async function handler(req, res) {
     // 프론트가 보낸 amount를 그대로 믿지 않는다.
     // order.productCode 기준 정가와 대조한다.
     const productCode = order && order.productCode;
-    const basePrice = PRODUCT_PRICES[productCode];
+    const basePrice = priceOf(productCode);
     if (basePrice == null) {
       return res
         .status(400)
@@ -385,7 +344,7 @@ export default async function handler(req, res) {
       : [];
     let toppingSum = 0;
     for (const t of toppings) {
-      const tp = TOPPING_PRICES[t];
+      const tp = TOPPINGS_SRC[t] ? TOPPINGS_SRC[t].price : null;
       if (tp == null) {
         return res
           .status(400)
@@ -432,6 +391,7 @@ export default async function handler(req, res) {
       productLabel:
         (order && order.productLabel) ||
         PRODUCT_LABELS[productCode] ||
+        (PRODUCTS.find((p) => p.pc === productCode) || {}).name ||
         productCode,
       user_id: userId,
     };

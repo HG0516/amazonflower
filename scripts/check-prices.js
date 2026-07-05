@@ -8,6 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { LEGACY_TIERS } from "../products.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (f) => fs.readFileSync(path.join(root, f), "utf8");
@@ -20,14 +21,11 @@ function afToPc(af) {
   return map[m[1].toUpperCase()] + m[2];
 }
 
-// 1) 서버 기준 PRODUCT_PRICES
+// 1) 단일 소스 기준 = products.mjs 의 LEGACY_TIERS (구 티어코드 정가).
+//    confirm-payment.js 는 priceOf() 로 이 값을 읽으므로, 화면(catalog/index)에 노출된
+//    티어 가격이 이 기준과 어긋나면 결제 검증과 불일치 → 실패.
 function parseServer() {
-  const t = read("api/confirm-payment.js");
-  const block = t.slice(t.indexOf("PRODUCT_PRICES"), t.indexOf("TOPPING_PRICES"));
-  const out = {};
-  const re = /([a-z]+_[a-z]\d):\s*(\d+)/g; let m;
-  while ((m = re.exec(block))) out[m[1]] = +m[2];
-  return out;
+  return { ...LEGACY_TIERS };
 }
 // 2) catalog TIERS: price + code
 function parseCatalog() {
@@ -58,8 +56,8 @@ for (const [name, map] of Object.entries(sources)) {
   const keys = Object.keys(map);
   if (keys.length === 0) errors.push(`${name}: 가격을 하나도 못 읽음(파서 점검 필요)`);
   for (const pc of keys) {
-    if (server[pc] == null) errors.push(`${name}: '${pc}' 가 서버 PRODUCT_PRICES 에 없음`);
-    else if (server[pc] !== map[pc]) errors.push(`${name}: '${pc}' 가격 불일치 — ${name}=${map[pc]} vs 서버=${server[pc]}`);
+    if (server[pc] == null) errors.push(`${name}: '${pc}' 가 products.mjs LEGACY_TIERS 에 없음`);
+    else if (server[pc] !== map[pc]) errors.push(`${name}: '${pc}' 가격 불일치 — ${name}=${map[pc]} vs 단일소스=${server[pc]}`);
   }
 }
 
