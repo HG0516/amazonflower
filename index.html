@@ -373,6 +373,26 @@
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
   </section>
 
+  <!-- 이번 주 베스트(21-C 5): 실물 꽃다발·바구니 5~9만 -->
+  <section style="margin-top:28px;">
+    <h2 style="text-align:center;font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;">이번 주 베스트</h2>
+    <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">사장님이 직접 만든 꽃다발·바구니, 5~9만원대 인기 구성</div>
+    <div id="bestArea" class="cat-grid"></div>
+    <a class="catalogue-link" href="/catalog.html?cat=basket" style="margin-top:14px;">꽃다발 · 바구니 전체 보기 →</a>
+  </section>
+
+  <!-- 관엽 구독 배너(21-C 6) -->
+  <section style="margin-top:20px;">
+    <div onclick="location.href='/catalog.html?cat=plant'" style="cursor:pointer;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:14px;">
+      <div style="font-size:30px;">🪴</div>
+      <div style="flex:1;">
+        <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--accent-deep);">관엽 식물 — 사무실·집들이 선물</div>
+        <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">5만원대부터 · 공간 크기에 맞춰 추천해드려요</div>
+      </div>
+      <div style="font-size:18px;color:var(--accent);">→</div>
+    </div>
+  </section>
+
   <section class="hero" id="srcCard" style="margin-top:26px;padding-top:0;">
     <div class="divider-center"><span style="font-size:12px;color:var(--ink-faint);letter-spacing:1px;">또는, 사연·링크로 추천받기</span></div>
     <p class="lede" style="margin-top:0;">청첩장·부고 링크는 물론, <b>"어머니 칠순"</b>, <b>"부모님 결혼 30주년"</b>, <b>"친구 개업"</b>처럼 적어주셔도 어울리는 상품을 추천해드려요.</p>
@@ -1019,6 +1039,22 @@ function updateDesignPhoto(){
 // 홈 카테고리 카드 → 전체상품(카탈로그)로 이동해 그 축의 상품을 둘러보게 한다.
 function goCatalog(cat){ location.href = "/catalog.html?cat=" + encodeURIComponent(cat); }
 
+// 홈 '이번 주 베스트' — 실물 꽃다발·바구니 5~9만원대에서 6개(products.js). 클릭 시 개별상품 주문.
+function renderBest(){
+  const el=document.getElementById("bestArea");
+  const list=(window.PRODUCTS||[]).filter(p=>(p.cat==="bouquet"||p.cat==="basket") && p.price>=57000 && p.price<=89000);
+  if(!el || !list.length){ if(el) el.closest("section").style.display="none"; return; }
+  // 꽃다발·바구니 번갈아 섞어 다양하게, 6개
+  const bq=list.filter(p=>p.cat==="bouquet"), bs=list.filter(p=>p.cat==="basket"), mix=[];
+  for(let i=0;i<Math.max(bq.length,bs.length) && mix.length<6;i++){ if(bq[i])mix.push(bq[i]); if(bs[i]&&mix.length<6)mix.push(bs[i]); }
+  el.innerHTML=mix.slice(0,6).map(p=>`
+    <div class="cat-tile" onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'">
+      <div class="cat-photo"><img src="${p.photos[0]||''}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'"></div>
+      <div class="cat-name">${escapeHtml(p.name)}</div>
+      <div class="cat-desc">${p.price.toLocaleString()}원 · ${escapeHtml(p.sub)}</div>
+    </div>`).join("");
+}
+
 function goCat(cat, label){
   window.__presetCat = cat;
   const banner=document.getElementById("catalogBanner");
@@ -1638,6 +1674,7 @@ function handleCatalogParam(){
 }
 
 handleRedirect();
+renderBest();
 handleProductParam();
 handleCatalogParam();
 // 카탈로그 화환 URL 박스(/?src=링크)에서 넘어온 경우: 링크를 채우고 자동 분석 시작
