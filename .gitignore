@@ -4,6 +4,9 @@ node_modules/
 .vercel
 .DS_Store
 
+# 빌드 아티팩트 (로컬 절대경로 포함 — 커밋 금지, build-products.mjs 실행 시 재생성)
+photo-manifest.json
+
 # 사업 기획서는 비공개 레포로 분리 관리 (HG0516/docs-backup, HG0516/kkotanbu-plan)
 # 이 레포(amazonflower)는 코드 전용 — public. 기획서를 여기 두지 말 것.
 docs/
