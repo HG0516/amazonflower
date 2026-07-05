@@ -209,6 +209,13 @@
   .design-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin-top: 4px; }
   .design-price { font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); }
   .design-confirm { margin-top: 14px; }
+  .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 0; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
+  .qty-label { font-weight: 600; font-size: 15px; color: var(--ink); }
+  .qty-ctrl { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .qty-btn { width: 44px; height: 44px; border: none; background: var(--paper); color: var(--ink); font-size: 22px; font-weight: 700; cursor: pointer; font-family: var(--font-body); line-height: 1; }
+  .qty-btn:hover { background: var(--accent-soft); }
+  .qty-num { min-width: 44px; text-align: center; font-size: 17px; font-weight: 700; }
+  .qty-hint { font-size: 12px; color: var(--ink-faint); }
 
   /* ── 법인 안내 — 가로선 위 한 줄 ── */
   .corp-line { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--ink-soft); text-align: center; line-height: 1.7; cursor: pointer; }
@@ -629,7 +636,7 @@ const order = {
   src:"", type:"unknown", side:"", category:"wreath", toppings:[],
   recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"",
   groomName:"", brideName:"", chiefMourner:"",
-  price:0, productCode:"", productLabel:"",
+  price:0, productCode:"", productLabel:"", quantity:1,
   senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"", senderNote:"",
   buyerType:"personal", corpName:"", corpRegNo:"", corpCeo:"", corpAddr:"", corpEmail:"",
 };
@@ -984,7 +991,32 @@ const TOPPINGS_BY_CAT = {
 };
 
 function orderTotal(){
-  return order.price + (order.toppings||[]).reduce((s,c)=>s+(TOPPINGS[c]?TOPPINGS[c].price:0),0);
+  const per = order.price + (order.toppings||[]).reduce((s,c)=>s+(TOPPINGS[c]?TOPPINGS[c].price:0),0);
+  return per * (order.quantity||1);
+}
+// 수량 조절(1~99). 같은 상품 여러 개(예: 화환 여러 개 한 장례식장)를 한 번에.
+function changeQty(delta){
+  let q=(order.quantity||1)+delta;
+  q=Math.max(1, Math.min(99, q));
+  order.quantity=q;
+  const qd=document.getElementById("qtyDisplay"); if(qd) qd.textContent=q;
+  updateDesignTotal();
+  // 결제 카드가 열려 있으면 금액 동기화
+  if(!document.getElementById("payCard").classList.contains("hidden")){
+    document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
+    try{ if(window.widgets) widgets.setAmount({currency:"KRW",value:orderTotal()}); }catch(e){}
+  }
+}
+function qtyRowHtml(){
+  return `<div class="qty-row">
+      <span class="qty-label">수량</span>
+      <div class="qty-ctrl">
+        <button type="button" class="qty-btn" onclick="changeQty(-1)" aria-label="줄이기">−</button>
+        <span id="qtyDisplay" class="qty-num">${order.quantity||1}</span>
+        <button type="button" class="qty-btn" onclick="changeQty(1)" aria-label="늘리기">+</button>
+      </div>
+      <span class="qty-hint">같은 상품 여러 개는 여기서</span>
+    </div>`;
 }
 
 async function toggleTopping(code){
@@ -1021,9 +1053,11 @@ function updateDesignTotal(){
   const el=document.getElementById("designTotal");
   if(!el) return;
   const tops=(order.toppings||[]);
-  el.innerHTML = tops.length
-    ? `${order.price.toLocaleString()}원 + 얹기 ${tops.reduce((s,c)=>s+TOPPINGS[c].price,0).toLocaleString()}원 = <b>${orderTotal().toLocaleString()}원</b>`
-    : `<b>${order.price.toLocaleString()}원</b>`;
+  const topsum=tops.reduce((s,c)=>s+(TOPPINGS[c]?TOPPINGS[c].price:0),0);
+  const q=order.quantity||1;
+  const base = tops.length ? `${order.price.toLocaleString()}원 + 얹기 ${topsum.toLocaleString()}원` : `${order.price.toLocaleString()}원`;
+  if(q>1) el.innerHTML = `${base} × ${q}개 = <b>${orderTotal().toLocaleString()}원</b>`;
+  else    el.innerHTML = tops.length ? `${base} = <b>${orderTotal().toLocaleString()}원</b>` : `<b>${order.price.toLocaleString()}원</b>`;
 }
 
 // 토핑 조합 연출 사진이 있으면 교체, 없으면 기본 사진 유지
@@ -1142,6 +1176,7 @@ function selTier(i, autoOpen){
   const items=getItems(order.category);
   const t=items[i]; if(!t) return;
   order.price=t.price;
+  order.quantity=1;
   order.productCode=t.pc;
   order.productLabel=t.nm+" ("+t.cl+")";
   const tabs=document.querySelectorAll("#priceTabs .price-tab");
@@ -1163,6 +1198,7 @@ function selTier(i, autoOpen){
         <div class="design-price" id="designTotal"><b>${t.price.toLocaleString()}원</b></div>
       </div>
     </div>
+    ${qtyRowHtml()}
     <div id="toppingBox"></div>
     <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>`;
   renderToppings();
@@ -1606,6 +1642,7 @@ function productOrderCat(p){
 // 선택된 개별상품으로 주문 구성(selTier의 개별상품 버전). 결제검증은 서버가 priceOf(pc)로 재확인.
 function selProduct(p){
   order.price=p.price;
+  order.quantity=1;
   order.productCode=p.pc;
   order.productLabel=p.name+(p.grade?" "+p.grade:"");
   order.category=productOrderCat(p);
@@ -1623,6 +1660,7 @@ function selProduct(p){
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
       </div>
     </div>
+    ${qtyRowHtml()}
     <div id="toppingBox"></div>
     <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>`;
   renderToppings();

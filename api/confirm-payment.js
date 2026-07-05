@@ -68,6 +68,7 @@ function buildOwnerMessage(order, payment) {
   lines.push("[새 주문] 꽃안부");
   lines.push("");
   lines.push(`상품: ${order.productLabel || "-"}`);
+  if (order.quantity && Number(order.quantity) > 1) lines.push(`수량: ${order.quantity}개`);
   const tops = Array.isArray(order.toppings) ? order.toppings : [];
   if (tops.length) {
     lines.push(`얹기: ${tops.map((t) => TOPPING_LABELS[t] || t).join(" · ")}`);
@@ -352,10 +353,16 @@ export default async function handler(req, res) {
       }
       toppingSum += tp;
     }
-    const expectedPrice = basePrice + toppingSum;
+    // 수량(같은 상품 여러 개). 정수 1~99만 허용.
+    const qty = parseInt(order && order.quantity, 10);
+    const quantity = Number.isFinite(qty) && qty >= 1 && qty <= 99 ? qty : 1;
+    if (order && order.quantity != null && !(Number.isFinite(qty) && qty >= 1 && qty <= 99)) {
+      return res.status(400).json({ error: "수량이 올바르지 않습니다." });
+    }
+    const expectedPrice = (basePrice + toppingSum) * quantity;
     if (Number(amount) !== expectedPrice) {
       console.error(
-        `금액 불일치: 요청 ${amount} vs 정가 ${expectedPrice} (${productCode} + [${toppings.join(",")}])`
+        `금액 불일치: 요청 ${amount} vs 정가 ${expectedPrice} (${productCode} x${quantity} + [${toppings.join(",")}])`
       );
       return res.status(400).json({
         error: "결제 금액이 상품 가격과 일치하지 않습니다.",
