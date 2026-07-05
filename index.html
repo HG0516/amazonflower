@@ -1644,17 +1644,18 @@ function selProduct(p){
   order.price=p.price;
   order.quantity=1;
   order.productCode=p.pc;
-  order.productLabel=p.name+(p.grade?" "+p.grade:"");
+  order.productLabel=p.name+((p.grade && !String(p.name).includes(p.grade))?" "+p.grade:"");
   order.category=productOrderCat(p);
   const photo=(p.photos&&p.photos[0])||"";
   const sizeLine = (p.cat==="plant"&&p.size) ? ("크기 H"+p.size.h+" × W"+p.size.w+"mm") : "사장님이 직접 만든 실물 상품입니다.";
+  const gradeTxt = (p.grade && !String(p.name).includes(p.grade)) ? " "+escapeHtml(p.grade) : "";
   const area=document.getElementById("designArea");
   area.innerHTML=`<div class="design-detail">
       <div class="design-photo">
         <img src="${photo}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:11px;color:#9e9a8f;\\'>사진 준비 중</span>';">
       </div>
       <div class="design-info">
-        <div class="design-name">${escapeHtml(p.name)}${p.grade?" "+escapeHtml(p.grade):""}</div>
+        <div class="design-name">${escapeHtml(p.name)}${gradeTxt}</div>
         <div class="design-code">${escapeHtml(p.pc)}</div>
         <div class="design-desc">${escapeHtml(sizeLine)}</div>
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
