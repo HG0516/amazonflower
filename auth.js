@@ -18,7 +18,7 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   // 다른 스크립트(주문 저장 등)에서 현재 사용자 참조 가능하도록 노출
-  window.afAuth = { client: sb, user: null };
+  window.afAuth = { client: sb, user: null, openAccount: function () { openAccountSheet(); } };
   // 외부(결제완료 화면 등)에서 로그인/계정 시트 열기
   window.afOpenAuth = function () {
     if (window.afAuth && window.afAuth.user) openAccountSheet(); else openLoginSheet();
@@ -83,6 +83,8 @@
       chip.textContent = '로그인';
       chip.onclick = openLoginSheet;
     }
+    // 페이지(홈 재주문 배너 등)가 로그인 상태 변화에 반응할 수 있게 알림
+    try { document.dispatchEvent(new CustomEvent('af-auth-change', { detail: { user: user } })); } catch (e) {}
   }
 
   function overlay() {
@@ -243,6 +245,35 @@
     });
   }
 
+  // 내 적립금 — 잔액 + 적립 내역(가입 1,000원 등). 결제 차감 UI는 수치 확정 전이라 미노출.
+  function loadPoints() {
+    var u = window.afAuth.user;
+    var box = document.getElementById('af-points');
+    if (!u || !box) return;
+    sb.from('points_ledger').select('amount,reason,created_at').order('created_at', { ascending: false })
+      .then(function (res) {
+        var rows = (res && res.data) || [];
+        if (!rows.length) { box.innerHTML = ''; return; }
+        var bal = rows.reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
+        var items = rows.slice(0, 5).map(function (r) {
+          var label = r.reason === '가입' ? '가입 축하 적립' : r.reason;
+          var d = (r.created_at || '').slice(0, 10);
+          return '<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#5a564d;margin-top:3px;">'
+            + '<span>' + esc(label) + (d ? ' · ' + d : '') + '</span>'
+            + '<span style="font-weight:700;color:' + (r.amount >= 0 ? '#2d4a38' : '#a33') + ';">' + (r.amount >= 0 ? '+' : '') + fmtWon(r.amount) + '</span></div>';
+        }).join('');
+        box.innerHTML =
+          '<div style="background:#ecf0eb;border:1px solid #2d4a38;border-radius:8px;padding:12px 14px;margin-bottom:12px;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+          + '<span style="font-size:13px;font-weight:800;color:#1e3526;">🌱 내 적립금</span>'
+          + '<span style="font-size:16px;font-weight:800;color:#1e3526;">' + fmtWon(bal) + '</span></div>'
+          + items
+          + '<div style="font-size:11.5px;color:#7a766c;margin-top:6px;">적립금 사용 기능은 곧 열려요 — 사라지지 않아요.</div>'
+          + '</div>';
+      })
+      .catch(function () {});
+  }
+
   function openAccountSheet() {
     injectStyles();
     var ov = overlay();
@@ -250,6 +281,7 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>' + (user ? esc(shortName(user)) : '내 계정') + '님</h3>'
+      + '<div id="af-points"></div>'
       + '<div id="af-anniv"></div>'
       + '<div id="af-orders"><p style="color:#5a564d;font-size:13px;">지난 주문을 불러오는 중…</p></div>'
       + '<button class="af-auth-btn" style="background:#f3efe6;color:#1f1d18;" id="af-logout">로그아웃</button>'
@@ -259,6 +291,7 @@
     ov.querySelector('#af-logout').onclick = logout;
     ov.querySelector('.af-auth-x').onclick = function () { ov.style.display = 'none'; };
 
+    loadPoints();
     renderAnnivSection();
     loadMyOrders().then(function (rows) {
       var box = document.getElementById('af-orders');

@@ -426,7 +426,7 @@ function galleryHTML(key, filterSub){
       + subs.map(s=>`<button class="gf ${filterSub===s?'on':''}" onclick="setGalFilter('${key}','${escapeJs(s)}')">${esc(s)} ${items.filter(i=>i.sub===s).length}</button>`).join("")
       + `</div>`;
   }
-  const cards = show.map(i=>`<div class="gcard" onclick="pickFromGallery('${key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}</div></div>`).join("");
+  const cards = show.map(i=>`<div class="gcard" onclick="pickFromGallery('${key}','${esc(i.pc||"")}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}${i.pc?'<br><span style="font-size:10px;color:var(--accent);font-weight:700;">바로 주문 가능</span>':''}</div></div>`).join("");
   return `<div class="gallery-wrap">
     <div class="gallery-head"><div class="gallery-title">📷 보유 종류 둘러보기</div><div class="gallery-count">${items.length}종</div></div>
     <div class="gallery-sub">실제 보유·제작 가능한 ${CAT_TITLE[key]}입니다. 마음에 드는 느낌을 누르면 위 가격대로 이동해요 — 가격대를 고르고 주문하거나, 전화로 “이런 걸로” 말씀해 주세요.</div>
@@ -434,7 +434,9 @@ function galleryHTML(key, filterSub){
 }
 function setGalFilter(key, sub){ galFilter[key]=sub; document.getElementById("galleryArea").innerHTML=galleryHTML(key, sub); }
 // 갤러리/검색 사진 클릭 → 해당 카테고리 가격대로 이동
-function pickFromGallery(key){
+function pickFromGallery(key, pc){
+  // 사진이 판매상품과 연결돼 있으면(pc) 그 상품 주문으로 바로 — "이 사진 그대로 주문"
+  if(pc && (window.PRODUCTS||[]).some(p=>p.pc===pc)){ location.href="/?pc="+encodeURIComponent(pc); return; }
   const si=document.getElementById("searchInput"); if(si) si.value="";
   doSearch("");
   showCat(key);
@@ -593,7 +595,7 @@ function doSearch(q){
     <div class="gallery-head"><div class="gallery-title">검색 결과</div><div class="gallery-count">${pHits.length+gHits.length}건</div></div>`;
   if(pHits.length){ html+=`<div class="gallery-sub">상품 ${pHits.length}건</div><div class="grid">`+pHits.map(productCard).join("")+`</div>`; }
   if(gHits.length){ html+=`<div class="gallery-sub" style="margin-top:18px;">보유 종류 ${gHits.length}건</div><div class="gallery-grid">`
-    + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]||""}</span></div></div>`).join("")+`</div>`; }
+    + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}','${esc(i.pc||"")}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}<br><span style="font-size:10px;color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]||""}</span></div></div>`).join("")+`</div>`; }
   if(!pHits.length && !gHits.length){ html+=`<div class="gempty">“${q}” 검색 결과가 없어요. 다른 이름으로 찾아보세요.</div>`; }
   html+=`</div>`;
   sa.innerHTML=html;

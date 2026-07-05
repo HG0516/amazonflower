@@ -279,6 +279,10 @@ async function saveOrder(order, payment) {
     ribbon: [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ") || null,
     note: order.senderNote || null,
     user_id: order.user_id || null,
+    // 유입 채널(전단 QR·검색광고 성과 집계) — 클라이언트가 localStorage에 담아 보낸 값
+    utm_source: String(order.utmSource || "").slice(0, 64) || null,
+    utm_medium: String(order.utmMedium || "").slice(0, 64) || null,
+    utm_campaign: String(order.utmCampaign || "").slice(0, 64) || null,
   };
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
