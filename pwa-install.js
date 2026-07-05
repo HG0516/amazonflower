@@ -139,4 +139,11 @@
   if (isIos && isSafari) {
     setTimeout(showIosGuide, 2500);
   }
+
+  // 설치 완료되면 배너를 영구히 숨긴다(다시 권유 안 함)
+  window.addEventListener('appinstalled', function () {
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now() + 3153600000000)); } catch (e) {}
+    var bar = document.getElementById('af-pwa-banner');
+    if (bar) remove(bar);
+  });
 })();

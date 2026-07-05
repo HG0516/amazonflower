@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>꽃안부 — 안부는, 꽃으로</title>
 <meta name="description" content="꽃안부 — 안부를 꽃으로 전합니다. 근조·축하 화환 · 동양란 · 관엽 · 꽃바구니. 부고·청첩장 링크만 보내주세요. 법인 계산서·후불, 전국 당일배송. 1993년부터." />
 <!-- 오픈그래프: 카톡·문자 등에 링크 공유 시 미리보기 카드로 뜸 -->
@@ -514,6 +514,9 @@
   <section class="card hidden" id="payCard">
     <div class="step-head"><span class="step-num" id="n-pay">6.</span><span class="step-title">결제</span></div>
     <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
+
+    <!-- 결제 전 주문 확인(경조사 받는곳·날짜·시간 오배송 방지). order에서 읽기 전용 -->
+    <div id="payReview"></div>
 
     <label class="fl">주문 유형</label>
     <div class="buyer-tabs">
@@ -1265,9 +1268,26 @@ function confirmTier(){
   // '이 구성으로 주문하기' 버튼 — 결제 카드를 명시적으로 열고 스크롤
   document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
   document.getElementById("payCard").classList.remove("hidden");
+  renderPayReview();
   initPay(orderTotal());
   updateBuyBar();
   scrollTo("payCard");
+}
+// 결제 직전 주문 확인 요약(받는 곳·날짜·시간·상품·금액) — 잘못된 빈소/시간 결제 방지
+function renderPayReview(){
+  const el=document.getElementById("payReview"); if(!el) return;
+  const rows=[];
+  if(order.productLabel) rows.push(["상품", escapeHtml(order.productLabel)]);
+  const place=[order.venue,order.venueDetail].filter(Boolean).join(" ")||order.address||"";
+  if(place) rows.push(["받는 곳", escapeHtml(place)]);
+  if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
+  if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
+  if(!rows.length){ el.innerHTML=""; return; }
+  el.innerHTML = '<div style="background:#faf8f3;border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:10px 0 4px;text-align:left;">'
+    + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
+    + rows.map(r=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 0;font-size:14px;line-height:1.6;"><span style="color:var(--ink-faint);white-space:nowrap;">${r[0]}</span><span style="text-align:right;color:var(--ink);">${r[1]}</span></div>`).join("")
+    + '<div style="margin-top:8px;"><a href="#" onclick="scrollTo(\'confirmCard\');return false;" style="font-size:13px;color:var(--accent-deep);font-weight:600;">받는 곳·날짜 고치기 ↑</a></div>'
+    + '</div>';
 }
 function pickDesign(el){
   [...el.parentElement.children].forEach(c=>c.classList.remove("on"));
