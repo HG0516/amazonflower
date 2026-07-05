@@ -212,20 +212,20 @@
     <span class="si">🔍</span>
   </div>
   <div class="uses">
-    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('condolence')">🕊 장례·근조</button>
-    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('congrats')">🎉 결혼·개업 축하</button>
-    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('orchid')">🌿 승진·취임(난)</button>
-    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('plant')">🪴 사무실·집들이</button>
-    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('basket')">💐 생일·병문안</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('condolence')">장례·근조</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('congrats')">결혼·개업 축하</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('orchid')">승진·취임(난)</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('plant')">사무실·집들이</button>
+    <button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('basket')">생일·병문안</button>
   </div>
   <div id="searchArea" class="hidden"></div>
 
   <div class="seg" id="segTabs" style="flex-wrap:wrap;">
-    <button id="tabBasket" class="on" onclick="showCat('basket')">💐 꽃다발·바구니</button>
-    <button id="tabPlant" onclick="showCat('plant')">🪴 관엽·식물</button>
-    <button id="tabOrchid" onclick="showCat('orchid')">🌸 난</button>
-    <button id="tabCongrats" onclick="showCat('congrats')">🎉 축하화환</button>
-    <button id="tabCondo" class="condo" onclick="showCat('condolence')">🕊 근조화환</button>
+    <button id="tabBasket" class="on" onclick="showCat('basket')">꽃다발·바구니</button>
+    <button id="tabPlant" onclick="showCat('plant')">관엽·식물</button>
+    <button id="tabOrchid" onclick="showCat('orchid')">난</button>
+    <button id="tabCongrats" onclick="showCat('congrats')">축하화환</button>
+    <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조화환</button>
   </div>
 
   <div id="subTabs" class="subtabs"></div>
@@ -560,7 +560,13 @@ function openSharedItem(){
   },100);
 }
 
-showCat("basket");
+// 홈에서 ?cat=basket 등으로 넘어오면 해당 탭을 연다(없으면 꽃다발·바구니 기본)
+(function initFromParam(){
+  const q=new URLSearchParams(location.search);
+  let cat=q.get("cat");
+  if(cat==="wreath") cat="congrats";       // 홈의 통합 화환 카드 → 축하화환 탭
+  showCat(AXES[cat] ? cat : "basket");
+})();
 openSharedItem();
 loadLiveGallery();
 

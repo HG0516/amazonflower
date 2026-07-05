@@ -349,24 +349,24 @@
     <h1 style="text-align:center;font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1.4;letter-spacing:-0.5px;margin-bottom:6px;">무엇을 보내시나요?</h1>
     <div style="text-align:center;font-size:13px;color:var(--ink-faint);margin-bottom:16px;">아래에서 바로 고르셔도 되고, 사연을 적으면 어울리는 상품을 추천해드려요</div>
     <div class="cat-grid">
-      <div class="cat-tile" onclick="goCat('basket','꽃바구니 · 꽃다발')">
-        <div class="cat-photo"><img src="/photos/꽃바구니/꽃다발_고급.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
-        <div class="cat-name">꽃바구니 · 꽃다발</div>
+      <div class="cat-tile" onclick="goCatalog('basket')">
+        <div class="cat-photo"><img src="/photos/products/BQ-001_1.jpg" alt="꽃다발" onerror="this.style.display='none'"></div>
+        <div class="cat-name">꽃다발 · 꽃바구니</div>
         <div class="cat-desc">5만원대부터 · 생일·기념일·축하</div>
       </div>
-      <div class="cat-tile" onclick="goCat('plant','관엽식물')">
-        <div class="cat-photo"><img src="/photos/관엽/고급형.jpg" alt="관엽" onerror="this.style.display='none'"></div>
-        <div class="cat-name">관엽식물</div>
-        <div class="cat-desc">59,000원부터 · 개업·이전·사무실</div>
+      <div class="cat-tile" onclick="goCatalog('plant')">
+        <div class="cat-photo"><img src="/photos/products/PL-001_1.jpg" alt="관엽" onerror="this.style.display='none'"></div>
+        <div class="cat-name">관엽 · 식물</div>
+        <div class="cat-desc">5만원대부터 · 개업·이전·사무실</div>
       </div>
-      <div class="cat-tile" onclick="goCat('orchid','동양란 · 서양란')">
-        <div class="cat-photo"><img src="/photos/난/서양란_기본.jpg" alt="난" onerror="this.style.display='none'"></div>
+      <div class="cat-tile" onclick="goCatalog('orchid')">
+        <div class="cat-photo"><img src="/photos/products/OR-016_1.jpg" alt="난" onerror="this.style.display='none'"></div>
         <div class="cat-name">동양란 · 서양란</div>
-        <div class="cat-desc">69,000원부터 · 승진·취임·개업 인사</div>
+        <div class="cat-desc">6만원대부터 · 승진·취임·개업 인사</div>
       </div>
-      <div class="cat-tile" onclick="goCat('wreath','근조·축하 화환')">
-        <div class="cat-photo"><img src="/photos/화환/축하/고급형.jpg" alt="화환" onerror="this.style.display='none'"></div>
-        <div class="cat-name">근조 · 축하 화환</div>
+      <div class="cat-tile" onclick="goCatalog('congrats')">
+        <div class="cat-photo"><img src="/photos/products/WG-04_1.jpg" alt="화환" onerror="this.style.display='none'"></div>
+        <div class="cat-name">축하 · 근조 화환</div>
         <div class="cat-desc">59,000원부터 · 장례식·결혼·개업</div>
       </div>
     </div>
@@ -1015,6 +1015,9 @@ function updateDesignPhoto(){
 }
 
 // 카테고리 타일 클릭: 카테고리를 기억하고 받는 곳 입력으로 바로 안내
+// 홈 카테고리 카드 → 전체상품(카탈로그)로 이동해 그 축의 상품을 둘러보게 한다.
+function goCatalog(cat){ location.href = "/catalog.html?cat=" + encodeURIComponent(cat); }
+
 function goCat(cat, label){
   window.__presetCat = cat;
   const banner=document.getElementById("catalogBanner");
