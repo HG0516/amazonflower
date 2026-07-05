@@ -113,6 +113,18 @@
   .cat-grid { display: flex; flex-direction: column; gap: 10px; }
   /* 주문 모드: 상품을 직접 고른 사람에겐 홈 둘러보기 섹션을 숨겨 집중시킨다(새로고침 시 복원) */
   body.ordering .home-sect { display: none; }
+  /* 신뢰 한 줄(marks 축소) */
+  .trust-line { margin-top: 10px; text-align: center; font-size: 14px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line-soft); border-radius: 8px; padding: 10px 12px; }
+  .trust-line b { color: var(--accent-deep); }
+  /* 접기(부차 정보) — native <details>, JS 0줄, 고령 큰 터치영역 */
+  .af-fold { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; margin-top: 8px; }
+  .af-fold > summary { list-style: none; cursor: pointer; min-height: 52px; display: flex; align-items: center; padding: 14px 16px; font-size: 16px; font-weight: 700; color: var(--ink); }
+  .af-fold > summary::-webkit-details-marker { display: none; }
+  .af-fold > summary::after { content: "▾"; margin-left: auto; color: var(--ink-faint); transition: transform .2s; }
+  .af-fold[open] > summary::after { transform: rotate(180deg); }
+  .af-fold > *:not(summary) { padding: 0 16px 16px; }
+  .af-fold-corp { background: var(--accent-soft); border-color: var(--accent); }
+  .af-fold-corp > summary { color: var(--accent-deep); }
   /* 이번 주 베스트 — 가로로 자연스럽게 흐르는 슬라이드(마퀴) */
   .best-slider { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .best-slider::-webkit-scrollbar { display: none; }
@@ -375,6 +387,9 @@
     <div class="err hidden" id="parseErr"></div>
   </section>
 
+  <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
+  <div class="trust-line home-sect">🌸 전국 당일배송 · 도착 사진 회신 · 전 품목 <b>정찰제 57,000원~</b></div>
+
   <!-- 로그인 회원 원탭 재주문 진입(로그인 상태에서만 JS로 노출) -->
   <div id="reorderBanner" class="hidden home-sect" style="margin-top:10px;"></div>
 
@@ -412,33 +427,17 @@
   </section>
 
   <section class="home-sect" style="margin-top:8px;">
-    <div class="marks">
-      <div class="mark">
-        <div class="mt">계산서 · 후불</div>
-        <div class="md">법인 정기 거래처</div>
+    <details class="af-fold">
+      <summary>가게 안내 — 취급 · 가격 · 배송 · 주문</summary>
+      <div class="spec">
+        <dl>
+          <dt>취급</dt><dd>근조·축하 화환 · 동양란·서양란 · 관엽식물 · 꽃바구니·꽃다발</dd>
+          <dt>가격</dt><dd>57,000원부터 · 품목별 실물 정찰제</dd>
+          <dt>배송</dt><dd>전국 당일 배송 (기본 배송비 무료)</dd>
+          <dt>주문</dt><dd>청첩장 · 부고 링크 붙여넣기 또는 직접 입력 · 도착 사진 회신</dd>
+        </dl>
       </div>
-      <div class="mark">
-        <div class="mt">전 품목 정찰</div>
-        <div class="md">화환 · 난 · 관엽</div>
-      </div>
-      <div class="mark">
-        <div class="mt">전국 당일</div>
-        <div class="md">도착 사진 회신</div>
-      </div>
-    </div>
-
-    <div class="spec">
-      <dl>
-        <dt>취급</dt><dd>근조·축하 화환 · 동양란·서양란 · 관엽식물 · 꽃바구니·꽃다발</dd>
-        <dt>가격</dt><dd>57,000원부터 · 품목별 실물 정찰제</dd>
-        <dt>배송</dt><dd>전국 당일 배송 (기본 배송비 무료)</dd>
-        <dt>주문</dt><dd>청첩장 · 부고 링크 붙여넣기 또는 직접 입력</dd>
-        <dt>주문 후</dt><dd>도착 사진 회신 — "잘 보냈습니다" 보고까지 한 번에</dd>
-        <dt>법인</dt><dd>계산서 자동 발행 · 후불 결제 가능</dd>
-        <dt>정기 거래처</dt><dd>사업자 정보 1회 등록 → 이후 링크만 전송 (전화 등록)</dd>
-        <dt>경력</dt><dd>33년 · 1993년부터</dd>
-      </dl>
-    </div>
+    </details>
   </section>
 
   <section class="card hidden" id="confirmCard">
@@ -543,27 +542,20 @@
     <div class="notice hidden" id="corpNotice">계산서는 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 발행됩니다.</div>
   </section>
 
-  <section class="story" style="background:var(--accent-soft);border:1px solid var(--line);border-radius:var(--radius);padding:30px 24px;margin-top:28px;">
-    <div class="story-label" style="color:var(--accent);">CORPORATE</div>
-    <div class="story-title">총무·인사팀이세요?</div>
-    <div class="story-body">
-      거래처 경조사 화환부터 승진·취임 난, 개업 관엽, 명절 일괄 발송까지 —<br>
-      회사의 안부를 한 곳에서 정리해드립니다.<br><br>
-      · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
-      · 후불 결제 · 세금계산서 발행 — 품의·정산이 깔끔하게<br>
-      · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
-      · 도착 사진 회신 — 보고용 증빙까지 한 번에
-    </div>
-    <a class="catalogue-link" href="tel:031-314-3003" style="margin-top:20px;background:var(--paper);">📞 법인 거래처 등록 문의 — 031-314-3003</a>
-  </section>
-
-  <section class="story" style="border:1px solid var(--line-soft);border-radius:var(--radius);padding:26px 24px;margin-top:18px;">
-    <div class="story-label">PARTNER</div>
-    <div class="story-title" style="font-size:21px;">동네꽃집 파트너</div>
-    <div class="story-body" style="font-size:14px;">
-      지역에서 꽃집을 운영하고 계신가요? 꽃안부는 전국의 안부를 함께 전할 동네 화원 파트너를 준비하고 있습니다. 지역 주문 우선 배정과 화원 간 수발주 연결을 단계적으로 열어갈 예정입니다.
-    </div>
-    <a class="catalogue-link" href="sms:031-314-3003?body=%5B%EB%8F%99%EB%84%A4%EA%BD%83%EC%A7%91%20%ED%8C%8C%ED%8A%B8%EB%84%88%20%EB%AC%B8%EC%9D%98%5D%20%EC%83%81%ED%98%B8%3A%20%2F%20%EC%A7%80%EC%97%AD%3A%20%2F%20%EC%97%B0%EB%9D%BD%EC%B2%98%3A" style="margin-top:18px;font-size:14px;padding:12px;">파트너 문의 문자 보내기 →</a>
+  <!-- 법인(B2B): 개인 동선엔 접힘 한 줄, 총무팀은 탭 한 번. 주문 모드에선 home-sect로 숨김. 푸터 '법인·단체 주문'이 /#corporate 로 연결 -->
+  <section class="home-sect" id="corporate" style="margin-top:18px;scroll-margin-top:16px;">
+    <details class="af-fold af-fold-corp">
+      <summary>총무·인사팀이세요? — 법인 거래처 (계산서·후불·정찰)</summary>
+      <div class="story-body" style="margin-top:12px;">
+        거래처 경조사 화환부터 승진·취임 난, 개업 관엽, 명절 일괄 발송까지 —<br>
+        회사의 안부를 한 곳에서 정리해드립니다.<br><br>
+        · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
+        · 후불 결제 · 세금계산서 발행 — 품의·정산이 깔끔하게<br>
+        · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
+        · 도착 사진 회신 — 보고용 증빙까지 한 번에
+      </div>
+      <a class="catalogue-link" href="tel:031-314-3003" style="margin-top:14px;background:var(--paper);">📞 법인 거래처 등록 문의 — 031-314-3003</a>
+    </details>
   </section>
 
   <section class="story">
@@ -1901,6 +1893,14 @@ renderBest();
 handleProductParam();
 handleWorderParam();
 handleCatalogParam();
+// 푸터/타 페이지의 '법인·단체 주문'(/#corporate) 진입 시 법인 접기를 펼치고 스크롤
+function openCorp(){
+  const sec=document.getElementById("corporate"); if(!sec) return;
+  const d=sec.querySelector("details"); if(d) d.open=true;
+  sec.scrollIntoView({behavior:"smooth",block:"start"});
+}
+if(location.hash==="#corporate") setTimeout(openCorp,150);
+window.addEventListener("hashchange",function(){ if(location.hash==="#corporate") openCorp(); });
 // 카탈로그 화환 URL 박스(/?src=링크)에서 넘어온 경우: 링크를 채우고 자동 분석 시작
 (function handleSrcParam(){
   const s=new URLSearchParams(location.search).get("src");
