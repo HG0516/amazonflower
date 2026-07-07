@@ -32,6 +32,35 @@
     // 네이버=Supabase 미지원이라 백엔드 OAuth(api/naver-*) + 매직링크로 처리(custom). 애플=Apple Developer($99) 후 Supabase 설정.
   ];
 
+  // 실제로 '연결된' provider만 버튼으로 노출 → 눌러도 안 되는 죽은 버튼 방지.
+  // kakao/google/apple = Supabase 활성 여부(/auth/v1/settings), naver = 백엔드 env 여부(/api/naver-login?check).
+  // 확인 전/실패한 항목은 그대로 노출(안전) → 절대 '버튼 0개'가 되지 않게.
+  var PROVIDER_STATUS = null;
+  function refreshProviderStatus() {
+    var status = {};
+    var jobs = [
+      fetch(window.SUPA.url + '/auth/v1/settings', { headers: { apikey: window.SUPA.anon } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          var ext = j && j.external;
+          if (ext) { status.kakao = !!ext.kakao; status.google = !!ext.google; status.apple = !!ext.apple; }
+        }).catch(function () {}),
+      fetch('/api/naver-login?check=1')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j && typeof j.configured === 'boolean') status.naver = j.configured; })
+        .catch(function () {})
+    ];
+    return Promise.all(jobs).then(function () { PROVIDER_STATUS = status; });
+  }
+  function availableProviders() {
+    var list = ENABLED_PROVIDERS.filter(function (p) {
+      if (!PROVIDER_STATUS) return true;          // 확인 전 → 전부 노출
+      if (!(p.id in PROVIDER_STATUS)) return true; // 확인 못 한 항목 → 노출(안전)
+      return PROVIDER_STATUS[p.id] === true;       // 연결 확인된 것만
+    });
+    return list.length ? list : ENABLED_PROVIDERS; // 방어: 하나도 없으면 전부
+  }
+
   function injectStyles() {
     if (document.getElementById('af-auth-style')) return;
     var css = ''
@@ -102,14 +131,14 @@
   function openLoginSheet() {
     injectStyles();
     var ov = overlay();
-    var btns = ENABLED_PROVIDERS.map(function (p) {
+    var btns = availableProviders().map(function (p) {
       var style = 'background:' + p.bg + ';color:' + p.fg + ';' + (p.border ? 'border:1px solid ' + p.border + ';' : '');
       return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + p.label + '</button>';
     }).join('');
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>로그인 / 회원가입</h3>'
-      + '<div style="background:#ecf0eb;border:1px solid #2d4a38;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#1e3526;font-weight:700;">🎁 가입하면 바로 1,000원 적립 · 다음 주문에 현금처럼</div>'
+      + '<div style="background:#ecf0eb;border:1px solid #2d4a38;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#1e3526;font-weight:700;">가입하면 바로 1,000원 적립 · 다음 주문에 현금처럼</div>'
       + '<p>한 번 로그인하면 지난 주문을 그대로 다시 보내고, 가족 기념일을 일주일 전에 알려드려요.</p>'
       + btns
       + '<button class="af-auth-x">닫기</button>'
@@ -358,6 +387,9 @@
       if (ov) ov.style.display = 'none';
     });
   }
+
+  // 어떤 provider가 실제 연결됐는지 미리 확인(모달 열기 전에 죽은 버튼 걸러내기 위함)
+  refreshProviderStatus();
 
   // 초기 세션 + 변화 감지
   sb.auth.getSession().then(function (res) {

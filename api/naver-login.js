@@ -10,6 +10,14 @@ export const config = { runtime: "nodejs" };
 export default async function handler(req, res) {
   const CLIENT_ID = process.env.NAVER_CLIENT_ID;
   const base = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
+  // 프런트가 '네이버 버튼을 보여줄지' 판단하려고 부르는 상태 확인(리다이렉트 없이 JSON만).
+  let checkOnly = false;
+  try { checkOnly = !!new URL(req.url, "http://localhost").searchParams.get("check"); } catch (e) {}
+  if (checkOnly) {
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=60");
+    return res.status(200).send(JSON.stringify({ configured: !!CLIENT_ID }));
+  }
   if (!CLIENT_ID) {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.status(503).send("네이버 로그인이 아직 설정되지 않았어요. (NAVER_CLIENT_ID 필요)");
