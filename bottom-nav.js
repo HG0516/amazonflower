@@ -66,7 +66,10 @@
     // 주문 모드/주문바와 배타(고정 바는 하나만)
     function sync() {
       var bb = document.getElementById('buyBar');
-      var hide = document.body.classList.contains('ordering') || (bb && bb.classList.contains('show'));
+      // 고정 바는 항상 하나만: 주문모드·주문바·PWA 설치배너 중 하나라도 있으면 탭바 숨김
+      var hide = document.body.classList.contains('ordering')
+        || (bb && bb.classList.contains('show'))
+        || document.body.classList.contains('af-pwa-open');
       nav.classList.toggle('af-bn-hide', !!hide);
       document.body.classList.toggle('af-nav-on', !hide);
     }
