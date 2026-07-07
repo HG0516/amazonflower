@@ -213,6 +213,38 @@
   .af-lb-msg.ok { color: var(--accent-deep); font-weight: 600; }
   .af-lb-msg.err { color: #b3562d; }
 
+  /* ── 커스텀 달력 + 도착 시간대 위젯 ── */
+  .dt-widget { margin-top: 4px; }
+  .dt-cal { border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 14px; background: #fff; }
+  .dt-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .dt-cal-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
+  .dt-nav { width: 38px; height: 38px; border: none; background: transparent; font-size: 24px; line-height: 1; color: var(--ink); cursor: pointer; border-radius: 8px; }
+  .dt-nav:hover { background: var(--line-soft); }
+  .dt-nav:disabled { color: var(--line); cursor: default; background: transparent; }
+  .dt-week { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 12px; font-weight: 700; color: var(--ink-faint); padding-bottom: 7px; border-bottom: 1px solid var(--line-soft); }
+  .dt-week .sun { color: #c0392b; } .dt-week .sat { color: #2c6fb3; }
+  .dt-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-top: 6px; }
+  .dt-cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; font-size: 15px; font-weight: 600; color: var(--ink); border-radius: 8px; }
+  .dt-cell.empty { visibility: hidden; }
+  .dt-cell.day { cursor: pointer; }
+  .dt-cell.day:hover { background: var(--line-soft); }
+  .dt-cell.sun { color: #c0392b; } .dt-cell.sat { color: #2c6fb3; }
+  .dt-cell.past { color: var(--line); }
+  .dt-cell.sel { background: var(--accent); color: #fff !important; }
+  .dt-today { position: absolute; bottom: 1px; left: 0; right: 0; text-align: center; font-size: 8px; font-weight: 700; color: var(--ink-faint); }
+  .dt-cell.sel .dt-today { color: rgba(255,255,255,.9); }
+  .dt-slots-wrap { margin-top: 18px; }
+  .dt-slots-label { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 9px; }
+  .dt-slots { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dt-slot { flex: 1; min-width: 70px; padding: 13px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink-soft); font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
+  .dt-slot:hover { border-color: var(--ink); }
+  .dt-slot.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .dt-custom { margin-top: 10px; }
+  .dt-time-input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  .dt-time-input:focus { outline: none; border-color: var(--accent); }
+  .dt-hint { margin-top: 10px; font-size: 13px; color: var(--ink-soft); background: var(--line-soft); border-radius: 8px; padding: 11px 13px; line-height: 1.5; }
+  .dt-hint b { color: var(--ink); }
+
   /* ── 추천 박스 ── */
   .reco { margin-top: 14px; padding: 14px 16px; border-radius: 4px; background: #faf6ec; border: 1px solid #e3d6b3; }
   .reco .rh { font-family: var(--font-display); font-weight: 700; color: var(--gold); font-size: 13px; letter-spacing: 0.5px; }
@@ -658,7 +690,7 @@ const TOSS_CLIENT_KEY = "test_ck_docs_Ovk5rk1EwklEnvz3lmeM92Po";
 
 const order = {
   src:"", type:"unknown", side:"", category:"wreath", toppings:[],
-  recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"",
+  recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"", timeSlot:"",
   groomName:"", brideName:"", chiefMourner:"",
   price:0, productCode:"", productLabel:"", quantity:1,
   senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"", senderNote:"",
@@ -808,21 +840,91 @@ function afToHm(v){
   return null;
 }
 function afTodayIso(){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+
+// ── 커스텀 달력 + 도착 시간대 위젯 (받는 날짜·시간) — 네이티브 입력 대체 ──
+var dtCalYear=null, dtCalMonth=null;
+function dtInitMonth(){
+  var base=(order.date && /^\d{4}-\d{2}-\d{2}$/.test(order.date)) ? new Date(order.date+"T00:00:00") : new Date();
+  dtCalYear=base.getFullYear(); dtCalMonth=base.getMonth();
+}
+function dtSyncSlot(){   // order.time만 있고 슬롯 미정이면 추론
+  if(order.timeSlot) return;
+  var t=order.time||"";
+  if(afToHm(t)) order.timeSlot="custom";
+  else if(t==="오전중") order.timeSlot="am";
+  else if(t==="오후중") order.timeSlot="pm";
+  else if(t==="당일중") order.timeSlot="today";
+}
+function dtHint(slot){
+  return ({
+    today:"<b>오늘 안</b> 도착을 목표로 배송합니다.",
+    am:"<b>오후 12시 이전</b> 도착을 목표로 배송합니다.",
+    pm:"<b>오후 12시 ~ 6시</b> 도착을 목표로 배송합니다.",
+    custom:"정확한 시간을 골라주세요 — 예식·발인 시간에 맞춰 드립니다."
+  })[slot]||"";
+}
+function dtRender(){
+  var host=document.getElementById("dtWidget"); if(!host) return;
+  if(dtCalYear==null) dtInitMonth();
+  dtSyncSlot();
+  var today=new Date(); today.setHours(0,0,0,0);
+  var y=dtCalYear, m=dtCalMonth;
+  var startDow=new Date(y,m,1).getDay(), daysIn=new Date(y,m+1,0).getDate();
+  var canPrev=(y>today.getFullYear())||(y===today.getFullYear()&&m>today.getMonth());
+  var wd=["일","월","화","수","목","금","토"];
+  var cells="";
+  for(var i=0;i<startDow;i++) cells+='<div class="dt-cell empty"></div>';
+  for(var d=1; d<=daysIn; d++){
+    var cur=new Date(y,m,d); cur.setHours(0,0,0,0);
+    var iso=y+"-"+("0"+(m+1)).slice(-2)+"-"+("0"+d).slice(-2);
+    var past=cur.getTime()<today.getTime(), isToday=cur.getTime()===today.getTime(), sel=(order.date===iso), dow=cur.getDay();
+    var tone=(dow===0?" sun":dow===6?" sat":"");
+    if(past){ cells+='<div class="dt-cell past'+tone+'">'+d+'</div>'; }
+    else { cells+='<div class="dt-cell day'+(sel?" sel":"")+tone+'" onclick="dtPick(\''+iso+'\')">'+d+(isToday?'<span class="dt-today">오늘</span>':'')+'</div>'; }
+  }
+  var slots=[["today","당일중"],["am","오전중"],["pm","오후중"],["custom","상세시간"]];
+  var slotHtml=slots.map(function(s){return '<button type="button" class="dt-slot'+(order.timeSlot===s[0]?" on":"")+'" onclick="dtSlot(\''+s[0]+'\')">'+s[1]+'</button>';}).join("");
+  var custom = order.timeSlot==="custom"
+    ? '<div class="dt-custom"><input type="time" id="af_time" class="dt-time-input" value="'+(afToHm(order.time)||'')+'" onchange="order.time=this.value" oninput="order.time=this.value"/></div>'
+    : '';
+  var hint=dtHint(order.timeSlot);
+  host.innerHTML =
+    '<div class="dt-cal"><div class="dt-cal-head">'
+    + '<button type="button" class="dt-nav" '+(canPrev?'':'disabled')+' onclick="dtMove(-1)" aria-label="이전 달">‹</button>'
+    + '<div class="dt-cal-title">'+y+'년 '+("0"+(m+1)).slice(-2)+'월</div>'
+    + '<button type="button" class="dt-nav" onclick="dtMove(1)" aria-label="다음 달">›</button></div>'
+    + '<div class="dt-week">'+wd.map(function(w,i){return '<span class="'+(i===0?"sun":i===6?"sat":"")+'">'+w+'</span>';}).join("")+'</div>'
+    + '<div class="dt-grid">'+cells+'</div></div>'
+    + '<div class="dt-slots-wrap"><div class="dt-slots-label">예상 도착 시간을 선택하세요</div>'
+    + '<div class="dt-slots">'+slotHtml+'</div>'+custom
+    + (hint?'<div class="dt-hint">'+hint+'</div>':'')+'</div>';
+}
+function dtPick(iso){ order.date=iso; dtRender(); }
+function dtMove(delta){
+  var y=dtCalYear, m=dtCalMonth+delta;
+  if(m<0){m=11;y--;} else if(m>11){m=0;y++;}
+  var t=new Date();
+  if(y<t.getFullYear()||(y===t.getFullYear()&&m<t.getMonth())) return;  // 과거 달 금지
+  dtCalYear=y; dtCalMonth=m; dtRender();
+}
+function dtSlot(slot){
+  order.timeSlot=slot;
+  if(slot==="custom"){ if(!afToHm(order.time)) order.time=""; }
+  else { order.time=({today:"당일중",am:"오전중",pm:"오후중"})[slot]||""; }
+  dtRender();
+  if(slot==="custom"){ var el=document.getElementById("af_time"); if(el) el.focus(); }
+}
 // 자동입력 칸 한 줄 생성 (applyParsed·applyOccasion 공용)
 function afField(key,label,val){
   val = val || "";
   var badge = val?'<span class="af-auto">자동</span>':'';
   // 받는 날짜·시간: 모바일 네이티브 달력/시계로(오입력·형식 제각각 방지). 자동값이 형식에 안 맞으면 텍스트로 보존.
   if(key==='date'){
-    var iso=afToIsoDate(val);
-    if(val==="" || iso) return `<div class="af-field"><label>${label}</label><div class="af-input-wrap">
-        <input type="date" id="af_date" value="${iso||''}" min="${afTodayIso()}" onchange="order.date=this.value" oninput="order.date=this.value"/>${badge}</div></div>`;
+    var iso=afToIsoDate(val); if(iso) order.date=iso;   // 자동입력 날짜는 달력에 반영
+    setTimeout(dtRender,0);                              // afFields 삽입 직후 커스텀 달력 렌더
+    return `<div class="af-field"><label>받는 날짜 · 도착 시간</label><div id="dtWidget" class="dt-widget"></div></div>`;
   }
-  if(key==='time'){
-    var hm=afToHm(val);
-    if(val==="" || hm) return `<div class="af-field"><label>${label}</label><div class="af-input-wrap">
-        <input type="time" id="af_time" value="${hm||''}" onchange="order.time=this.value" oninput="order.time=this.value"/>${badge}</div></div>`;
-  }
+  if(key==='time'){ return ""; }  // 시간은 달력 위젯의 '도착 시간대'로 통합
   var search = key==='address' ? '<button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button>' : '';
   var ph = key==='address' ? '주소 검색을 눌러 찾으세요 (동·호는 직접 추가)' : '(비어있음 — 직접 입력)';
   var ekh = key==='address' ? 'next' : (key==='time'?'done':'next');
@@ -898,6 +1000,10 @@ function applyParsed(r){
     date:r.date||"", time:r.time||"",
     groomName:r.groomName||"", brideName:r.brideName||"", chiefMourner:r.chiefMourner||"",
   });
+  // 자동입력 날짜/시간 → 커스텀 달력·시간대에 반영
+  order.date = afToIsoDate(order.date) || order.date;
+  order.timeSlot=""; if(afToHm(order.time)){ order.time=afToHm(order.time); order.timeSlot="custom"; }
+  dtCalYear=null;   // 파싱된 날짜의 달로 달력이 열리게
   const isWed=order.type==="wedding", isFun=order.type==="funeral";
   document.getElementById("typePill").innerHTML =
     `<span class="type-pill ${isWed?'t-wed':isFun?'t-fun':''}">${isWed?'결혼식 · 축하화환':isFun?'장례식 · 근조화환':'구분 미확인'}</span>`;
@@ -1075,6 +1181,10 @@ function afApplyToConfirm(r){
   set("groomName", r.groomName); set("brideName", r.brideName); set("chiefMourner", r.chiefMourner);
   set("venue", r.venueName); set("venueDetail", r.venueDetail); set("address", r.venueAddress);
   set("date", r.date); set("time", r.time);
+  // 자동입력 날짜/시간 → 커스텀 달력·시간대에 반영
+  order.date = afToIsoDate(order.date) || order.date;
+  order.timeSlot=""; if(afToHm(order.time)){ order.time=afToHm(order.time); order.timeSlot="custom"; }
+  dtCalYear=null;
   // 결혼으로 읽혔으면 신랑/신부 노출
   if(r.type==="wedding"){
     order.type="wedding";
@@ -1083,6 +1193,7 @@ function afApplyToConfirm(r){
     const sch=document.getElementById("sideChips"); if(sch) sch.style.display="flex";
     renumber(true);
   }
+  setTimeout(dtRender,0);
 }
 
 // ── 상품 카탈로그 ─────────────────────────────────────────
@@ -1201,11 +1312,13 @@ function updateDesignTotal(){
   const el=document.getElementById("designTotal");
   if(!el) return;
   const tops=(order.toppings||[]);
-  const topsum=tops.reduce((s,c)=>s+(TOPPINGS[c]?TOPPINGS[c].price:0),0);
   const q=order.quantity||1;
-  const base = tops.length ? `${order.price.toLocaleString()}원 + 얹기 ${topsum.toLocaleString()}원` : `${order.price.toLocaleString()}원`;
-  if(q>1) el.innerHTML = `${base} × ${q}개 = <b>${orderTotal().toLocaleString()}원</b>`;
-  else    el.innerHTML = tops.length ? `${base} = <b>${orderTotal().toLocaleString()}원</b>` : `<b>${order.price.toLocaleString()}원</b>`;
+  // 계산식은 감추고 최종 금액만. 수량·옵션은 작은 힌트로만.
+  const note=[];
+  if(q>1) note.push(`${q}개`);
+  if(tops.length) note.push(`옵션 포함`);
+  el.innerHTML = `<b>${orderTotal().toLocaleString()}원</b>`
+    + (note.length ? ` <span style="font-size:12px;color:var(--ink-faint);font-weight:400;">(${note.join(' · ')})</span>` : '');
   updateBuyBar();
 }
 
