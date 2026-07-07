@@ -4,6 +4,12 @@
 (function () {
   'use strict';
 
+  // 라인 아이콘(Lucide 계열) — 이모지는 기기마다 달라 통일감이 깨짐
+  var IC_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>';
+  var IC_FLOWER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 21V11"/><path d="M12 11c-3 0-5-2-5-5 3 0 5 2 5 5Z"/><path d="M12 11c3 0 5-2 5-5-3 0-5 2-5 5Z"/></svg>';
+  var IC_RECEIPT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 3h12v18l-2-1.3L14 21l-2-1.3L10 21l-2-1.3L6 21V3Z"/><path d="M9 8h6M9 12h6"/></svg>';
+  var IC_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6.5 3h3l1.5 5-2 1.3a11 11 0 0 0 5 5l1.3-2 5 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>';
+
   function injectStyles() {
     if (document.getElementById('af-bn-style')) return;
     var css = ''
@@ -17,7 +23,8 @@
       + 'min-height:56px;padding:6px 2px;color:var(--ink-faint,#6b6358);text-decoration:none;'
       + 'font-family:inherit;-webkit-tap-highlight-color:transparent;}'
       + '.af-bn a:active,.af-bn button:active{background:var(--line-soft,#ebe6da);}'
-      + '.af-bn .ic{font-size:21px;line-height:1;}'
+      + '.af-bn .ic{line-height:1;}'
+      + '.af-bn .ic svg{width:24px;height:24px;display:block;}'
       + '.af-bn .lb{font-size:11.5px;font-weight:700;letter-spacing:.2px;}'
       + '.af-bn .on{color:var(--accent,#2d4a38);}'
       + 'body.af-nav-on{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px));}';
@@ -53,10 +60,10 @@
     nav.className = 'af-bn';
     nav.setAttribute('aria-label', '하단 메뉴');
     nav.innerHTML =
-      tab(isHome(), '/', '🏠', '홈')
-      + tab(isCatalog(), '/catalog.html', '🌸', '전체상품')
-      + '<button type="button" id="af-bn-orders"><span class="ic">📦</span><span class="lb">내 주문</span></button>'
-      + '<a href="tel:0313143003"><span class="ic">📞</span><span class="lb">전화</span></a>';
+      tab(isHome(), '/', IC_HOME, '홈')
+      + tab(isCatalog(), '/catalog.html', IC_FLOWER, '전체상품')
+      + '<button type="button" id="af-bn-orders"><span class="ic">' + IC_RECEIPT + '</span><span class="lb">내 주문</span></button>'
+      + '<a href="tel:0313143003"><span class="ic">' + IC_PHONE + '</span><span class="lb">전화</span></a>';
     document.body.appendChild(nav);
     document.body.classList.add('af-nav-on');
 
