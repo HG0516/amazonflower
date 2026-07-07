@@ -198,6 +198,20 @@
   .chip { border: 1px solid var(--line); border-radius: 3px; padding: 13px 22px; cursor: pointer; font-size: 16px; font-weight: 600; background: transparent; color: var(--ink-soft); user-select: none; transition: all .15s; }
   .chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .side .chip.on { background: var(--gold); border-color: var(--gold); }
+  #occasionChips .chip.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  /* ── 받는 곳 · 링크 자동입력 배너 ── */
+  .af-linkbar { background: var(--auto-bg, #f3f0e7); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 4px 0 16px; }
+  .af-lb-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 9px; }
+  .af-lb-title span { font-weight: 400; color: var(--ink-faint); font-size: 12px; }
+  .af-lb-row { display: flex; gap: 8px; }
+  .af-lb-row input { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+  .af-lb-row input:focus { outline: none; border-color: var(--accent); }
+  .af-lb-row button { flex: 0 0 auto; padding: 11px 16px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); }
+  .af-lb-row button:disabled { background: var(--ink-faint); opacity: .7; cursor: default; }
+  .af-lb-msg { font-size: 12.5px; margin-top: 8px; line-height: 1.5; min-height: 0; }
+  .af-lb-msg.ok { color: var(--accent-deep); font-weight: 600; }
+  .af-lb-msg.err { color: #b3562d; }
 
   /* ── 추천 박스 ── */
   .reco { margin-top: 14px; padding: 14px 16px; border-radius: 4px; background: #faf6ec; border: 1px solid #e3d6b3; }
@@ -454,30 +468,44 @@
     </details>
   </section>
 
-  <section class="card hidden" id="confirmCard">
-    <div class="step-head"><span class="step-num" id="n-confirm">1.</span><span class="step-title">받는 곳</span></div>
-    <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
-    <div id="typePill"></div>
-    <div id="afFields"></div>
-  </section>
-
-  <section class="card hidden" id="sideCard">
-    <div class="step-head"><span class="step-num" id="n-side">3.</span><span class="step-title">어느 쪽에 보내시나요?</span></div>
-    <div class="step-sub">리본 문구에 반영됩니다.</div>
-    <div class="chips side" id="sideChips">
-      <div class="chip" onclick="selSide('groom')">신랑 측</div>
-      <div class="chip" onclick="selSide('bride')">신부 측</div>
-    </div>
-  </section>
-
   <section class="card hidden" id="prodCard">
-    <div class="step-head"><span class="step-num" id="n-prod">4.</span><span class="step-title">상품 · 가격대 선택</span></div>
+    <div class="step-head"><span class="step-num" id="n-prod">1.</span><span class="step-title">상품 · 가격대 선택</span></div>
     <div class="step-sub" id="prodSub">친구·지인은 보통 일반형·중급형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요.</div>
     <div class="chips" id="catChips" style="margin-bottom:14px;"></div>
     <div id="recoBox" style="margin-bottom:16px;"></div>
     <div class="price-tabs" id="priceTabs"></div>
     <div id="designArea">
       <div class="soon-note">가격대를 선택하면 디자인이 표시됩니다. (실제 상품 사진·디자인은 준비 중)</div>
+    </div>
+  </section>
+
+  <section class="card hidden" id="confirmCard">
+    <div class="step-head"><span class="step-num" id="n-confirm">2.</span><span class="step-title">받는 곳</span></div>
+    <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
+    <!-- 부고·청첩장 링크로 받는 곳 자동입력(선택) -->
+    <div class="af-linkbar" id="afLinkbar">
+      <div class="af-lb-title">📩 링크로 받는 곳 자동입력 <span>— 부고·청첩장·초대 링크가 있으면 붙여넣으세요 (선택)</span></div>
+      <div class="af-lb-row">
+        <input type="text" inputmode="url" placeholder="문자로 받은 링크를 붙여넣기" oninput="var b=this.nextElementSibling;b.disabled=!this.value.trim();" />
+        <button type="button" disabled onclick="afLinkParse()">자동입력</button>
+      </div>
+      <div class="af-lb-msg"></div>
+    </div>
+    <div id="typePill"></div>
+    <div id="afFields"></div>
+  </section>
+
+  <section class="card hidden" id="sideCard">
+    <div class="step-head"><span class="step-num" id="n-side">3.</span><span class="step-title" id="sideTitle">어느 쪽에 보내시나요?</span></div>
+    <div class="step-sub" id="sideSub">리본 문구에 반영됩니다.</div>
+    <!-- 축하화환은 결혼 외에 개업·승진도 있어 '자리'를 먼저 묻는다(카탈로그 진입 시) -->
+    <div class="chips" id="occasionChips" style="display:none;margin-bottom:10px;">
+      <div class="chip" onclick="selOccasion('wedding')">결혼식</div>
+      <div class="chip" onclick="selOccasion('etc')">개업·승진·기타</div>
+    </div>
+    <div class="chips side" id="sideChips">
+      <div class="chip" onclick="selSide('groom')">신랑 측</div>
+      <div class="chip" onclick="selSide('bride')">신부 측</div>
     </div>
   </section>
 
@@ -835,7 +863,7 @@ function applyOccasion(reco, text){
   renderRecoOptions(reco.tier);
   selTier(reco.tier!=null?reco.tier:1, false);
   enterOrderMode(escapeHtml(reco.label));
-  scrollTo("confirmCard");
+  scrollTo("prodCard");
 }
 
 async function runParse(){
@@ -925,15 +953,15 @@ function applyParsed(r){
     // 일반 진입: 두 번째 항목을 미리 선택해서 사진·설명 노출, 결제 카드는 안 열림
     selTier(1, false);
   }
-  scrollTo("confirmCard");
+  scrollTo("prodCard");
 }
 
 // 진입 경로와 무관하게 '받는 곳'을 1단계로. 보이는 카드만 1..N 순번 + 진행 스텝바 갱신.
 var STEP_SEQ = null;
 function renumber(hasSide){
-  var seq=[{id:"n-confirm",card:"confirmCard",label:"받는 곳"}];
+  var seq=[{id:"n-prod",card:"prodCard",label:"상품·가격"},
+           {id:"n-confirm",card:"confirmCard",label:"받는 곳"}];
   if(hasSide) seq.push({id:"n-side",card:"sideCard",label:"보내는 쪽"});
-  seq.push({id:"n-prod",card:"prodCard",label:"상품·가격"});
   seq.push({id:"n-send",card:"senderCard",label:"보내는 분"});
   seq.push({id:"n-pay",card:"payCard",label:"결제"});
   for(var i=0;i<seq.length;i++){ var el=document.getElementById(seq[i].id); if(el) el.textContent=(i+1)+"."; }
@@ -974,6 +1002,86 @@ function selSide(s){
       o.classList.toggle("on", on);
       if(on){ order.ribbonRight=target; document.getElementById("ribbonRight").value=target; }
     });
+  }
+}
+
+// 축하화환(카탈로그 진입): 결혼/개업 구분을 먼저 물어 신랑·신부 노출을 결정
+function showCongratsOccasion(){
+  const sc=document.getElementById("sideCard"); if(!sc) return;
+  sc.classList.remove("hidden");
+  document.getElementById("occasionChips").style.display="flex";
+  document.getElementById("sideChips").style.display="none";
+  document.querySelectorAll("#occasionChips .chip").forEach(c=>c.classList.remove("on"));
+  document.querySelectorAll("#sideChips .chip").forEach(c=>c.classList.remove("on"));
+  const t=document.getElementById("sideTitle"), s=document.getElementById("sideSub");
+  if(t) t.textContent="무슨 자리에 보내시나요?";
+  if(s) s.textContent="결혼식이면 신랑측·신부측을 골라 리본에 반영해요. 개업·승진이면 그대로 두셔도 됩니다.";
+  order.side="";
+  renumber(true);
+}
+function selOccasion(kind){
+  const chips=document.querySelectorAll("#occasionChips .chip");
+  chips.forEach((c,i)=>c.classList.toggle("on",(i===0&&kind==="wedding")||(i===1&&kind==="etc")));
+  const t=document.getElementById("sideTitle"), s=document.getElementById("sideSub");
+  if(kind==="wedding"){
+    order.type="wedding";
+    document.getElementById("sideChips").style.display="flex";
+    if(t) t.textContent="어느 쪽에 보내시나요?";
+    if(s) s.textContent="리본 문구에 반영됩니다.";
+  }else{
+    order.type="unknown"; order.side="";
+    document.getElementById("sideChips").style.display="none";
+    document.querySelectorAll("#sideChips .chip").forEach(c=>c.classList.remove("on"));
+    if(t) t.textContent="개업·승진·기타 축하";
+    if(s) s.textContent="일반 축하 리본으로 준비해 드려요.";
+  }
+  if(typeof buildRibbon==="function") buildRibbon();
+}
+
+// 받는 곳 단계의 '링크로 자동입력' 배너 — 기존 파서(api/parse-url) 재사용, 상품 선택은 건드리지 않음
+async function afLinkParse(){
+  const box=document.getElementById("afLinkbar"); if(!box) return;
+  const input=box.querySelector("input"), btn=box.querySelector("button"), msg=box.querySelector(".af-lb-msg");
+  const val=(input.value||"").trim();
+  if(!val){ input.focus(); return; }
+  if(/amazonflower\.vercel\.app/i.test(val)){ msg.textContent="이건 이 사이트 주소예요. 받으신 청첩장·부고 링크를 넣어주세요."; msg.className="af-lb-msg err"; return; }
+  order.src=val;
+  const old=btn.textContent; btn.disabled=true; btn.textContent="읽는 중…"; msg.textContent=""; msg.className="af-lb-msg";
+  try{
+    const body = isUrl(val) ? {url:val} : {text:val};
+    const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||"분석 실패");
+    afApplyToConfirm(data.result||{});
+    msg.textContent="✓ 받는 곳을 자동으로 채웠어요 — 맞는지 한 번 더 확인해 주세요.";
+    msg.className="af-lb-msg ok";
+  }catch(e){
+    msg.textContent="자동으로 못 읽었어요 — 아래에 직접 입력해 주세요.";
+    msg.className="af-lb-msg err";
+  }finally{ btn.disabled=false; btn.textContent=old; }
+}
+// 파싱 결과를 '받는 곳' 입력칸에만 반영(있는 칸만). 상품/결제는 그대로.
+function afApplyToConfirm(r){
+  const set=(k,v)=>{
+    if(v==null || v==="") return;
+    order[k]=v;
+    const el=document.getElementById("af_"+k); if(!el) return;
+    if(k==="date"){ const iso=(typeof afToIsoDate==="function")?afToIsoDate(v):null; el.value=iso||v; }
+    else if(k==="time"){ const hm=(typeof afToHm==="function")?afToHm(v):null; el.value=hm||v; }
+    else el.value=v;
+    const wrap=el.closest(".af-input-wrap"); if(wrap && !wrap.querySelector(".af-auto")){ const b=document.createElement("span"); b.className="af-auto"; b.textContent="자동"; wrap.appendChild(b); }
+  };
+  set("recipientName", r.recipientName);
+  set("groomName", r.groomName); set("brideName", r.brideName); set("chiefMourner", r.chiefMourner);
+  set("venue", r.venueName); set("venueDetail", r.venueDetail); set("address", r.venueAddress);
+  set("date", r.date); set("time", r.time);
+  // 결혼으로 읽혔으면 신랑/신부 노출
+  if(r.type==="wedding"){
+    order.type="wedding";
+    const sc=document.getElementById("sideCard"); if(sc){ sc.classList.remove("hidden"); }
+    const oc=document.getElementById("occasionChips"); if(oc) oc.style.display="none";
+    const sch=document.getElementById("sideChips"); if(sch) sch.style.display="flex";
+    renumber(true);
   }
 }
 
@@ -1817,7 +1925,7 @@ window.afReorder = function(o){
     const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
     selProduct(Pnew);
     enterOrderMode('지난 주문 다시 담기 — 확인 후 결제');
-    scrollTo("confirmCard");
+    scrollTo("prodCard");
     return;
   }
   const cat = categoryFromPc(pc);
@@ -1860,7 +1968,7 @@ window.afReorder = function(o){
     return;
   }
   selTier(idx, false);
-  scrollTo("confirmCard");
+  scrollTo("prodCard");
 };
 
 // ── 개별상품 주문(카탈로그 카드 → /?pc=PL-001) ──────────
@@ -1935,8 +2043,8 @@ function handleProductParam(){
   const tp=document.getElementById("typePill");
   if(tp) tp.innerHTML='<span class="type-pill">'+escapeHtml(P.name+(P.subtitle?" · "+P.subtitle:""))+' '+P.price.toLocaleString()+'원 — 받는 곳부터 알려주세요</span>';
   document.getElementById("confirmCard").classList.remove("hidden");
-  document.getElementById("sideCard").classList.add("hidden");
-  renumber(false);
+  if(P.cat==="congrats"){ showCongratsOccasion(); }   // 축하화환 상품: 결혼/개업 자리 먼저 묻기
+  else { document.getElementById("sideCard").classList.add("hidden"); renumber(false); }
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
@@ -1945,9 +2053,12 @@ function handleProductParam(){
   const cc=document.getElementById("catChips"); if(cc) cc.innerHTML="";
   const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
   selProduct(P);
+  // 장바구니에서 넘어온 수량(?qty=) 반영 — 없거나 범위 밖이면 1
+  const _qn=parseInt(q.get("qty"),10);
+  if(Number.isFinite(_qn)&&_qn>=1&&_qn<=99){ order.quantity=_qn; const _qd=document.getElementById("qtyDisplay"); if(_qd)_qd.textContent=_qn; if(typeof updateDesignTotal==="function")updateDesignTotal(); }
   enterOrderMode(escapeHtml(P.name)+(P.subtitle?' · '+escapeHtml(P.subtitle):'')+' <b>'+P.price.toLocaleString()+'원</b>');
   cleanUrl();
-  scrollTo("confirmCard");
+  scrollTo("prodCard");
 }
 
 // 카탈로그 화환 사다리(등급 주문) → 주문 플로우 티어 주문. 단일 기준 = WREATH_TIERS(59/79/99/129).
@@ -1975,9 +2086,9 @@ function handleWorderParam(){
     + afField("time","시간");
   document.getElementById("confirmCard").classList.remove("hidden");
   const _cs=document.getElementById("confirmSub");
-  if(_cs) _cs.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 홈에서 붙여넣으면 자동으로 채워져요.";
-  document.getElementById("sideCard").classList.add("hidden");
-  renumber(false);
+  if(_cs) _cs.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 아래에 붙여넣으면 자동으로 채워져요.";
+  if(isFun){ document.getElementById("sideCard").classList.add("hidden"); renumber(false); }
+  else { showCongratsOccasion(); }   // 축하화환: 결혼/개업 '자리'를 먼저 묻고 결혼일 때만 신랑/신부
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
@@ -1987,7 +2098,7 @@ function handleWorderParam(){
   selTier(tier, false);
   enterOrderMode((isFun?'근조화환':'축하화환')+' '+WREATH_TIERS[tier].grade+' <b>'+WREATH_TIERS[tier].price.toLocaleString()+'원</b>');
   cleanUrl();
-  scrollTo("confirmCard");
+  scrollTo("prodCard");
 }
 
 function handleCatalogParam(){

@@ -125,6 +125,7 @@
   .uses { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 2px; }
   .use-chip { font-size: 13px; font-weight: 600; padding: 8px 14px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); letter-spacing: 0.3px; }
   .use-chip:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .use-chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
   /* 보유 종류 갤러리 */
   .gallery-wrap { margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--line); }
@@ -194,6 +195,99 @@
   .wreath-extra { margin-top: 16px; font-size: 13px; color: var(--ink-soft); background: var(--line-soft); border-radius: 6px; padding: 12px 14px; line-height: 1.7; }
   @media (max-width: 420px){ .ladder-row { grid-template-columns: 52px 1fr auto; } .lr-photo{width:52px;height:52px;} .lr-order{ grid-column: 1/-1; width:100%; } }
 
+  /* ── 통일 필터(종류·가격대·정렬): 왼쪽 라벨로 줄 맞춤 + 한 가지 알약 ── */
+  .subtabs, .bandchips, .sortbar { display: flex; align-items: flex-start; gap: 10px; margin: 9px 0 0; flex-wrap: nowrap; }
+  .frow-label { flex: 0 0 42px; font-size: 12px; color: var(--ink-faint); font-weight: 700; padding-top: 11px; letter-spacing: 0.5px; }
+  .frow-pills { display: flex; gap: 7px; flex-wrap: wrap; flex: 1; }
+  .fpill { font-size: 13px; font-weight: 600; padding: 9px 15px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); min-height: 40px; }
+  .fpill:hover { border-color: var(--ink); }
+  .fpill.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .fsort { gap: 2px; }
+  .fsort .fpill { border: none; background: transparent; padding: 8px 10px; min-height: 36px; border-radius: 4px; color: var(--ink-faint); }
+  .fsort .fpill:hover { border: none; color: var(--ink); }
+  .fsort .fpill.on { background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+
+  /* ── 화환 2×2 큰 카드 ── */
+  .wreath-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
+  .wcard { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--paper); display: flex; flex-direction: column; }
+  .wcard.main { border-color: var(--accent); border-width: 2px; }
+  .wphoto { position: relative; aspect-ratio: 4/5; background: var(--line-soft); overflow: hidden; }
+  .wphoto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .wbody { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .wtier { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); }
+  .wbadge { font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: 9px; margin-left: 5px; vertical-align: middle; }
+  .wnote { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; flex: 1; }
+  .wprice { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--ink); margin-top: 2px; }
+  .worder { margin-top: 6px; padding: 13px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
+  .worder:hover { background: var(--accent-deep); }
+  .wmore-btn { display: block; width: 100%; margin-top: 16px; padding: 13px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--ink-soft); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+  .wmore-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* ── 카드 액션(주문·담기) ── */
+  .card-actions { display: flex; gap: 6px; margin-top: 12px; }
+  .card-actions .order { margin-top: 0; flex: 1; }
+  .cart-add { padding: 13px 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); color: var(--ink); font-weight: 600; font-size: 13px; cursor: pointer; font-family: var(--font-body); white-space: nowrap; }
+  .cart-add:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .cart-add.added { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .item .nm, .item .photo { cursor: pointer; }
+
+  /* ── 상품 상세 모달 ── */
+  .pmodal { position: fixed; inset: 0; z-index: 60; background: rgba(31,29,24,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .pmodal.hidden { display: none; }
+  .pmodal-card { background: var(--paper); border-radius: 12px; max-width: 440px; width: 100%; max-height: 92vh; overflow-y: auto; position: relative; }
+  .pmodal-x { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: none; background: rgba(255,255,255,.92); color: var(--ink); font-size: 15px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .pm-photo { position: relative; aspect-ratio: 3/4; background: var(--line-soft); overflow: hidden; }
+  .pm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pm-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; border: none; background: rgba(255,255,255,.85); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; }
+  .pm-nav.prev { left: 10px; } .pm-nav.next { right: 10px; }
+  .pm-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; gap: 6px; justify-content: center; }
+  .pm-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.55); }
+  .pm-dot.on { background: #fff; }
+  .pm-body { padding: 18px 18px 20px; }
+  .pm-nm { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--ink); }
+  .pm-sub { font-size: 14px; color: var(--ink-soft); margin-top: 3px; }
+  .pm-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .pm-price { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--ink); margin: 12px 0 4px; }
+  .pm-desc { font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; margin-top: 6px; }
+  .pm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+  .pm-order { padding: 15px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; font-family: var(--font-body); min-height: 52px; }
+  .pm-order:hover { background: var(--accent-deep); }
+  .pm-cart { padding: 14px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--paper); color: var(--ink); font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 50px; }
+  .pm-cart:hover { background: var(--ink); color: #fff; }
+  .pm-cart.added { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pm-share { padding: 11px; border: none; border-radius: 6px; background: transparent; color: var(--ink-soft); font-size: 13px; cursor: pointer; font-family: var(--font-body); }
+  .pm-share:hover { color: var(--ink); text-decoration: underline; }
+
+  /* ── 장바구니 FAB + 하단 시트 ── */
+  .cart-fab { position: fixed; right: 16px; bottom: 74px; z-index: 45; height: 52px; padding: 0 18px; border-radius: 26px; border: none; background: var(--ink); color: #fff; font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; box-shadow: 0 3px 12px rgba(31,29,24,.28); display: flex; align-items: center; gap: 8px; }
+  .cart-fab.hidden { display: none; }
+  .cart-badge { min-width: 20px; height: 20px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
+  .cart-drawer { position: fixed; inset: 0; z-index: 70; background: rgba(31,29,24,.5); display: none; align-items: flex-end; justify-content: center; }
+  .cart-drawer.open { display: flex; }
+  .cart-panel { background: var(--paper); width: 100%; max-width: 520px; max-height: 84vh; border-radius: 16px 16px 0 0; display: flex; flex-direction: column; }
+  .cart-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 18px 12px; font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--line-soft); }
+  .cart-head .pmodal-x { position: static; box-shadow: none; background: transparent; }
+  #cartLines { overflow-y: auto; padding: 0 18px; flex: 1; }
+  .cart-line { display: grid; grid-template-columns: 56px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+  .cl-nm, .cl-price { overflow-wrap: anywhere; }
+  .cl-photo { width: 56px; height: 56px; border-radius: 6px; overflow: hidden; background: var(--line-soft); }
+  .cl-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .cl-nm { font-weight: 700; font-size: 14px; color: var(--ink); }
+  .cl-price { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+  .cl-qty { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  .cl-qbtn { width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); font-size: 15px; cursor: pointer; color: var(--ink); }
+  .cl-qn { min-width: 22px; text-align: center; font-weight: 700; font-size: 14px; }
+  .cl-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .cl-order { padding: 9px 14px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; font-family: var(--font-body); white-space: nowrap; }
+  .cl-order:hover { background: var(--accent-deep); }
+  .cl-rm { border: none; background: transparent; color: var(--ink-faint); font-size: 12px; cursor: pointer; text-decoration: underline; }
+  .cart-foot { padding: 14px 18px 22px; border-top: 1px solid var(--line); }
+  .cart-note { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 10px; }
+  .cart-note b { color: var(--ink); }
+  .cart-sub { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: var(--ink); }
+  .cart-empty { text-align: center; color: var(--ink-faint); font-size: 14px; padding: 44px 0; line-height: 1.7; }
+  .cart-clear { display: block; margin: 12px auto 0; border: none; background: transparent; color: var(--ink-faint); font-size: 12px; cursor: pointer; text-decoration: underline; }
+
   /* ── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ── */
   @media (min-width: 1000px) {
     body {
@@ -228,13 +322,14 @@
     <input id="searchInput" type="text" autocomplete="off" placeholder="꽃·식물 이름으로 검색 (예: 호접란, 벤자민, 근조)" oninput="doSearch(this.value)" />
     <span class="si">🔍</span>
   </div>
-  <!-- 용도(경조사) 바로가기 — 고령 손님이 상황으로 바로 찾게 -->
+  <!-- 상황(경조사) 바로가기 — 상황을 고르면 어울리는 종류가 여러 개 같이 나온다 -->
   <div class="uses" id="useChips">
-    <button class="use-chip" onclick="showCat('condolence')">근조화환</button>
-    <button class="use-chip" onclick="showCat('congrats')">축하화환</button>
-    <button class="use-chip" onclick="showCat('plant')">개업·이전</button>
-    <button class="use-chip" onclick="showCat('orchid')">승진·취임</button>
-    <button class="use-chip" onclick="showCat('basket')">생일·병문안</button>
+    <button class="use-chip" data-occ="funeral"  onclick="showOccasion('funeral')">장례</button>
+    <button class="use-chip" data-occ="wedding"  onclick="showOccasion('wedding')">결혼</button>
+    <button class="use-chip" data-occ="opening"  onclick="showOccasion('opening')">개업·이전</button>
+    <button class="use-chip" data-occ="promo"    onclick="showOccasion('promo')">승진·취임</button>
+    <button class="use-chip" data-occ="birthday" onclick="showOccasion('birthday')">생일·기념일</button>
+    <button class="use-chip" data-occ="visit"    onclick="showOccasion('visit')">병문안</button>
   </div>
   <div id="searchArea" class="hidden"></div>
 
@@ -249,6 +344,8 @@
   <div id="subTabs" class="subtabs"></div>
   <div id="bandChips" class="bandchips"></div>
   <div id="sortBar" class="sortbar"></div>
+
+  <div id="linkOrderArea"></div>
 
   <div id="catArea"></div>
   <div id="galleryArea"></div>
@@ -314,6 +411,24 @@
   <!-- 공통 푸터는 footer.js 가 자동 삽입 -->
 </div>
 
+<!-- 상품 상세 모달 -->
+<div id="pmodal" class="pmodal hidden" onclick="if(event.target===this)closeDetail()">
+  <div class="pmodal-card" role="dialog" aria-modal="true" aria-label="상품 상세">
+    <button class="pmodal-x" onclick="closeDetail()" aria-label="닫기">✕</button>
+    <div id="pmodalBody"></div>
+  </div>
+</div>
+
+<!-- 장바구니 버튼 + 하단 시트 -->
+<button id="cartFab" class="cart-fab hidden" onclick="openCart()" aria-label="장바구니 열기">🛒 담은 상품 <span id="cartCount" class="cart-badge">0</span></button>
+<div id="cartDrawer" class="cart-drawer" onclick="if(event.target===this)closeCart()">
+  <div class="cart-panel" role="dialog" aria-modal="true" aria-label="장바구니">
+    <div class="cart-head"><span>장바구니</span><button class="pmodal-x" onclick="closeCart()" aria-label="닫기">✕</button></div>
+    <div id="cartLines"></div>
+    <div id="cartFoot"></div>
+  </div>
+</div>
+
 <script src="/supabase-config.js"></script>
 <script src="/gallery-data.js"></script>
 <script src="/products.js"></script><!-- 상품 단일 소스(window.PRODUCTS 등) -->
@@ -375,6 +490,27 @@ const BANDS = ["5만대","7만대","9만대","10만↑"];
 const BAND_ORDER = {"5만대":0,"7만대":1,"9만대":2,"10만↑":3};
 let currentCat = "basket", currentSub = "", currentBand = "", currentSort = "pop";
 
+// ── 상황(경조사) → 어울리는 상품종류(여러 개) ──────────────────────────
+// 상황을 고르면 여기 types의 종류들이 종류별로 묶여 한 화면에 나오고, 종류 토글칩으로 좁힐 수 있다.
+// types = AXES 키(condolence/congrats/orchid/plant/basket). link = 자동주문 박스 종류.
+// ※ 장례는 잘못 보내면 큰 결례라 근조 전용(근조화환·근조바구니)만 — 색 있는 난 제외.
+const OCCASIONS = {
+  funeral:  { label:"장례",        types:["condolence","basket"],                link:"condolence",
+              title:"장례·조문", desc:"장례식장에 보내는 근조화환과 근조 꽃바구니입니다." },
+  wedding:  { label:"결혼",        types:["congrats","basket"],                  link:"congrats",
+              title:"결혼",      desc:"결혼식에 보내는 축하화환과 꽃다발·꽃바구니입니다." },
+  opening:  { label:"개업·이전",   types:["plant","orchid","congrats","basket"], link:"plant",
+              title:"개업·이전", desc:"개업·이전 축하로 보내는 관엽·난·축하화환·꽃바구니입니다." },
+  promo:    { label:"승진·취임",   types:["orchid","basket","plant"],            link:"orchid",
+              title:"승진·취임", desc:"승진·취임 축하로 보내는 난·꽃다발·꽃바구니·관엽입니다." },
+  birthday: { label:"생일·기념일", types:["basket","plant"],                     link:"basket",
+              title:"생일·기념일", desc:"생일·기념일에 보내는 꽃다발·꽃바구니와 관엽입니다." },
+  visit:    { label:"병문안",      types:["basket"],                             link:"basket",
+              title:"병문안",    desc:"병문안에 보내는 꽃다발·꽃바구니입니다." },
+};
+let currentOccasion = "";   // 상황 모드일 때만 값이 있음("" = 종류 탭 모드)
+let occSel = [];            // 상황 모드에서 켜져 있는 종류들(기본: 상황의 types 전부)
+
 const GAL = window.GALLERY || {};
 // HTML 이스케이프 — 업로드된 이름/경로를 innerHTML에 넣기 전 항상 통과(저장형 XSS 방지)
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -403,15 +539,18 @@ function productCard(p){
   const sold = p.status && p.status !== "판매중";   // 품절·준비중 등
   return `
       <div class="item${sold?' is-sold':''}" data-pc="${esc(p.pc)}">
-        <div class="photo">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
+        <div class="photo" onclick="openDetail('${esc(p.pc)}')">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
-          <div class="nm">${esc(p.name)}${gradeTag}</div>
+          <div class="nm" onclick="openDetail('${esc(p.pc)}')">${esc(p.name)}${gradeTag}</div>
           ${p.subtitle?`<div class="nm-sub">${esc(p.subtitle)}</div>`:""}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
           <div class="price">${p.price.toLocaleString()}원</div>
           ${sold
             ? `<button class="order" disabled>${esc(p.status)}</button>`
-            : `<button class="order" onclick="goOrderPc('${esc(p.pc)}')">주문하기</button>`}
+            : `<div class="card-actions">
+                 <button class="order" onclick="goOrderPc('${esc(p.pc)}')">주문하기</button>
+                 <button class="cart-add" onclick="addToCartFb('${esc(p.pc)}',this)">🛒 담기</button>
+               </div>`}
           <button class="share-btn" onclick="shareItem('${esc(p.pc)}')">🔗 공유하기</button>
         </div>
       </div>`;
@@ -469,18 +608,23 @@ async function loadLiveGallery(){
 
 function showCat(key, keepFilter){
   const ax=AXES[key]; if(!ax) return;
+  currentOccasion = ""; setActiveOccChip("");   // 종류 탭을 직접 누르면 상황 모드 해제
   currentCat = key;
   if(!keepFilter){ currentSub=""; currentBand=""; }
   const tabMap={condolence:"tabCondo",congrats:"tabCongrats",orchid:"tabOrchid",plant:"tabPlant",basket:"tabBasket"};
   for(const [k,id] of Object.entries(tabMap)){
     document.getElementById(id)?.classList.toggle("on", k===key);
   }
-  // 서브탭(꽃다발/꽃바구니, 동양란/서양란)
+  // 서브탭(꽃다발/꽃바구니, 동양란/서양란) — 라벨 붙은 통일 알약
   const stEl=document.getElementById("subTabs");
   if(ax.subs.length){
-    stEl.innerHTML = `<button class="subtab ${!currentSub?"on":""}" onclick="setSub('')">전체</button>`
-      + ax.subs.map(s=>`<button class="subtab ${currentSub===s?"on":""}" onclick="setSub('${s}')">${esc(s)}</button>`).join("");
+    stEl.innerHTML = `<span class="frow-label">종류</span><div class="frow-pills">`
+      + `<button class="fpill ${!currentSub?"on":""}" onclick="setSub('')">전체</button>`
+      + ax.subs.map(s=>`<button class="fpill ${currentSub===s?"on":""}" onclick="setSub('${s}')">${esc(s)}</button>`).join("")
+      + `</div>`;
   } else stEl.innerHTML="";
+  // 링크(부고·청첩장·초대장) 자동주문 박스 — 모든 탭 공통 노출
+  renderLinkOrder(key);
   if(key==="congrats" || key==="condolence"){
     // 화환은 상품 그리드 대신 5단 사다리표 + URL 자동주문(기획 21-C)
     document.getElementById("bandChips").innerHTML="";
@@ -498,6 +642,57 @@ function showCat(key, keepFilter){
   showSpecial(key);
 }
 
+// ── 상황(경조사) 모드 ────────────────────────────────────────────────
+// 상황을 고르면 어울리는 '종류' 여러 개를 종류별로 묶어 한 화면에 보여준다.
+// 상단 종류 토글칩(기본 전부 켜짐)으로 원하는 종류만 남겨 좁힐 수 있다.
+function setActiveOccChip(occKey){
+  document.querySelectorAll("#useChips .use-chip").forEach(b=> b.classList.toggle("on", b.dataset.occ===occKey));
+}
+function showOccasion(occKey){
+  const oc = OCCASIONS[occKey]; if(!oc) return;
+  currentOccasion = occKey;
+  currentCat = ""; currentSub = ""; currentBand = "";
+  occSel = oc.types.slice();                    // 종류 전부 켜진 상태로 시작
+  setActiveOccChip(occKey);
+  document.querySelectorAll("#segTabs button").forEach(b=> b.classList.remove("on"));  // 종류 탭 하이라이트 해제
+  renderOccTypeChips();
+  document.getElementById("bandChips").innerHTML = "";
+  renderSortBar();
+  renderLinkOrder(oc.link);
+  renderOccProducts();
+  document.getElementById("galleryArea").innerHTML = "";
+  showSpecial(oc.types[0]);
+}
+function renderOccTypeChips(){
+  const oc = OCCASIONS[currentOccasion]; if(!oc) return;
+  const el = document.getElementById("subTabs");
+  el.innerHTML = `<span class="frow-label">종류</span><div class="frow-pills">`
+    + oc.types.map(tk=>`<button class="fpill ${occSel.includes(tk)?"on":""}" onclick="toggleOccType('${tk}')">${esc(CAT_TITLE[tk])}</button>`).join("")
+    + `</div>`;
+}
+function toggleOccType(tk){
+  const i = occSel.indexOf(tk);
+  if(i>=0){ if(occSel.length<=1) return; occSel.splice(i,1); }  // 최소 1개는 남긴다
+  else occSel.push(tk);
+  renderOccTypeChips();
+  renderOccProducts();
+}
+function renderOccProducts(){
+  const oc = OCCASIONS[currentOccasion]; if(!oc) return;
+  let html = `<div class="section-label">${esc(oc.title)}에 어울리는 꽃</div><div class="section-desc">${esc(oc.desc)}</div>`;
+  let any = false;
+  for(const tk of oc.types){                    // 상황이 정한 순서대로, 켜진 종류만
+    if(!occSel.includes(tk)) continue;
+    const list = productsFor(tk, "", currentBand);
+    if(!list.length) continue;
+    any = true;
+    html += `<div class="group-head">${esc(CAT_TITLE[tk])} <span class="group-count">${list.length}</span></div>`;
+    html += `<div class="grid">` + list.map(productCard).join("") + `</div>`;
+  }
+  if(!any) html += `<div class="grid"><div class="cat-empty">준비된 상품이 없어요. 전화(031-314-3003)로 문의해 주세요.</div></div>`;
+  document.getElementById("catArea").innerHTML = html;
+}
+
 // 화환 5단 사다리(실속59/일반79 주력/대99/특대119/스페셜149) + URL 붙여넣기. 가격은 실물 상품(products.js)에서.
 // 화환 사다리 = 주문 플로우와 단일 기준(index.html WREATH_TIERS: 59/79/99/129). 등급으로 주문.
 const WREATH_LADDER = [
@@ -506,6 +701,25 @@ const WREATH_LADDER = [
   {label:"고급형",   price:99000,  note:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
   {label:"최고급형", price:129000, note:"4단 특대형. 거래처·회사 명의에 적합합니다."},
 ];
+// 링크(부고·청첩장·초대장) 자동주문 박스 — 모든 탭 공통. 탭별 문구만 다르게.
+function renderLinkOrder(key){
+  const el=document.getElementById("linkOrderArea"); if(!el) return;
+  const C={
+    condolence:{t:"부고 문자 링크로 자동주문", ph:"부고 링크를 붙여넣으세요", d:"빈소·발인 정보로 자동 입력됩니다."},
+    congrats:  {t:"청첩장·초대 링크로 자동주문", ph:"청첩장·초대 링크를 붙여넣으세요", d:"예식장·일시로 자동 입력됩니다."},
+    plant:     {t:"개업·초대 링크로 자동주문", ph:"개업·집들이·초대 링크를 붙여넣으세요", d:"보내는 곳·일시가 자동 입력됩니다."},
+    orchid:    {t:"개업·취임 초대 링크로 자동주문", ph:"개업·취임·초대 링크를 붙여넣으세요", d:"보내는 곳·일시가 자동 입력됩니다."},
+    basket:    {t:"초대·안내 링크로 자동주문", ph:"문자로 받은 초대·안내 링크를 붙여넣으세요", d:"보내는 곳·일시가 자동 입력됩니다."},
+  };
+  const c=C[key]||{t:"링크로 자동주문",ph:"문자로 받은 링크를 붙여넣으세요",d:""};
+  el.innerHTML=`<div class="wreath-url">
+      <div class="wu-title">📩 ${esc(c.t)}</div>
+      <input id="wreathUrl" type="text" inputmode="url" placeholder="${esc(c.ph)}" />
+      <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:8px;">${esc(c.d)}</div>
+    </div>`;
+}
+
 function renderWreath(key){
   const kindName = key==="congrats" ? "축하화환" : "근조화환";
   const worder = key==="condolence" ? "funeral" : "congrats";
@@ -517,22 +731,32 @@ function renderWreath(key){
     return best ? (best.photos[0]||"") : "";
   };
   const seo = key==="condolence"
-    ? "근조화환 · 장례식장 전국 당일배송. 부고 문자 링크를 붙여넣으면 빈소·발인 정보로 자동 주문됩니다."
-    : "축하화환 · 결혼식·개업·승진 전국 당일배송. 청첩장·초대 링크를 붙여넣으면 예식장·일시로 자동 주문됩니다.";
+    ? "근조화환 · 장례식장 전국 당일배송. 아래에서 등급을 고르고 주문하시거나, 위에 부고 링크를 붙여넣으면 자동으로 채워드립니다."
+    : "축하화환 · 결혼식·개업·승진 전국 당일배송. 아래에서 등급을 고르고 주문하시거나, 위에 청첩장 링크를 붙여넣으면 자동으로 채워드립니다.";
   let html = `<div class="section-label">${kindName}</div><div class="section-desc">${seo}</div>`;
-  html += `<div class="wreath-url">
-      <div class="wu-title">📩 부고·청첩장 링크로 자동주문</div>
-      <input id="wreathUrl" type="text" inputmode="url" placeholder="문자로 받은 링크를 붙여넣으세요" />
-      <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>
-    </div>`;
-  html += `<div class="ladder">` + WREATH_LADDER.map((t,i)=>`
-      <div class="ladder-row${t.main?" main":""}">
-        <div class="lr-photo"><img src="${esc(photoFor(t.price))}" alt="${esc(t.label)}" loading="lazy" onerror="this.style.display='none'"></div>
-        <div class="lr-info"><div class="lr-tier">${t.label}${t.main?' <span class="lr-badge">주력</span>':''}</div><div class="lr-note">${esc(t.note)}</div></div>
-        <div class="lr-price">${t.price.toLocaleString()}원</div>
-        <button class="lr-order" onclick="location.href='/?worder=${worder}&tier=${i}'">주문</button>
+  // 등급 4종 → 2×2 큰 카드
+  html += `<div class="wreath-grid">` + WREATH_LADDER.map((t,i)=>`
+      <div class="wcard${t.main?" main":""}">
+        <div class="wphoto"><img src="${esc(photoFor(t.price))}" alt="${esc(t.label)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size:12px;&quot;>사진 준비 중</div>'"></div>
+        <div class="wbody">
+          <div class="wtier">${esc(t.label)}${t.main?'<span class="wbadge">주력</span>':''}</div>
+          <div class="wnote">${esc(t.note)}</div>
+          <div class="wprice">${t.price.toLocaleString()}원</div>
+          <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">주문하기</button>
+        </div>
       </div>`).join("") + `</div>`;
+  // 실제 보유 구성(WG/WC) — 개별상품 카드(상세·장바구니 지원)로 접었다 펴기
+  if(products.length){
+    html += `<button class="wmore-btn" onclick="toggleWreathMore(this)">이 화환의 다른 구성도 보기 (${products.length}) ▾</button>`;
+    html += `<div id="wreathMore" class="grid hidden" style="margin-top:14px;">`
+      + products.slice().sort((a,b)=>a.price-b.price).map(productCard).join("") + `</div>`;
+  }
   document.getElementById("catArea").innerHTML=html;
+}
+function toggleWreathMore(btn){
+  const el=document.getElementById("wreathMore"); if(!el) return;
+  const hidden=el.classList.toggle("hidden");
+  btn.textContent = btn.textContent.replace(/[▾▴]\s*$/, hidden?"▾":"▴");
 }
 function wreathUrlGo(){
   const el=document.getElementById("wreathUrl");
@@ -542,7 +766,7 @@ function wreathUrlGo(){
 }
 function setSub(s){ currentSub=s; showCat(currentCat, true); }
 function setBand(b){ currentBand=b; renderBandChips(); renderProducts(); }
-function setSort(s){ currentSort=s; renderSortBar(); renderProducts(); }
+function setSort(s){ currentSort=s; renderSortBar(); currentOccasion ? renderOccProducts() : renderProducts(); }
 
 function renderBandChips(){
   const el=document.getElementById("bandChips");
@@ -550,14 +774,17 @@ function renderBandChips(){
   const avail = new Set(productsFor(currentCat, currentSub, "").map(p=>p.band));
   const bands = BANDS.filter(b=>avail.has(b));
   if(bands.length<=1){ el.innerHTML=""; return; }
-  el.innerHTML = `<button class="bchip ${!currentBand?"on":""}" onclick="setBand('')">전체</button>`
-    + bands.map(b=>`<button class="bchip ${currentBand===b?"on":""}" onclick="setBand('${b}')">${b}</button>`).join("");
+  el.innerHTML = `<span class="frow-label">가격대</span><div class="frow-pills">`
+    + `<button class="fpill ${!currentBand?"on":""}" onclick="setBand('')">전체</button>`
+    + bands.map(b=>`<button class="fpill ${currentBand===b?"on":""}" onclick="setBand('${b}')">${b}</button>`).join("")
+    + `</div>`;
 }
 function renderSortBar(){
   const el=document.getElementById("sortBar");
   const opts=[["pop","인기순"],["new","신상품"],["price","낮은가격순"],["priceHigh","높은가격순"]];
-  el.innerHTML = `<span class="sort-label">정렬</span>`
-    + opts.map(([k,l])=>`<button class="sortbtn ${currentSort===k?"on":""}" onclick="setSort('${k}')">${l}</button>`).join("");
+  el.innerHTML = `<span class="frow-label">정렬</span><div class="frow-pills fsort">`
+    + opts.map(([k,l])=>`<button class="fpill ${currentSort===k?"on":""}" onclick="setSort('${k}')">${l}</button>`).join("")
+    + `</div>`;
 }
 function renderProducts(){
   const ax=AXES[currentCat];
@@ -627,6 +854,105 @@ function doSearch(q){
 // 개별상품 주문 — 메인 주문 플로우로 pc 전달(index.html이 해당 상품으로 진입)
 function goOrderPc(pc){ location.href = "/?pc="+encodeURIComponent(pc); }
 
+/* ───────── 상품 상세 모달 ───────── */
+let detailPc=null, detailIdx=0;
+function openDetail(pc){
+  const p=PRODUCTS.find(x=>x.pc===pc); if(!p) return;
+  detailPc=pc; detailIdx=0; renderDetail();
+  document.getElementById("pmodal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+function closeDetail(){ document.getElementById("pmodal").classList.add("hidden"); document.body.style.overflow=""; detailPc=null; }
+function detailNav(d){
+  const p=PRODUCTS.find(x=>x.pc===detailPc); if(!p) return;
+  const n=(p.photos&&p.photos.length)||1; detailIdx=(detailIdx+d+n)%n; renderDetail();
+}
+function renderDetail(){
+  const p=PRODUCTS.find(x=>x.pc===detailPc); if(!p) return;
+  const photos=(p.photos&&p.photos.length)?p.photos:[""];
+  const sold=p.status&&p.status!=="판매중";
+  const inCart=getCart().some(i=>i.pc===p.pc);
+  const kind=CAT_TITLE[catAxis(p.cat)]||"";
+  const sizeTag=(p.cat==="plant"&&p.size)?`<span class="size-tag">H${p.size.h}×W${p.size.w}</span>`:"";
+  const img=photos[detailIdx]||"";
+  const nav=photos.length>1
+    ? `<button class="pm-nav prev" onclick="detailNav(-1)" aria-label="이전 사진">‹</button><button class="pm-nav next" onclick="detailNav(1)" aria-label="다음 사진">›</button><div class="pm-dots">${photos.map((_,i)=>`<span class="pm-dot ${i===detailIdx?'on':''}"></span>`).join("")}</div>`
+    : "";
+  document.getElementById("pmodalBody").innerHTML=`
+    <div class="pm-photo"><img src="${esc(img)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size:13px;&quot;>사진 준비 중</div>'">${nav}</div>
+    <div class="pm-body">
+      <div class="pm-nm">${esc(p.name)}</div>
+      ${p.subtitle?`<div class="pm-sub">${esc(p.subtitle)}</div>`:""}
+      <div class="pm-meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}<span class="size-tag">${esc(kind)}</span></div>
+      <div class="pm-price">${p.price.toLocaleString()}원</div>
+      <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${p.size.h}cm · 폭 약 ${p.size.w}cm`:""}</div>
+      <div class="pm-actions">
+        ${sold
+          ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
+          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">이 상품으로 바로 주문</button>
+             ${inCart
+                ? `<button class="pm-cart added" onclick="openCart()">✓ 장바구니에 담김 · 열어보기</button>`
+                : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">🛒 담아두고 더 둘러보기</button>`}`}
+        <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">🔗 이 상품 공유하기</button>
+      </div>
+    </div>`;
+}
+function addToCartDetail(pc){ addToCart(pc,1); renderDetail(); }
+
+/* ───────── 장바구니(로컬 저장) ───────── */
+const CART_KEY="af_cart";
+function getCart(){ try{ const c=JSON.parse(localStorage.getItem(CART_KEY)||"[]"); return Array.isArray(c)?c:[]; }catch(_){ return []; } }
+function saveCart(c){ try{ localStorage.setItem(CART_KEY, JSON.stringify(c)); }catch(_){} updateCartFab(); }
+function cartCount(){ return getCart().reduce((s,i)=>s+(i.qty||1),0); }
+function addToCart(pc,qty){ qty=qty||1; const c=getCart(); const f=c.find(i=>i.pc===pc); if(f) f.qty=Math.min(99,(f.qty||1)+qty); else c.push({pc,qty}); saveCart(c); }
+function updateCartFab(){
+  const fab=document.getElementById("cartFab"); if(!fab) return;
+  const n=cartCount(); fab.classList.toggle("hidden", n<=0);
+  const b=document.getElementById("cartCount"); if(b) b.textContent=n;
+}
+// 카드의 '담기' 버튼 — 담고 잠깐 피드백
+function addToCartFb(pc,btn){
+  addToCart(pc,1);
+  if(btn){ btn.classList.add("added"); btn.textContent="담았어요 ✓"; setTimeout(()=>{ btn.classList.remove("added"); btn.innerHTML="🛒 담기"; },1300); }
+}
+function openCart(){ closeDetail(); renderCart(); document.getElementById("cartDrawer").classList.add("open"); document.body.style.overflow="hidden"; }
+function closeCart(){ document.getElementById("cartDrawer").classList.remove("open"); document.body.style.overflow=""; }
+function cartSetQty(pc,delta){ const c=getCart(); const f=c.find(i=>i.pc===pc); if(!f) return; f.qty=Math.max(1,Math.min(99,(f.qty||1)+delta)); saveCart(c); renderCart(); }
+function cartRemove(pc){ saveCart(getCart().filter(i=>i.pc!==pc)); renderCart(); }
+function cartClear(){ if(!getCart().length) return; saveCart([]); renderCart(); }
+function cartOrder(pc,qty){ location.href="/?pc="+encodeURIComponent(pc)+((qty&&qty>1)?"&qty="+qty:""); }
+function renderCart(){
+  const c=getCart();
+  const linesEl=document.getElementById("cartLines"), footEl=document.getElementById("cartFoot");
+  if(!c.length){
+    linesEl.innerHTML=`<div class="cart-empty">장바구니가 비어 있어요.<br>마음에 드는 상품을 담아보세요.</div>`;
+    footEl.innerHTML=""; return;
+  }
+  let sub=0;
+  linesEl.innerHTML=c.map(it=>{
+    const p=PRODUCTS.find(x=>x.pc===it.pc); if(!p) return "";
+    const qty=it.qty||1; sub+=p.price*qty;
+    const photo=(p.photos&&p.photos[0])||"";
+    return `<div class="cart-line">
+      <div class="cl-photo"><img src="${esc(photo)}" alt="" onerror="this.style.display='none'"></div>
+      <div>
+        <div class="cl-nm">${esc(p.name)}</div>
+        <div class="cl-price">${p.price.toLocaleString()}원${p.subtitle?' · '+esc(p.subtitle):''}</div>
+        <div class="cl-qty"><button class="cl-qbtn" onclick="cartSetQty('${esc(p.pc)}',-1)" aria-label="수량 줄이기">−</button><span class="cl-qn">${qty}</span><button class="cl-qbtn" onclick="cartSetQty('${esc(p.pc)}',1)" aria-label="수량 늘리기">+</button></div>
+      </div>
+      <div class="cl-right">
+        <button class="cl-order" onclick="cartOrder('${esc(p.pc)}',${qty})">주문하기</button>
+        <button class="cl-rm" onclick="cartRemove('${esc(p.pc)}')">삭제</button>
+      </div>
+    </div>`;
+  }).join("");
+  footEl.innerHTML=`<div class="cart-foot">
+      <div class="cart-note">💡 배송지가 서로 다른 상품(예: 결혼식 화환 + 생일 꽃다발)은 <b>주문하기</b>로 하나씩 보내드려요. 담아둔 상품은 이 기기에 저장됩니다.</div>
+      <div class="cart-sub"><span>담은 상품 합계</span><span>${sub.toLocaleString()}원</span></div>
+      <button class="cart-clear" onclick="cartClear()">장바구니 비우기</button>
+    </div>`;
+}
+
 function escapeJs(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 async function shareItem(pc){
@@ -668,12 +994,21 @@ function openSharedItem(){
 // 홈에서 ?cat=basket 등으로 넘어오면 해당 탭을 연다(없으면 꽃다발·바구니 기본)
 (function initFromParam(){
   const q=new URLSearchParams(location.search);
+  const occ=q.get("occ");
+  if(occ && OCCASIONS[occ]){ showOccasion(occ); return; }   // ?occ=funeral 등 → 상황 모드
   let cat=q.get("cat");
   if(cat==="wreath") cat="congrats";       // 홈의 통합 화환 카드 → 축하화환 탭
   showCat(AXES[cat] ? cat : "basket");
 })();
 openSharedItem();
 loadLiveGallery();
+updateCartFab();
+// Esc 로 상세·장바구니 닫기
+document.addEventListener("keydown", e=>{
+  if(e.key!=="Escape") return;
+  if(document.getElementById("cartDrawer").classList.contains("open")) closeCart();
+  else if(!document.getElementById("pmodal").classList.contains("hidden")) closeDetail();
+});
 
 // 준비 중인 채널(네이버/카톡)은 주소가 들어오기 전까지 안내만
 document.querySelectorAll('.ch[data-pending]').forEach(el=>{
