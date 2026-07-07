@@ -351,6 +351,11 @@
   #catalogBanner div { color: var(--paper) !important; }
   #catalogBanner .pick-label { font-size: 11px; letter-spacing: 1px; opacity: 0.7; }
   #catalogBanner .pick-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-top: 2px; }
+  #stepBar { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+  #stepBar .sb-dots { display: flex; gap: 5px; }
+  #stepBar .sb-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--paper); opacity: .38; transition: opacity .2s; }
+  #stepBar .sb-dots i.on { opacity: 1; }
+  #stepBar .sb-txt { font-size: 12.5px; font-weight: 700; }
 
   /* ─── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ─── */
   @media (min-width: 1000px) {
@@ -469,7 +474,7 @@
   </section>
 
   <section class="card hidden" id="confirmCard">
-    <div class="step-head"><span class="step-num">2.</span><span class="step-title">주문 정보</span></div>
+    <div class="step-head"><span class="step-num" id="n-confirm">1.</span><span class="step-title">받는 곳</span></div>
     <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
     <div id="typePill"></div>
     <div id="afFields"></div>
@@ -848,6 +853,7 @@ function applyOccasion(reco, text){
   renderPriceTabs();
   renderRecoOptions(reco.tier);
   selTier(reco.tier!=null?reco.tier:1, false);
+  enterOrderMode(escapeHtml(reco.label));
   scrollTo("confirmCard");
 }
 
@@ -941,11 +947,38 @@ function applyParsed(r){
   scrollTo("confirmCard");
 }
 
+// 진입 경로와 무관하게 '받는 곳'을 1단계로. 보이는 카드만 1..N 순번 + 진행 스텝바 갱신.
+var STEP_SEQ = null;
 function renumber(hasSide){
-  document.getElementById("n-side").textContent="3.";
-  document.getElementById("n-prod").textContent=(hasSide?4:3)+".";
-  document.getElementById("n-send").textContent=(hasSide?5:4)+".";
-  document.getElementById("n-pay").textContent=(hasSide?6:5)+".";
+  var seq=[{id:"n-confirm",card:"confirmCard",label:"받는 곳"}];
+  if(hasSide) seq.push({id:"n-side",card:"sideCard",label:"보내는 쪽"});
+  seq.push({id:"n-prod",card:"prodCard",label:"상품·가격"});
+  seq.push({id:"n-send",card:"senderCard",label:"보내는 분"});
+  seq.push({id:"n-pay",card:"payCard",label:"결제"});
+  for(var i=0;i<seq.length;i++){ var el=document.getElementById(seq[i].id); if(el) el.textContent=(i+1)+"."; }
+  STEP_SEQ=seq;
+  renderStepBar(0);
+  observeSteps();
+}
+// 진행 스텝바 — catalogBanner(sticky) 내부에 표시(이중 sticky 방지)
+function renderStepBar(curIdx){
+  var el=document.getElementById("stepBar"); if(!el||!STEP_SEQ) return;
+  var total=STEP_SEQ.length; if(curIdx<0)curIdx=0; if(curIdx>total-1)curIdx=total-1;
+  var dots=""; for(var i=0;i<total;i++){ dots+='<i class="'+(i<=curIdx?"on":"")+'"></i>'; }
+  el.innerHTML='<span class="sb-dots">'+dots+'</span><span class="sb-txt">'+(curIdx+1)+'/'+total+' · '+STEP_SEQ[curIdx].label+'</span>';
+}
+var _stepOb=null;
+function observeSteps(){
+  if(!STEP_SEQ||!("IntersectionObserver" in window)) return;
+  if(_stepOb) _stepOb.disconnect();
+  _stepOb=new IntersectionObserver(function(entries){
+    for(var k=0;k<entries.length;k++){
+      if(entries[k].isIntersecting){
+        for(var j=0;j<STEP_SEQ.length;j++){ if(STEP_SEQ[j].card===entries[k].target.id){ renderStepBar(j); break; } }
+      }
+    }
+  },{rootMargin:"-45% 0px -50% 0px",threshold:0});
+  for(var i=0;i<STEP_SEQ.length;i++){ var c=document.getElementById(STEP_SEQ[i].card); if(c) _stepOb.observe(c); }
 }
 
 function selSide(s){
@@ -1895,8 +1928,10 @@ function enterOrderMode(labelHtml){
   if(b){
     b.innerHTML='<div class="pick-label">선택한 상품</div>'
       +'<div class="pick-name">'+labelHtml+'</div>'
+      +'<div id="stepBar"></div>'
       +'<a href="/catalog.html" style="display:inline-block;margin-top:6px;font-size:13px;color:var(--paper);text-decoration:underline;">다른 상품 보기 →</a>';
     b.classList.remove("hidden");
+    if(typeof renderStepBar==="function") renderStepBar(0);
   }
   if(typeof updateBuyBar==="function") updateBuyBar();
 }
