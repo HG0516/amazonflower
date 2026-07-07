@@ -10,3 +10,8 @@ photo-manifest.json
 # 사업 기획서는 비공개 레포로 분리 관리 (HG0516/docs-backup, HG0516/kkotanbu-plan)
 # 이 레포(amazonflower)는 코드 전용 — public. 기획서를 여기 두지 말 것.
 docs/
+
+# 운영 비밀·식별자 메모/스크립트 (로컬 전용 — public 레포에 커밋 금지)
+*.local.md
+scripts/*.local.*
+*.p8

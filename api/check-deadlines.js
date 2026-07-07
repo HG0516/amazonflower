@@ -32,11 +32,37 @@ async function sendTelegram(text) {
   }
 }
 
+// ── 애플 Sign in with Apple: Client Secret(JWT) 만료 임박 알림 ──
+// 애플 웹 로그인 시크릿(JWT)은 최대 6개월이면 만료된다. 만료되면 애플 로그인이 막히므로,
+// 만료 임계일(D-day)에 사장님 텔레그램으로 "재발급하라"고 알린다.
+// ⚠️ 재발급하면 아래 APPLE_SECRET_EXPIRY 를 새 만료일로 바꿔야 한다. (재발급 방법: apple-signin.local.md)
+const APPLE_SECRET_EXPIRY = "2027-01-03"; // 현재 Supabase에 넣은 애플 client secret(JWT) 만료일 (YYYY-MM-DD, KST)
+const APPLE_ALERT_DAYS = [60, 45, 30, 21, 14, 7, 3, 1]; // 이 D-day들에 알림
+
+async function checkAppleSecretExpiry(now) {
+  // 30분 크론이라 하루에 한 번만 알리도록 KST 09:00~09:29 창에서만 발송(스팸 방지).
+  const kstHour = (now.getUTCHours() + 9) % 24;
+  if (kstHour !== 9 || now.getUTCMinutes() >= 30) return;
+  const exp = new Date(APPLE_SECRET_EXPIRY + "T00:00:00+09:00");
+  const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / 86400000);
+  if (!APPLE_ALERT_DAYS.includes(daysLeft)) return;
+  await sendTelegram(
+    `🍎 애플 로그인 보안키 만료 D-${daysLeft} (${APPLE_SECRET_EXPIRY})\n`
+    + `만료되면 애플 로그인이 막혀요. 6개월짜리 Client Secret(JWT)을 재발급해야 합니다.\n`
+    + `재발급: 다운로드 폴더의 AuthKey_*.p8 로 새 JWT 생성 → Supabase Apple provider의 Secret Key 교체.\n`
+    + `(간단히: 클로드에게 "애플 시크릿 재발급" 요청 → 명령 한 줄로 새 JWT 생성)`
+  );
+}
+
 export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   if (!secret || !safeEq(req.headers.authorization || "", `Bearer ${secret}`)) {
     return res.status(401).json({ error: "unauthorized" });
   }
+
+  // 애플 로그인 시크릿 만료 임박 알림 (배송 체크와 독립 — 실패해도 아래 로직엔 영향 없음)
+  try { await checkAppleSecretExpiry(new Date()); } catch (e) { console.error("apple secret check:", e.message); }
+
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SUPABASE_URL || !SERVICE_KEY) return res.status(503).json({ error: "supabase env missing" });
