@@ -324,12 +324,12 @@
   </div>
   <!-- 상황(경조사) 바로가기 — 상황을 고르면 어울리는 종류가 여러 개 같이 나온다 -->
   <div class="uses" id="useChips">
-    <button class="use-chip" data-occ="funeral"  onclick="showOccasion('funeral')">장례</button>
     <button class="use-chip" data-occ="wedding"  onclick="showOccasion('wedding')">결혼</button>
     <button class="use-chip" data-occ="opening"  onclick="showOccasion('opening')">개업·이전</button>
     <button class="use-chip" data-occ="promo"    onclick="showOccasion('promo')">승진·취임</button>
     <button class="use-chip" data-occ="birthday" onclick="showOccasion('birthday')">생일·기념일</button>
     <button class="use-chip" data-occ="visit"    onclick="showOccasion('visit')">병문안</button>
+    <button class="use-chip" data-occ="funeral"  onclick="showOccasion('funeral')">장례</button>
   </div>
   <div id="searchArea" class="hidden"></div>
 
@@ -495,8 +495,8 @@ let currentCat = "basket", currentSub = "", currentBand = "", currentSort = "pop
 // types = AXES 키(condolence/congrats/orchid/plant/basket). link = 자동주문 박스 종류.
 // ※ 장례는 잘못 보내면 큰 결례라 근조 전용(근조화환·근조바구니)만 — 색 있는 난 제외.
 const OCCASIONS = {
-  funeral:  { label:"장례",        types:["condolence","basket"],                link:"condolence",
-              title:"장례·조문", desc:"장례식장에 보내는 근조화환과 근조 꽃바구니입니다." },
+  funeral:  { label:"장례",        types:["condolence"],                         link:"condolence",
+              title:"장례·조문", desc:"장례식장에 보내는 근조화환입니다." },
   wedding:  { label:"결혼",        types:["congrats","basket"],                  link:"congrats",
               title:"결혼",      desc:"결혼식에 보내는 축하화환과 꽃다발·꽃바구니입니다." },
   opening:  { label:"개업·이전",   types:["plant","orchid","congrats","basket"], link:"plant",
@@ -505,8 +505,8 @@ const OCCASIONS = {
               title:"승진·취임", desc:"승진·취임 축하로 보내는 난·꽃다발·꽃바구니·관엽입니다." },
   birthday: { label:"생일·기념일", types:["basket","plant"],                     link:"basket",
               title:"생일·기념일", desc:"생일·기념일에 보내는 꽃다발·꽃바구니와 관엽입니다." },
-  visit:    { label:"병문안",      types:["basket"],                             link:"basket",
-              title:"병문안",    desc:"병문안에 보내는 꽃다발·꽃바구니입니다." },
+  visit:    { label:"병문안",      types:["basket","plant","orchid"],            link:"basket",
+              title:"병문안",    desc:"병문안에 보내는 꽃바구니와 오래 두고 보는 화분(관엽·난)입니다. 꽃을 제한하는 병원엔 화분을 추천드려요." },
 };
 let currentOccasion = "";   // 상황 모드일 때만 값이 있음("" = 종류 탭 모드)
 let occSel = [];            // 상황 모드에서 켜져 있는 종류들(기본: 상황의 types 전부)
@@ -705,13 +705,13 @@ const WREATH_LADDER = [
 function renderLinkOrder(key){
   const el=document.getElementById("linkOrderArea"); if(!el) return;
   const C={
-    condolence:{t:"부고 문자 링크로 자동주문", ph:"부고 링크를 붙여넣으세요", d:"빈소·발인 정보로 자동 입력됩니다."},
-    congrats:  {t:"청첩장·초대 링크로 자동주문", ph:"청첩장·초대 링크를 붙여넣으세요", d:"예식장·일시로 자동 입력됩니다."},
-    plant:     {t:"개업·초대 링크로 자동주문", ph:"개업·집들이·초대 링크를 붙여넣으세요", d:"보내는 곳·일시가 자동 입력됩니다."},
-    orchid:    {t:"개업·취임 초대 링크로 자동주문", ph:"개업·취임·초대 링크를 붙여넣으세요", d:"보내는 곳·일시가 자동 입력됩니다."},
-    basket:    {t:"초대·안내 링크로 자동주문", ph:"문자로 받은 초대·안내 링크를 붙여넣으세요", d:"보내는 곳·일시가 자동 입력됩니다."},
+    condolence:{t:"부고 링크로 간편 주문", ph:"예) 문자로 받은 부고 링크를 여기에 붙여넣기", d:"링크만 넣으면 빈소·발인 시간이 자동으로 채워져 바로 주문할 수 있어요. 직접 안 적으셔도 됩니다."},
+    congrats:  {t:"청첩장·초대장 링크로 간편 주문", ph:"예) 카톡으로 받은 모바일 청첩장 주소를 붙여넣기", d:"링크만 넣으면 예식장·날짜가 자동으로 채워져 바로 주문할 수 있어요. 직접 안 적으셔도 됩니다."},
+    plant:     {t:"개업·집들이 초대장 링크로 간편 주문", ph:"예) 개업·집들이 초대 링크를 붙여넣기", d:"링크만 넣으면 가게 주소·날짜가 자동으로 채워져요."},
+    orchid:    {t:"개업·취임 초대장 링크로 간편 주문", ph:"예) 개업·취임 안내 링크를 붙여넣기", d:"링크만 넣으면 장소·날짜가 자동으로 채워져요."},
+    basket:    {t:"초대·안내 링크가 있으면 간편 주문", ph:"예) 문자로 받은 초대·안내 링크를 붙여넣기", d:"링크가 있으면 붙여넣기만 하세요 — 보내는 곳·날짜가 자동으로 채워져요."},
   };
-  const c=C[key]||{t:"링크로 자동주문",ph:"문자로 받은 링크를 붙여넣으세요",d:""};
+  const c=C[key]||{t:"링크로 간편 주문",ph:"예) 문자로 받은 링크를 붙여넣기",d:"링크만 넣으면 보내는 곳·날짜가 자동으로 채워져요."};
   el.innerHTML=`<div class="wreath-url">
       <div class="wu-title">📩 ${esc(c.t)}</div>
       <input id="wreathUrl" type="text" inputmode="url" placeholder="${esc(c.ph)}" />
