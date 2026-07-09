@@ -43,22 +43,30 @@ const LEGACY_TIERS = {
 };
 
 // 토핑 (index.html TOPPINGS + api TOPPING_PRICES 통합 — 단일 소스)
+// grp: 같은 그룹은 하나만 선택(라디오처럼 배타) — '더 크게/풍성하게' 단계 중복과금 방지
 const TOPPINGS = {
-  top_rice:   { nm: "쌀 10kg 얹기",        price: 20000, d: "행사 후 상주·혼주께 전달되는 쌀화환 구성" },
-  top_ribbon: { nm: "금박 고급 리본",       price: 10000, d: "리본 문구를 금박으로 더 격식 있게" },
-  top_pot:    { nm: "도자기 분 업그레이드", price: 20000, d: "기본 분 대신 도자기 화분으로" },
-  top_plaque: { nm: "나무 명패",            price: 10000, d: "보내는 분 명패 제작 (법인 인기)" },
-  top_more:   { nm: "더 풍성하게",          price: 20000, d: "꽃 물량을 한 단계 늘립니다" },
-  top_wine:   { nm: "와인 동봉",            price: 30000, d: "축하 와인 한 병을 함께" },
-  top_card:   { nm: "손글씨 카드",          price: 5000,  d: "메시지를 카드에 정성껏 적어 동봉" },
+  top_rice:    { nm: "쌀 10kg 얹기",        price: 20000, d: "행사 후 상주·혼주께 전달되는 쌀화환 구성" },
+  top_ribbon:  { nm: "금박 고급 리본",       price: 10000, d: "리본 문구를 금박으로 더 격식 있게" },
+  top_pot:     { nm: "도자기 분 업그레이드", price: 20000, d: "기본 분 대신 도자기 화분으로" },
+  top_plaque:  { nm: "나무 명패",            price: 10000, d: "보내는 분 명패 제작 (법인 인기)" },
+  top_wheel:   { nm: "바퀴 화분받침",        price: 15000, d: "이동이 편한 바퀴형 받침 — 실내 배치·청소 편리" },
+  // 관엽 '더 크게'(수형 업그레이드) 2단계 — 배타
+  top_lush_p1: { nm: "조금 더 크게",         price: 20000, d: "한 단계 큰 수형으로", grp: "lush" },
+  top_lush_p2: { nm: "훨씬 크게",            price: 30000, d: "두 단계 큰 수형으로 가장 풍성하게", grp: "lush" },
+  // 꽃바구니·꽃다발 '더 풍성하게' 2단계 — 배타
+  top_lush_b1: { nm: "조금 더 풍성하게",     price: 10000, d: "꽃 물량을 한 단계 늘립니다", grp: "lush" },
+  top_lush_b2: { nm: "많이 풍성하게",        price: 20000, d: "꽃 물량을 두 단계 늘립니다", grp: "lush" },
+  top_more:    { nm: "더 풍성하게",          price: 20000, d: "꽃 물량을 한 단계 늘립니다" }, // 구버전 재주문 호환(신규 미노출)
+  top_wine:    { nm: "와인 동봉",            price: 30000, d: "축하 와인 한 병을 함께" },
+  top_card:    { nm: "손글씨 카드",          price: 5000,  d: "메시지를 카드에 정성껏 적어 동봉" },
 };
 const TOPPINGS_BY_CAT = {
   congrats: ["top_rice", "top_ribbon"],
   condolence: ["top_rice", "top_ribbon"],
   orchid: ["top_pot", "top_plaque", "top_ribbon"],
-  plant: ["top_pot", "top_plaque"],
-  bouquet: ["top_more", "top_wine", "top_card"],
-  basket: ["top_more", "top_wine", "top_card"],
+  plant: ["top_lush_p1", "top_lush_p2", "top_wheel", "top_plaque"],
+  bouquet: ["top_lush_b1", "top_lush_b2", "top_wine", "top_card"],
+  basket: ["top_lush_b1", "top_lush_b2", "top_wine", "top_card"],
 };
 
 // 가격 → 금액대 밴드(칩 5만/7만/9만/10만↑, 기획 21-C)

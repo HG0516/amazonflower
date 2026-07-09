@@ -1326,20 +1326,26 @@ const CATALOG = {
 // ── 마음 얹기 (토핑) ─────────────────────────────────────
 // ※ 가격은 임시 — 사장님 확인 후 숫자만 바꾸면 됩니다. api/confirm-payment.js 의 TOPPING_PRICES 와 같이 맞출 것.
 // ※ 연출 사진: photos/토핑/{상품사진명}+{토핑코드들}.jpg 로 넣으면 자동 표시, 없으면 기본 사진 유지.
+// ⚠ 가격은 products.mjs(서버 검증)와 반드시 일치. grp=같은 그룹 하나만(배타).
 const TOPPINGS = {
-  top_rice:   {nm:"쌀 10kg 얹기",        price:20000, d:"행사 후 상주·혼주께 전달되는 쌀화환 구성"},
-  top_ribbon: {nm:"금박 고급 리본",       price:10000, d:"리본 문구를 금박으로 더 격식 있게"},
-  top_pot:    {nm:"도자기 분 업그레이드", price:20000, d:"기본 분 대신 도자기 화분으로"},
-  top_plaque: {nm:"나무 명패",            price:10000, d:"보내는 분 명패 제작 (법인 인기)"},
-  top_more:   {nm:"더 풍성하게",          price:20000, d:"꽃 물량을 한 단계 늘립니다"},
-  top_wine:   {nm:"와인 동봉",            price:30000, d:"축하 와인 한 병을 함께"},
-  top_card:   {nm:"손글씨 카드",          price:5000,  d:"메시지를 카드에 정성껏 적어 동봉"},
+  top_rice:    {nm:"쌀 10kg 얹기",        price:20000, d:"행사 후 상주·혼주께 전달되는 쌀화환 구성"},
+  top_ribbon:  {nm:"금박 고급 리본",       price:10000, d:"리본 문구를 금박으로 더 격식 있게"},
+  top_pot:     {nm:"도자기 분 업그레이드", price:20000, d:"기본 분 대신 도자기 화분으로"},
+  top_plaque:  {nm:"나무 명패",            price:10000, d:"보내는 분 명패 제작 (법인 인기)"},
+  top_wheel:   {nm:"바퀴 화분받침",        price:15000, d:"이동이 편한 바퀴형 받침 — 실내 배치·청소 편리"},
+  top_lush_p1: {nm:"조금 더 크게",         price:20000, d:"한 단계 큰 수형으로", grp:"lush"},
+  top_lush_p2: {nm:"훨씬 크게",            price:30000, d:"두 단계 큰 수형으로 가장 풍성하게", grp:"lush"},
+  top_lush_b1: {nm:"조금 더 풍성하게",     price:10000, d:"꽃 물량을 한 단계 늘립니다", grp:"lush"},
+  top_lush_b2: {nm:"많이 풍성하게",        price:20000, d:"꽃 물량을 두 단계 늘립니다", grp:"lush"},
+  top_more:    {nm:"더 풍성하게",          price:20000, d:"꽃 물량을 한 단계 늘립니다"}, // 구주문 호환(미노출)
+  top_wine:    {nm:"와인 동봉",            price:30000, d:"축하 와인 한 병을 함께"},
+  top_card:    {nm:"손글씨 카드",          price:5000,  d:"메시지를 카드에 정성껏 적어 동봉"},
 };
 const TOPPINGS_BY_CAT = {
   wreath: ["top_rice","top_ribbon"],
   orchid: ["top_pot","top_plaque","top_ribbon"],
-  plant:  ["top_pot","top_plaque"],
-  basket: ["top_more","top_wine","top_card"],
+  plant:  ["top_lush_p1","top_lush_p2","top_wheel","top_plaque"],
+  basket: ["top_lush_b1","top_lush_b2","top_wine","top_card"],
 };
 
 function orderTotal(){
@@ -1374,7 +1380,13 @@ function qtyRowHtml(){
 async function toggleTopping(code){
   order.toppings = order.toppings||[];
   const i=order.toppings.indexOf(code);
-  if(i>=0) order.toppings.splice(i,1); else order.toppings.push(code);
+  if(i>=0){ order.toppings.splice(i,1); }
+  else{
+    // 같은 grp(단계 옵션)은 하나만 — 켜기 전에 같은 그룹 다른 선택 해제
+    const grp=(TOPPINGS[code]||{}).grp;
+    if(grp) order.toppings=order.toppings.filter(c=>(TOPPINGS[c]||{}).grp!==grp);
+    order.toppings.push(code);
+  }
   renderToppings();
   updateDesignTotal();
   // 결제 카드가 이미 열려 있으면 금액 동기화
@@ -2203,7 +2215,7 @@ function selProduct(p){
   order.productLabel=p.name+(p.subtitle?" · "+p.subtitle:"")+((p.grade && !String(p.name).includes(p.grade))?" "+p.grade:"");
   order.category=productOrderCat(p);
   const photo=(p.photos&&p.photos[0])||"";
-  const sizeLine = (p.cat==="plant"&&p.size) ? ("크기 H"+p.size.h+" × W"+p.size.w+"mm") : "사장님이 직접 만든 실물 상품입니다.";
+  const sizeLine = (p.cat==="plant"&&p.size) ? ("크기 H"+p.size.h+" × W"+p.size.w+"mm 내외 · 살아있는 식물이라 개체마다 수형·크기가 조금씩 다릅니다") : "사장님이 직접 만든 실물 상품입니다.";
   const gradeTxt = (p.grade && !String(p.name).includes(p.grade)) ? " "+escapeHtml(p.grade) : "";
   const area=document.getElementById("designArea");
   area.innerHTML=`<div class="design-detail">
