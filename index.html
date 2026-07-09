@@ -129,6 +129,13 @@
   .best-slider::-webkit-scrollbar { display: none; }
   .best-slider .cat-tile { flex: 0 0 46%; }
   @media (min-width: 1000px) { .best-slider .cat-tile { flex-basis: 30%; } }
+  /* 좌우 화살표 */
+  .best-wrap { position: relative; }
+  .best-arrow { position: absolute; top: 76px; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.94); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(31,29,24,.14); display: flex; align-items: center; justify-content: center; padding: 0; }
+  .best-arrow.left { left: -2px; } .best-arrow.right { right: -2px; }
+  .best-arrow:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .best-arrow:active { transform: translateY(-50%) scale(0.94); }
+  @media (min-width: 1000px) { .best-arrow.left { left: -14px; } .best-arrow.right { right: -14px; } }
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color .15s, transform .1s; user-select: none; }
   .cat-tile:hover { border-color: var(--ink); }
   .cat-tile:active { transform: scale(0.98); }
@@ -136,10 +143,11 @@
   .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: 13px; color: var(--ink-faint); padding: 0 12px 12px; }
-  /* 2×2 그리드: 사진은 cover로 꽉 채우되, 세로로 긴 화환 타일만 contain+배경 */
-  .cat-grid .cat-photo { height: 128px; background: #f6f2ea; }
-  .cat-grid .cat-photo img { object-fit: cover; object-position: center 35%; }
-  .cat-grid .cat-tile.wreath .cat-photo img { object-fit: contain; }
+  /* 2×2 그리드: 세로를 넉넉히(짤림 방지). 사진은 cover, 세로로 긴 화환 타일만 contain+배경 */
+  .cat-grid .cat-photo { height: 190px; background: #f6f2ea; }
+  .cat-grid .cat-photo img { object-fit: cover; object-position: center 42%; }
+  .cat-grid .cat-tile.wreath .cat-photo img { object-fit: contain; padding: 6px 0; }
+  @media (min-width: 1000px) { .cat-grid .cat-photo { height: 240px; } }
 
   /* ── 카드 — 그림자 없이 선만 ── */
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; margin-top: 20px; }
@@ -244,6 +252,32 @@
   .dt-time-input:focus { outline: none; border-color: var(--accent); }
   .dt-hint { margin-top: 10px; font-size: 13px; color: var(--ink-soft); background: var(--line-soft); border-radius: 8px; padding: 11px 13px; line-height: 1.5; }
   .dt-hint b { color: var(--ink); }
+
+  /* ── 배송 요청 + 공동현관 비번 ── */
+  .deliv-box { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
+  .fl-opt { font-weight: 400; color: var(--ink-faint); font-size: 12px; }
+  .deliv-sel { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239e9a8f' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+  .deliv-sel:focus { outline: none; border-color: var(--accent); }
+  .deliv-custom { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); margin-top: 8px; }
+  .deliv-custom:focus { outline: none; border-color: var(--accent); }
+  .entrance-row { display: flex; gap: 10px; align-items: center; }
+  .entrance-pw { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  .entrance-pw:focus { outline: none; border-color: var(--accent); }
+  .entrance-pw:disabled { background: var(--line-soft); color: var(--ink-faint); }
+  .entrance-none { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
+  .entrance-none input { width: 18px; height: 18px; }
+  .deliv-hint { margin-top: 8px; font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
+  .deliv-hint b { color: var(--ink-soft); }
+
+  /* ── 회원/비회원 선택 ── */
+  .member-choice { margin: 4px 0 18px; }
+  .mc-label { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 9px; }
+  .mc-btns { display: flex; gap: 8px; }
+  .mc-btn { flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; text-align: left; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; font-family: var(--font-body); }
+  .mc-btn b { font-size: 14px; color: var(--ink); font-weight: 700; }
+  .mc-btn span { font-size: 11.5px; color: var(--ink-faint); line-height: 1.4; }
+  .mc-btn.on { border-color: var(--accent); background: #f6faf6; }
+  .mc-btn.on b { color: var(--accent-deep); }
 
   /* ── 추천 박스 ── */
   .reco { margin-top: 14px; padding: 14px 16px; border-radius: 4px; background: #faf6ec; border: 1px solid #e3d6b3; }
@@ -458,7 +492,11 @@
   <!-- 사장님 추천(1열 가로 슬라이드 유지) -->
   <section class="home-sect" style="margin-top:22px;">
     <div class="occ-title">사장님 추천</div>
-    <div id="bestArea" class="best-slider"></div>
+    <div class="best-wrap">
+      <button type="button" class="best-arrow left" onclick="bestScroll(-1)" aria-label="이전 상품">‹</button>
+      <div id="bestArea" class="best-slider"></div>
+      <button type="button" class="best-arrow right" onclick="bestScroll(1)" aria-label="다음 상품">›</button>
+    </div>
   </section>
 
   <!-- 카테고리 2×2 (5→4 압축, 관엽+난 → 난·식물 병합) -->
@@ -525,6 +563,25 @@
     </div>
     <div id="typePill"></div>
     <div id="afFields"></div>
+
+    <!-- 배송 요청 + 공동현관 출입 비밀번호 -->
+    <div class="deliv-box">
+      <label class="fl">배송 요청 <span class="fl-opt">(선택)</span></label>
+      <select id="delivReq" class="deliv-sel" onchange="onDelivReq(this.value)">
+        <option value="">특별한 요청 없음</option>
+        <option value="배송 전 받는 분께 연락해 주세요">배송 전 받는 분께 연락해 주세요</option>
+        <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
+        <option value="경비실·프런트에 맡겨주세요">경비실·프런트에 맡겨주세요</option>
+        <option value="__custom">직접 입력</option>
+      </select>
+      <input type="text" id="delivReqCustom" class="deliv-custom hidden" placeholder="배송 요청을 직접 적어주세요" oninput="order.delivReq=this.value" />
+      <label class="fl" style="margin-top:14px;">공동현관 출입 비밀번호 <span class="fl-opt">— 아파트·오피스텔이면 알려주세요</span></label>
+      <div class="entrance-row">
+        <input type="text" id="entrancePw" class="entrance-pw" placeholder="예) #1234 · 1234*" oninput="order.entrancePw=this.value" />
+        <label class="entrance-none"><input type="checkbox" id="entranceNone" onchange="onEntranceNone(this.checked)" /> 없음</label>
+      </div>
+      <div class="deliv-hint">공동주택은 현관 비밀번호가 없으면 배송이 지연될 수 있어요. 없으면 <b>없음</b>을 체크해 주세요.</div>
+    </div>
   </section>
 
   <section class="card hidden" id="sideCard">
@@ -578,6 +635,20 @@
 
   <section class="card hidden" id="payCard">
     <div class="step-head"><span class="step-num" id="n-pay">6.</span><span class="step-title">결제</span></div>
+
+    <!-- 회원/비회원 선택 — 비회원이 기본, 로그인은 적립·재주문 혜택 -->
+    <div class="member-choice" id="memberChoice">
+      <div class="mc-label">주문 방식</div>
+      <div class="mc-btns">
+        <button type="button" class="mc-btn on" id="mcGuest" onclick="selMember('guest')">
+          <b>비회원으로 주문</b><span>로그인 없이 바로 · 연락처만 정확히</span>
+        </button>
+        <button type="button" class="mc-btn" id="mcMember" onclick="selMember('member')">
+          <b>로그인하고 주문</b><span>1,000원 적립 · 원탭 재주문</span>
+        </button>
+      </div>
+    </div>
+
     <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
 
     <!-- 결제 전 주문 확인(경조사 받는곳·날짜·시간 오배송 방지). order에서 읽기 전용 -->
@@ -694,6 +765,7 @@ const order = {
   groomName:"", brideName:"", chiefMourner:"",
   price:0, productCode:"", productLabel:"", quantity:1,
   senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"", senderNote:"",
+  delivReq:"", entrancePw:"", memberChoice:"guest",
   buyerType:"personal", corpName:"", corpRegNo:"", corpCeo:"", corpAddr:"", corpEmail:"",
 };
 
@@ -913,6 +985,27 @@ function dtSlot(slot){
   else { order.time=({today:"당일중",am:"오전중",pm:"오후중"})[slot]||""; }
   dtRender();
   if(slot==="custom"){ var el=document.getElementById("af_time"); if(el) el.focus(); }
+}
+
+// 배송 요청(프리셋/직접입력)
+function onDelivReq(v){
+  var c=document.getElementById("delivReqCustom");
+  if(v==="__custom"){ if(c){ c.classList.remove("hidden"); order.delivReq=c.value||""; c.focus(); } }
+  else { if(c) c.classList.add("hidden"); order.delivReq=v; }
+}
+// 공동현관 비번 '없음' 토글
+function onEntranceNone(checked){
+  var el=document.getElementById("entrancePw"); if(!el) return;
+  if(checked){ el.value=""; el.disabled=true; order.entrancePw="없음 (공동현관 비번 없음)"; }
+  else { el.disabled=false; order.entrancePw=""; }
+}
+// 회원/비회원 선택 — 비회원=바로 진행, 회원=로그인 시트
+function selMember(m){
+  order.memberChoice=m;
+  var g=document.getElementById("mcGuest"), me=document.getElementById("mcMember");
+  if(g) g.classList.toggle("on", m==="guest");
+  if(me) me.classList.toggle("on", m==="member");
+  if(m==="member" && window.afOpenAuth) window.afOpenAuth();
 }
 // 자동입력 칸 한 줄 생성 (applyParsed·applyOccasion 공용)
 function afField(key,label,val){
@@ -1386,6 +1479,7 @@ function autoSlideBest(el){
   el.innerHTML += el.innerHTML;   // 끊김 없는 무한 순환 위해 카드 2배 복제
   let paused=false, pauseTimer=null;
   const pause=()=>{ paused=true; clearTimeout(pauseTimer); pauseTimer=setTimeout(()=>{paused=false;}, 3500); };
+  el._pauseAuto=pause;   // 화살표 클릭 시 자동 흐름 잠깐 멈추게
   el.addEventListener("pointerdown", pause);
   el.addEventListener("touchstart", pause, {passive:true});
   el.addEventListener("wheel", pause, {passive:true});
@@ -1399,6 +1493,15 @@ function autoSlideBest(el){
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+}
+
+// 사장님 추천 좌우 화살표 — 한 카드씩 스크롤(자동 흐름은 잠깐 멈춤)
+function bestScroll(dir){
+  var el=document.getElementById("bestArea"); if(!el) return;
+  if(el._pauseAuto) el._pauseAuto();
+  var card=el.querySelector(".cat-tile");
+  var amt=card ? Math.round(card.getBoundingClientRect().width)+12 : Math.round(el.clientWidth*0.8);
+  el.scrollBy({left: dir*amt, behavior:"smooth"});
 }
 
 function goCat(cat, label){

@@ -84,6 +84,8 @@ function buildOwnerMessage(order, payment) {
   const addr = order.address || order.venueAddress;
   if (addr) lines.push(`주소: ${addr}`);
   if (order.date) lines.push(`일시: ${order.date}${order.time ? " " + order.time : ""}`);
+  if (order.delivReq) lines.push(`배송요청: ${order.delivReq}`);
+  if (order.entrancePw) lines.push(`공동현관: ${order.entrancePw}`);
   const ribbon =
     order.ribbonText ||
     [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ");
