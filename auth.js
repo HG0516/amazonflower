@@ -27,7 +27,7 @@
   var ENABLED_PROVIDERS = [
     { id: 'kakao', label: '카카오로 시작하기', bg: '#FEE500', fg: '#191600' },
     { id: 'naver', label: '네이버로 시작하기', bg: '#03C75A', fg: '#ffffff', custom: true },
-    { id: 'google', label: 'Google로 시작하기', bg: '#ffffff', fg: '#1f1d18', border: '#d9d3c4' },
+    { id: 'google', label: 'Google로 시작하기', bg: '#ffffff', fg: '#1f1d18', border: '#dcd9cf' },
     { id: 'apple', label: 'Apple로 시작하기', bg: '#000000', fg: '#ffffff' }
     // 네이버=Supabase 미지원이라 백엔드 OAuth(api/naver-*) + 매직링크로 처리(custom). 애플=Apple Developer($99) 후 Supabase 설정.
   ];
@@ -65,7 +65,7 @@
     if (document.getElementById('af-auth-style')) return;
     var css = ''
       + '.af-auth-chip{position:fixed;top:12px;left:12px;z-index:998;display:inline-flex;align-items:center;gap:6px;'
-      + 'background:rgba(255,255,255,.95);border:1px solid #d9d3c4;border-radius:999px;color:#1f1d18;'
+      + 'background:rgba(255,255,255,.95);border:1px solid #dcd9cf;border-radius:999px;color:#1f1d18;'
       + 'font-size:13px;font-weight:700;padding:7px 13px;cursor:pointer;'
       + 'font-family:-apple-system,"Apple SD Gothic Neo","Pretendard",sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.08);}'
       + '.af-auth-chip:active{opacity:.85;}'
@@ -138,7 +138,7 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>로그인 / 회원가입</h3>'
-      + '<div style="background:#ecf0eb;border:1px solid #2d4a38;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#1e3526;font-weight:700;">가입하면 바로 1,000원 적립 · 다음 주문에 현금처럼</div>'
+      + '<div style="background:#e8f1ea;border:1px solid #1f4733;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#14311f;font-weight:700;">가입하면 바로 1,000원 적립 · 다음 주문에 현금처럼</div>'
       + '<p>한 번 로그인하면 지난 주문을 그대로 다시 보내고, 가족 기념일을 일주일 전에 알려드려요.</p>'
       + btns
       + '<button class="af-auth-x">닫기</button>'
@@ -160,7 +160,7 @@
   function statusBadge(s) {
     var M = {
       new: { t: '접수됨', c: '#9e9a8f', bg: '#f0eee8' },
-      ordered: { t: '준비 중', c: '#2d4a38', bg: '#e8f0ea' },
+      ordered: { t: '준비 중', c: '#1f4733', bg: '#e8f0ea' },
       delivered: { t: '배송완료', c: '#355d8a', bg: '#eaf0f6' }
     };
     var x = M[s] || M.new;
@@ -200,12 +200,12 @@
       '<div style="font-size:13px;font-weight:800;margin:10px 0 8px;">🎂 기념일 <span style="font-weight:400;font-size:11px;color:#9e9a8f;">— 일주일 전에 알려드려요</span></div>'
       + '<div id="af-anniv-list" style="margin-bottom:8px;"></div>'
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">'
-      + '<input id="af-anniv-label" maxlength="30" placeholder="예) 어머니 생신" style="flex:1;min-width:120px;font-size:14px;padding:9px 10px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;"/>'
-      + '<select id="af-anniv-month" style="font-size:14px;padding:9px 6px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;">' + months + '</select>'
-      + '<select id="af-anniv-day" style="font-size:14px;padding:9px 6px;border:1px solid #d9d3c4;border-radius:6px;font-family:inherit;">' + days + '</select>'
-      + '<button id="af-anniv-add" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:inherit;">추가</button>'
+      + '<input id="af-anniv-label" maxlength="30" placeholder="예) 어머니 생신" style="flex:1;min-width:120px;font-size:14px;padding:9px 10px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;"/>'
+      + '<select id="af-anniv-month" style="font-size:14px;padding:9px 6px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;">' + months + '</select>'
+      + '<select id="af-anniv-day" style="font-size:14px;padding:9px 6px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;">' + days + '</select>'
+      + '<button id="af-anniv-add" style="background:#1f4733;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:inherit;">추가</button>'
       + '</div>'
-      + '<button id="af-anniv-push" style="width:100%;background:#fff;color:#2d4a38;border:1px solid #2d4a38;border-radius:8px;font-size:14px;font-weight:700;padding:10px;cursor:pointer;font-family:inherit;margin-bottom:6px;">🔔 기념일 알림 켜기</button>';
+      + '<button id="af-anniv-push" style="width:100%;background:#fff;color:#1f4733;border:1px solid #1f4733;border-radius:8px;font-size:14px;font-weight:700;padding:10px;cursor:pointer;font-family:inherit;margin-bottom:6px;">🔔 기념일 알림 켜기</button>';
     document.getElementById('af-anniv-add').onclick = addAnniv;
     document.getElementById('af-anniv-push').onclick = subscribePush;
     loadAnniv();
@@ -220,7 +220,7 @@
     var el = document.getElementById('af-anniv-list'); if (!el) return;
     if (!rows.length) { el.innerHTML = '<div style="font-size:12.5px;color:#9e9a8f;">등록한 기념일이 없어요. 추가해두면 일주일 전에 알려드려요.</div>'; return; }
     el.innerHTML = rows.map(function (a) {
-      return '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #ebe6da;border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
+      return '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #eeece4;border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
         + '<span style="font-size:13.5px;color:#1f1d18;"><b>' + a.month + '/' + a.day + '</b> · ' + esc(a.label) + (a.recipient ? ' <span style="color:#9e9a8f;">(' + esc(a.recipient) + ')</span>' : '') + '</span>'
         + '<button class="af-anniv-del" data-id="' + esc(a.id) + '" style="background:transparent;border:none;color:#9a3b2e;font-size:13px;cursor:pointer;font-family:inherit;">삭제</button>'
         + '</div>';
@@ -289,13 +289,13 @@
           var d = (r.created_at || '').slice(0, 10);
           return '<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#5a564d;margin-top:3px;">'
             + '<span>' + esc(label) + (d ? ' · ' + d : '') + '</span>'
-            + '<span style="font-weight:700;color:' + (r.amount >= 0 ? '#2d4a38' : '#a33') + ';">' + (r.amount >= 0 ? '+' : '') + fmtWon(r.amount) + '</span></div>';
+            + '<span style="font-weight:700;color:' + (r.amount >= 0 ? '#1f4733' : '#a33') + ';">' + (r.amount >= 0 ? '+' : '') + fmtWon(r.amount) + '</span></div>';
         }).join('');
         box.innerHTML =
-          '<div style="background:#ecf0eb;border:1px solid #2d4a38;border-radius:8px;padding:12px 14px;margin-bottom:12px;">'
+          '<div style="background:#e8f1ea;border:1px solid #1f4733;border-radius:8px;padding:12px 14px;margin-bottom:12px;">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;">'
-          + '<span style="font-size:13px;font-weight:800;color:#1e3526;">🌱 내 적립금</span>'
-          + '<span style="font-size:16px;font-weight:800;color:#1e3526;">' + fmtWon(bal) + '</span></div>'
+          + '<span style="font-size:13px;font-weight:800;color:#14311f;">🌱 내 적립금</span>'
+          + '<span style="font-size:16px;font-weight:800;color:#14311f;">' + fmtWon(bal) + '</span></div>'
           + items
           + '<div style="font-size:11.5px;color:#7a766c;margin-top:6px;">적립금 사용 기능은 곧 열려요 — 사라지지 않아요.</div>'
           + '</div>';
@@ -332,17 +332,17 @@
       var head = '<div style="font-size:13px;font-weight:800;color:#1f1d18;margin:8px 0;">내 주문 (' + rows.length + ')</div>';
       var list = '<div style="max-height:46vh;overflow:auto;margin-bottom:12px;">' + rows.map(function (o, i) {
         var who = [o.recipient_name, o.venue].filter(Boolean).join(' · ');
-        return '<div style="border:1px solid #ebe6da;border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
+        return '<div style="border:1px solid #eeece4;border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
           + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
           + '<div style="font-size:14px;font-weight:700;color:#1f1d18;">' + esc(o.product_label || '주문') + '</div>'
           + statusBadge(o.status)
           + '</div>'
           + (who ? '<div style="font-size:12.5px;color:#5a564d;margin-top:2px;">' + esc(who) + '</div>' : '')
           + (o.event_date ? '<div style="font-size:12px;color:#9e9a8f;margin-top:1px;">' + esc(o.event_date) + '</div>' : '')
-          + (o.completed_photo ? '<div style="margin-top:8px;"><img data-po="' + esc(o.order_id) + '" alt="배송완료 사진" style="width:100%;border-radius:6px;display:none;"/><div style="font-size:12px;color:#2d4a38;font-weight:700;margin-top:4px;">✅ 배송완료 사진이 도착했어요</div></div>' : '')
+          + (o.completed_photo ? '<div style="margin-top:8px;"><img data-po="' + esc(o.order_id) + '" alt="배송완료 사진" style="width:100%;border-radius:6px;display:none;"/><div style="font-size:12px;color:#1f4733;font-weight:700;margin-top:4px;">✅ 배송완료 사진이 도착했어요</div></div>' : '')
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">'
-          + '<span style="font-size:13px;font-weight:700;color:#2d4a38;">' + fmtWon(o.amount) + '</span>'
-          + '<button class="af-reorder" data-i="' + i + '" style="background:#2d4a38;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;">다시 주문</button>'
+          + '<span style="font-size:13px;font-weight:700;color:#1f4733;">' + fmtWon(o.amount) + '</span>'
+          + '<button class="af-reorder" data-i="' + i + '" style="background:#1f4733;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;">다시 주문</button>'
           + '</div></div>';
       }).join('') + '</div>';
       box.innerHTML = head + list;

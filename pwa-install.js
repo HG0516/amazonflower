@@ -26,7 +26,7 @@
     if (document.getElementById('af-pwa-style')) return;
     var css = ''
       + '.af-pwa{position:fixed;left:0;right:0;bottom:0;z-index:10000;'
-      + 'background:#fff;border-top:1px solid #d9d3c4;box-shadow:0 -4px 24px rgba(0,0,0,.12);'
+      + 'background:#fff;border-top:1px solid #dcd9cf;box-shadow:0 -4px 24px rgba(0,0,0,.12);'
       + 'padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));'
       + 'transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);'
       + 'font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;}'
@@ -36,12 +36,12 @@
       + '.af-pwa-txt{flex:1;min-width:0;}'
       + '.af-pwa-tt{font-size:15px;font-weight:700;color:#1f1d18;}'
       + '.af-pwa-ds{font-size:12.5px;color:#5a564d;margin-top:2px;line-height:1.5;}'
-      + '.af-pwa-btn{flex:0 0 auto;background:#2d4a38;color:#fff;border:none;border-radius:8px;'
+      + '.af-pwa-btn{flex:0 0 auto;background:#1f4733;color:#fff;border:none;border-radius:8px;'
       + 'font-size:15px;font-weight:700;padding:11px 16px;cursor:pointer;font-family:inherit;}'
       + '.af-pwa-x{flex:0 0 auto;background:transparent;border:none;color:#9e9a8f;font-size:22px;'
       + 'line-height:1;cursor:pointer;padding:6px;margin:-6px -4px -6px 0;}'
       + '.af-pwa-steps{font-size:13.5px;color:#1f1d18;line-height:1.9;margin-top:8px;}'
-      + '.af-pwa-steps b{color:#2d4a38;}'
+      + '.af-pwa-steps b{color:#1f4733;}'
       + 'body.af-pwa-open{padding-bottom:120px;}';
     var s = document.createElement('style');
     s.id = 'af-pwa-style';

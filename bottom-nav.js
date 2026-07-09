@@ -14,7 +14,7 @@
     if (document.getElementById('af-bn-style')) return;
     var css = ''
       + '.af-bn{position:fixed;left:0;right:0;bottom:0;z-index:85;display:flex;'
-      + 'background:var(--paper,#fff);border-top:1px solid var(--line,#d9d3c4);'
+      + 'background:var(--paper,#fff);border-top:1px solid var(--line,#dcd9cf);'
       + 'padding-bottom:env(safe-area-inset-bottom,0px);'
       + 'font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;box-shadow:0 -2px 12px rgba(0,0,0,.06);}'
       + '.af-bn.af-bn-hide{display:none;}'
@@ -22,11 +22,11 @@
       + 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;'
       + 'min-height:56px;padding:6px 2px;color:var(--ink-faint,#6b6358);text-decoration:none;'
       + 'font-family:inherit;-webkit-tap-highlight-color:transparent;}'
-      + '.af-bn a:active,.af-bn button:active{background:var(--line-soft,#ebe6da);}'
+      + '.af-bn a:active,.af-bn button:active{background:var(--line-soft,#eeece4);}'
       + '.af-bn .ic{line-height:1;}'
       + '.af-bn .ic svg{width:24px;height:24px;display:block;}'
       + '.af-bn .lb{font-size:11.5px;font-weight:700;letter-spacing:.2px;}'
-      + '.af-bn .on{color:var(--accent,#2d4a38);}'
+      + '.af-bn .on{color:var(--accent,#1f4733);}'
       + 'body.af-nav-on{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px));}';
     var s = document.createElement('style');
     s.id = 'af-bn-style';

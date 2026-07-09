@@ -18,7 +18,7 @@
     if (document.getElementById('af-season')) return;
     var el = document.createElement('div');
     el.id = 'af-season';
-    el.style.cssText = 'background:#2d4a38;color:#fff;border-radius:8px;padding:12px 16px;margin:12px 0;text-align:center;';
+    el.style.cssText = 'background:#1f4733;color:#fff;border-radius:8px;padding:12px 16px;margin:12px 0;text-align:center;';
     el.innerHTML = '<div style="font-weight:800;font-size:15px;">' + s.title + '</div>'
       + '<div style="font-size:13px;opacity:.92;margin-top:2px;">' + s.desc + '</div>';
     host.insertBefore(el, host.firstChild);

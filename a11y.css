@@ -8,7 +8,7 @@ input[type=number], input[type=date], input[type=time], select, textarea {
 
 /* 키보드 포커스 또렷하게 (저시력·키보드 사용자) */
 :focus-visible {
-  outline: 3px solid #2d4a38;
+  outline: 3px solid #1f4733;
   outline-offset: 2px;
   border-radius: 4px;
 }

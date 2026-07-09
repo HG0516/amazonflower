@@ -24,7 +24,7 @@
       + '.af-footer .af-ft-name{font-weight:800;color:#1f1d18;font-size:13px;margin-bottom:6px;}'
       + '.af-footer .af-ft-i{display:inline-block;margin-right:12px;}'
       + '.af-footer .af-ft-links{margin-top:10px;}'
-      + '.af-footer .af-ft-links a{color:#2d4a38;font-weight:700;text-decoration:none;margin-right:14px;}'
+      + '.af-footer .af-ft-links a{color:#1f4733;font-weight:700;text-decoration:none;margin-right:14px;}'
       + '.af-footer .af-ft-policy{margin-top:10px;font-size:11.5px;color:#9e9a8f;}';
     var s = document.createElement('style'); s.id = 'af-ft-style'; s.textContent = css;
     document.head.appendChild(s);

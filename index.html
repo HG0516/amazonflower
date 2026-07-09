@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 <!-- PWA: 설치형 앱 -->
 <link rel="manifest" href="/manifest.json" />
-<meta name="theme-color" content="#2d4a38" />
+<meta name="theme-color" content="#1f4733" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -139,12 +139,12 @@
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color .15s, transform .1s; user-select: none; }
   .cat-tile:hover { border-color: var(--ink); }
   .cat-tile:active { transform: scale(0.98); }
-  .cat-photo { height: 150px; background: #f6f2ea; overflow: hidden; }
+  .cat-photo { height: 150px; background: #f2f2ec; overflow: hidden; }
   .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: 13px; color: var(--ink-faint); padding: 0 12px 12px; }
   /* 2×2 그리드: 세로를 넉넉히(짤림 방지). 사진은 cover, 세로로 긴 화환 타일만 contain+배경 */
-  .cat-grid .cat-photo { height: 190px; background: #f6f2ea; }
+  .cat-grid .cat-photo { height: 190px; background: #f2f2ec; }
   .cat-grid .cat-photo img { object-fit: cover; object-position: center 42%; }
   .cat-grid .cat-tile.wreath .cat-photo img { object-fit: contain; padding: 6px 0; }
   @media (min-width: 1000px) { .cat-grid .cat-photo { height: 240px; } }
@@ -354,13 +354,13 @@
   .tone-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .ribbon-opts { display: flex; flex-direction: column; gap: 8px; }
   .ribbon-opt { border: 1px solid var(--line); border-radius: 4px; padding: 13px 14px; cursor: pointer; font-size: 15px; background: transparent; }
-  .ribbon-opt.on { border-color: var(--ink); background: #faf8f3; }
+  .ribbon-opt.on { border-color: var(--ink); background: #f7f7f3; }
 
   /* ── 결제 ── */
   .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 15px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .total-row .amt { font-size: 30px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
   #pay-method, #pay-agree { margin-top: 8px; }
-  .delivery-note { font-size: 13px; color: var(--ink-soft); margin: 14px 0 16px; line-height: 1.75; padding: 13px 14px; background: #faf8f3; border-radius: 4px; }
+  .delivery-note { font-size: 13px; color: var(--ink-soft); margin: 14px 0 16px; line-height: 1.75; padding: 13px 14px; background: #f7f7f3; border-radius: 4px; }
   .delivery-note b { color: var(--ink); font-size: 14px; }
   .delivery-note span { color: var(--ink-faint); font-size: 12px; }
   .delivery-note a:hover { color: var(--accent-deep); }
@@ -372,7 +372,7 @@
   .buyer-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
   .buyer-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .buyer-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .corp-box { margin-top: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 4px; background: #faf8f3; }
+  .corp-box { margin-top: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 4px; background: #f7f7f3; }
   .corp-note { font-size: 12px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 4px; }
 
   /* ── 사장님 이야기 ── */
@@ -422,7 +422,7 @@
   @media (min-width: 1000px) {
     body {
       background: var(--bg);
-      background-image: linear-gradient(180deg, #f0ebdf 0%, #f7f4ee 380px);
+      background-image: linear-gradient(180deg, #f0ebdf 0%, #f6f6f3 380px);
       background-attachment: fixed;
     }
     .wrap {
@@ -1639,7 +1639,7 @@ function renderPayReview(){
   if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
   if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
   if(!rows.length){ el.innerHTML=""; return; }
-  el.innerHTML = '<div style="background:#faf8f3;border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:10px 0 4px;text-align:left;">'
+  el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:10px 0 4px;text-align:left;">'
     + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
     + rows.map(r=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 0;font-size:14px;line-height:1.6;"><span style="color:var(--ink-faint);white-space:nowrap;">${r[0]}</span><span style="text-align:right;color:var(--ink);">${r[1]}</span></div>`).join("")
     + '<div style="margin-top:8px;"><a href="#" onclick="scrollTo(\'confirmCard\');return false;" style="font-size:13px;color:var(--accent-deep);font-weight:600;">받는 곳·날짜 고치기 ↑</a></div>'
@@ -1817,7 +1817,7 @@ function upsellHtml(o){
       <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">위로·축하의 꽃다발도 함께 보내는 분이 많아요. 눌러서 바로 주문.</div>
       <div style="display:flex;gap:8px;">
         ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius:6px;overflow:hidden;">
-          <div style="height:92px;background:#f6f2ea;overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
+          <div style="height:92px;background:#f2f2ec;overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
           <div style="padding:7px 9px;"><div style="font-size:12.5px;font-weight:700;color:var(--ink);">${escapeHtml(p.name)}</div><div style="font-size:12px;color:var(--ink-faint);">${p.subtitle?escapeHtml(p.subtitle)+" · ":""}${p.price.toLocaleString()}원</div></div>
         </div>`).join("")}
       </div>
@@ -1893,7 +1893,7 @@ function renderDone(data,o){
       <p style="color:var(--ink-soft);margin-bottom:4px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
       ${timelineHtml}
       ${etaLine}
-      <div style="background:#faf8f3;border:1px solid var(--line);border-radius:4px;padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
+      <div style="background:#f7f7f3;border:1px solid var(--line);border-radius:4px;padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
         <div>상품: ${escapeHtml(o.productLabel||"")}</div>
         ${(o.toppings&&o.toppings.length)?`<div>얹기: ${o.toppings.map(c=>escapeHtml((TOPPINGS[c]||{}).nm||c)).join(" · ")}</div>`:""}
         <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
