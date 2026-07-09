@@ -723,34 +723,21 @@ function renderLinkOrder(key){
 function renderWreath(key){
   const kindName = key==="congrats" ? "축하화환" : "근조화환";
   const worder = key==="condolence" ? "funeral" : "congrats";
-  const products = PRODUCTS.filter(p=> p.cat===key);
-  // 등급 대표 사진: 같은 화환군에서 가격이 가장 가까운 실제 상품 사진
-  const photoFor = (price)=>{
-    let best=null;
-    for(const p of products){ if(!best || Math.abs(p.price-price)<Math.abs(best.price-price)) best=p; }
-    return best ? (best.photos[0]||"") : "";
-  };
+  // 실제 화환 상품(WC/WG)을 가격순 등급 카드로 (index getItems('wreath')와 동일 정렬 → tier 인덱스 일치)
+  const products = PRODUCTS.filter(p=> p.cat===key).slice().sort((a,b)=>a.price-b.price);
   const seo = key==="condolence"
     ? "근조화환 · 장례식장 전국 당일배송. 아래에서 등급을 고르고 주문하시거나, 위에 부고 링크를 붙여넣으면 자동으로 채워드립니다."
     : "축하화환 · 결혼식·개업·승진 전국 당일배송. 아래에서 등급을 고르고 주문하시거나, 위에 청첩장 링크를 붙여넣으면 자동으로 채워드립니다.";
   let html = `<div class="section-label">${kindName}</div><div class="section-desc">${seo}</div>`;
-  // 등급 4종 → 2×2 큰 카드
-  html += `<div class="wreath-grid">` + WREATH_LADDER.map((t,i)=>`
-      <div class="wcard${t.main?" main":""}">
-        <div class="wphoto"><img src="${esc(photoFor(t.price))}" alt="${esc(t.label)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size:12px;&quot;>사진 준비 중</div>'"></div>
+  html += `<div class="wreath-grid">` + products.map((p,i)=>`
+      <div class="wcard">
+        <div class="wphoto"><img src="${esc(p.photos[0]||"")}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size:12px;&quot;>사진 준비 중</div>'"></div>
         <div class="wbody">
-          <div class="wtier">${esc(t.label)}${t.main?'<span class="wbadge">주력</span>':''}</div>
-          <div class="wnote">${esc(t.note)}</div>
-          <div class="wprice">${t.price.toLocaleString()}원</div>
+          <div class="wtier">${esc(p.name)}</div>
+          <div class="wprice">${p.price.toLocaleString()}원</div>
           <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">주문하기</button>
         </div>
       </div>`).join("") + `</div>`;
-  // 실제 보유 구성(WG/WC) — 개별상품 카드(상세·장바구니 지원)로 접었다 펴기
-  if(products.length){
-    html += `<button class="wmore-btn" onclick="toggleWreathMore(this)">이 화환의 다른 구성도 보기 (${products.length}) ▾</button>`;
-    html += `<div id="wreathMore" class="grid hidden" style="margin-top:14px;">`
-      + products.slice().sort((a,b)=>a.price-b.price).map(productCard).join("") + `</div>`;
-  }
   document.getElementById("catArea").innerHTML=html;
 }
 function toggleWreathMore(btn){

@@ -10,12 +10,12 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "복주머니",
   "subtitle": "용돈꽃다발",
-  "price": 67000,
+  "price": 58000,
   "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "basket_b2",
+  "legacyTier": "basket_b1",
   "photos": [
    "/photos/products/BQ-001_1.jpg",
    "/photos/products/BQ-001_2.jpg",
@@ -62,7 +62,7 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "봄마중",
   "subtitle": "분홍튤립 다발",
-  "price": 57000,
+  "price": 55000,
   "band": "5만대",
   "grade": null,
   "size": null,
@@ -80,12 +80,12 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "활짝",
   "subtitle": "보라거베라 다발",
-  "price": 67000,
+  "price": 58000,
   "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "basket_b2",
+  "legacyTier": "basket_b1",
   "photos": [
    "/photos/products/BQ-005_1.jpg",
    "/photos/products/BQ-005_2.jpg",
@@ -98,8 +98,8 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "발그레",
   "subtitle": "분홍장미 다발",
-  "price": 77000,
-  "band": "7만대",
+  "price": 67000,
+  "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
@@ -115,7 +115,7 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "온마음",
   "subtitle": "빨간장미 다발",
-  "price": 88000,
+  "price": 78000,
   "band": "7만대",
   "grade": null,
   "size": null,
@@ -151,8 +151,8 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "들꽃편지",
   "subtitle": "꽃도라지 다발",
-  "price": 78000,
-  "band": "7만대",
+  "price": 68000,
+  "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
@@ -169,7 +169,7 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "물빛",
   "subtitle": "파란수국 다발",
-  "price": 87000,
+  "price": 73000,
   "band": "7만대",
   "grade": null,
   "size": null,
@@ -187,7 +187,7 @@ const PRODUCTS = [
   "sub": "꽃다발",
   "name": "뭉게구름",
   "subtitle": "수국장미 다발",
-  "price": 87000,
+  "price": 73000,
   "band": "7만대",
   "grade": null,
   "size": null,
@@ -292,7 +292,7 @@ const PRODUCTS = [
   "sub": "꽃바구니",
   "name": "함박웃음",
   "subtitle": "분홍작약 큰바구니",
-  "price": 127000,
+  "price": 107000,
   "band": "10만↑",
   "grade": "스페셜",
   "size": null,
@@ -310,7 +310,7 @@ const PRODUCTS = [
   "sub": "꽃바구니",
   "name": "꽃잔치",
   "subtitle": "작약백합 큰바구니",
-  "price": 127000,
+  "price": 107000,
   "band": "10만↑",
   "grade": "스페셜",
   "size": null,
@@ -626,7 +626,7 @@ const PRODUCTS = [
   "sub": "서양란",
   "name": "호접란",
   "subtitle": null,
-  "price": 77000,
+  "price": 78000,
   "band": "7만대",
   "grade": null,
   "size": null,
@@ -642,8 +642,8 @@ const PRODUCTS = [
   "sub": "서양란",
   "name": "호접란",
   "subtitle": null,
-  "price": 98000,
-  "band": "9만대",
+  "price": 78000,
+  "band": "7만대",
   "grade": null,
   "size": null,
   "status": "판매중",
@@ -706,7 +706,7 @@ const PRODUCTS = [
   "sub": "서양란",
   "name": "호접란",
   "subtitle": null,
-  "price": 157000,
+  "price": 147000,
   "band": "10만↑",
   "grade": null,
   "size": null,
@@ -722,12 +722,12 @@ const PRODUCTS = [
   "sub": "서양란",
   "name": "호접란",
   "subtitle": null,
-  "price": 117000,
-  "band": "10만↑",
+  "price": 98000,
+  "band": "9만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "orchid_o4",
+  "legacyTier": "orchid_o3",
   "photos": [
    "/photos/products/OR-015_1.jpg"
   ]
@@ -738,12 +738,12 @@ const PRODUCTS = [
   "sub": "서양란",
   "name": "호접란",
   "subtitle": null,
-  "price": 117000,
-  "band": "10만↑",
+  "price": 98000,
+  "band": "9만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "orchid_o4",
+  "legacyTier": "orchid_o3",
   "photos": [
    "/photos/products/OR-016_1.jpg"
   ]
@@ -1064,12 +1064,12 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "몬스테라",
   "subtitle": null,
-  "price": 76000,
-  "band": "7만대",
+  "price": 66000,
+  "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "plant_p2",
+  "legacyTier": "plant_p1",
   "photos": [
    "/photos/products/PL-015_1.jpg"
   ]
@@ -1171,22 +1171,6 @@ const PRODUCTS = [
   ]
  },
  {
-  "pc": "PL-021",
-  "cat": "plant",
-  "sub": "관엽",
-  "name": "스파티필럼",
-  "subtitle": null,
-  "price": 69000,
-  "band": "5만대",
-  "grade": null,
-  "size": null,
-  "status": "판매중",
-  "legacyTier": "plant_p1",
-  "photos": [
-   "/photos/products/PL-021_1.jpg"
-  ]
- },
- {
   "pc": "PL-022",
   "cat": "plant",
   "sub": "관엽",
@@ -1232,12 +1216,12 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "안시디움",
   "subtitle": null,
-  "price": 73000,
-  "band": "7만대",
+  "price": 63000,
+  "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "plant_p2",
+  "legacyTier": "plant_p1",
   "photos": [
    "/photos/products/PL-024_1.jpg"
   ]
@@ -1381,34 +1365,14 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "인삼벤자민",
   "subtitle": null,
-  "price": 76000,
-  "band": "7만대",
+  "price": 66000,
+  "band": "5만대",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "plant_p2",
+  "legacyTier": "plant_p1",
   "photos": [
    "/photos/products/PL-032_1.jpg"
-  ]
- },
- {
-  "pc": "PL-033",
-  "cat": "plant",
-  "sub": "관엽",
-  "name": "자메이카",
-  "subtitle": null,
-  "price": 78000,
-  "band": "7만대",
-  "grade": null,
-  "size": {
-   "h": 1100,
-   "w": 600
-  },
-  "status": "판매중",
-  "legacyTier": "plant_p2",
-  "photos": [
-   "/photos/products/PL-033_1.jpg",
-   "/photos/products/PL-033_2.jpg"
   ]
  },
  {
@@ -1568,7 +1532,7 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "해피트리",
   "subtitle": null,
-  "price": 188000,
+  "price": 168000,
   "band": "10만↑",
   "grade": null,
   "size": {
@@ -1607,7 +1571,7 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "행운목",
   "subtitle": null,
-  "price": 83000,
+  "price": 76000,
   "band": "7만대",
   "grade": null,
   "size": {
@@ -1626,15 +1590,15 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "행운목괴목",
   "subtitle": null,
-  "price": 98000,
-  "band": "9만대",
+  "price": 88000,
+  "band": "7만대",
   "grade": null,
   "size": {
    "h": 1100,
    "w": 600
   },
   "status": "판매중",
-  "legacyTier": "plant_p3",
+  "legacyTier": "plant_p2",
   "photos": [
    "/photos/products/PL-045_1.jpg"
   ]
@@ -1645,7 +1609,7 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "홍콩야자",
   "subtitle": null,
-  "price": 67000,
+  "price": 63000,
   "band": "5만대",
   "grade": null,
   "size": null,
@@ -1661,7 +1625,7 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "황금죽",
   "subtitle": null,
-  "price": 87000,
+  "price": 83000,
   "band": "7만대",
   "grade": null,
   "size": {
@@ -1707,6 +1671,42 @@ const PRODUCTS = [
   "legacyTier": "plant_p1",
   "photos": [
    "/photos/products/PL-049_1.jpg"
+  ]
+ },
+ {
+  "pc": "PL-050",
+  "cat": "plant",
+  "sub": "관엽",
+  "name": "스파티필룸",
+  "subtitle": null,
+  "price": 63000,
+  "band": "5만대",
+  "grade": null,
+  "size": null,
+  "status": "판매중",
+  "legacyTier": "plant_p1",
+  "photos": [
+   "/photos/products/PL-050_1.jpg"
+  ]
+ },
+ {
+  "pc": "PL-051",
+  "cat": "plant",
+  "sub": "관엽",
+  "name": "자마이카",
+  "subtitle": null,
+  "price": 68000,
+  "band": "5만대",
+  "grade": null,
+  "size": {
+   "h": 1100,
+   "w": 600
+  },
+  "status": "판매중",
+  "legacyTier": "plant_p1",
+  "photos": [
+   "/photos/products/PL-051_1.jpg",
+   "/photos/products/PL-051_2.jpg"
   ]
  },
  {

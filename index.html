@@ -1523,11 +1523,10 @@ function goCat(cat, label){
 
 function getItems(cat){
   if(cat==="wreath"){
-    const isFun=order.type==="funeral";
-    const kind=isFun?"근조화환":"축하화환", sub=isFun?"근조":"축하";
-    const prefix=isFun?"condolence_c":"congrats_g", cp=isFun?"AF-C0":"AF-G0";
-    return WREATH_TIERS.map(t=>({tab:t.grade, nm:kind+" "+t.grade, price:t.price, desc:t.desc,
-      pc:prefix+t.key, cl:cp+t.key, photo:`화환/${sub}/${t.grade}.jpg`}));
+    // 실제 화환 상품(WC/WG)을 가격순 등급으로. 사진·정가·pc 모두 상품 원장(products.js)에서.
+    const wcat=order.type==="funeral"?"condolence":"congrats";
+    return (window.PRODUCTS||[]).filter(p=>p.cat===wcat).slice().sort((a,b)=>a.price-b.price)
+      .map(p=>({tab:(p.grade||p.name), nm:p.name, price:p.price, desc:"", pc:p.pc, cl:p.pc, photo:(p.photos&&p.photos[0])||""}));
   }
   return (CATALOG[cat].items||[]).slice();
 }
@@ -2283,13 +2282,14 @@ function handleWorderParam(){
   const q=new URLSearchParams(location.search);
   const w=q.get("worder"); if(!w) return;
   const isFun = w==="funeral";
-  const tier = Math.max(0, Math.min(WREATH_TIERS.length-1, parseInt(q.get("tier"),10)||0));
   Object.assign(order,{
     type: isFun?"funeral":"unknown", side:"",
     recipientName:"", venue:"", venueDetail:"", address:"",
     date:"", time:"", groomName:"", brideName:"", chiefMourner:"",
     category:"wreath", toppings:[],
   });
+  const _witems=getItems("wreath");
+  const tier=Math.max(0, Math.min(Math.max(0,_witems.length-1), parseInt(q.get("tier"),10)||0));
   document.getElementById("typePill").innerHTML =
     '<span class="type-pill '+(isFun?'t-fun':'')+'">'+(isFun?'장례식 · 근조화환':'축하화환')+'</span>';
   document.getElementById("afFields").innerHTML =
@@ -2312,7 +2312,7 @@ function handleWorderParam(){
   renderPriceTabs();
   renderRecoOptions(tier);
   selTier(tier, false);
-  enterOrderMode((isFun?'근조화환':'축하화환')+' '+WREATH_TIERS[tier].grade+' <b>'+WREATH_TIERS[tier].price.toLocaleString()+'원</b>');
+  enterOrderMode((isFun?'근조화환':'축하화환')+' '+((_witems[tier]||{}).tab||'')+' <b>'+(((_witems[tier]||{}).price)||0).toLocaleString()+'원</b>');
   cleanUrl();
   scrollTo("prodCard");
 }
