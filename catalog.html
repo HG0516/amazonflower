@@ -76,7 +76,7 @@
   .item .nm { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
   .item .code { font-size: var(--fs-caption); color: var(--ink-faint); letter-spacing: 1px; margin-top: -2px; }
   .item .nm-sub { font-size: var(--fs-sub); color: var(--ink-soft); margin-top: -2px; }
-  .item .price { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+  .item .price { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .item .desc { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.6; margin-top: 4px; }
   .item .order { margin-top: 12px; padding: 13px; border: none; border-radius: var(--radius-sm); background: var(--accent); color: var(--paper); font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
   .item .order:hover { background: var(--accent-deep); }
@@ -98,7 +98,7 @@
   .special-body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .snm { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); }
   .sdesc { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.6; flex: 1; }
-  .sprice { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--ink); margin-top: 4px; }
+  .sprice { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .scall { margin-top: 8px; padding: 10px; border-radius: var(--radius-sm); background: var(--ink); color: var(--paper); font-weight: 600; font-size: var(--fs-caption); text-align: center; text-decoration: none; letter-spacing: 0.5px; }
   .scall:hover { background: var(--accent-deep); }
   .insta-more { display: block; text-align: center; margin-top: 18px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: var(--fs-caption); color: var(--ink-soft); text-decoration: none; letter-spacing: 0.5px; }
@@ -192,7 +192,7 @@
   .lr-tier { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
   .lr-badge { font-size: var(--fs-caption); font-weight: 700; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: var(--radius-pill); vertical-align: middle; }
   .lr-note { font-size: var(--fs-sub); color: var(--ink-soft); margin-top: 2px; }
-  .lr-price { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-price); color: var(--ink); white-space: nowrap; }
+  .lr-price { font-family: var(--font-display); font-weight: 700; font-size: var(--fs-price); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .lr-order { padding: 11px 16px; border: none; border-radius: var(--radius); background: var(--ink); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
   .lr-order:hover { background: var(--accent-deep); }
   .wreath-extra { margin-top: 16px; font-size: var(--fs-sub); color: var(--ink-soft); background: var(--line-soft); border-radius: var(--radius); padding: 12px 14px; line-height: 1.7; }
@@ -220,7 +220,7 @@
   .wtier { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); }
   .wbadge { font-size: var(--fs-caption); font-weight: 700; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: var(--radius-pill); margin-left: 5px; vertical-align: middle; }
   .wnote { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.55; flex: 1; }
-  .wprice { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--ink); margin-top: 2px; }
+  .wprice { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
   .worder { margin-top: 6px; padding: 13px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
   .worder:hover { background: var(--accent-deep); }
   .wmore-btn { display: block; width: 100%; margin-top: 16px; padding: 13px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: var(--ink-soft); font-size: var(--fs-caption); font-weight: 600; cursor: pointer; font-family: var(--font-body); }
@@ -250,7 +250,11 @@
   .pm-nm { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--ink); }
   .pm-sub { font-size: var(--fs-sub); color: var(--ink-soft); margin-top: 3px; }
   .pm-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
-  .pm-price { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--ink); margin: 12px 0 4px; }
+  .pm-price { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--ink); margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
+  /* 정찰제 신뢰 안내 — 세그먼트 공통 1회 */
+  .pricing-note { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+  .pricing-note b { color: var(--ink); font-weight: 700; }
+  .pricing-note .pn-ic { flex: 0 0 auto; color: var(--accent-deep); font-weight: 700; }
   .pm-desc { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.7; margin-top: 6px; }
   .pm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
   .pm-order { padding: 15px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; font-family: var(--font-body); min-height: 52px; }
@@ -349,6 +353,8 @@
   <div id="sortBar" class="sortbar"></div>
 
   <div id="linkOrderArea"></div>
+
+  <div class="pricing-note"><span class="pn-ic" aria-hidden="true">●</span><span><b>전 품목 정찰제</b> — 표시된 가격 그대로입니다. 거품 없는 가격, 할인·이중가격 표기가 없습니다.</span></div>
 
   <div id="catArea"></div>
   <div id="galleryArea"></div>

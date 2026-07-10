@@ -61,7 +61,7 @@
   #buyBar.show { display: flex; }
   #buyBar .bb-total-wrap { flex: 1; min-width: 0; }
   #buyBar .bb-total-label { font-size: var(--fs-caption); color: var(--ink-faint); }
-  #buyBar .bb-total { font-size: var(--fs-price); font-weight: 800; color: var(--ink); }
+  #buyBar .bb-total { font-size: var(--fs-price); font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
   #buyBar .bb-btn { flex: 0 0 auto; min-height: 50px; padding: 0 24px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
   #buyBar .bb-btn:active { transform: scale(.98); }
   body.buybar-pad { padding-bottom: 84px; }
@@ -286,7 +286,7 @@
   /* ── 추천 박스 ── */
   .reco { margin-top: 14px; padding: 14px 16px; border-radius: var(--radius-sm); background: #faf6ec; border: 1px solid #e3d6b3; }
   .reco .rh { font-family: var(--font-display); font-weight: 700; color: var(--gold); font-size: var(--fs-caption); letter-spacing: 0.5px; }
-  .reco .rp { font-size: var(--fs-price); font-weight: 700; color: var(--ink); margin: 4px 0 2px; font-family: var(--font-display); }
+  .reco .rp { font-size: var(--fs-price); font-weight: 700; color: var(--ink); margin: 4px 0 2px; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .reco .rw { font-size: var(--fs-caption); color: var(--ink-soft); }
 
   /* ── 추천 상품 2개 카드 ── */
@@ -297,13 +297,13 @@
   .reco-opt-photo { height: 116px; background: #f1ede4; overflow: hidden; }
   .reco-opt-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .reco-opt-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 9px 12px 0; color: var(--ink); }
-  .reco-opt-price { font-size: 18px; font-weight: 700; padding: 2px 12px 12px; color: var(--ink); font-family: var(--font-display); }
+  .reco-opt-price { font-size: 18px; font-weight: 700; padding: 2px 12px 12px; color: var(--ink); font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .reco-opt-badge { display: inline-block; font-size: var(--fs-caption); color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 1px 6px; margin: 9px 0 0 12px; letter-spacing: 0.3px; font-weight: 600; }
 
   /* ── 가격 탭 ── */
   .price-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
   .price-tab { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: var(--fs-caption); line-height: 1.5; transition: all var(--dur-fast); }
-  .price-tab b { font-size: 15px; font-weight: 700; font-family: var(--font-display); }
+  .price-tab b { font-size: 15px; font-weight: 700; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .price-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .tier-dots { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; margin-bottom: 6px; line-height: 1; }
   .price-tab.on .tier-dots { color: var(--paper); opacity: 0.7; }
@@ -314,7 +314,7 @@
   .design-name { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--ink); }
   .design-code { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; text-transform: uppercase; }
   .design-desc { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; margin-top: 4px; }
-  .design-price { font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); }
+  .design-price { font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .design-confirm { margin-top: 14px; }
   .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 0; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
   .qty-label { font-weight: 600; font-size: 15px; color: var(--ink); }
