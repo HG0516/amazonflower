@@ -14,73 +14,103 @@
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="canonical" href="https://amazonflower.vercel.app/wedding.html" />
 <link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/a11y.css" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
-  /* 색·타이포 토큰 → /tokens.css 단일 소스(--ink-faint 드리프트 #9e9a8f→#6b6358 통일) */
+  /* 색·타이포 토큰 → /tokens.css 단일 소스. 웨딩 페이지: 갤러리형 여백 + 비대칭 겹침 그리드. */
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:"Gowun Batang",-apple-system,"Apple SD Gothic Neo",serif;background:var(--bg);color:var(--ink);line-height:1.8;font-size:16px;padding-bottom:60px;}
+  body{font-family:"Gowun Batang",-apple-system,"Apple SD Gothic Neo",serif;background:var(--bg);color:var(--ink);line-height:1.8;font-size:16px;padding-bottom:72px;}
   .wrap{max-width:560px;margin:0 auto;padding:0 20px;}
-  header{text-align:center;padding:26px 0 8px;}
-  .brand{font-size:24px;font-weight:700;letter-spacing:.5px;}
-  .brand-sub{font-size:var(--fs-label);color:var(--ink-faint);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
-  .hero{text-align:center;padding:24px 0 8px;}
-  .hero h1{font-family:"Nanum Myeongjo",serif;font-size:var(--fs-display);font-weight:800;line-height:1.45;letter-spacing:-.5px;}
-  .hero p{color:var(--ink-soft);font-size:var(--fs-sub);margin-top:10px;}
-  .hero-strip{width:100%;border-radius: var(--radius);border:1px solid var(--line);margin:18px 0 6px;aspect-ratio:4/3;background:#efe9dc center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);font-size:var(--fs-caption);}
-  .divider{border:none;border-top:1px solid var(--line);margin:28px 0;}
+
+  /* 상단 대형 사진 — 전폭 풀블리드, 높이 58vh 이내 */
+  .lede{width:100%;margin:0;position:relative;}
+  .lede img{display:block;width:100%;height:58vh;max-height:520px;object-fit:cover;object-position:center 40%;}
+  .lede .kicker{position:absolute;left:20px;bottom:16px;color:#fff;font-size:var(--fs-label);letter-spacing:2px;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.55);}
+
+  header{padding:26px 20px 4px;max-width:560px;margin:0 auto;}
+  .brand{font-size:var(--fs-label);font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-faint);}
+
+  /* 감성 슬로건 한 줄 — Gowun Batang, 이탤릭 금지 */
+  .slogan{font-family:"Gowun Batang",serif;font-weight:700;font-style:normal;font-size:clamp(26px, 22px + 2vw, 38px);line-height:1.4;letter-spacing:-.5px;margin:22px 0 0;color:var(--ink);}
+  .lead{font-size:16px;color:var(--ink-soft);line-height:1.9;margin-top:16px;}
+  .lead b{color:var(--ink);font-weight:700;}
+
+  /* 비대칭 겹침 그리드 7fr / 5fr */
+  .split{display:grid;grid-template-columns:7fr 5fr;gap:12px;align-items:start;margin:30px 0 6px;}
+  .split figure{margin:0;}
+  .split img{display:block;width:100%;height:auto;border-radius:var(--radius);border:1px solid var(--line);}
+  .split .b{margin-top:-24px;}         /* 그리드를 살짝 침범해 겹침 연출 */
+  .split figcaption{font-size:var(--fs-caption);color:var(--ink-faint);margin-top:8px;line-height:1.6;}
+
+  .divider{border:none;border-top:1px solid var(--line);margin:32px 0;}
   h2{font-family:"Nanum Myeongjo",serif;font-size:var(--fs-h2);font-weight:800;margin-bottom:4px;}
   .sec-sub{color:var(--ink-faint);font-size:var(--fs-sub);margin-bottom:14px;}
-  .item{border:1px solid var(--line);border-radius: var(--radius);padding:16px;margin-bottom:12px;background:#fff;}
+  .item{border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;background:#fff;}
   .item h3{font-size:16px;font-weight:700;}
   .item .price{color:var(--accent-deep);font-weight:800;margin-top:4px;}
   .item .d{color:var(--ink-soft);font-size:var(--fs-sub);margin-top:6px;}
-  .note{background:#fff;border:1px solid var(--line);border-radius: var(--radius);padding:16px;font-size:14px;color:var(--ink-soft);line-height:1.9;}
-  .cta{display:block;text-align:center;background:var(--accent);color:#fff;border-radius: var(--radius);padding:16px;font-size:17px;font-weight:700;text-decoration:none;margin-top:18px;}
-  .back{display:inline-block;margin:22px 0;color:var(--accent);text-decoration:none;font-size:14px;}
-  .tag{display:inline-block;background:var(--accent-soft,#e8f1ea);color:var(--accent-deep);font-size:var(--fs-caption);font-weight:700;padding:4px 10px;border-radius: var(--radius-pill);}
+  .note{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;font-size:16px;color:var(--ink-soft);line-height:1.9;}
+  .cta{display:flex;align-items:center;justify-content:center;min-height:56px;background:var(--accent);color:#fff;border-radius:var(--radius);padding:14px 16px;font-size:17px;font-weight:700;text-decoration:none;margin-top:18px;}
+  .back{display:inline-block;min-height:48px;line-height:48px;margin:16px 0 4px;color:var(--accent);text-decoration:none;font-size:15px;}
+  .tag{display:inline-block;background:var(--accent-soft);color:var(--accent-deep);font-size:var(--fs-caption);font-weight:700;padding:4px 10px;border-radius:var(--radius-pill);}
 </style>
 </head>
 <body>
-<div class="wrap">
+  <figure class="lede">
+    <img src="/photos/특별제작/제단장식.jpg" width="1179" height="1158" alt="생화로 꾸민 예식 재단 장식 실사진" onerror="this.closest('.lede').style.display='none'">
+    <span class="kicker">SINCE 1993 · HANDMADE</span>
+  </figure>
+
   <header>
     <div class="brand">꽃안부 웨딩</div>
-    <div class="brand-sub">SINCE 1993 · HANDMADE</div>
+    <p class="slogan">생화로 마음을 전하는<br>사람에게</p>
+    <p class="lead">
+      어머니가 30년 손끝으로 한 송이씩 엮는 <b>생화 수제 부케</b>입니다.
+      캐파를 지키기 위해 <b>토·일 각 1~2건</b>만 받는 소수 예약제로,
+      신부님 무드에 맞춰 색과 꽃을 맞춤 제작합니다.
+    </p>
   </header>
 
-  <section class="hero">
-    <span class="tag">소수 예약제</span>
-    <h1>어머니의 손끝에서<br>피어나는 생화 부케</h1>
-    <p>30년 손맛으로 한 송이 한 송이 엮습니다.<br>토·일 각 1~2건만 받는 예약제 수제 부케.</p>
-    <div class="hero-strip">웨딩 포트폴리오 사진 (준비 중)</div>
-  </section>
-
-  <hr class="divider" />
-
-  <section>
-    <h2>라인업</h2>
-    <div class="sec-sub">신부님 무드에 맞춰 색·꽃을 맞춤 제작합니다.</div>
-    <div class="item"><h3>본식 부케</h3><div class="price">16만 ~ 22만원 (내추럴 중심)</div><div class="d">생화 라운드·내추럴·캐스케이드. 부토니아 1점 포함.</div></div>
-    <div class="item"><h3>부토니아 · 코사지</h3><div class="price">2만 ~ 5만원</div><div class="d">신랑·혼주·가족용. 부케와 톤을 맞춰 제작.</div></div>
-    <div class="item"><h3>신부 올인원</h3><div class="price">35만 ~ 55만원</div><div class="d">부케 + 부토니아 + 코사지 + 화관/대기실 소품 구성.</div></div>
-    <div class="item"><h3>프리저브드 보존 부케</h3><div class="price">본식 부케 + 8만 ~ 15만원</div><div class="d">평생 간직하는 보존 처리. 본식 후 보관용으로 인기.</div></div>
-  </section>
-
-  <hr class="divider" />
-
-  <section>
-    <h2>예약 안내</h2>
-    <div class="note">
-      · 캐파를 지키기 위해 <b>토·일 각 1~2건</b>만 받습니다(소수 예약제).<br>
-      · 예약 시 <b>무드보드·색감</b>을 함께 정하고, 예약금으로 일정을 확정합니다.<br>
-      · 본식 D-1 컨디셔닝 후 당일 새벽 제작해 가장 싱싱한 상태로 전합니다.<br>
-      · 날짜·구성 상담은 전화로 편하게 문의해 주세요.
+  <div class="wrap">
+    <div class="split">
+      <figure class="a">
+        <img src="/photos/모음/basket/꽃다발_레드장미안개꽃.jpeg" width="810" height="1080" alt="레드 장미와 안개꽃으로 엮은 생화 수제 부케" onerror="this.closest('figure').style.display='none'">
+        <figcaption>본식 부케 · 내추럴 라운드</figcaption>
+      </figure>
+      <figure class="b">
+        <img src="/photos/꽃바구니/꽃다발_고급.jpg" width="720" height="960" loading="lazy" alt="파스텔 톤 생화 부케 맞춤 제작" onerror="this.closest('figure').style.display='none'">
+        <figcaption>신부님 색감에 맞춘 맞춤 제작</figcaption>
+      </figure>
     </div>
-    <a class="cta" href="tel:0313143003">📞 웨딩 부케 예약 문의 · 031-314-3003</a>
-    <p style="text-align:center;font-size:var(--fs-caption);color:var(--ink-faint);margin-top:10px;">※ 사진 포트폴리오와 온라인 예약(슬롯 캘린더)은 준비 중입니다.</p>
-  </section>
 
-  <a class="back" href="/">← 꽃안부 홈으로</a>
-</div>
+    <hr class="divider" />
+
+    <section>
+      <span class="tag">소수 예약제</span>
+      <h2>라인업</h2>
+      <div class="sec-sub">신부님 무드에 맞춰 색·꽃을 맞춤 제작합니다.</div>
+      <div class="item"><h3>본식 부케</h3><div class="price">16만 ~ 22만원 (내추럴 중심)</div><div class="d">생화 라운드·내추럴·캐스케이드. 부토니아 1점 포함.</div></div>
+      <div class="item"><h3>부토니아 · 코사지</h3><div class="price">2만 ~ 5만원</div><div class="d">신랑·혼주·가족용. 부케와 톤을 맞춰 제작.</div></div>
+      <div class="item"><h3>신부 올인원</h3><div class="price">35만 ~ 55만원</div><div class="d">부케 + 부토니아 + 코사지 + 화관/대기실 소품 구성.</div></div>
+      <div class="item"><h3>프리저브드 보존 부케</h3><div class="price">본식 부케 + 8만 ~ 15만원</div><div class="d">평생 간직하는 보존 처리. 본식 후 보관용으로 인기.</div></div>
+    </section>
+
+    <hr class="divider" />
+
+    <section>
+      <h2>예약 안내</h2>
+      <div class="note">
+        · 캐파를 지키기 위해 <b>토·일 각 1~2건</b>만 받습니다(소수 예약제).<br>
+        · 예약 시 <b>무드보드·색감</b>을 함께 정하고, 예약금으로 일정을 확정합니다.<br>
+        · 본식 D-1 컨디셔닝 후 당일 새벽 제작해 가장 싱싱한 상태로 전합니다.<br>
+        · 날짜·구성 상담은 전화로 편하게 문의해 주세요.
+      </div>
+      <a class="cta" href="tel:0313143003">📞 웨딩 부케 예약 문의 · 031-314-3003</a>
+      <p style="text-align:center;font-size:var(--fs-caption);color:var(--ink-faint);margin-top:10px;">※ 온라인 예약(슬롯 캘린더)은 준비 중입니다.</p>
+    </section>
+
+    <a class="back" href="/">← 꽃안부 홈으로</a>
+  </div>
 <script src="/footer.js" defer></script>
 <script src="/bottom-nav.js" defer></script>
 </body>
