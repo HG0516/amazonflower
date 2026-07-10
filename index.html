@@ -1560,7 +1560,7 @@ function getItems(cat){
     // 실제 화환 상품(WC/WG)을 가격순 등급으로. 사진·정가·pc 모두 상품 원장(products.js)에서.
     const wcat=order.type==="funeral"?"condolence":"congrats";
     return (window.PRODUCTS||[]).filter(p=>p.cat===wcat).slice().sort((a,b)=>a.price-b.price)
-      .map(p=>({tab:(p.grade||p.name), nm:p.name, price:p.price, desc:"", pc:p.pc, cl:p.pc, photo:(p.photos&&p.photos[0])||""}));
+      .map(p=>({tab:(p.grade||p.name), nm:p.name, price:p.price, desc:"", pc:p.pc, cl:p.pc, photo:(((p.photos&&p.photos[0])||"").replace(/^\/photos\//,""))}));
   }
   return (CATALOG[cat].items||[]).slice();
 }
