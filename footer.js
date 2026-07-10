@@ -22,6 +22,7 @@
       + 'font-size:12px;line-height:1.9;font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;}'
       + '.af-footer .af-ft-wrap{max-width:560px;margin:0 auto;padding:22px 20px calc(28px + env(safe-area-inset-bottom,0px));}'
       + '.af-footer .af-ft-name{font-weight:800;color:#1f1d18;font-size:13px;margin-bottom:6px;}'
+      + '.af-footer .af-ft-tel{display:block;font-size:18px;font-weight:700;color:#1f1d18;text-decoration:none;margin:2px 0 10px;letter-spacing:0.3px;}'
       + '.af-footer .af-ft-i{display:inline-block;margin-right:12px;}'
       + '.af-footer .af-ft-links{margin-top:10px;}'
       + '.af-footer .af-ft-links a{color:#1f4733;font-weight:700;text-decoration:none;margin-right:14px;}'
@@ -54,6 +55,7 @@
     f.innerHTML =
       '<div class="af-ft-wrap">'
       + '<div class="af-ft-name">' + BIZ.company + '</div>'
+      + (BIZ.tel ? '<a class="af-ft-tel" href="tel:' + BIZ.tel.replace(/[^0-9]/g, '') + '">전화 주문·문의 ' + BIZ.tel + '</a>' : '')
       + info
       + '<div class="af-ft-links"><a href="/wedding.html">웨딩 부케</a><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="/#corporate">법인·단체 주문</a><a href="sms:0313143003?body=%5B%EB%8F%99%EB%84%A4%EA%BD%83%EC%A7%91%20%ED%8C%8C%ED%8A%B8%EB%84%88%20%EB%AC%B8%EC%9D%98%5D%20%EC%83%81%ED%98%B8%3A%20%2F%20%EC%A7%80%EC%97%AD%3A%20%2F%20%EC%97%B0%EB%9D%BD%EC%B2%98%3A">동네꽃집 파트너</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
       + '<details class="af-ft-origin"><summary>원산지 표시 (농수산물 원산지 표시제)</summary>'
