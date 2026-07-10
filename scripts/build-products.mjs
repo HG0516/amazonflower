@@ -18,17 +18,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
 // 완성 사진 원본 위치 (부모님 파이프라인 산출물). 환경변수로 덮어쓸 수 있음.
+// 26.7.9부터: 아버지가 저장하는 '상품완성-가격 수정' 폴더에서 직접 읽음(임시복사 불필요).
 const SRC =
   process.env.WANSEONG_DIR ||
-  "C:\\Users\\COM\\Desktop\\2_꽃사업\\꽃안부_사진작업\\3.완성";
+  "C:\\Users\\COM\\Desktop\\2_꽃사업\\꽃안부_사진작업\\상품완성-가격 수정26.7.9";
 
 // 폴더 → 카테고리·서브·ID접두어
+// 같은 카테고리의 폴더명 변형(구 3.완성 이름 / 새 가격수정 이름)을 모두 등록 — 없는 폴더는 자동 skip.
+// 웨딩_부케·웨딩_부토니아·웨딩_장식은 온라인 결제상품이 아니라(예약제) 파이프라인 제외.
 const FOLDER_MAP = {
   관엽: { cat: "plant", sub: "관엽", prefix: "PL", pad: 3 },
+  "관엽가격.이름수정": { cat: "plant", sub: "관엽", prefix: "PL", pad: 3 },
   꽃다발: { cat: "bouquet", sub: "꽃다발", prefix: "BQ", pad: 3 },
+  꽃다발가격수정: { cat: "bouquet", sub: "꽃다발", prefix: "BQ", pad: 3 },
   꽃바구니: { cat: "basket", sub: "꽃바구니", prefix: "BS", pad: 3 },
+  꽃바구니가격수정: { cat: "basket", sub: "꽃바구니", prefix: "BS", pad: 3 },
   난_동양란: { cat: "orchid", sub: "동양란", prefix: "OR", pad: 3 },
   난_서양란: { cat: "orchid", sub: "서양란", prefix: "OR", pad: 3 },
+  "난_서양란 가격수정": { cat: "orchid", sub: "서양란", prefix: "OR", pad: 3 },
   화환_근조: { cat: "condolence", sub: "근조", prefix: "WC", pad: 2, wreath: true },
   화환_축하: { cat: "congrats", sub: "축하", prefix: "WG", pad: 2, wreath: true },
 };
