@@ -62,11 +62,11 @@
   #buyBar .bb-total-wrap { flex: 1; min-width: 0; }
   #buyBar .bb-total-label { font-size: var(--fs-caption); color: var(--ink-faint); }
   #buyBar .bb-total { font-size: var(--fs-price); font-weight: 800; color: var(--ink); }
-  #buyBar .bb-btn { flex: 0 0 auto; min-height: 50px; padding: 0 24px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  #buyBar .bb-btn { flex: 0 0 auto; min-height: 50px; padding: 0 24px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
   #buyBar .bb-btn:active { transform: scale(.98); }
   body.buybar-pad { padding-bottom: 84px; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; }
-  .version-badge { position: fixed; top: 12px; right: 12px; z-index: 999; background: rgba(31,29,24,0.88); color: #fff; font-size: var(--fs-label); font-weight: 700; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; letter-spacing: 0.4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .version-badge { position: fixed; top: 12px; right: 12px; z-index: 999; background: rgba(31,29,24,0.88); color: #fff; font-size: var(--fs-label); font-weight: 700; text-transform: uppercase; padding: 6px 10px; border-radius: var(--radius-pill); letter-spacing: 0.4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 
   /* ── 헤더: 미니멀 ── */
   header { text-align: center; padding: 14px 18px 4px; }
@@ -93,7 +93,7 @@
   .mark .md { font-size: var(--fs-caption); color: var(--ink-faint); margin-top: 4px; letter-spacing: 0.3px; }
 
   /* ── catalogue 진입 버튼: 보조 텍스트 링크 톤 ── */
-  .catalogue-link { display: block; text-align: center; margin-top: 22px; padding: 15px; border: 1px solid var(--ink); border-radius: 2px; font-size: 15px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: 0.5px; transition: background .15s; }
+  .catalogue-link { display: block; text-align: center; margin-top: 22px; padding: 15px; border: 1px solid var(--ink); border-radius: var(--radius-sm); font-size: 15px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: 0.5px; transition: background .15s; }
   .catalogue-link:hover { background: var(--ink); color: var(--paper); }
 
   /* ── 카테고리 타일: 2×2 그리드 ── */
@@ -101,16 +101,16 @@
   /* 상황(용도) 아이콘 행 — "무슨 일로 보내세요?" */
   .occ-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink); margin: 4px 0 8px; }
   .occ-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .occ { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 92px; padding: 10px 2px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; user-select: none; transition: border-color .15s, transform .1s; }
+  .occ { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 92px; padding: 10px 2px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); cursor: pointer; user-select: none; transition: border-color .15s, transform .1s; }
   .occ:hover { border-color: var(--ink); }
   .occ:active { transform: scale(.96); }
-  .occ .ic { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line); }
+  .occ .ic { width: 46px; height: 46px; border-radius: var(--radius-pill); overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line); }
   .occ .ic img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
   .occ .ol { font-size: var(--fs-caption); font-weight: 700; color: var(--ink); word-break: keep-all; text-align: center; line-height: 1.2; }
   /* 주문 모드: 상품을 직접 고른 사람에겐 홈 둘러보기 섹션을 숨겨 집중시킨다(새로고침 시 복원) */
   body.ordering .home-sect { display: none; }
   /* 신뢰 한 줄(marks 축소) */
-  .trust-line { margin-top: 10px; text-align: center; font-size: 14px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line-soft); border-radius: 8px; padding: 10px 12px; }
+  .trust-line { margin-top: 10px; text-align: center; font-size: 14px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 10px 12px; }
   .trust-line b { color: var(--accent-deep); }
   .trust-line .tl-photo { display: block; font-size: 16px; font-weight: 700; color: var(--accent-deep); margin-bottom: 6px; line-height: 1.5; word-break: keep-all; }
   .trust-line .tl-facts { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
@@ -135,7 +135,7 @@
   @media (min-width: 1000px) { .best-slider .cat-tile { flex-basis: 30%; } }
   /* 좌우 화살표 */
   .best-wrap { position: relative; }
-  .best-arrow { position: absolute; top: 76px; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.94); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(31,29,24,.14); display: flex; align-items: center; justify-content: center; padding: 0; }
+  .best-arrow { position: absolute; top: 76px; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: rgba(255,255,255,.94); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(31,29,24,.14); display: flex; align-items: center; justify-content: center; padding: 0; }
   .best-arrow.left { left: -2px; } .best-arrow.right { right: -2px; }
   .best-arrow:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
   .best-arrow:active { transform: translateY(-50%) scale(0.94); }
@@ -164,7 +164,7 @@
 
   /* ── 입력 필드 ── */
   label.fl { display: block; font-size: var(--fs-caption); color: var(--ink-soft); margin: 16px 0 6px; font-weight: 600; letter-spacing: 0.3px; }
-  input[type=text], input[type=tel], input[type=email], textarea { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 4px; background: #fcfbf8; color: var(--ink); }
+  input[type=text], input[type=tel], input[type=email], textarea { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fcfbf8; color: var(--ink); }
   input:focus, textarea:focus { outline: none; border-color: var(--ink); background: #fff; }
   textarea { resize: vertical; min-height: 160px; line-height: 1.7; }
 
@@ -179,47 +179,47 @@
   .spec dd { color: var(--ink); text-align: left; word-break: keep-all; }
 
   /* ── 버튼 ── */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 16px; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font-body); background: var(--ink); color: var(--paper); transition: background .15s, transform .05s; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 16px; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); background: var(--ink); color: var(--paper); transition: background .15s, transform .05s; }
   .btn:hover { background: var(--accent-deep); } .btn:active { transform: translateY(1px); } .btn:disabled { opacity: .4; cursor: not-allowed; }
   .btn-ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--ink); } .btn-ghost:hover { background: var(--ink); color: var(--paper); }
-  .btn-mini { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; font-size: var(--fs-caption); font-weight: 600; border: 1px solid var(--ink); border-radius: 3px; background: transparent; color: var(--ink); cursor: pointer; font-family: var(--font-body); width: auto; letter-spacing: 0.3px; }
+  .btn-mini { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; font-size: var(--fs-caption); font-weight: 600; border: 1px solid var(--ink); border-radius: var(--radius-sm); background: transparent; color: var(--ink); cursor: pointer; font-family: var(--font-body); width: auto; letter-spacing: 0.3px; }
   .btn-mini:hover { background: var(--ink); color: var(--paper); }
 
   .hint { font-size: var(--fs-caption); color: var(--ink-soft); margin-top: 8px; }
   .hidden { display: none !important; }
   .err { color: var(--danger); font-size: 14px; margin-top: 10px; font-weight: 600; }
   .loading { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: 14px; padding: 6px 0; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%; animation: spin .8s linear infinite; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: var(--radius-pill); animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── 종류 표시 ── */
-  .type-pill { display: inline-block; font-family: var(--font-display); font-size: var(--fs-caption); font-weight: 700; padding: 4px 12px; border: 1px solid var(--ink); border-radius: 3px; margin-bottom: 14px; letter-spacing: 0.5px; }
+  .type-pill { display: inline-block; font-family: var(--font-display); font-size: var(--fs-caption); font-weight: 700; padding: 4px 12px; border: 1px solid var(--ink); border-radius: var(--radius-sm); margin-bottom: 14px; letter-spacing: 0.5px; }
   .type-pill.t-wed { color: var(--accent-deep); border-color: var(--accent); }
   .type-pill.t-fun { color: var(--condo); border-color: var(--condo); }
 
   /* ── 자동입력 필드 ── */
   .af-field { margin-bottom: 14px; }
   .af-field label { display: block; font-size: var(--fs-caption); color: var(--ink-soft); margin-bottom: 5px; font-weight: 600; }
-  .af-input-wrap { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 4px; background: #fcfbf8; padding: 0 12px; }
+  .af-input-wrap { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fcfbf8; padding: 0 12px; }
   .af-input-wrap:focus-within { border-color: var(--ink); background: #fff; }
   .af-input-wrap input { border: none; outline: none; background: transparent; padding: 11px 0; flex: 1; font-size: 15px; }
-  .af-auto { font-size: var(--fs-label); color: var(--auto); background: var(--auto-bg); padding: 2px 7px; border-radius: 2px; flex: 0 0 auto; font-weight: 600; letter-spacing: 0.5px; }
+  .af-auto { font-size: var(--fs-label); color: var(--auto); background: var(--auto-bg); padding: 2px 7px; border-radius: var(--radius-sm); flex: 0 0 auto; font-weight: 600; letter-spacing: 0.5px; }
 
   /* ── 칩(신랑/신부) ── */
   .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-  .chip { border: 1px solid var(--line); border-radius: 3px; padding: 13px 22px; cursor: pointer; font-size: 16px; font-weight: 600; background: transparent; color: var(--ink-soft); user-select: none; transition: all .15s; }
+  .chip { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 22px; cursor: pointer; font-size: 16px; font-weight: 600; background: transparent; color: var(--ink-soft); user-select: none; transition: all .15s; }
   .chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .side .chip.on { background: var(--gold); border-color: var(--gold); }
   #occasionChips .chip.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 
   /* ── 받는 곳 · 링크 자동입력 배너 ── */
-  .af-linkbar { background: var(--auto-bg, #f3f0e7); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin: 4px 0 16px; }
+  .af-linkbar { background: var(--auto-bg, #f3f0e7); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin: 4px 0 16px; }
   .af-lb-title { font-size: var(--fs-sub); font-weight: 700; color: var(--ink); margin-bottom: 9px; }
   .af-lb-title span { font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); }
   .af-lb-row { display: flex; gap: 8px; }
-  .af-lb-row input { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+  .af-lb-row input { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .af-lb-row input:focus { outline: none; border-color: var(--accent); }
-  .af-lb-row button { flex: 0 0 auto; padding: 11px 16px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); }
+  .af-lb-row button { flex: 0 0 auto; padding: 11px 16px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); }
   .af-lb-row button:disabled { background: var(--ink-faint); opacity: .7; cursor: default; }
   .af-lb-msg { font-size: var(--fs-caption); margin-top: 8px; line-height: 1.5; min-height: 0; }
   .af-lb-msg.ok { color: var(--accent-deep); font-weight: 600; }
@@ -227,16 +227,16 @@
 
   /* ── 커스텀 달력 + 도착 시간대 위젯 ── */
   .dt-widget { margin-top: 4px; }
-  .dt-cal { border: 1px solid var(--line); border-radius: 10px; padding: 12px 12px 14px; background: #fff; }
+  .dt-cal { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 12px 14px; background: #fff; }
   .dt-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .dt-cal-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
-  .dt-nav { width: 38px; height: 38px; border: none; background: transparent; font-size: 24px; line-height: 1; color: var(--ink); cursor: pointer; border-radius: 8px; }
+  .dt-nav { width: 38px; height: 38px; border: none; background: transparent; font-size: 24px; line-height: 1; color: var(--ink); cursor: pointer; border-radius: var(--radius); }
   .dt-nav:hover { background: var(--line-soft); }
   .dt-nav:disabled { color: var(--line); cursor: default; background: transparent; }
   .dt-week { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: var(--fs-caption); font-weight: 700; color: var(--ink-faint); padding-bottom: 7px; border-bottom: 1px solid var(--line-soft); }
   .dt-week .sun { color: #c0392b; } .dt-week .sat { color: #2c6fb3; }
   .dt-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-top: 6px; }
-  .dt-cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; font-size: 15px; font-weight: 600; color: var(--ink); border-radius: 8px; }
+  .dt-cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; font-size: 15px; font-weight: 600; color: var(--ink); border-radius: var(--radius); }
   .dt-cell.empty { visibility: hidden; }
   .dt-cell.day { cursor: pointer; }
   .dt-cell.day:hover { background: var(--line-soft); }
@@ -248,24 +248,24 @@
   .dt-slots-wrap { margin-top: 18px; }
   .dt-slots-label { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 9px; }
   .dt-slots { display: flex; gap: 8px; flex-wrap: wrap; }
-  .dt-slot { flex: 1; min-width: 70px; padding: 13px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink-soft); font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
+  .dt-slot { flex: 1; min-width: 70px; padding: 13px 8px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink-soft); font-weight: 700; font-size: 14px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
   .dt-slot:hover { border-color: var(--ink); }
   .dt-slot.on { background: var(--accent); color: #fff; border-color: var(--accent); }
   .dt-custom { margin-top: 10px; }
-  .dt-time-input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  .dt-time-input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .dt-time-input:focus { outline: none; border-color: var(--accent); }
-  .dt-hint { margin-top: 10px; font-size: var(--fs-caption); color: var(--ink-soft); background: var(--line-soft); border-radius: 8px; padding: 11px 13px; line-height: 1.5; }
+  .dt-hint { margin-top: 10px; font-size: var(--fs-caption); color: var(--ink-soft); background: var(--line-soft); border-radius: var(--radius); padding: 11px 13px; line-height: 1.5; }
   .dt-hint b { color: var(--ink); }
 
   /* ── 배송 요청 + 공동현관 비번 ── */
   .deliv-box { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
   .fl-opt { font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); }
-  .deliv-sel { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239e9a8f' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+  .deliv-sel { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239e9a8f' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
   .deliv-sel:focus { outline: none; border-color: var(--accent); }
-  .deliv-custom { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); margin-top: 8px; }
+  .deliv-custom { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); margin-top: 8px; }
   .deliv-custom:focus { outline: none; border-color: var(--accent); }
   .entrance-row { display: flex; gap: 10px; align-items: center; }
-  .entrance-pw { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  .entrance-pw { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .entrance-pw:focus { outline: none; border-color: var(--accent); }
   .entrance-pw:disabled { background: var(--line-soft); color: var(--ink-faint); }
   .entrance-none { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
@@ -277,38 +277,38 @@
   .member-choice { margin: 4px 0 18px; }
   .mc-label { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 9px; }
   .mc-btns { display: flex; gap: 8px; }
-  .mc-btn { flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; text-align: left; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; font-family: var(--font-body); }
+  .mc-btn { flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; text-align: left; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; cursor: pointer; font-family: var(--font-body); }
   .mc-btn b { font-size: 14px; color: var(--ink); font-weight: 700; }
   .mc-btn span { font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.4; }
   .mc-btn.on { border-color: var(--accent); background: #f6faf6; }
   .mc-btn.on b { color: var(--accent-deep); }
 
   /* ── 추천 박스 ── */
-  .reco { margin-top: 14px; padding: 14px 16px; border-radius: 4px; background: #faf6ec; border: 1px solid #e3d6b3; }
+  .reco { margin-top: 14px; padding: 14px 16px; border-radius: var(--radius-sm); background: #faf6ec; border: 1px solid #e3d6b3; }
   .reco .rh { font-family: var(--font-display); font-weight: 700; color: var(--gold); font-size: var(--fs-caption); letter-spacing: 0.5px; }
   .reco .rp { font-size: var(--fs-price); font-weight: 700; color: var(--ink); margin: 4px 0 2px; font-family: var(--font-display); }
   .reco .rw { font-size: var(--fs-caption); color: var(--ink-soft); }
 
   /* ── 추천 상품 2개 카드 ── */
   .reco-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .reco-opt { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; cursor: pointer; background: var(--paper); transition: border-color .15s; user-select: none; }
+  .reco-opt { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; cursor: pointer; background: var(--paper); transition: border-color .15s; user-select: none; }
   .reco-opt:hover { border-color: var(--ink); }
   .reco-opt.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .reco-opt-photo { height: 116px; background: #f1ede4; overflow: hidden; }
   .reco-opt-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .reco-opt-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 9px 12px 0; color: var(--ink); }
   .reco-opt-price { font-size: 18px; font-weight: 700; padding: 2px 12px 12px; color: var(--ink); font-family: var(--font-display); }
-  .reco-opt-badge { display: inline-block; font-size: var(--fs-caption); color: var(--accent); border: 1px solid var(--accent); border-radius: 2px; padding: 1px 6px; margin: 9px 0 0 12px; letter-spacing: 0.3px; font-weight: 600; }
+  .reco-opt-badge { display: inline-block; font-size: var(--fs-caption); color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 1px 6px; margin: 9px 0 0 12px; letter-spacing: 0.3px; font-weight: 600; }
 
   /* ── 가격 탭 ── */
   .price-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-  .price-tab { border: 1px solid var(--line); border-radius: 3px; padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: var(--fs-caption); line-height: 1.5; transition: all .15s; }
+  .price-tab { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: var(--fs-caption); line-height: 1.5; transition: all .15s; }
   .price-tab b { font-size: 15px; font-weight: 700; font-family: var(--font-display); }
   .price-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .tier-dots { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; margin-bottom: 6px; line-height: 1; }
   .price-tab.on .tier-dots { color: var(--paper); opacity: 0.7; }
   .design-detail { display: flex; gap: 16px; align-items: stretch; margin-top: 6px; }
-  .design-photo { flex: 0 0 130px; aspect-ratio: 3/4; background: var(--line-soft); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-faint); font-size: var(--fs-caption); text-align: center; overflow: hidden; }
+  .design-photo { flex: 0 0 130px; aspect-ratio: 3/4; background: var(--line-soft); border-radius: var(--radius-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink-faint); font-size: var(--fs-caption); text-align: center; overflow: hidden; }
   .design-photo img { width: 100%; height: 100%; object-fit: cover; }
   .design-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
   .design-name { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--ink); }
@@ -318,7 +318,7 @@
   .design-confirm { margin-top: 14px; }
   .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 0; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
   .qty-label { font-weight: 600; font-size: 15px; color: var(--ink); }
-  .qty-ctrl { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .qty-ctrl { display: flex; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
   .qty-btn { width: 44px; height: 44px; border: none; background: var(--paper); color: var(--ink); font-size: 22px; font-weight: 700; cursor: pointer; font-family: var(--font-body); line-height: 1; }
   .qty-btn:hover { background: var(--accent-soft); }
   .qty-num { min-width: 44px; text-align: center; font-size: 17px; font-weight: 700; }
@@ -329,7 +329,7 @@
   .corp-line b { color: var(--ink); font-weight: 600; }
 
   /* ── 전화 안내 — 단정한 가로 막대 ── */
-  .phone-order { margin-top: 18px; padding: 14px 16px; background: transparent; border: 1px solid var(--line); border-radius: 4px; font-size: var(--fs-caption); color: var(--ink); line-height: 1.7; }
+  .phone-order { margin-top: 18px; padding: 14px 16px; background: transparent; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: var(--fs-caption); color: var(--ink); line-height: 1.7; }
   .phone-order b { color: var(--ink); font-size: 14px; font-family: var(--font-display); font-weight: 700; }
   .phone-order span { font-size: var(--fs-caption); color: var(--ink-soft); display: block; margin-top: 4px; }
 
@@ -339,14 +339,14 @@
 
   /* ── 리본 가이드 — 박스 제거, 사진 + 텍스트만 ── */
   .ribbon-guide { display: flex; gap: 16px; align-items: center; padding: 4px 0 18px; border-bottom: 1px solid var(--line-soft); margin-bottom: 4px; }
-  .ribbon-photo-placeholder { flex-shrink: 0; width: 120px; aspect-ratio: 4/3; background: var(--line-soft); border-radius: 4px; display: flex; align-items: center; justify-content: center; padding: 6px; overflow: hidden; }
+  .ribbon-photo-placeholder { flex-shrink: 0; width: 120px; aspect-ratio: 4/3; background: var(--line-soft); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; padding: 6px; overflow: hidden; }
   .ribbon-photo-placeholder img { width: 100%; height: 100%; object-fit: cover; }
   .ribbon-guide-text { flex: 1; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; }
   .ribbon-guide-text b { color: var(--ink); font-weight: 700; }
 
   /* ── 디자인 그리드 (현재 미사용이지만 유지) ── */
   .designs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .design { border: 1px solid var(--line); border-radius: 4px; overflow: hidden; cursor: pointer; background: transparent; }
+  .design { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; cursor: pointer; background: transparent; }
   .design.on { border-color: var(--ink); }
   .design .ph { aspect-ratio: 1/1; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: var(--fs-caption); }
   .design .nm { padding: 10px; font-size: var(--fs-caption); font-weight: 600; text-align: center; }
@@ -354,17 +354,17 @@
 
   /* ── 톤 탭 ── */
   .tone-tabs { display: flex; gap: 6px; margin: 4px 0 12px; }
-  .tone-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+  .tone-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .tone-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .ribbon-opts { display: flex; flex-direction: column; gap: 8px; }
-  .ribbon-opt { border: 1px solid var(--line); border-radius: 4px; padding: 13px 14px; cursor: pointer; font-size: 15px; background: transparent; }
+  .ribbon-opt { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 14px; cursor: pointer; font-size: 15px; background: transparent; }
   .ribbon-opt.on { border-color: var(--ink); background: #f7f7f3; }
 
   /* ── 결제 ── */
   .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 15px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .total-row .amt { font-size: 30px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
   #pay-method, #pay-agree { margin-top: 8px; }
-  .delivery-note { font-size: var(--fs-caption); color: var(--ink-soft); margin: 14px 0 16px; line-height: 1.75; padding: 13px 14px; background: #f7f7f3; border-radius: 4px; }
+  .delivery-note { font-size: var(--fs-caption); color: var(--ink-soft); margin: 14px 0 16px; line-height: 1.75; padding: 13px 14px; background: #f7f7f3; border-radius: var(--radius-sm); }
   .delivery-note b { color: var(--ink); font-size: var(--fs-caption); }
   .delivery-note span { color: var(--ink-faint); font-size: var(--fs-caption); }
   .delivery-note a:hover { color: var(--accent-deep); }
@@ -374,9 +374,9 @@
 
   /* ── 법인 탭 ── */
   .buyer-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
-  .buyer-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: 3px; background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+  .buyer-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .buyer-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .corp-box { margin-top: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 4px; background: #f7f7f3; }
+  .corp-box { margin-top: 8px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #f7f7f3; }
   .corp-note { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; margin-bottom: 4px; }
 
   /* ── 사장님 이야기 ── */
@@ -405,7 +405,7 @@
 
   /* ── 모달 ── */
   .modal-bg { position: fixed; inset: 0; background: rgba(31,29,24,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
-  .modal { background: var(--paper); border-radius: 4px; max-width: 480px; width: 100%; max-height: 80vh; overflow: auto; }
+  .modal { background: var(--paper); border-radius: var(--radius-sm); max-width: 480px; width: 100%; max-height: 80vh; overflow: auto; }
   .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); font-weight: 700; font-family: var(--font-display); font-size: 16px; }
   .modal-x { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ink-soft); }
   .modal-body { padding: 22px 22px 30px; font-size: 14px; line-height: 1.85; color: var(--ink); white-space: pre-line; }
@@ -417,7 +417,7 @@
   #catalogBanner .pick-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-top: 2px; }
   #stepBar { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
   #stepBar .sb-dots { display: flex; gap: 5px; }
-  #stepBar .sb-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--paper); opacity: .38; transition: opacity .2s; }
+  #stepBar .sb-dots i { width: 7px; height: 7px; border-radius: var(--radius-pill); background: var(--paper); opacity: .38; transition: opacity .2s; }
   #stepBar .sb-dots i.on { opacity: 1; }
   #stepBar .sb-txt { font-size: var(--fs-caption); font-weight: 700; }
 
@@ -462,7 +462,7 @@
   </section>
 
   <!-- 상황(용도) 진입 — "무슨 일로 보내세요?" 5아이콘 → 해당 카테고리 탭 -->
-  <section class="home-sect" style="margin-top:14px;">
+  <section class="home-sect" style="margin-top:var(--space-sect);">
     <div class="occ-title">무슨 일로 보내세요?</div>
     <div class="occ-row">
       <div class="occ" onclick="goCatalog('condolence')"><div class="ic"><img src="/photos/products/WC-02_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">부고</div></div>
@@ -476,10 +476,10 @@
   <!-- 전화 주문 CTA — 첫 화면 신뢰(연락 가능성). 문구만으로 기능 명확, 청색 강조 금지 -->
   <a class="phone-cta home-sect" href="tel:031-314-3003"><span class="pc-label">전화로 주문·문의</span><span class="pc-num">031-314-3003</span></a>
 
-  <section class="card home-sect" id="quickStart" style="margin-top:16px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
+  <section class="card home-sect" id="quickStart" style="margin-top:var(--space-sect);padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
     <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">📩 청첩장·부고 링크로 자동주문</div>
     <div style="display:flex;gap:8px;">
-      <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);">
+      <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;color:var(--ink);">
       <button class="btn" id="parseBtn" onclick="runParse()" style="width:auto;flex:0 0 auto;padding:12px 18px;min-height:48px;">시작</button>
     </div>
     <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -497,10 +497,10 @@
   <div class="trust-line home-sect"><span class="tl-photo">배송 직후 도착 사진을 문자로 보내드립니다</span><span class="tl-facts">전국 당일배송 · 전 품목 정찰제 57,000원~ · 1993년부터 한 자리</span></div>
 
   <!-- 로그인 회원 원탭 재주문 진입(로그인 상태에서만 JS로 노출) -->
-  <div id="reorderBanner" class="hidden home-sect" style="margin-top:10px;"></div>
+  <div id="reorderBanner" class="hidden home-sect" style="margin-top:var(--space-sect);"></div>
 
   <!-- 사장님 추천(1열 가로 슬라이드 유지) -->
-  <section class="home-sect" style="margin-top:22px;">
+  <section class="home-sect" style="margin-top:var(--space-sect);">
     <div class="occ-title">사장님 추천</div>
     <div class="best-wrap">
       <button type="button" class="best-arrow left" onclick="bestScroll(-1)" aria-label="이전 상품">‹</button>
@@ -510,7 +510,7 @@
   </section>
 
   <!-- 카테고리 2×2 (5→4 압축, 관엽+난 → 난·식물 병합) -->
-  <section class="home-sect" style="margin-top:22px;">
+  <section class="home-sect" style="margin-top:var(--space-sect);">
     <div class="occ-title">천천히 둘러보기</div>
     <div class="cat-grid">
       <div class="cat-tile" onclick="goCatalog('basket')">
@@ -534,7 +534,7 @@
     <a class="catalogue-link" href="/wedding.html" style="margin-top:8px;">💐 웨딩 부케 · 어머니의 생화 수제 (소수 예약제) →</a>
   </section>
 
-  <section class="home-sect" style="margin-top:8px;">
+  <section class="home-sect" style="margin-top:var(--space-sect);">
     <details class="af-fold">
       <summary>가게 안내 — 취급 · 가격 · 배송 · 주문</summary>
       <div class="spec">
@@ -701,7 +701,7 @@
   </section>
 
   <!-- 법인(B2B): 개인 동선엔 접힘 한 줄, 총무팀은 탭 한 번. 주문 모드에선 home-sect로 숨김. 푸터 '법인·단체 주문'이 /#corporate 로 연결 -->
-  <section class="home-sect" id="corporate" style="margin-top:18px;scroll-margin-top:16px;">
+  <section class="home-sect" id="corporate" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
     <details class="af-fold af-fold-corp">
       <summary>총무·인사팀이세요? — 법인 거래처 (계산서·후불·정찰)</summary>
       <div class="story-body" style="margin-top:12px;">
@@ -1425,8 +1425,8 @@ function renderToppings(){
   box.innerHTML = `<div style="font-size:var(--fs-caption);font-weight:700;margin:16px 0 8px;color:var(--ink);">마음 얹기 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 만큼만, 정찰가로</span></div>`
     + codes.map(c=>{
       const t=TOPPINGS[c], on=(order.toppings||[]).includes(c);
-      return `<div onclick="toggleTopping('${c}')" style="display:flex;align-items:center;gap:10px;border:1px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent-soft)':'transparent'};border-radius:4px;padding:11px 12px;margin-bottom:8px;cursor:pointer;user-select:none;">
-        <span style="width:18px;height:18px;border:1.5px solid ${on?'var(--accent)':'var(--line)'};border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:${on?'var(--accent)':'transparent'};color:#fff;font-size:var(--fs-caption);flex:none;">${on?'✓':''}</span>
+      return `<div onclick="toggleTopping('${c}')" style="display:flex;align-items:center;gap:10px;border:1px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent-soft)':'transparent'};border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:8px;cursor:pointer;user-select:none;">
+        <span style="width:18px;height:18px;border:1.5px solid ${on?'var(--accent)':'var(--line)'};border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;background:${on?'var(--accent)':'transparent'};color:#fff;font-size:var(--fs-caption);flex:none;">${on?'✓':''}</span>
         <span style="flex:1;"><b style="font-size:14px;">${t.nm}</b> <span style="color:var(--ink-soft);font-size:var(--fs-caption);">+${t.price.toLocaleString()}원</span><br><span style="font-size:var(--fs-caption);color:var(--ink-faint);">${t.d}</span></span>
       </div>`;
     }).join("");
@@ -1671,7 +1671,7 @@ function renderPayReview(){
   if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
   if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
   if(!rows.length){ el.innerHTML=""; return; }
-  el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:10px 0 4px;text-align:left;">'
+  el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius: var(--radius);padding:12px 14px;margin:10px 0 4px;text-align:left;">'
     + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
     + rows.map(r=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 0;font-size:14px;line-height:1.6;"><span style="color:var(--ink-faint);white-space:nowrap;">${r[0]}</span><span style="text-align:right;color:var(--ink);">${r[1]}</span></div>`).join("")
     + '<div style="margin-top:8px;"><a href="#" onclick="scrollTo(\'confirmCard\');return false;" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;">받는 곳·날짜 고치기 ↑</a></div>'
@@ -1844,11 +1844,11 @@ function upsellHtml(o){
   if(!isWreath || !window.PRODUCTS) return "";
   const picks=window.PRODUCTS.filter(p=>p.cat==="bouquet" && p.price>=57000 && p.price<=78000).slice(0,2);
   if(picks.length<2) return "";
-  return `<div style="background:#fff;border:1px solid var(--accent);border-radius:6px;padding:14px 16px;margin-top:12px;text-align:left;">
+  return `<div style="background:#fff;border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
       <div style="font-weight:700;color:var(--accent-deep);margin-bottom:2px;">💐 마음을 더 전하고 싶다면</div>
       <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">위로·축하의 꽃다발도 함께 보내는 분이 많아요. 눌러서 바로 주문.</div>
       <div style="display:flex;gap:8px;">
-        ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius:6px;overflow:hidden;">
+        ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius: var(--radius);overflow:hidden;">
           <div style="height:92px;background:var(--photo-bg);overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;object-position:center 40%;" onerror="this.style.display='none'"></div>
           <div style="padding:7px 9px;"><div style="font-size:var(--fs-caption);font-weight:700;color:var(--ink);">${escapeHtml(p.name)}</div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">${p.subtitle?escapeHtml(p.subtitle)+" · ":""}${p.price.toLocaleString()}원</div></div>
         </div>`).join("")}
@@ -1891,22 +1891,22 @@ function renderDone(data,o){
   const isFuneral = o.type==="funeral" || /^condolence|^WC-/.test(o.productCode||"");
   const dm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   const annivCard = (user && dm && !isFuneral) ? `
-      <div id="annivDoneCard" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;margin-top:12px;text-align:left;">
+      <div id="annivDoneCard" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">🗓 이 날을 기념일로 저장할까요?</div>
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일, 일주일 전에 미리 알려드려요.</div>
         <button class="btn" style="width:100%;" onclick="afSaveAnnivDone('${escapeAttr((o.recipientName?o.recipientName+" ":"")+"기념일")}',${Number(dm[2])},${Number(dm[3])},'${escapeAttr(o.recipientName||"")}')">저장하기 (한 번이면 끝)</button>
       </div>` : "";
   const memberCard = user ? annivCard : `
-      <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:14px 16px;margin-top:12px;text-align:left;">
+      <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">🌸 다음에 더 편하게</div>
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;"><b>가입하면 1,000원 적립</b> · 로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지.</div>
         <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">가입하고 1,000원 받기</button>
       </div>`;
   const surveyCard = `
-      <div id="surveyCard" style="border:1px dashed var(--line);border-radius:6px;padding:12px 14px;margin-top:12px;text-align:left;">
+      <div id="surveyCard" style="border:1px dashed var(--line);border-radius: var(--radius);padding:12px 14px;margin-top:12px;text-align:left;">
         <div style="font-size:var(--fs-caption);font-weight:700;color:var(--ink);margin-bottom:8px;">꽃안부를 어떻게 알고 오셨어요? <span style="font-weight:400;color:var(--ink-faint);">(한 번만 눌러주세요)</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          ${["검색","지인","전단·현수막","기타"].map(v=>`<button onclick="afSurvey('${v}','${escapeAttr(p.orderId||"")}')" style="flex:1;min-width:70px;min-height:48px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:14px;font-family:var(--font-body);color:var(--ink);cursor:pointer;">${v}</button>`).join("")}
+          ${["검색","지인","전단·현수막","기타"].map(v=>`<button onclick="afSurvey('${v}','${escapeAttr(p.orderId||"")}')" style="flex:1;min-width:70px;min-height:48px;border:1px solid var(--line);background:#fff;border-radius: var(--radius);font-size:14px;font-family:var(--font-body);color:var(--ink);cursor:pointer;">${v}</button>`).join("")}
         </div>
       </div>`;
   const sameFlowerBtn = (o.productCode && window.PRODUCTS && window.PRODUCTS.some(x=>x.pc===o.productCode))
@@ -1914,7 +1914,7 @@ function renderDone(data,o){
   const orderId = escapeHtml(p.orderId||"");
   // 진행 타임라인 + 도착 예정일(급행 경조사 손님의 최대 불안 '언제 도착'을 명확히)
   const _edm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius:6px;padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">📅 ${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>` : "";
+  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">📅 ${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>` : "";
   const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
       ${[["✅","주문 접수",1],["🎨","사장님 제작",0],["🚚","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="font-size:22px;">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:2px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
     </div>`;
@@ -1925,24 +1925,24 @@ function renderDone(data,o){
       <p style="color:var(--ink-soft);margin-bottom:4px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
       ${timelineHtml}
       ${etaLine}
-      <div style="background:#f7f7f3;border:1px solid var(--line);border-radius:4px;padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
+      <div style="background:#f7f7f3;border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
         <div>상품: ${escapeHtml(o.productLabel||"")}</div>
         ${(o.toppings&&o.toppings.length)?`<div>얹기: ${o.toppings.map(c=>escapeHtml((TOPPINGS[c]||{}).nm||c)).join(" · ")}</div>`:""}
         <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
         ${place?`<div>장소: ${escapeHtml(place)}</div>`:""}
         ${o.date?`<div>일시: ${escapeHtml(o.date)} ${escapeHtml(o.time||"")}</div>`:""}
       </div>
-      <div style="margin-top:12px;background:#fff;border:1px dashed var(--accent);border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
+      <div style="margin-top:12px;background:#fff;border:1px dashed var(--accent);border-radius: var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
         <div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">주문번호</div><div style="font-size:16px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
-        <button onclick="try{navigator.clipboard.writeText('${orderId}');this.textContent='복사됨 ✓';}catch(e){}" style="min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:14px;cursor:pointer;white-space:nowrap;">복사</button>
+        <button onclick="try{navigator.clipboard.writeText('${orderId}');this.textContent='복사됨 ✓';}catch(e){}" style="min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;font-size:14px;cursor:pointer;white-space:nowrap;">복사</button>
       </div>
       ${o.senderNote?`
-      <div style="background:transparent;border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;color:var(--ink-soft);">
+      <div style="background:transparent;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;color:var(--ink-soft);">
         <div style="font-size:var(--fs-caption);letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">사장님께 전달된 부탁</div>
         <div style="color:var(--ink);">${escapeHtml(o.senderNote)}</div>
       </div>`:""}
       ${isCorp?`
-      <div style="background:transparent;border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;">
+      <div style="background:transparent;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;">
         <div style="font-size:var(--fs-caption);letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">다음 주문은 더 빠르게</div>
         <div style="color:var(--ink-soft);">다음 주문도 같은 사업자 정보로 빠르게 진행하실 수 있어요. 정기 거래처 등록(후불·월 정산)은 031-314-3003 으로 문의해주세요.</div>
       </div>`:""}
@@ -2410,7 +2410,7 @@ window.addEventListener("hashchange",function(){ if(location.hash==="#corporate"
 })();
 // 재주문 배너 — 로그인 회원은 서버 주문내역(openAccount), 비로그인이라도 로컬에 지난 주문이 있으면 원탭 재주문
 function afReorderBtn(onclick){
-  return '<button onclick="'+onclick+'" style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius:8px;font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">🌸 지난 주문 그대로 다시 보내기 →</button>';
+  return '<button onclick="'+onclick+'" style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius: var(--radius);font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">🌸 지난 주문 그대로 다시 보내기 →</button>';
 }
 function refreshReorderBanner(user){
   const el=document.getElementById("reorderBanner"); if(!el) return;

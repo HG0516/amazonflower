@@ -21,7 +21,15 @@
   --danger: #963a30;
   --auto: #355d8a;
   --auto-bg: #eaf0f6;
-  --radius: 6px;            /* 격식 있는 약한 둥글기 */
+  /* 둥글기(radius) 파생 사다리 — Saleor식 단일 기준 6px에서 sm/lg 파생 + pill.
+     '임의값 없음, 전부 통일'이 전문가 티. 칩·태그=sm, 카드·인풋=기준, 모달·강조박스=lg, 완전둥근=pill. */
+  --radius-sm: 3px;         /* 칩·태그·작은 배지 */
+  --radius: 6px;            /* 카드·인풋 기준(격식 있는 약한 둥글기) */
+  --radius-lg: 10px;        /* 모달·강조 박스·큰 컨테이너 */
+  --radius-pill: 999px;     /* 알약·원형(칩·아이콘·점) */
+  /* 섹션 간격 — Dawn 8px 그리드 / Saleor clamp() 섹션 토큰. inline 임의값 박멸. */
+  --space-sect: clamp(28px, 24px + 2vw, 44px); /* home-sect 섹션 간 표준 간격 */
+  --space-card: 16px;       /* 카드 내부 패딩 기준 */
   --shadow: none;
   /* 상황(용도) 아이콘 배경 파스텔 — 근조는 채도 낮게 */
   --occ-funeral: #e9e9ee;
