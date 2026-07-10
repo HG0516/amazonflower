@@ -6,15 +6,33 @@ input[type=number], input[type=date], input[type=time], select, textarea {
   font-size: 16px !important;
 }
 
-/* 키보드 포커스 또렷하게 (저시력·키보드 사용자) */
+/* 키보드 포커스 또렷하게 (저시력·키보드 사용자) — 전역 통일 링(vercel/commerce식) */
 :focus-visible {
-  outline: 3px solid #1f4733;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
-/* 터치 타깃 최소 크기 보강 — 고령·모바일 하드요건 48px 이상 */
-button, .btn, a.btn, .cat-tile, .chip, input[type=submit] { min-height: 48px; }
+/* 텍스트 선택색 통일 — 브랜드 상록 소프트 배경 + 잉크 글자 */
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+/* 터치 타깃 최소 크기 보강 — 고령·모바일 하드요건 48px 이상.
+   인터랙티브 요소 전수 감사(index/catalog 공통 클래스). */
+button, .btn, a.btn, .cat-tile, .chip, input[type=submit],
+.use-chip, .gf, .subtab, .bchip, .sortbtn, .fpill, .fsort .fpill,
+.cart-add, .ch, .back, .lr-order, .cl-order, summary { min-height: 48px; }
+
+/* 공통 푸터(footer.js) 전화 주문 CTA — 블록 링크 터치 높이 보강 */
+.af-ft-tel { min-height: 48px; display: flex; align-items: center; }
+
+/* 알약형 칩·필터 — 높이를 키워도 내용 세로 중앙정렬(줄바꿈·레이아웃 시프트 없이 오터치 방지) */
+.use-chip, .gf, .subtab, .bchip, .fpill, .fsort .fpill,
+.cart-add, .sortbtn, .lr-order, .cl-order {
+  display: inline-flex; align-items: center; justify-content: center;
+}
 
 /* 모션 최소화 선호 사용자 배려 */
 @media (prefers-reduced-motion: reduce) {

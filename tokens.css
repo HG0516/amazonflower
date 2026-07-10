@@ -31,6 +31,9 @@
   --space-sect: clamp(28px, 24px + 2vw, 44px); /* home-sect 섹션 간 표준 간격 */
   --space-card: 16px;       /* 카드 내부 패딩 기준 */
   --shadow: none;
+  /* 트랜지션 시간 — 고스타 공통: 150~300ms ease로 통일(임의값 .1/.2 혼재 박멸). */
+  --dur-fast: .15s;         /* 색·테두리 등 미세 상태전환 */
+  --dur: .25s;              /* 펼침·이동 등 조금 큰 전환 */
   /* 상황(용도) 아이콘 배경 파스텔 — 근조는 채도 낮게 */
   --occ-funeral: #e9e9ee;
   --occ-wedding: #f6e2e2;
