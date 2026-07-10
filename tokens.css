@@ -12,6 +12,7 @@
   --ink-faint: #6b6358;     /* 약한 글자 — 흰 배경 4.5:1↑(고령 가독성). 전 페이지 통일값 */
   --line: #dcd9cf;
   --line-soft: #eeece4;
+  --photo-bg: #f2f2ec;       /* 사진 무대 배경 — 전 상품 카드 단일 톤(규격=브랜드) */
   --accent: #1f4733;        /* 브랜드 강조 — 깊은 상록 그린(확신·프리미엄) */
   --accent-deep: #14311f;
   --accent-soft: #e8f1ea;

@@ -81,7 +81,7 @@
 
   /* ── hero: 대형 실사진 1장 + 사진 아래 카피(오버레이 금지) ── */
   .hero { padding: 8px 0 2px; text-align: center; }
-  .hero-photo { display: block; width: 100%; height: 270px; object-fit: cover; margin: 0 auto 14px; border-radius: var(--radius); border: 1px solid var(--line-soft); background: #f2f2ec; }
+  .hero-photo { display: block; width: 100%; height: 270px; object-fit: cover; margin: 0 auto 14px; border-radius: var(--radius); border: 1px solid var(--line-soft); background: var(--photo-bg); }
   .hero h1 { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.4; color: var(--ink); letter-spacing: -0.5px; }
   .hero .lede { font-size: 16px; color: var(--ink-soft); line-height: 1.6; margin-top: 8px; }
 
@@ -104,8 +104,8 @@
   .occ { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 92px; padding: 10px 2px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; user-select: none; transition: border-color .15s, transform .1s; }
   .occ:hover { border-color: var(--ink); }
   .occ:active { transform: scale(.96); }
-  .occ .ic { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--line-soft); border: 1px solid var(--line); }
-  .occ .ic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .occ .ic { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line); }
+  .occ .ic img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
   .occ .ol { font-size: 13px; font-weight: 700; color: var(--ink); word-break: keep-all; text-align: center; line-height: 1.2; }
   /* 주문 모드: 상품을 직접 고른 사람에겐 홈 둘러보기 섹션을 숨겨 집중시킨다(새로고침 시 복원) */
   body.ordering .home-sect { display: none; }
@@ -136,14 +136,14 @@
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color .15s, transform .1s; user-select: none; }
   .cat-tile:hover { border-color: var(--ink); }
   .cat-tile:active { transform: scale(0.98); }
-  .cat-photo { height: 150px; background: #f2f2ec; overflow: hidden; }
-  .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; }
+  .cat-photo { height: 150px; background: var(--photo-bg); overflow: hidden; }
+  .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: 13px; color: var(--ink-faint); padding: 0 12px 12px; }
   /* 2×2 그리드: 세로를 넉넉히(짤림 방지). 사진은 cover, 세로로 긴 화환 타일만 contain+배경 */
-  .cat-grid .cat-photo { height: 190px; background: #f2f2ec; }
-  .cat-grid .cat-photo img { object-fit: cover; object-position: center 42%; }
-  .cat-grid .cat-tile.wreath .cat-photo img { object-fit: contain; padding: 6px 0; }
+  .cat-grid .cat-photo { height: 190px; background: var(--photo-bg); }
+  .cat-grid .cat-photo img { object-fit: cover; object-position: center 40%; }
+  .cat-grid .cat-tile.wreath .cat-photo img { object-fit: contain; object-position: center; padding: 12px; }
   @media (min-width: 1000px) { .cat-grid .cat-photo { height: 240px; } }
 
   /* ── 카드 — 그림자 없이 선만 ── */
@@ -1833,7 +1833,7 @@ function upsellHtml(o){
       <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">위로·축하의 꽃다발도 함께 보내는 분이 많아요. 눌러서 바로 주문.</div>
       <div style="display:flex;gap:8px;">
         ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius:6px;overflow:hidden;">
-          <div style="height:92px;background:#f2f2ec;overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
+          <div style="height:92px;background:var(--photo-bg);overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;object-position:center 40%;" onerror="this.style.display='none'"></div>
           <div style="padding:7px 9px;"><div style="font-size:12.5px;font-weight:700;color:var(--ink);">${escapeHtml(p.name)}</div><div style="font-size:12px;color:var(--ink-faint);">${p.subtitle?escapeHtml(p.subtitle)+" · ":""}${p.price.toLocaleString()}원</div></div>
         </div>`).join("")}
       </div>

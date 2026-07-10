@@ -64,8 +64,11 @@
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s; }
   .item:hover { border-color: var(--ink); }
-  .item .photo { position: relative; aspect-ratio: 3/4; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; overflow: hidden; }
-  .item .photo img { width: 100%; height: 100%; object-fit: cover; }
+  .item .photo { position: relative; aspect-ratio: 3/4; background: var(--photo-bg); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; overflow: hidden; }
+  .item .photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+  /* 세로로 긴 화환류(근조·축하)는 머리 안 잘리게 contain+패딩, 나머지는 cover 통일 */
+  .item[data-cat="congrats"] .photo img,
+  .item[data-cat="condolence"] .photo img { object-fit: contain; object-position: center; padding: 12px; }
   .item .sold-tag { position: absolute; top: 8px; left: 8px; z-index: 1; background: rgba(31,29,24,.82); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: .3px; }
   .item.is-sold .photo img { filter: grayscale(1); opacity: .55; }
   .item .order:disabled { background: var(--ink-faint); cursor: default; opacity: .8; }
@@ -89,7 +92,7 @@
   .special-sub { font-size: 13px; color: var(--ink-soft); margin-top: 8px; line-height: 1.7; padding: 0 20px; }
   .special-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .special-item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-  .special-photo { aspect-ratio: 4/3; background: var(--line-soft); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; text-align: center; overflow: hidden; padding: 6px; }
+  .special-photo { aspect-ratio: 4/3; background: var(--photo-bg); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 12px; text-align: center; overflow: hidden; padding: 6px; }
   .special-photo img { width: 100%; height: 100%; object-fit: cover; }
   .special-photo span { font-size: 10px; }
   .special-body { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
@@ -140,8 +143,8 @@
   .gcard { border: 1px solid var(--line-soft); border-radius: 5px; overflow: hidden; background: var(--paper); cursor: pointer; transition: border-color .15s, transform .05s; }
   .gcard:hover { border-color: var(--ink); }
   .gcard:active { transform: scale(0.98); }
-  .gcard .gp { aspect-ratio: 3/4; background: var(--line-soft); overflow: hidden; }
-  .gcard .gp img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gcard .gp { aspect-ratio: 3/4; background: var(--photo-bg); overflow: hidden; }
+  .gcard .gp img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
   .gcard .gn { font-size: 12px; color: var(--ink); padding: 7px 8px 9px; line-height: 1.4; font-weight: 600; text-align: center; }
   .gempty { text-align: center; color: var(--ink-faint); font-size: 14px; padding: 36px 0; }
   @media (max-width: 480px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -211,8 +214,8 @@
   .wreath-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
   .wcard { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--paper); display: flex; flex-direction: column; }
   .wcard.main { border-color: var(--accent); border-width: 2px; }
-  .wphoto { position: relative; aspect-ratio: 4/5; background: var(--line-soft); overflow: hidden; }
-  .wphoto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .wphoto { position: relative; aspect-ratio: 4/5; background: var(--photo-bg); overflow: hidden; }
+  .wphoto img { width: 100%; height: 100%; object-fit: contain; padding: 12px; display: block; }
   .wbody { padding: 14px 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
   .wtier { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); }
   .wbadge { font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: 9px; margin-left: 5px; vertical-align: middle; }
@@ -538,7 +541,7 @@ function productCard(p){
   const gradeTag = p.grade ? ` <span style="font-size:11px;color:var(--gold);">${esc(p.grade)}</span>` : "";
   const sold = p.status && p.status !== "판매중";   // 품절·준비중 등
   return `
-      <div class="item${sold?' is-sold':''}" data-pc="${esc(p.pc)}">
+      <div class="item${sold?' is-sold':''}" data-pc="${esc(p.pc)}" data-cat="${esc(p.cat)}">
         <div class="photo" onclick="openDetail('${esc(p.pc)}')">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size:11px;color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
           <div class="nm" onclick="openDetail('${esc(p.pc)}')">${esc(p.name)}${gradeTag}</div>
