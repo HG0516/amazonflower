@@ -19,21 +19,21 @@
     if (document.getElementById('af-ft-style')) return;
     var css = ''
       + '.af-footer{margin-top:40px;border-top:1px solid #e5e0d4;background:#f3efe6;color:#7a766c;'
-      + 'font-size:12px;line-height:1.9;font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;}'
+      + 'font-size:var(--fs-caption);line-height:1.9;font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;}'
       + '.af-footer .af-ft-wrap{max-width:560px;margin:0 auto;padding:22px 20px calc(28px + env(safe-area-inset-bottom,0px));}'
-      + '.af-footer .af-ft-name{font-weight:800;color:#1f1d18;font-size:13px;margin-bottom:6px;}'
+      + '.af-footer .af-ft-name{font-weight:800;color:#1f1d18;font-size:var(--fs-sub);margin-bottom:6px;}'
       + '.af-footer .af-ft-tel{display:block;font-size:18px;font-weight:700;color:#1f1d18;text-decoration:none;margin:2px 0 10px;letter-spacing:0.3px;}'
       + '.af-footer .af-ft-i{display:inline-block;margin-right:12px;}'
       + '.af-footer .af-ft-links{margin-top:10px;}'
       + '.af-footer .af-ft-links a{color:#1f4733;font-weight:700;text-decoration:none;margin-right:14px;}'
-      + '.af-footer .af-ft-policy{margin-top:10px;font-size:11.5px;color:#9e9a8f;}'
-      + '.af-footer .af-ft-origin{margin-top:10px;font-size:11.5px;}'
+      + '.af-footer .af-ft-policy{margin-top:10px;font-size:var(--fs-caption);color:#9e9a8f;}'
+      + '.af-footer .af-ft-origin{margin-top:10px;font-size:var(--fs-caption);}'
       + '.af-footer .af-ft-origin>summary{color:#1f4733;font-weight:700;cursor:pointer;list-style:revert;}'
       + '.af-footer .af-ft-origin-body{margin-top:8px;overflow-x:auto;}'
-      + '.af-footer .af-ft-origin table{width:100%;border-collapse:collapse;font-size:11px;line-height:1.6;}'
+      + '.af-footer .af-ft-origin table{width:100%;border-collapse:collapse;font-size:var(--fs-caption);line-height:1.6;}'
       + '.af-footer .af-ft-origin th{text-align:left;vertical-align:top;white-space:nowrap;padding:4px 8px 4px 0;color:#1f1d18;font-weight:700;}'
       + '.af-footer .af-ft-origin td{vertical-align:top;padding:4px 0;border-bottom:1px solid #e5e0d4;}'
-      + '.af-footer .af-ft-origin p{margin-top:8px;font-size:10.5px;color:#9e9a8f;line-height:1.7;}';
+      + '.af-footer .af-ft-origin p{margin-top:8px;font-size:var(--fs-caption);color:#9e9a8f;line-height:1.7;}';
     var s = document.createElement('style'); s.id = 'af-ft-style'; s.textContent = css;
     document.head.appendChild(s);
   }

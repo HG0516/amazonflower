@@ -66,7 +66,7 @@
     var css = ''
       + '.af-auth-chip{position:fixed;top:12px;left:12px;z-index:998;display:inline-flex;align-items:center;gap:6px;'
       + 'background:rgba(255,255,255,.95);border:1px solid #dcd9cf;border-radius:999px;color:#1f1d18;'
-      + 'font-size:13px;font-weight:700;padding:7px 13px;cursor:pointer;'
+      + 'font-size:14px;font-weight:700;padding:7px 13px;cursor:pointer;'
       + 'font-family:-apple-system,"Apple SD Gothic Neo","Pretendard",sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.08);}'
       + '.af-auth-chip:active{opacity:.85;}'
       + '.af-auth-ov{position:fixed;inset:0;z-index:10002;background:rgba(31,29,24,.55);display:none;'

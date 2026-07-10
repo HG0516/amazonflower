@@ -35,7 +35,7 @@
       + '.af-pwa-ico{width:46px;height:46px;border-radius:11px;flex:0 0 auto;}'
       + '.af-pwa-txt{flex:1;min-width:0;}'
       + '.af-pwa-tt{font-size:15px;font-weight:700;color:#1f1d18;}'
-      + '.af-pwa-ds{font-size:12.5px;color:#5a564d;margin-top:2px;line-height:1.5;}'
+      + '.af-pwa-ds{font-size:var(--fs-caption,14px);color:#5a564d;margin-top:2px;line-height:1.5;}'
       + '.af-pwa-btn{flex:0 0 auto;background:#1f4733;color:#fff;border:none;border-radius:8px;'
       + 'font-size:15px;font-weight:700;padding:11px 16px;cursor:pointer;font-family:inherit;}'
       + '.af-pwa-x{flex:0 0 auto;background:transparent;border:none;color:#9e9a8f;font-size:22px;'

@@ -31,4 +31,13 @@
   --occ-birth: #f3e6ef;
   --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
   --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  /* 타이포 스케일 — clamp() 유동 + 고령 가독성 하한(본문 16px↑, 정보 14px↑).
+     고스타 공통분모: 크기는 '느낌'이 아니라 토큰. 12px는 대문자+letter-spacing 장식 라벨 전용. */
+  --fs-display: clamp(28px, 24px + 1.6vw, 36px); /* h1·대표 헤딩 */
+  --fs-h2: clamp(19px, 17px + 0.8vw, 24px);      /* 섹션 제목 */
+  --fs-body: 17px;   /* 본문 */
+  --fs-sub: 15px;    /* 설명·보조 문단(하한 15px) */
+  --fs-caption: 14px;/* 캡션·보조정보(하한 14px) */
+  --fs-label: 12px;  /* 대문자+letter-spacing 장식 라벨 전용 */
+  --fs-price: 20px;  /* 가격·전화번호(18px↑ + 700↑) */
 }
