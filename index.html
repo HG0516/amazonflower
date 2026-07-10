@@ -61,8 +61,8 @@
   #buyBar.show { display: flex; }
   #buyBar .bb-total-wrap { flex: 1; min-width: 0; }
   #buyBar .bb-total-label { font-size: var(--fs-caption); color: var(--ink-faint); }
-  #buyBar .bb-total { font-size: var(--fs-price); font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
-  #buyBar .bb-btn { flex: 0 0 auto; min-height: 50px; padding: 0 24px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  #buyBar .bb-total { font-size: 22px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #buyBar .bb-btn { flex: 0 0 auto; min-height: 52px; padding: 0 24px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
   #buyBar .bb-btn:active { transform: scale(.98); }
   body.buybar-pad { padding-bottom: 84px; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; }
@@ -363,12 +363,14 @@
   /* ── 결제 ── */
   .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 15px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .total-row .amt { font-size: 30px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
+  #totalAmt { font-size: 24px; font-weight: 800; }
+  #payBtn { min-height: 56px; font-size: 17px; }
   #pay-method, #pay-agree { margin-top: 8px; }
   .delivery-note { font-size: var(--fs-caption); color: var(--ink-soft); margin: 14px 0 16px; line-height: 1.75; padding: 13px 14px; background: #f7f7f3; border-radius: var(--radius-sm); }
   .delivery-note b { color: var(--ink); font-size: var(--fs-caption); }
   .delivery-note span { color: var(--ink-faint); font-size: var(--fs-caption); }
   .delivery-note a:hover { color: var(--accent-deep); }
-  .notice { font-size: var(--fs-caption); color: var(--ink-soft); padding: 12px 0 0; border-top: 1px solid var(--line-soft); margin-top: 18px; line-height: 1.7; }
+  .notice { font-size: 15px; color: var(--ink-soft); padding: 12px 0 0; border-top: 1px solid var(--line-soft); margin-top: 18px; line-height: 1.7; }
   .share-row { display: flex; gap: 10px; margin-top: 14px; }
   footer { text-align: center; color: var(--ink-soft); font-size: var(--fs-caption); margin-top: 40px; line-height: 1.9; padding-top: 30px; border-top: 1px solid var(--line); }
 
@@ -1673,7 +1675,7 @@ function renderPayReview(){
   if(!rows.length){ el.innerHTML=""; return; }
   el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius: var(--radius);padding:12px 14px;margin:10px 0 4px;text-align:left;">'
     + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
-    + rows.map(r=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 0;font-size:14px;line-height:1.6;"><span style="color:var(--ink-faint);white-space:nowrap;">${r[0]}</span><span style="text-align:right;color:var(--ink);">${r[1]}</span></div>`).join("")
+    + rows.map(r=>{const emph=(r[0]==="받는 곳"||r[0]==="받는 날짜");return `<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:16px;line-height:1.6;"><span style="color:var(--ink-faint);white-space:nowrap;">${r[0]}</span><span style="text-align:right;color:var(--ink);${emph?'font-size:18px;font-weight:700;':''}">${r[1]}</span></div>`;}).join("")
     + '<div style="margin-top:8px;"><a href="#" onclick="scrollTo(\'confirmCard\');return false;" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;">받는 곳·날짜 고치기 ↑</a></div>'
     + '</div>';
 }
