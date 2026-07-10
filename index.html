@@ -390,11 +390,10 @@
   .reviews-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-top: 30px; margin-bottom: 12px; }
   .reviews-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 8px; }
   .reviews-sub { font-size: var(--fs-caption); color: var(--ink-soft); margin-bottom: 22px; }
-  .reviews-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 4px; }
-  .review-card { aspect-ratio: 9/16; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; position: relative; }
-  .review-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .review-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; position: absolute; inset: 0; background: var(--line-soft); color: var(--ink-faint); font-size: var(--fs-caption); text-align: center; padding: 12px; }
-  .review-placeholder .review-pfp { font-size: var(--fs-caption); opacity: 0.7; letter-spacing: 0.3px; }
+  .reviews-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 0 4px; }
+  .review-card { text-align: left; }
+  .review-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+  .review-cap { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.5; margin-top: 8px; }
 
   /* ── 푸터 ── */
   .foot-brand { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 4px; letter-spacing: 0.5px; }
@@ -728,24 +727,34 @@
 
     <div class="story-divider hidden"></div>
 
-    <div class="reviews-wrap hidden">
+    <div class="reviews-wrap">
       <div class="reviews-label">REVIEWS</div>
-      <div class="reviews-title">잘 도착했습니다</div>
-      <div class="reviews-sub">배송 후 받아본 인사를 모았습니다.</div>
+      <div class="reviews-title">잘 전했습니다</div>
+      <div class="reviews-sub">주문하신 꽃은 배송 직후 도착 사진으로 확인시켜 드립니다.</div>
       <div class="reviews-grid">
         <div class="review-card">
-          <img src="/photos/후기/후기1.jpg" alt="" onerror="this.style.display='none';this.parentElement.querySelector('.review-placeholder').style.display='flex';">
-          <div class="review-placeholder">
-            <div>카톡 후기 사진</div>
-            <div class="review-pfp">photos/후기/후기1.jpg</div>
-          </div>
+          <img src="/photos/모음/condolence/근조화환_흰국화노란백합_01.jpeg" alt="근조 3단 화환 제작 실사진" loading="lazy" onerror="this.closest('.review-card').style.display='none';">
+          <div class="review-cap">근조 3단 화환 · 흰 국화 · 제작 실사진</div>
         </div>
         <div class="review-card">
-          <img src="/photos/후기/후기2.jpg" alt="" onerror="this.style.display='none';this.parentElement.querySelector('.review-placeholder').style.display='flex';">
-          <div class="review-placeholder">
-            <div>카톡 후기 사진</div>
-            <div class="review-pfp">photos/후기/후기2.jpg</div>
-          </div>
+          <img src="/photos/모음/condolence/근조화환_흰국화노란백합_03.jpeg" alt="근조 3단 화환 제작 실사진" loading="lazy" onerror="this.closest('.review-card').style.display='none';">
+          <div class="review-cap">근조 3단 화환 · 노란 백합 포인트 · 제작 실사진</div>
+        </div>
+        <div class="review-card">
+          <img src="/photos/모음/congrats/축하화환_혼합거베라백합.jpeg" alt="축하 3단 화환 제작 실사진" loading="lazy" onerror="this.closest('.review-card').style.display='none';">
+          <div class="review-cap">축하 3단 화환 · 거베라·백합 혼합 · 제작 실사진</div>
+        </div>
+        <div class="review-card">
+          <img src="/photos/모음/basket/꽃바구니_주황장미혼합.jpeg" alt="축하 꽃바구니 제작 실사진" loading="lazy" onerror="this.closest('.review-card').style.display='none';">
+          <div class="review-cap">축하 꽃바구니 · 주황 장미 혼합 · 제작 실사진</div>
+        </div>
+        <div class="review-card">
+          <img src="/photos/모음/orchid/서양란_흰색호접란_01.jpeg" alt="흰색 호접란 제작 실사진" loading="lazy" onerror="this.closest('.review-card').style.display='none';">
+          <div class="review-cap">개업·승진 축하 · 흰색 호접란 · 제작 실사진</div>
+        </div>
+        <div class="review-card">
+          <img src="/photos/모음/condolence/근조화환_흰국화노랑포인트.jpeg" alt="근조 3단 화환 제작 실사진" loading="lazy" onerror="this.closest('.review-card').style.display='none';">
+          <div class="review-cap">근조 3단 화환 · 노랑 포인트 · 제작 실사진</div>
         </div>
       </div>
     </div>
