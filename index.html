@@ -424,12 +424,10 @@
   /* ─── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ─── */
   @media (min-width: 1000px) {
     body {
-      background: var(--bg);
-      background-image: linear-gradient(180deg, #f0ebdf 0%, #f6f6f3 380px);
-      background-attachment: fixed;
+      background: var(--bg-desk);
     }
     .wrap {
-      max-width: 600px;
+      max-width: 680px;
       background: var(--paper);
       box-shadow: 0 0 0 1px var(--line-soft), 0 2px 18px rgba(31,29,24,0.04);
       padding: 0 28px 30px;
@@ -437,7 +435,8 @@
     }
     header { padding-top: 24px; }
     .hero .lede { line-height: 1.6; }
-    .hero-photo { height: 360px; }
+    .hero-photo { height: 400px; }
+    .cat-grid .cat-photo { height: 280px; }
   }
 </style>
 </head>
