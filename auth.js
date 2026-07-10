@@ -87,6 +87,7 @@
   }
 
   function ensureChip() {
+    injectStyles(); // 칩 생성 즉시 .af-auth-chip(font-size:14px) 적용 — 시트 열기 전 UA 기본 13.33px 방지
     var chip = document.getElementById('af-auth-chip');
     if (!chip) {
       chip = document.createElement('button');
