@@ -477,17 +477,17 @@
   <a class="phone-cta home-sect" href="tel:031-314-3003"><span class="pc-label">전화로 주문·문의</span><span class="pc-num">031-314-3003</span></a>
 
   <section class="card home-sect" id="quickStart" style="margin-top:var(--space-sect);padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
-    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">📩 청첩장·부고 링크로 자동주문</div>
+    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">청첩장·부고 링크로 자동주문</div>
     <div style="display:flex;gap:8px;">
       <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;color:var(--ink);">
       <button class="btn" id="parseBtn" onclick="runParse()" style="width:auto;flex:0 0 auto;padding:12px 18px;min-height:48px;">시작</button>
     </div>
     <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">📋 붙여넣기</button>
+      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">붙여넣기</button>
       <span style="font-size:var(--fs-caption);color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
     </div>
     <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:var(--fs-caption);color:var(--ink-soft);">
-      전화가 편하시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:800;text-decoration:none;white-space:nowrap;">📞 031-314-3003</a> 로 바로 주문하셔도 돼요.
+      전화가 편하시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:800;text-decoration:none;white-space:nowrap;">031-314-3003</a> 로 바로 주문하셔도 돼요.
     </div>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
@@ -531,7 +531,7 @@
       </div>
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
-    <a class="catalogue-link" href="/wedding.html" style="margin-top:8px;">💐 웨딩 부케 · 어머니의 생화 수제 (소수 예약제) →</a>
+    <a class="catalogue-link" href="/wedding.html" style="margin-top:8px;">웨딩 부케 · 어머니의 생화 수제 (소수 예약제) →</a>
   </section>
 
   <section class="home-sect" style="margin-top:var(--space-sect);">
@@ -564,7 +564,7 @@
     <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
     <!-- 부고·청첩장 링크로 받는 곳 자동입력(선택) -->
     <div class="af-linkbar" id="afLinkbar">
-      <div class="af-lb-title">📩 링크로 받는 곳 자동입력 <span>— 부고·청첩장·초대 링크가 있으면 붙여넣으세요 (선택)</span></div>
+      <div class="af-lb-title">링크로 받는 곳 자동입력 <span>— 부고·청첩장·초대 링크가 있으면 붙여넣으세요 (선택)</span></div>
       <div class="af-lb-row">
         <input type="text" inputmode="url" placeholder="문자로 받은 링크를 붙여넣기" oninput="var b=this.nextElementSibling;b.disabled=!this.value.trim();" />
         <button type="button" disabled onclick="afLinkParse()">자동입력</button>
@@ -637,6 +637,7 @@
       <div class="tone-tabs" id="toneTabs"></div>
       <div class="ribbon-opts" id="ribbonOpts"></div>
       <input type="text" id="ribbonRight" placeholder="직접 입력도 가능합니다" style="margin-top:8px;" />
+      <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">리본 문구가 고민되시면 전화 주세요 — 같이 정해드려요. <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">031-314-3003</a></div>
     </div>
 
     <label class="fl" style="margin-top:22px;">사장님께 한 줄 부탁 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 게 있으면 적어주세요 (선택)</span></label>
@@ -712,7 +713,7 @@
         · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
         · 도착 사진 회신 — 보고용 증빙까지 한 번에
       </div>
-      <a class="catalogue-link" href="tel:031-314-3003" style="margin-top:14px;background:var(--paper);">📞 법인 거래처 등록 문의 — 031-314-3003</a>
+      <a class="catalogue-link" href="tel:031-314-3003" style="margin-top:14px;background:var(--paper);">법인 거래처 등록 문의 (전화) — 031-314-3003</a>
     </details>
   </section>
 
@@ -1142,8 +1143,8 @@ function applyParsed(r){
   const _cs=document.getElementById("confirmSub");
   const gotAny = !!(order.recipientName||order.venue||order.venueDetail||order.address||order.date||order.time||order.groomName||order.brideName||order.chiefMourner);
   if(_cs) _cs.innerHTML = gotAny
-    ? '🔗 링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.'
-    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;">📞 전화 주문(031-314-3003)</a>도 편하게 이용하세요.';
+    ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.'
+    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;">전화 주문(031-314-3003)</a>도 편하게 이용하세요.';
   enterOrderMode((isFun?'근조화환':isWed?'축하화환':'꽃')+' 주문');
 
   const hasSide=isWed;
@@ -1346,7 +1347,7 @@ const CATALOG = {
 // ── 마음 얹기 (토핑) ─────────────────────────────────────
 // ※ 가격은 임시 — 사장님 확인 후 숫자만 바꾸면 됩니다. api/confirm-payment.js 의 TOPPING_PRICES 와 같이 맞출 것.
 // ※ 연출 사진: photos/토핑/{상품사진명}+{토핑코드들}.jpg 로 넣으면 자동 표시, 없으면 기본 사진 유지.
-// ⚠ 가격은 products.mjs(서버 검증)와 반드시 일치. grp=같은 그룹 하나만(배타).
+// [주의] 가격은 products.mjs(서버 검증)와 반드시 일치. grp=같은 그룹 하나만(배타).
 const TOPPINGS = {
   top_rice:    {nm:"쌀 10kg 얹기",        price:20000, d:"행사 후 상주·혼주께 전달되는 쌀화환 구성"},
   top_ribbon:  {nm:"금박 고급 리본",       price:10000, d:"리본 문구를 금박으로 더 격식 있게"},
@@ -1845,7 +1846,7 @@ function upsellHtml(o){
   const picks=window.PRODUCTS.filter(p=>p.cat==="bouquet" && p.price>=57000 && p.price<=78000).slice(0,2);
   if(picks.length<2) return "";
   return `<div style="background:#fff;border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
-      <div style="font-weight:700;color:var(--accent-deep);margin-bottom:2px;">💐 마음을 더 전하고 싶다면</div>
+      <div style="font-weight:700;color:var(--accent-deep);margin-bottom:2px;">마음을 더 전하고 싶다면</div>
       <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">위로·축하의 꽃다발도 함께 보내는 분이 많아요. 눌러서 바로 주문.</div>
       <div style="display:flex;gap:8px;">
         ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius: var(--radius);overflow:hidden;">
@@ -1858,7 +1859,7 @@ function upsellHtml(o){
 // 결제완료 1탭 설문 — 채널 파악용. 한 번 누르면 끝, 안 눌러도 무방.
 window.afSurvey=function(v,oid){
   const el=document.getElementById("surveyCard");
-  if(el) el.innerHTML='<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;text-align:center;padding:4px 0;">알려주셔서 고맙습니다 🌸</div>';
+  if(el) el.innerHTML='<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;text-align:center;padding:4px 0;">알려주셔서 고맙습니다.</div>';
   fetch("/api/order-meta",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({order_id:oid,referral_source:v})}).catch(()=>{});
 };
@@ -1870,7 +1871,7 @@ window.afSaveAnnivDone=function(label,month,day,recipient){
   sb.from("anniversaries").insert({user_id:u.id,label:label,month:month,day:day,recipient:recipient||null}).then(res=>{
     if(card) card.innerHTML = res.error
       ? '<div style="font-size:var(--fs-caption);color:var(--ink-soft);">저장하지 못했어요. 마이(오른쪽 위)에서 직접 등록해주세요.</div>'
-      : '<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">🗓 기념일로 저장했어요 — 내년에는 일주일 전에 알려드릴게요.</div>';
+      : '<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">기념일로 저장했어요 — 내년에는 일주일 전에 알려드릴게요.</div>';
   }).catch(()=>{});
 };
 function renderDone(data,o){
@@ -1892,13 +1893,13 @@ function renderDone(data,o){
   const dm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   const annivCard = (user && dm && !isFuneral) ? `
       <div id="annivDoneCard" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
-        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">🗓 이 날을 기념일로 저장할까요?</div>
+        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">이 날을 기념일로 저장할까요?</div>
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일, 일주일 전에 미리 알려드려요.</div>
         <button class="btn" style="width:100%;" onclick="afSaveAnnivDone('${escapeAttr((o.recipientName?o.recipientName+" ":"")+"기념일")}',${Number(dm[2])},${Number(dm[3])},'${escapeAttr(o.recipientName||"")}')">저장하기 (한 번이면 끝)</button>
       </div>` : "";
   const memberCard = user ? annivCard : `
       <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
-        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">🌸 다음에 더 편하게</div>
+        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">다음에 더 편하게</div>
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;"><b>가입하면 1,000원 적립</b> · 로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지.</div>
         <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">가입하고 1,000원 받기</button>
       </div>`;
@@ -1910,17 +1911,17 @@ function renderDone(data,o){
         </div>
       </div>`;
   const sameFlowerBtn = (o.productCode && window.PRODUCTS && window.PRODUCTS.some(x=>x.pc===o.productCode))
-    ? `<button class="btn btn-ghost" onclick="location.href='/?pc=${encodeURIComponent(o.productCode)}'" style="margin-top:10px;width:100%;">🌸 같은 꽃, 다른 분께도 보내기</button>` : "";
+    ? `<button class="btn btn-ghost" onclick="location.href='/?pc=${encodeURIComponent(o.productCode)}'" style="margin-top:10px;width:100%;">같은 꽃, 다른 분께도 보내기</button>` : "";
   const orderId = escapeHtml(p.orderId||"");
   // 진행 타임라인 + 도착 예정일(급행 경조사 손님의 최대 불안 '언제 도착'을 명확히)
   const _edm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">📅 ${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>` : "";
+  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>` : "";
   const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
-      ${[["✅","주문 접수",1],["🎨","사장님 제작",0],["🚚","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="font-size:22px;">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:2px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
+      ${[["1","주문 접수",1],["2","사장님 제작",0],["3","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
     </div>`;
   document.querySelector(".wrap").innerHTML=`
     <section class="card" style="text-align:center;">
-      <div style="font-size:44px;">✿</div>
+      <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
       <div class="step-title" style="margin:6px 0;">주문이 완료되었습니다</div>
       <p style="color:var(--ink-soft);margin-bottom:4px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
       ${timelineHtml}
@@ -1950,7 +1951,7 @@ function renderDone(data,o){
       ${memberCard}
       ${surveyCard}
       <div class="share-row">
-        <button class="btn btn-ghost" onclick="shareSite()">🔗 친구에게 알리기</button>
+        <button class="btn btn-ghost" onclick="shareSite()">친구에게 알리기</button>
         ${p.receiptUrl?`<a class="btn btn-ghost" href="${p.receiptUrl}" target="_blank">영수증</a>`:""}
       </div>
       ${sameFlowerBtn}
@@ -2410,7 +2411,7 @@ window.addEventListener("hashchange",function(){ if(location.hash==="#corporate"
 })();
 // 재주문 배너 — 로그인 회원은 서버 주문내역(openAccount), 비로그인이라도 로컬에 지난 주문이 있으면 원탭 재주문
 function afReorderBtn(onclick){
-  return '<button onclick="'+onclick+'" style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius: var(--radius);font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">🌸 지난 주문 그대로 다시 보내기 →</button>';
+  return '<button onclick="'+onclick+'" style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius: var(--radius);font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">지난 주문 그대로 다시 보내기 →</button>';
 }
 function refreshReorderBanner(user){
   const el=document.getElementById("reorderBanner"); if(!el) return;

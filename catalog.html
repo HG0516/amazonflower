@@ -323,7 +323,7 @@
 
   <div class="searchbar">
     <input id="searchInput" type="text" autocomplete="off" placeholder="꽃·식물 이름으로 검색 (예: 호접란, 벤자민, 근조)" oninput="doSearch(this.value)" />
-    <span class="si">🔍</span>
+    <span class="si" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg></span>
   </div>
   <!-- 상황(경조사) 바로가기 — 상황을 고르면 어울리는 종류가 여러 개 같이 나온다 -->
   <div class="uses" id="useChips">
@@ -359,7 +359,7 @@
       <div class="special-sub">1993년부터, 사장님이 직접 만드는 수제 상품입니다.<br>맞춤 제작이라 전화로 상담 주문해주세요.</div>
     </div>
     <div class="special-grid" id="specialArea"></div>
-    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">📷 INSTAGRAM @amazonflower3003 — 제작 사진 더 보기</a>
+    <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">Instagram @amazonflower3003 — 제작 사진 더 보기</a>
   </div>
 
   <div class="note">
@@ -423,7 +423,7 @@
 </div>
 
 <!-- 장바구니 버튼 + 하단 시트 -->
-<button id="cartFab" class="cart-fab hidden" onclick="openCart()" aria-label="장바구니 열기">🛒 담은 상품 <span id="cartCount" class="cart-badge">0</span></button>
+<button id="cartFab" class="cart-fab hidden" onclick="openCart()" aria-label="장바구니 열기">담은 상품 <span id="cartCount" class="cart-badge">0</span></button>
 <div id="cartDrawer" class="cart-drawer" onclick="if(event.target===this)closeCart()">
   <div class="cart-panel" role="dialog" aria-modal="true" aria-label="장바구니">
     <div class="cart-head"><span>장바구니</span><button class="pmodal-x" onclick="closeCart()" aria-label="닫기">✕</button></div>
@@ -467,7 +467,7 @@ function showSpecial(key){
         <div class="snm">${it.nm}</div>
         <div class="sdesc">${it.d}</div>
         <div class="sprice">${it.price}</div>
-        ${it.link?`<a class="scall" href="${it.link}" style="background:var(--accent);">💐 웨딩 부케 자세히 보기</a>`:`<a class="scall" href="tel:031-314-3003">📞 전화 상담</a>`}
+        ${it.link?`<a class="scall" href="${it.link}" style="background:var(--accent);">웨딩 부케 자세히 보기</a>`:`<a class="scall" href="tel:031-314-3003">전화 상담</a>`}
       </div>
     </div>`).join("");
 }
@@ -533,6 +533,9 @@ function productsFor(key, sub, band){
   return list.sort(sorters[currentSort]||sorters.pop);
 }
 
+// 주문 버튼 문구 — 카테고리별 구체 동사(모호한 '주문하기' 대신, 무엇을 보내는지 분명하게)
+const ORDER_VERB = { condolence:"이 화환 보내기", congrats:"이 화환 보내기", orchid:"이 난 보내기", plant:"이 화분 보내기", basket:"이 꽃바구니 보내기", bouquet:"이 꽃 보내기" };
+
 // 개별상품 카드 한 장
 function productCard(p){
   const photo = (p.photos&&p.photos[0])||"";
@@ -551,10 +554,10 @@ function productCard(p){
           ${sold
             ? `<button class="order" disabled>${esc(p.status)}</button>`
             : `<div class="card-actions">
-                 <button class="order" onclick="goOrderPc('${esc(p.pc)}')">주문하기</button>
-                 <button class="cart-add" onclick="addToCartFb('${esc(p.pc)}',this)">🛒 담기</button>
+                 <button class="order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||'이 상품 보내기'}</button>
+                 <button class="cart-add" onclick="addToCartFb('${esc(p.pc)}',this)">담기</button>
                </div>`}
-          <button class="share-btn" onclick="shareItem('${esc(p.pc)}')">🔗 공유하기</button>
+          <button class="share-btn" onclick="shareItem('${esc(p.pc)}')">공유하기</button>
         </div>
       </div>`;
 }
@@ -574,7 +577,7 @@ function galleryHTML(key, filterSub){
   }
   const cards = show.map(i=>`<div class="gcard" onclick="pickFromGallery('${key}','${esc(i.pc||"")}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}${i.pc?'<br><span style="font-size: var(--fs-caption);color:var(--accent);font-weight:700;">바로 주문 가능</span>':''}</div></div>`).join("");
   return `<div class="gallery-wrap">
-    <div class="gallery-head"><div class="gallery-title">📷 보유 종류 둘러보기</div><div class="gallery-count">${items.length}종</div></div>
+    <div class="gallery-head"><div class="gallery-title">보유 종류 둘러보기</div><div class="gallery-count">${items.length}종</div></div>
     <div class="gallery-sub">실제 보유·제작 가능한 ${CAT_TITLE[key]}입니다. 마음에 드는 느낌을 누르면 위 가격대로 이동해요 — 가격대를 고르고 주문하거나, 전화로 “이런 걸로” 말씀해 주세요.</div>
     ${chips}<div class="gallery-grid">${cards}</div></div>`;
 }
@@ -716,7 +719,7 @@ function renderLinkOrder(key){
   };
   const c=C[key]||{t:"링크로 간편 주문",ph:"예) 문자로 받은 링크를 붙여넣기",d:"링크만 넣으면 보내는 곳·날짜가 자동으로 채워져요."};
   el.innerHTML=`<div class="wreath-url">
-      <div class="wu-title">📩 ${esc(c.t)}</div>
+      <div class="wu-title">${esc(c.t)}</div>
       <input id="wreathUrl" type="text" inputmode="url" placeholder="${esc(c.ph)}" />
       <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>
       <div style="font-size: var(--fs-caption);color:var(--ink-soft);margin-top:8px;">${esc(c.d)}</div>
@@ -738,7 +741,7 @@ function renderWreath(key){
         <div class="wbody">
           <div class="wtier">${esc(p.name)}</div>
           <div class="wprice">${p.price.toLocaleString()}원</div>
-          <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">주문하기</button>
+          <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">${ORDER_VERB[key]||'이 화환 보내기'}</button>
         </div>
       </div>`).join("") + `</div>`;
   document.getElementById("catArea").innerHTML=html;
@@ -835,7 +838,7 @@ function doSearch(q){
       <div class="uses" style="justify-content:center;margin-top:14px;">
         ${[["condolence","근조화환"],["congrats","축하화환"],["basket","꽃다발·바구니"],["plant","관엽·식물"],["orchid","난"]].map(([k,l])=>`<button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('${k}')">${l}</button>`).join("")}
       </div>
-      <a class="scall" href="tel:031-314-3003" style="display:inline-block;margin-top:14px;padding:12px 20px;">📞 전화 주문 031-314-3003</a>
+      <a class="scall" href="tel:031-314-3003" style="display:inline-block;margin-top:14px;padding:12px 20px;">전화 주문 031-314-3003</a>
     </div>`; }
   html+=`</div>`;
   sa.innerHTML=html;
@@ -879,11 +882,11 @@ function renderDetail(){
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
-          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">이 상품으로 바로 주문</button>
+          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||'이 상품 보내기'}</button>
              ${inCart
-                ? `<button class="pm-cart added" onclick="openCart()">✓ 장바구니에 담김 · 열어보기</button>`
-                : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">🛒 담아두고 더 둘러보기</button>`}`}
-        <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">🔗 이 상품 공유하기</button>
+                ? `<button class="pm-cart added" onclick="openCart()">장바구니에 담김 · 열어보기</button>`
+                : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}`}
+        <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
       </div>
     </div>`;
 }
@@ -903,7 +906,7 @@ function updateCartFab(){
 // 카드의 '담기' 버튼 — 담고 잠깐 피드백
 function addToCartFb(pc,btn){
   addToCart(pc,1);
-  if(btn){ btn.classList.add("added"); btn.textContent="담았어요 ✓"; setTimeout(()=>{ btn.classList.remove("added"); btn.innerHTML="🛒 담기"; },1300); }
+  if(btn){ btn.classList.add("added"); btn.textContent="담았어요"; setTimeout(()=>{ btn.classList.remove("added"); btn.innerHTML="담기"; },1300); }
 }
 function openCart(){ closeDetail(); renderCart(); document.getElementById("cartDrawer").classList.add("open"); document.body.style.overflow="hidden"; }
 function closeCart(){ document.getElementById("cartDrawer").classList.remove("open"); document.body.style.overflow=""; }
@@ -937,7 +940,7 @@ function renderCart(){
     </div>`;
   }).join("");
   footEl.innerHTML=`<div class="cart-foot">
-      <div class="cart-note">💡 배송지가 서로 다른 상품(예: 결혼식 화환 + 생일 꽃다발)은 <b>주문하기</b>로 하나씩 보내드려요. 담아둔 상품은 이 기기에 저장됩니다.</div>
+      <div class="cart-note">배송지가 서로 다른 상품(예: 결혼식 화환 + 생일 꽃다발)은 <b>주문하기</b>로 하나씩 보내드려요. 담아둔 상품은 이 기기에 저장됩니다.</div>
       <div class="cart-sub"><span>담은 상품 합계</span><span>${sub.toLocaleString()}원</span></div>
       <button class="cart-clear" onclick="cartClear()">장바구니 비우기</button>
     </div>`;
