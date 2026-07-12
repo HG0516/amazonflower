@@ -25,8 +25,12 @@
   .pill{white-space:nowrap;padding:8px 14px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
   .pill.on{background:var(--accent);border-color:var(--accent);color:#fff;}
 
+  /* 카테고리 그룹 제목 (구분 쉽게) */
+  .grouphead{font-family:var(--font-display,inherit);font-size:15px;font-weight:800;margin:22px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  .grouphead span{font-size:12px;color:var(--ink-faint);font-weight:600;}
+
   /* 고객 카탈로그와 동일한 카드 모양 (2열 그리드, 사진 3/4) */
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .item{position:relative;text-align:left;cursor:pointer;}
   .item .photo{position:relative;aspect-ratio:3/4;background:var(--photo-bg,#f0ece3);border:1px solid var(--line);border-radius:var(--radius,10px);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);font-size:12px;}
   .item .photo img{width:100%;height:100%;object-fit:cover;object-position:center 40%;}
@@ -47,7 +51,7 @@
   .sheet h2{font-size:16px;font-weight:800;}
   .sheet .pnm{font-size:12px;color:var(--ink-soft);margin-top:2px;}
 
-  /* 손님 미리보기 (고객 상세화면과 동일 느낌) */
+  /* 손님 미리보기 */
   .pv-wrap{margin-top:12px;border:1px solid var(--accent);border-radius:12px;overflow:hidden;background:var(--paper);}
   .pv-flag{background:var(--accent-soft,#eaf3ec);color:var(--accent-deep,#1f4733);font-size:12px;font-weight:800;padding:7px 12px;}
   .pv{padding:12px;}
@@ -76,17 +80,23 @@
   .ph .main{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-align:center;background:rgba(0,0,0,.55);color:#fff;padding:1px 0;cursor:pointer;}
   .ph.first .main{background:var(--accent);cursor:default;}
   .addph{width:76px;height:76px;border:2px dashed var(--line);border-radius:8px;background:var(--paper);font-size:12px;color:var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;}
-  .pending{margin-top:10px;border:1px solid var(--accent);border-radius:10px;padding:10px;text-align:center;display:none;}
-  .pending img{max-width:100%;max-height:220px;border-radius:8px;}
-  .pending .prow{display:flex;gap:8px;margin-top:8px;}
-  .pending .prow button{flex:1;padding:10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);font-weight:600;font-size:14px;cursor:pointer;}
+
+  /* 사진 크롭(규격 맞추기) */
+  .cropbox{margin-top:10px;border:1px solid var(--accent);border-radius:10px;padding:12px;text-align:center;display:none;}
+  .crop-title{font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5;}
+  .crop-stage{display:inline-block;border-radius:8px;overflow:hidden;box-shadow:0 0 0 2px var(--accent);}
+  #cropCanvas{display:block;background:#fff;cursor:grab;touch-action:none;}
+  .crop-zoom{width:100%;margin:12px 0 2px;}
+  .crop-lbl{font-size:11px;color:var(--ink-faint);}
+  .prow{display:flex;gap:8px;margin-top:10px;}
+  .prow button{flex:1;padding:10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);font-weight:600;font-size:14px;cursor:pointer;}
+
   .btn{width:100%;margin-top:20px;padding:15px;font-size:16px;font-weight:800;border:none;border-radius:9px;background:var(--accent);color:#fff;cursor:pointer;}
   .btn:disabled{background:var(--ink-faint);}
   .btn.ghost{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);margin-top:8px;}
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
   .toast.show{opacity:1;}
   .toast.err{background:#9a3b2e;}
-  canvas{display:none;}
   .navlink{display:inline-block;margin-top:16px;font-size:13px;color:var(--accent);text-decoration:none;}
 </style>
 </head>
@@ -104,7 +114,7 @@
 
   <div class="tools"><input type="text" id="search" placeholder="상품 이름 검색" /></div>
   <div class="pills" id="pills"></div>
-  <div class="grid" id="list"></div>
+  <div id="list"></div>
   <a class="navlink" href="/admin.html">← 갤러리 사진 올리기</a>
 </div>
 
@@ -114,7 +124,6 @@
     <h2 id="editTitle">상품 편집</h2>
     <div class="pnm" id="editPc"></div>
 
-    <!-- 손님 미리보기 -->
     <div class="pv-wrap">
       <div class="pv-flag">👀 손님에게는 이렇게 보여요</div>
       <div id="preview"></div>
@@ -136,12 +145,16 @@
     <div class="photos" id="photos"></div>
     <input type="file" id="file" accept="image/*" style="display:none" />
 
-    <div class="pending" id="pending">
-      <img id="pendImg" alt="" />
+    <!-- 크롭: 규격(3:4)에 맞게 움직이고 확대해서 자르기 -->
+    <div class="cropbox" id="cropbox">
+      <div class="crop-title">사진을 <b>손가락으로 움직이고</b>, 아래 막대로 <b>확대</b>해서 칸에 꽉 채우세요.<br>손님 상품 사진 규격(세로 3:4)에 딱 맞게 잘립니다.</div>
+      <div class="crop-stage"><canvas id="cropCanvas" width="270" height="360"></canvas></div>
+      <div class="crop-lbl">➖ 확대 ➕</div>
+      <input type="range" id="cropZoom" class="crop-zoom" min="100" max="300" value="100" />
       <div class="prow">
-        <button type="button" onclick="rotatePending()">↻ 돌리기</button>
-        <button type="button" onclick="cancelPending()">취소</button>
-        <button type="button" onclick="confirmPending()" style="background:var(--accent);color:#fff;border-color:var(--accent);">이 사진 추가</button>
+        <button type="button" onclick="cropRotate()">↻ 돌리기</button>
+        <button type="button" onclick="cancelCrop()">취소</button>
+        <button type="button" onclick="confirmCrop()" style="background:var(--accent);color:#fff;border-color:var(--accent);">이 사진 추가</button>
       </div>
     </div>
 
@@ -150,7 +163,6 @@
   </div>
 </div>
 
-<canvas id="canvas"></canvas>
 <div class="toast" id="toast"></div>
 
 <script src="/supabase-config.js"></script>
@@ -168,11 +180,11 @@ const AXES = [
   {key:"condolence", label:"근조화환"},
 ];
 const AXIS_LABEL = {basket:"꽃다발·꽃바구니", plant:"관엽·식물", orchid:"난", congrats:"축하화환", condolence:"근조화환"};
-const catAxis = (cat)=> (cat==="bouquet"||cat==="basket") ? "basket" : cat;   // 상품 cat → 탭키(고객과 동일)
+const catAxis = (cat)=> (cat==="bouquet"||cat==="basket") ? "basket" : cat;
 
 let PRODUCTS = (window.PRODUCTS || []).map(p => ({...p, photos:(p.photos||[]).slice()}));
 let overrides = {};
-let curAxis = "";      // "" = 전체
+let curAxis = "";
 let cur = null, pvIdx = 0;
 
 $("pw").value = localStorage.getItem("af_admin_pw") || "";
@@ -204,29 +216,43 @@ function renderPills(){
 }
 function setAxis(k){ curAxis=k; render(); }
 
+function cardHtml(p){
+  const sold = p.status && p.status!=="판매중";
+  const edited = !!overrides[p.pc];
+  const photo = (p.photos&&p.photos[0])||"";
+  return `<div class="item ${sold?'sold':''}" data-cat="${esc(p.cat)}" onclick="openEdit('${esc(p.pc)}')">
+    <div class="photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='사진 준비 중'">`:'사진 준비 중'}
+      ${sold?'<span class="tag sold">품절</span>':''}${edited?'<span class="tag edit">수정됨</span>':''}
+      <span class="edit-hint">✎ 눌러서 수정</span>
+    </div>
+    <div class="nm">${esc(p.name)}</div>
+    <div class="nm-sub">${esc(p.subtitle||AXIS_LABEL[catAxis(p.cat)]||"")}</div>
+    <div class="price">${(p.price||0).toLocaleString()}원</div>
+  </div>`;
+}
 function render(){
   renderPills();
   const q = $("search").value.trim().toLowerCase();
   let list = PRODUCTS.filter(p => (!curAxis || catAxis(p.cat)===curAxis));
   if(q) list = list.filter(p => (p.name+" "+(p.subtitle||"")+" "+p.pc).toLowerCase().includes(q));
-  $("list").innerHTML = list.map(p=>{
-    const sold = p.status && p.status!=="판매중";
-    const edited = !!overrides[p.pc];
-    const photo = (p.photos&&p.photos[0])||"";
-    return `<div class="item ${sold?'sold':''}" data-cat="${esc(p.cat)}" onclick="openEdit('${esc(p.pc)}')">
-      <div class="photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='사진 준비 중'">`:'사진 준비 중'}
-        ${sold?'<span class="tag sold">품절</span>':''}${edited?'<span class="tag edit">수정됨</span>':''}
-        <span class="edit-hint">✎ 눌러서 수정</span>
-      </div>
-      <div class="nm">${esc(p.name)}</div>
-      <div class="nm-sub">${esc(p.subtitle||AXIS_LABEL[catAxis(p.cat)]||"")}</div>
-      <div class="price">${(p.price||0).toLocaleString()}원</div>
-    </div>`;
-  }).join("") || `<div style="grid-column:1/-1;text-align:center;color:var(--ink-faint);padding:30px 0;">해당 상품이 없어요.</div>`;
+  const empty = `<div style="text-align:center;color:var(--ink-faint);padding:30px 0;">해당 상품이 없어요.</div>`;
+  if(!list.length){ $("list").innerHTML = empty; return; }
+  if(curAxis || q){
+    $("list").innerHTML = `<div class="grid">${list.map(cardHtml).join("")}</div>`;
+  } else {
+    // 전체 → 고객과 동일한 카테고리 순서로 묶어서(구분 쉽게)
+    let html = "";
+    for(const a of AXES){
+      const items = list.filter(p=>catAxis(p.cat)===a.key);
+      if(!items.length) continue;
+      html += `<div class="grouphead">${esc(a.label)} <span>${items.length}</span></div><div class="grid">${items.map(cardHtml).join("")}</div>`;
+    }
+    $("list").innerHTML = html;
+  }
 }
 $("search").addEventListener("input", render);
 
-// ── 손님 미리보기 (고객 상세화면과 동일 느낌) ──
+// ── 손님 미리보기 ──
 function renderPreview(){
   if(!cur) return;
   const p = PRODUCTS.find(x=>x.pc===cur.pc) || {};
@@ -262,18 +288,17 @@ function openEdit(pc){
   $("fSubtitle").value = cur.subtitle;
   $("fDesc").value = cur.description;
   setStatus(cur.status);
-  renderPhotos(); renderPreview(); cancelPending();
+  renderPhotos(); renderPreview(); cancelCrop();
   $("sheet").classList.add("open");
   document.body.style.overflow="hidden";
 }
-function closeSheet(){ $("sheet").classList.remove("open"); document.body.style.overflow=""; cur=null; cancelPending(); }
+function closeSheet(){ $("sheet").classList.remove("open"); document.body.style.overflow=""; cur=null; cancelCrop(); }
 function setStatus(s){
   if(cur) cur.status = s;
   $("segSell").className = s==="판매중" ? "on-sell" : "";
   $("segSold").className = s==="품절" ? "on-sold" : "";
   renderPreview();
 }
-// 입력하면 미리보기 즉시 갱신
 $("fSubtitle").addEventListener("input", ()=>{ if(cur){ cur.subtitle=$("fSubtitle").value; renderPreview(); } });
 $("fDesc").addEventListener("input", ()=>{ if(cur){ cur.description=$("fDesc").value; renderPreview(); } });
 
@@ -289,35 +314,56 @@ function renderPhotos(){
 function delPhoto(i){ cur.photos.splice(i,1); if(pvIdx>=cur.photos.length) pvIdx=0; renderPhotos(); renderPreview(); }
 function makeMain(i){ const [x]=cur.photos.splice(i,1); cur.photos.unshift(x); pvIdx=0; renderPhotos(); renderPreview(); }
 
-// ── 사진 추가(회전·압축) ──
-let pImg=null, pRot=0;
+// ── 사진 크롭(규격 3:4 맞추기) + 회전 ──
+const CW=270, CH=360, OW=810, OH=1080, KOUT=OW/CW;  // 화면 270×360 = 출력 810×1080 (정확히 3배, 3:4)
+let cImg=null, cScale=1, cOffX=0, cOffY=0, cRot=0, cBaseFit=1;
+
 $("file").addEventListener("change", e=>{
   const f=e.target.files[0]; if(!f) return;
   const rd=new FileReader();
-  rd.onload=()=>{ pImg=new Image(); pImg.onload=()=>{ pRot=0; drawPending(); }; pImg.src=rd.result; };
+  rd.onload=()=>{ const im=new Image(); im.onload=()=>startCrop(im); im.src=rd.result; };
   rd.readAsDataURL(f); e.target.value="";
 });
-function drawPending(){
-  if(!pImg) return;
-  const maxd=1080, scale=Math.min(1, maxd/Math.max(pImg.width,pImg.height));
-  const sw=Math.round(pImg.width*scale), sh=Math.round(pImg.height*scale);
-  const r=((pRot%360)+360)%360, swap=(r===90||r===270);
-  const cv=$("canvas"); cv.width=swap?sh:sw; cv.height=swap?sw:sh;
-  const ctx=cv.getContext("2d");
-  ctx.fillStyle="#fff"; ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.save(); ctx.translate(cv.width/2,cv.height/2); ctx.rotate(r*Math.PI/180);
-  ctx.drawImage(pImg,-sw/2,-sh/2,sw,sh); ctx.restore();
-  $("pendImg").src=cv.toDataURL("image/jpeg",0.85);
-  $("pending").style.display="block";
+function startCrop(im){
+  cImg=im; cRot=0; cOffX=0; cOffY=0; cScale=1; $("cropZoom").value=100;
+  computeBaseFit(); drawCrop();
+  $("cropbox").style.display="block";
+  $("cropbox").scrollIntoView({behavior:"smooth", block:"center"});
 }
-function rotatePending(){ pRot+=90; drawPending(); }
-function cancelPending(){ pImg=null; pRot=0; $("pending").style.display="none"; }
-async function confirmPending(){
-  if(!pImg) return;
-  let b64=$("canvas").toDataURL("image/jpeg",0.85);
-  if(b64.length>3500000) b64=$("canvas").toDataURL("image/jpeg",0.6);
+function computeBaseFit(){
+  const r=((cRot%360)+360)%360, swap=(r===90||r===270);
+  const iw=swap?cImg.height:cImg.width, ih=swap?cImg.width:cImg.height;
+  cBaseFit=Math.max(CW/iw, CH/ih);   // cover: 사진이 칸을 꽉 채우는 최소 배율
+}
+function drawCropTo(ctx,W,H,k){
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,W,H);
+  const s=cBaseFit*cScale*k;
+  ctx.save();
+  ctx.translate(W/2+cOffX*k, H/2+cOffY*k);
+  ctx.rotate((((cRot%360)+360)%360)*Math.PI/180);
+  ctx.scale(s,s);
+  ctx.drawImage(cImg, -cImg.width/2, -cImg.height/2);
+  ctx.restore();
+}
+function drawCrop(){ const cv=$("cropCanvas"); cv.width=CW; cv.height=CH; drawCropTo(cv.getContext("2d"),CW,CH,1); }
+function cropRotate(){ cRot+=90; cOffX=0; cOffY=0; cScale=1; $("cropZoom").value=100; computeBaseFit(); drawCrop(); }
+function cancelCrop(){ cImg=null; $("cropbox").style.display="none"; }
+$("cropZoom").addEventListener("input", ()=>{ cScale=Number($("cropZoom").value)/100; drawCrop(); });
+(function(){
+  const cv=$("cropCanvas"); let drag=false, lx=0, ly=0;
+  cv.addEventListener("pointerdown", e=>{ drag=true; lx=e.clientX; ly=e.clientY; try{cv.setPointerCapture(e.pointerId);}catch(_){}; });
+  cv.addEventListener("pointermove", e=>{ if(!drag) return; cOffX+=(e.clientX-lx); cOffY+=(e.clientY-ly); lx=e.clientX; ly=e.clientY; drawCrop(); });
+  const end=()=>{ drag=false; };
+  cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end); cv.addEventListener("pointerleave", end);
+})();
+async function confirmCrop(){
+  if(!cImg) return;
+  const cv=document.createElement("canvas"); cv.width=OW; cv.height=OH;
+  drawCropTo(cv.getContext("2d"),OW,OH,KOUT);
+  let b64=cv.toDataURL("image/jpeg",0.85);
+  if(b64.length>3500000) b64=cv.toDataURL("image/jpeg",0.6);
   await doSave(b64);
-  cancelPending();
+  cancelCrop();
 }
 
 // ── 저장 ──
