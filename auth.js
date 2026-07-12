@@ -104,10 +104,30 @@
     return m.name || m.full_name || m.nickname || (user.email ? user.email.split('@')[0] : '회원');
   }
 
+  // ── 관리자 판별 ── 이 이메일로 로그인하면 계정 시트에 '관리자 모드'가 뜬다.
+  // (관리자 페이지 자체는 서버에서 ADMIN_PASSWORD로 한 번 더 보호됨 = 이중 게이트)
+  var ADMIN_EMAILS = ['hggod0516@naver.com'];
+  function isAdmin(user) {
+    return !!(user && user.email && ADMIN_EMAILS.indexOf(String(user.email).toLowerCase()) >= 0);
+  }
+  function adminBlockHtml(user) {
+    if (!isAdmin(user)) return '';
+    var link = function (href, txt) {
+      return '<a href="' + href + '" style="display:block;background:#fff;color:#111;text-align:center;border-radius:7px;font-size:14px;font-weight:700;padding:11px;margin-bottom:7px;text-decoration:none;">' + txt + '</a>';
+    };
+    return '<div style="background:#1f1d18;border-radius:10px;padding:13px 14px;margin-bottom:14px;">'
+      + '<div style="font-size:12px;font-weight:800;color:#fff;letter-spacing:1px;margin-bottom:9px;">🔧 관리자 모드</div>'
+      + link('/admin-products.html', '📦 상품 관리 (설명·사진·품절)')
+      + link('/admin.html', '🖼️ 갤러리 사진 올리기')
+      + link('/admin-order.html', '📷 배송완료 사진 보내기')
+      + '<div style="font-size:11px;color:#b9b4a8;margin-top:2px;text-align:center;">관리자 비밀번호로 한 번 더 확인해요.</div>'
+      + '</div>';
+  }
+
   function renderChip(user) {
     var chip = ensureChip();
     if (user) {
-      chip.textContent = '🌸 ' + shortName(user);
+      chip.textContent = (isAdmin(user) ? '🔧 ' : '🌸 ') + shortName(user);
       chip.onclick = openAccountSheet;
     } else {
       chip.textContent = '로그인';
@@ -311,6 +331,7 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>' + (user ? esc(shortName(user)) : '내 계정') + '님</h3>'
+      + adminBlockHtml(user)
       + '<div id="af-points"></div>'
       + '<div id="af-anniv"></div>'
       + '<div id="af-orders"><p style="color:#5a564d;font-size:13px;">지난 주문을 불러오는 중…</p></div>'
