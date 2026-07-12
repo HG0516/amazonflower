@@ -194,6 +194,27 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, orders: Array.isArray(orders) ? orders : [] });
   }
 
+  // ─────────────────────── 갤러리 사진 관리 (삭제/숨김/순서) ───────────────────────
+  if (body.resource === "gallery") {
+    const { action } = body;
+    if (action === "delete") {
+      if (!/^[0-9a-f-]{36}$/i.test(body.id || "")) return res.status(400).json({ error: "id가 올바르지 않습니다." });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?id=eq.${body.id}`, { method: "DELETE", headers: sb });
+      return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true } : { error: "삭제에 실패했습니다." });
+    }
+    if (action === "save") {
+      if (!/^[0-9a-f-]{36}$/i.test(body.id || "")) return res.status(400).json({ error: "id가 올바르지 않습니다." });
+      const patch = {};
+      if (typeof body.visible === "boolean") patch.visible = body.visible;
+      if (body.sort != null && Number.isFinite(+body.sort)) patch.sort = Math.max(0, Math.min(99999, parseInt(body.sort, 10)));
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?id=eq.${body.id}`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(patch) });
+      return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true } : { error: "저장에 실패했습니다." });
+    }
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?select=id,category,name,sub,photo_url,visible,sort&order=sort.asc,created_at.desc`, { headers: sb });
+    return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true, items: await r.json().catch(() => []) } : { error: "불러오지 못했습니다." });
+  }
+
   // ─────────────────────── 홈 리뷰사진 관리 ───────────────────────
   if (body.resource === "review") {
     const { action } = body;

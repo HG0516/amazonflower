@@ -604,7 +604,7 @@ function pickFromGallery(key, pc){
 async function loadLiveGallery(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
   try{
-    const r = await fetch(`${SUPA.url}/rest/v1/gallery_items?select=category,name,sub,color,photo_url&visible=eq.true&order=created_at.desc`,
+    const r = await fetch(`${SUPA.url}/rest/v1/gallery_items?select=category,name,sub,color,photo_url&visible=eq.true&order=sort.asc,created_at.desc`,
       { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
     if(!r.ok) return;
     const rows = await r.json();
