@@ -10,6 +10,48 @@
 
 import { priceOf, TOPPINGS as TOPPINGS_SRC, PRODUCTS } from "../products.mjs";
 
+// ── 신규상품(CU-)·토핑 가격 DB 조회 (LIVE_PRICING 킬스위치 뒤) ──
+// static-first: 정적 priceOf/TOPPINGS가 값을 주면 DB를 절대 안 봄(정적 106·legacy 무조회 = 심사 무영향).
+// LIVE_PRICING 미설정 시 DB 경로 전면 봉쇄 → 오늘과 바이트 동일. 카드심사 통과 후에만 ON.
+async function resolveBasePrice(productCode) {
+  const stat = priceOf(productCode);
+  if (stat != null) return { price: stat, label: null };
+  if (!process.env.LIVE_PRICING) return { price: null, label: null };
+  if (!/^CU-\d{4}$/.test(productCode || "")) return { price: null, label: null };
+  const URL = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!URL || !KEY) return { price: null, label: null };
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 2500);
+  try {
+    const r = await fetch(
+      `${URL}/rest/v1/product_overrides?pc=eq.${encodeURIComponent(productCode)}&is_custom=eq.true&active=eq.true&select=price,name&limit=1`,
+      { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, signal: ac.signal });
+    if (!r.ok) return { price: null, label: null };
+    const row = (await r.json().catch(() => []))[0];
+    if (!row || !Number.isInteger(row.price) || row.price < 0) return { price: null, label: null };
+    return { price: row.price, label: row.name || null };
+  } catch { return { price: null, label: null }; }
+  finally { clearTimeout(t); }
+}
+async function resolveToppingPrices(codes) {
+  const map = {};
+  for (const c of codes) if (TOPPINGS_SRC[c]) map[c] = TOPPINGS_SRC[c].price;
+  if (!codes.length || !process.env.LIVE_PRICING) return map;
+  const URL = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!URL || !KEY) return map;
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 2500);
+  try {
+    const inList = codes.map(encodeURIComponent).join(",");
+    const r = await fetch(
+      `${URL}/rest/v1/topping_overrides?code=in.(${inList})&select=code,price`,
+      { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }, signal: ac.signal });
+    if (r.ok) for (const o of (await r.json().catch(() => []))) {
+      if (o && Number.isInteger(o.price) && o.price >= 0) map[o.code] = o.price;
+    }
+  } catch { /* DB장애 → 정적 유지. 변경분은 프론트값과 !== 로 안전 거절 */ }
+  finally { clearTimeout(t); }
+  return map;
+}
+
 export const config = {
   runtime: "nodejs",
 };
@@ -355,7 +397,7 @@ export default async function handler(req, res) {
     // 프론트가 보낸 amount를 그대로 믿지 않는다.
     // order.productCode 기준 정가와 대조한다.
     const productCode = order && order.productCode;
-    const basePrice = priceOf(productCode);
+    const { price: basePrice, label: customLabel } = await resolveBasePrice(productCode);
     if (basePrice == null) {
       return res
         .status(400)
@@ -365,9 +407,10 @@ export default async function handler(req, res) {
     const toppings = Array.isArray(order && order.toppings)
       ? [...new Set(order.toppings)]
       : [];
+    const tPrices = await resolveToppingPrices(toppings);
     let toppingSum = 0;
     for (const t of toppings) {
-      const tp = TOPPINGS_SRC[t] ? TOPPINGS_SRC[t].price : null;
+      const tp = (t in tPrices) ? tPrices[t] : null;
       if (tp == null) {
         return res
           .status(400)
@@ -441,13 +484,14 @@ export default async function handler(req, res) {
 
     // ── 3. 사장님(어머니) 두 분께 알림 (하청 X) ───────────
     const userId = await getUserId(req);
+    const authLabel =
+      customLabel
+      || PRODUCT_LABELS[productCode]
+      || (PRODUCTS.find((p) => p.pc === productCode) || {}).name
+      || productCode;
     const orderInfo = {
       ...(order || {}),
-      productLabel:
-        (order && order.productLabel) ||
-        PRODUCT_LABELS[productCode] ||
-        (PRODUCTS.find((p) => p.pc === productCode) || {}).name ||
-        productCode,
+      productLabel: authLabel,
       user_id: userId,
     };
     // 저장을 먼저(멱등) — 같은 주문이 이미 있으면 문자·텔레그램 재발송을 건너뛴다(중복 알림 방지).
