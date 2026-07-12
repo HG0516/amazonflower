@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>주문 관리 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;padding:0 0 40px;}
+  .wrap{max-width:640px;margin:0 auto;padding:0 14px;}
+  header{text-align:center;padding:18px 0 4px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  input[type=password]{width:100%;font-size:16px;padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;color:var(--ink);font-family:inherit;}
+  input:focus{outline:none;border-color:var(--accent);}
+  .pwbar{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:12px;}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+  .summary{display:flex;gap:8px;margin-top:14px;}
+  .sumcard{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center;}
+  .sumcard .n{font-size:20px;font-weight:800;font-family:var(--font-display,inherit);}
+  .sumcard .l{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .sumcard.urgent .n{color:#c0503f;}
+  .bar{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;-webkit-overflow-scrolling:touch;align-items:center;}
+  .pill{white-space:nowrap;padding:7px 13px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .refresh{margin-left:auto;background:var(--paper);border:1px solid var(--line);border-radius:20px;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer;color:var(--ink-soft);font-family:inherit;white-space:nowrap;}
+
+  .order{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;}
+  .order.urgent{border-color:#c0503f;box-shadow:0 0 0 1px #c0503f;}
+  .o-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .o-name{font-size:17px;font-weight:800;}
+  .o-name .to{font-size:12px;color:var(--ink-faint);font-weight:600;}
+  .badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+  .b-new{background:#f0eee8;color:#7a766c;}
+  .b-ordered{background:#e8f0ea;color:#1f4733;}
+  .b-delivered{background:#eaf0f6;color:#355d8a;}
+  .b-urgent{background:#fbecea;color:#9a3b2e;margin-left:5px;}
+  .o-prod{font-size:15px;font-weight:700;margin-top:8px;}
+  .o-amt{color:var(--accent-deep,#1f4733);font-weight:800;}
+  .o-rows{margin-top:8px;font-size:13px;color:var(--ink-soft);line-height:1.7;}
+  .o-rows b{color:var(--ink);font-weight:700;}
+  .o-rows .lbl{display:inline-block;min-width:52px;color:var(--ink-faint);}
+  .o-ribbon{background:#faf8f2;border:1px solid var(--line-soft,#eeece4);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:13px;}
+  .o-actions{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;}
+  .o-actions button,.o-actions a{flex:1;min-width:92px;text-align:center;text-decoration:none;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--line);background:var(--paper);color:var(--ink);}
+  .o-actions .on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .o-actions .photo{background:#1f1d18;color:#fff;border-color:#1f1d18;}
+  .o-meta{font-size:11px;color:var(--ink-faint);margin-top:9px;}
+  .o-photo{margin-top:8px;}
+  .o-photo img{max-width:120px;border-radius:8px;}
+  .empty{text-align:center;color:var(--ink-faint);padding:40px 10px;font-size:14px;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+  .navlink{display:inline-block;margin-top:16px;font-size:13px;color:var(--accent);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📋 주문 관리</h1>
+    <div class="sub">들어온 주문을 보고, 준비중·배송완료로 표시해요.</div>
+  </header>
+
+  <div class="pwbar">
+    <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password" />
+    <div class="hint">갤러리·상품과 같은 비밀번호예요. 넣으면 주문이 바로 떠요.</div>
+  </div>
+
+  <div class="summary" id="summary" style="display:none;"></div>
+  <div class="bar" id="bar" style="display:none;"></div>
+  <div id="list"></div>
+  <a class="navlink" href="/admin-products.html">← 상품 관리</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const won = n => (Number(n)||0).toLocaleString()+"원";
+const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료" };
+let ORDERS = [];
+let curFilter = "all";
+
+$("pw").value = localStorage.getItem("af_admin_pw") || "";
+$("pw").addEventListener("change", () => { localStorage.setItem("af_admin_pw", $("pw").value); load(); });
+
+function nowMs(){ return new Date().getTime(); }
+function isUrgent(o){
+  if(o.status==="delivered") return false;
+  if(!o.event_at) return false;
+  const t = new Date(o.event_at).getTime();
+  if(isNaN(t)) return false;
+  return t <= nowMs() + 6*3600000;   // 6시간 내(또는 이미 지남)
+}
+function fmtDateTime(o){
+  const d = o.delivery_date || o.event_date || "";
+  const t = o.delivery_time_slot || o.event_time || "";
+  return [d, t].filter(Boolean).join(" ");
+}
+function fmtAddr(o){
+  const road = [o.road_address, o.detail_address].filter(Boolean).join(" ");
+  const bld = [o.building_name, o.room_info].filter(Boolean).join(" ");
+  if(road) return [road, bld].filter(Boolean).join(" · ");
+  return [o.venue, o.address].filter(Boolean).join(" ");
+}
+
+async function api(payload){
+  const pw = $("pw").value.trim();
+  if(!pw){ toast("비밀번호를 입력해주세요.","err"); return null; }
+  const r = await fetch("/api/admin-orders", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:pw, ...payload}) });
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok){ toast("❌ "+(data.error||"오류"),"err"); return null; }
+  localStorage.setItem("af_admin_pw", pw);
+  return data;
+}
+
+async function load(){
+  const data = await api({ action:"list" });
+  if(!data) return;
+  ORDERS = data.orders || [];
+  render();
+}
+
+function render(){
+  const undel = ORDERS.filter(o=>o.status!=="delivered").length;
+  const urg = ORDERS.filter(isUrgent).length;
+  $("summary").style.display = "flex";
+  $("summary").innerHTML =
+    `<div class="sumcard"><div class="n">${ORDERS.length}</div><div class="l">전체 주문</div></div>`
+    + `<div class="sumcard"><div class="n">${undel}</div><div class="l">미배송</div></div>`
+    + `<div class="sumcard urgent"><div class="n">${urg}</div><div class="l">🔴 임박·지남</div></div>`;
+  $("bar").style.display = "flex";
+  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"]];
+  $("bar").innerHTML = F.map(([k,l])=>`<button class="pill ${curFilter===k?"on":""}" onclick="setFilter('${k}')">${l}</button>`).join("")
+    + `<button class="refresh" onclick="load()">↻ 새로고침</button>`;
+
+  let list = ORDERS.slice();
+  if(curFilter==="urgent") list = list.filter(isUrgent);
+  else if(curFilter!=="all") list = list.filter(o=>(o.status||"new")===curFilter);
+
+  if(!list.length){ $("list").innerHTML = `<div class="empty">${ORDERS.length?"해당 주문이 없어요.":"아직 들어온 주문이 없어요. 🌸<br>주문이 결제되면 여기에 바로 떠요."}</div>`; return; }
+
+  $("list").innerHTML = list.map(o=>{
+    const st = o.status || "new";
+    const urgent = isUrgent(o);
+    const dt = fmtDateTime(o), addr = fmtAddr(o);
+    const sender = o.ribbon_sender || o.sender_name || o.orderer_name || "";
+    const phone = o.recipient_phone || "";
+    const sPhone = o.sender_phone || o.orderer_phone || "";
+    const ribbon = o.ribbon_text || o.ribbon || "";
+    const req = o.request_note || o.note || "";
+    const oid = esc(o.order_id||"");
+    return `<div class="order ${urgent?'urgent':''}">
+      <div class="o-top">
+        <div class="o-name">${esc(o.recipient_name||"(받는분 미상)")} <span class="to">받는 분</span></div>
+        <div><span class="badge b-${st}">${STLABEL[st]||st}</span>${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
+      </div>
+      <div class="o-prod">${esc(o.product_label||o.product_code||"주문")} · <span class="o-amt">${won(o.amount)}</span></div>
+      <div class="o-rows">
+        ${dt?`<div><span class="lbl">행사</span><b>${esc(dt)}</b></div>`:''}
+        ${addr?`<div><span class="lbl">배송지</span>${esc(addr)}</div>`:''}
+        ${phone?`<div><span class="lbl">받는분</span><a href="tel:${esc(phone)}">${esc(phone)}</a></div>`:''}
+        ${sender?`<div><span class="lbl">보내는분</span>${esc(sender)}${sPhone?` · <a href="tel:${esc(sPhone)}">${esc(sPhone)}</a>`:''}</div>`:''}
+        ${req?`<div><span class="lbl">요청</span>${esc(req)}</div>`:''}
+      </div>
+      ${ribbon?`<div class="o-ribbon">🎀 <b>리본</b> · ${esc(ribbon)}</div>`:''}
+      ${o.completed_photo||o.delivered_photo_url?`<div class="o-photo"><span style="font-size:12px;color:#1f4733;font-weight:700;">✅ 배송완료 사진 있음</span></div>`:''}
+      <div class="o-actions">
+        <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
+        <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
+        <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 배송사진</a>
+      </div>
+      <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
+    </div>`;
+  }).join("");
+}
+function setFilter(k){ curFilter=k; render(); }
+
+async function setStatus(orderId, status){
+  const data = await api({ action:"status", orderId, status });
+  if(!data) return;
+  const o = ORDERS.find(x=>x.order_id===orderId);
+  if(o){ o.status=status; if(status==="delivered") o.completed_at=o.completed_at||new Date().toISOString(); }
+  render();
+  toast(status==="delivered"?"배송완료로 표시했어요 ✓":"준비중으로 표시했어요 ✓");
+}
+
+let toastT=null;
+function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2200); }
+
+if($("pw").value) load();
+</script>
+</body>
+</html>

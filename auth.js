@@ -117,6 +117,7 @@
     };
     return '<div style="background:#1f1d18;border-radius:10px;padding:13px 14px;margin-bottom:14px;">'
       + '<div style="font-size:12px;font-weight:800;color:#fff;letter-spacing:1px;margin-bottom:9px;">🔧 관리자 모드</div>'
+      + link('/admin-orders.html', '📋 주문 관리 (들어온 주문·배송완료)')
       + link('/admin-products.html', '📦 상품 관리 (설명·사진·품절)')
       + link('/admin.html', '🖼️ 갤러리 사진 올리기')
       + link('/admin-order.html', '📷 배송완료 사진 보내기')
