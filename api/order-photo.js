@@ -36,11 +36,15 @@ export default async function handler(req, res) {
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
-  const { password, orderId, imageBase64 } = body;
+  const { password, orderId, imageBase64, token } = body;
 
-  if (!safeEqual(password, ADMIN_PW)) return res.status(401).json({ error: "비밀번호가 맞지 않습니다." });
   const oid = String(orderId || "").trim();
   if (!oid || !/^[A-Za-z0-9._-]{4,64}$/.test(oid)) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+  // 인증: 관리자 비번 OR 그 주문의 배송사진 링크 토큰(배달 기사/파트너 화원용).
+  const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+  const expectTok = SECRET ? crypto.createHmac("sha256", SECRET).update("photo:" + oid).digest("hex").slice(0, 24) : "";
+  const okToken = !!(token && expectTok && safeEqual(token, expectTok));
+  if (!okToken && !safeEqual(password, ADMIN_PW)) return res.status(401).json({ error: "권한이 없습니다. (비밀번호 또는 링크를 확인해주세요)" });
   if (!imageBase64 || typeof imageBase64 !== "string") return res.status(400).json({ error: "사진이 없습니다." });
   if (imageBase64.length > MAX_B64) return res.status(413).json({ error: "사진 용량이 큽니다. 더 작게 찍어 올려주세요." });
 

@@ -201,6 +201,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, url: sd.signedURL ? `${SUPABASE_URL}/storage/v1${sd.signedURL}` : null });
     }
 
+    // 배송사진 업로드 링크 발급 — 배달 기사/파트너 화원에게 전달(그 사람이 직접 도착사진 업로드)
+    if (action === "link") {
+      const oid = String(orderId || "").trim();
+      if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요." });
+      const tok = crypto.createHmac("sha256", SECRET).update("photo:" + oid).digest("hex").slice(0, 24);
+      return res.status(200).json({ ok: true, url: `${ORIGIN}/deliver.html?order=${encodeURIComponent(oid)}&t=${tok}` });
+    }
+
     // 목록 (기본)
     const limit = Math.min(200, Math.max(1, parseInt(body.limit, 10) || 100));
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=${ORDER_COLS}&order=created_at.desc&limit=${limit}`, { headers: sb });

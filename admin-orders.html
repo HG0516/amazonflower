@@ -173,7 +173,8 @@ function render(){
       <div class="o-actions">
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
-        <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 배송사진</a>
+        <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
+        <button onclick="copyLink('${oid}',this)">🔗 기사 링크</button>
       </div>
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
     </div>`;
@@ -209,6 +210,14 @@ async function setStatus(orderId, status){
   toast(status==="delivered"?"배송완료로 표시했어요 ✓":"준비중으로 표시했어요 ✓");
 }
 
+async function copyLink(orderId, btn){
+  const old=btn.textContent; btn.textContent="링크 만드는 중…"; btn.disabled=true;
+  const data = await api({ action:"link", orderId });
+  btn.disabled=false;
+  if(!data || !data.url){ btn.textContent=old; return; }
+  try{ await navigator.clipboard.writeText(data.url); toast("링크 복사됨 — 배달 기사/파트너에게 카톡으로 보내세요 ✓"); btn.textContent="✓ 복사됨"; }
+  catch(e){ prompt("이 링크를 복사해 기사에게 보내세요:", data.url); btn.textContent=old; }
+}
 async function viewPhoto(orderId, btn){
   btn.textContent="여는 중…"; btn.disabled=true;
   const data = await api({ action:"photo", orderId });

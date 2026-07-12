@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>배송 도착 사진 올리기 — 꽃안부</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:17px;padding:0 0 60px;}
+  .wrap{max-width:480px;margin:0 auto;padding:0 18px;}
+  header{text-align:center;padding:26px 0 8px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:14px;color:var(--ink-soft);margin-top:8px;line-height:1.6;}
+  .oid{display:inline-block;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700;margin-top:10px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:18px;}
+  .photo-pick{display:flex;flex-direction:column;align-items:center;gap:10px;border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--ink-faint);font-size:15px;cursor:pointer;}
+  .photo-pick.has{border-style:solid;border-color:var(--accent);padding:10px;}
+  #preview{max-width:100%;max-height:340px;border-radius:8px;display:none;}
+  .rotate-btn{margin-top:8px;display:none;padding:10px 16px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .btn{width:100%;margin-top:18px;padding:16px;font-size:17px;font-weight:800;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
+  .btn:disabled{background:var(--ink-faint);}
+  .msg{margin-top:14px;padding:13px 14px;border-radius:8px;font-size:15px;display:none;}
+  .msg.ok{background:#eaf3ec;color:var(--accent-deep);display:block;font-weight:700;}
+  .msg.err{background:#fbecea;color:#9a3b2e;display:block;}
+  canvas{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🌸 도착 사진 올리기</h1>
+    <div class="sub">꽃 배달을 마치셨나요? <b>도착한 꽃 사진</b> 한 장만 올려주시면<br>주문하신 분께 "잘 전했습니다"로 바로 전달됩니다.</div>
+    <div class="oid" id="oidLabel">주문번호 확인 중…</div>
+  </header>
+
+  <div class="card" id="mainCard">
+    <div class="photo-pick" id="pickBox" onclick="document.getElementById('file').click()">
+      <div id="pickText">📷 눌러서 도착 사진 촬영 / 선택</div>
+      <img id="preview" alt="" />
+    </div>
+    <input type="file" id="file" accept="image/*" style="display:none" />
+    <button type="button" class="rotate-btn" id="rotateBtn" onclick="rotate()">↻ 90° 돌리기 (눕었으면 눌러요)</button>
+    <button class="btn" id="submit" onclick="upload()">도착 사진 보내기</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+<script>
+const $ = id => document.getElementById(id);
+let img = null, rotation = 0;
+const q = new URLSearchParams(location.search);
+const orderId = (q.get("order") || "").trim();
+const token = (q.get("t") || "").trim();
+
+if (!orderId || !token) {
+  $("oidLabel").textContent = "잘못된 링크예요";
+  $("mainCard").innerHTML = '<div class="msg err" style="display:block;">링크가 올바르지 않습니다. 꽃안부에서 받은 링크를 다시 눌러주세요.</div>';
+} else {
+  $("oidLabel").textContent = "주문번호 " + orderId;
+}
+
+$("file").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => { img = new Image(); img.onload = () => { rotation = 0; draw(); }; img.src = reader.result; };
+  reader.readAsDataURL(f);
+});
+function draw(){
+  if (!img) return;
+  const maxd = 1280, scale = Math.min(1, maxd / Math.max(img.width, img.height));
+  const sw = Math.round(img.width * scale), sh = Math.round(img.height * scale);
+  const r = ((rotation % 360) + 360) % 360, swap = (r === 90 || r === 270);
+  const cv = $("canvas"); cv.width = swap ? sh : sw; cv.height = swap ? sw : sh;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.save(); ctx.translate(cv.width / 2, cv.height / 2); ctx.rotate(r * Math.PI / 180);
+  ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh); ctx.restore();
+  const p = $("preview"); p.src = cv.toDataURL("image/jpeg", 0.85); p.style.display = "block";
+  $("pickText").style.display = "none"; $("pickBox").classList.add("has"); $("rotateBtn").style.display = "inline-block";
+}
+function rotate(){ rotation += 90; draw(); }
+function showMsg(type, text){ const m = $("msg"); m.className = "msg " + type; m.textContent = text; m.style.display = "block"; }
+
+async function upload(){
+  $("msg").style.display = "none";
+  if (!orderId || !token) return showMsg("err", "링크가 올바르지 않습니다.");
+  if (!img) return showMsg("err", "사진을 선택해주세요.");
+  let imageBase64 = $("canvas").toDataURL("image/jpeg", 0.85);
+  if (imageBase64.length > 3500000) imageBase64 = $("canvas").toDataURL("image/jpeg", 0.6);
+  $("submit").disabled = true; $("submit").textContent = "보내는 중…";
+  try {
+    const r = await fetch("/api/order-photo", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, token, imageBase64 }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || "업로드 실패");
+    $("mainCard").innerHTML = '<div class="msg ok" style="display:block;text-align:center;font-size:16px;">✅ 도착 사진을 보냈어요!<br>주문하신 분께 잘 전달됩니다. 감사합니다 🌸</div>';
+  } catch (e) {
+    showMsg("err", "❌ " + (e.message || "업로드 실패"));
+    $("submit").disabled = false; $("submit").textContent = "도착 사진 보내기";
+  }
+}
+</script>
+</body>
+</html>
