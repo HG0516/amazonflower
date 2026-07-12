@@ -16,6 +16,17 @@ const ORIGIN = "https://amazonflower.vercel.app";
 const VALID_PC = new Set(PRODUCTS.map((p) => p.pc));
 const STATUS_ALLOWED = new Set(["판매중", "품절"]);
 const ORDER_STATUS = new Set(["new", "ordered", "delivered"]);
+const CAT_PRODUCT = new Set(["bouquet", "basket", "plant", "orchid", "congrats", "condolence"]);
+const CAT_TOPPING = new Set(["wreath", "orchid", "plant", "basket"]);
+const bandOf = (p) => p < 70000 ? "5만대" : p < 90000 ? "7만대" : p < 100000 ? "9만대" : "10만↑";
+async function nextCustomPc(URL, sb) {                       // 문자정렬 미사용 → CU-1000 채번버그 없음
+  const r = await fetch(`${URL}/rest/v1/product_overrides?pc=like.CU-*&select=pc`, { headers: sb });
+  let max = 0;
+  if (r.ok) for (const x of (await r.json().catch(() => []))) {
+    const m = /^CU-(\d+)$/.exec(x.pc); if (m) max = Math.max(max, +m[1]);
+  }
+  return `CU-${String(max + 1).padStart(4, "0")}`;
+}
 const MAX_PHOTOS = 8;
 const MAX_B64 = 4_000_000;
 const MAX_BYTES = 3 * 1024 * 1024;
@@ -84,6 +95,76 @@ export default async function handler(req, res) {
   if (!safeEqual(body.password, ADMIN_PW)) return res.status(401).json({ error: "비밀번호가 맞지 않습니다." });
 
   const sb = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+
+  // ─────────────────────── 신규상품 (#1) ───────────────────────
+  if (body.resource === "product") {
+    const act = body.action || "create";
+    if (act === "list") {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides?is_custom=eq.true&select=*&order=pc.asc`, { headers: sb });
+      return res.status(200).json({ ok: r.ok, products: r.ok ? await r.json().catch(() => []) : [] });
+    }
+    if (act === "delete") {                                    // 소프트삭제만(하드삭제 금지 → pc 재사용 없음)
+      if (!/^CU-\d{4}$/.test(body.pc || "")) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides?pc=eq.${encodeURIComponent(body.pc)}`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ active: false, updated_at: new Date().toISOString() }) });
+      return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true } : { error: "삭제에 실패했습니다." });
+    }
+    if (!CAT_PRODUCT.has(body.cat)) return res.status(400).json({ error: "카테고리가 올바르지 않습니다." });
+    const price = parseInt(body.price, 10);
+    if (!(Number.isInteger(price) && price >= 0 && price <= 1000000)) return res.status(400).json({ error: "가격이 올바르지 않습니다." });
+    const nm = clean(body.name, 40); if (!nm) return res.status(400).json({ error: "상품 이름을 입력해주세요." });
+    let photos = null;
+    if (body.newPhotoBase64) {
+      const up = await uploadPhotoToGallery(body.newPhotoBase64, "product", SUPABASE_URL, SERVICE_KEY);
+      if (up.err) return res.status(413).json({ error: up.err });
+      photos = [up.url];
+    }
+    const row = {
+      name: nm, cat: body.cat, price, band: bandOf(price), is_custom: true, active: true,
+      sub: clean(body.sub, 20) || null, subtitle: clean(body.subtitle, 60) || null,
+      description: clean(body.description, 800) || null,
+      status: STATUS_ALLOWED.has(body.status) ? body.status : "판매중",
+      ...(photos ? { photos } : {}), updated_at: new Date().toISOString(),
+    };
+    if (act === "update") {                                    // PATCH = 지정컬럼만(name null-wipe 없음)
+      if (!/^CU-\d{4}$/.test(body.pc || "")) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides?pc=eq.${encodeURIComponent(body.pc)}`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
+      if (!r.ok) return res.status(502).json({ error: "수정에 실패했습니다." });
+      return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
+    }
+    for (let i = 0; i < 5; i++) {                              // 채번 경쟁 → PK 409 재시도
+      row.pc = await nextCustomPc(SUPABASE_URL, sb);
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
+      if (r.ok) return res.status(200).json({ ok: true, pc: row.pc, item: (await r.json().catch(() => []))[0] });
+      if (r.status !== 409) { console.error("product create", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상품 생성에 실패했습니다." }); }
+    }
+    return res.status(500).json({ error: "코드 발급 재시도 초과. 다시 시도해주세요." });
+  }
+
+  // ─────────────────────── 옵션(토핑) 가격 (#5) ───────────────────────
+  if (body.resource === "topping") {
+    if (body.action === "list") {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/topping_overrides?select=*&order=sort.asc`, { headers: sb });
+      return res.status(200).json({ ok: r.ok, toppings: r.ok ? await r.json().catch(() => []) : [] });
+    }
+    const code = /^top_[a-z0-9_]{1,32}$/.test(body.code) ? body.code : null;
+    if (!code) return res.status(400).json({ error: "옵션 코드가 올바르지 않습니다." });
+    const price = parseInt(body.price, 10);
+    if (!(Number.isInteger(price) && price >= 0 && price <= 1000000)) return res.status(400).json({ error: "옵션 가격이 올바르지 않습니다." });
+    const cats = Array.isArray(body.cats) ? body.cats.filter((c) => CAT_TOPPING.has(c)) : [];
+    const row = {
+      code, price, nm: clean(body.nm, 40) || null, d: clean(body.d, 120) || null,
+      grp: body.grp ? clean(body.grp, 20) : null, cats, active: body.active !== false,
+      sort: parseInt(body.sort, 10) || 0, updated_at: new Date().toISOString(),
+    };
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/topping_overrides?on_conflict=code`, {
+      method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" }, body: JSON.stringify(row) });
+    if (!r.ok) return res.status(502).json({ error: "옵션 저장에 실패했습니다." });
+    return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
+  }
 
   // ─────────────────────── 주문 관리 ───────────────────────
   if (body.resource === "order") {
