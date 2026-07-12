@@ -618,6 +618,29 @@ async function loadLiveGallery(){
   }catch(e){ /* 라이브 사진 못 불러와도 기본 갤러리는 그대로 */ }
 }
 
+// 아버지가 상품 관리(/admin-products)에서 바꾼 설명·사진·품절을 Supabase에서 읽어 정적 상품 위에 덮음.
+// 실패하면 조용히 무시 → 기본 상품 그대로. (가격은 override 대상이 아니라 결제엔 영향 없음)
+async function loadLiveProducts(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  try{
+    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,subtitle,description,status,photos`,
+      { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
+    if(!r.ok) return;
+    const rows = await r.json();
+    if(!Array.isArray(rows) || !rows.length) return;
+    const byPc={}; for(const o of rows) byPc[o.pc]=o;
+    for(const p of PRODUCTS){
+      const o=byPc[p.pc]; if(!o) continue;
+      if(o.subtitle!=null) p.subtitle=o.subtitle;
+      if(o.description!=null) p.desc=o.description;
+      if(o.status!=null) p.status=o.status;
+      if(Array.isArray(o.photos)&&o.photos.length) p.photos=o.photos;
+    }
+    const si=document.getElementById("searchInput");
+    if(currentCat && (!si || !si.value.trim())){ try{ showCat(currentCat, true); }catch(_){} }
+  }catch(e){ /* 라이브 상품정보 못 불러와도 기본 상품 그대로 */ }
+}
+
 function showCat(key, keepFilter){
   const ax=AXES[key]; if(!ax) return;
   currentOccasion = ""; setActiveOccChip("");   // 종류 탭을 직접 누르면 상황 모드 해제
@@ -884,7 +907,7 @@ function renderDetail(){
       ${p.subtitle?`<div class="pm-sub">${esc(p.subtitle)}</div>`:""}
       <div class="pm-meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}<span class="size-tag">${esc(kind)}</span></div>
       <div class="pm-price">${p.price.toLocaleString()}원</div>
-      <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${p.size.h}cm · 폭 약 ${p.size.w}cm`:""}</div>
+      <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${p.size.h}cm · 폭 약 ${p.size.w}cm`:""}</div>
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
@@ -1001,6 +1024,7 @@ function openSharedItem(){
 })();
 openSharedItem();
 loadLiveGallery();
+loadLiveProducts();
 updateCartFab();
 // Esc 로 상세·장바구니 닫기
 document.addEventListener("keydown", e=>{

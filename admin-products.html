@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>상품 관리 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px;padding:0 0 60px;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px;}
+  header{text-align:center;padding:22px 0 6px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:5px;}
+  input,textarea,button{font-family:inherit;}
+  input[type=text],input[type=password],textarea{width:100%;font-size:16px;padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;color:var(--ink);}
+  textarea{resize:vertical;min-height:96px;line-height:1.6;}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent);}
+  .pwbar{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+  .tools{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+  .tools input{flex:1;min-width:150px;}
+  .pills{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;-webkit-overflow-scrolling:touch;}
+  .pill{white-space:nowrap;padding:7px 13px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .list{margin-top:6px;}
+  .row{display:flex;gap:12px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;cursor:pointer;}
+  .row:active{background:#f6f2ea;}
+  .thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;background:#f0ece3;flex-shrink:0;}
+  .row .nm{font-size:15px;font-weight:700;}
+  .row .meta{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px;}
+  .b-sold{background:#fbecea;color:#9a3b2e;}
+  .b-edit{background:#eef4ff;color:#2f5bd0;}
+  .price{margin-left:auto;font-size:13px;color:var(--ink-faint);white-space:nowrap;}
+  /* 편집 시트 */
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:50;}
+  .sheet.open{display:flex;}
+  .sheet-inner{background:var(--bg);width:100%;max-width:560px;margin:0 auto;border-radius:16px 16px 0 0;max-height:92vh;overflow-y:auto;padding:18px 16px 34px;}
+  .sheet h2{font-size:17px;font-weight:800;}
+  .sheet .pnm{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  label{display:block;font-size:13px;font-weight:700;margin:16px 0 6px;}
+  .seg{display:flex;gap:8px;}
+  .seg button{flex:1;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:15px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
+  .seg button.on-sell{background:#eaf3ec;border-color:var(--accent);color:var(--accent-deep);}
+  .seg button.on-sold{background:#fbecea;border-color:#c0503f;color:#9a3b2e;}
+  .photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;}
+  .ph{position:relative;width:78px;height:78px;border-radius:8px;overflow:hidden;border:1px solid var(--line);}
+  .ph img{width:100%;height:100%;object-fit:cover;}
+  .ph .x{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:20px;}
+  .ph .main{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-align:center;background:rgba(0,0,0,.55);color:#fff;padding:1px 0;cursor:pointer;}
+  .ph.first .main{background:var(--accent);cursor:default;}
+  .addph{width:78px;height:78px;border:2px dashed var(--line);border-radius:8px;background:var(--paper);font-size:12px;color:var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;}
+  .pending{margin-top:10px;border:1px solid var(--accent);border-radius:10px;padding:10px;text-align:center;display:none;}
+  .pending img{max-width:100%;max-height:220px;border-radius:8px;}
+  .pending .prow{display:flex;gap:8px;margin-top:8px;}
+  .pending .prow button{flex:1;padding:10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);font-weight:600;font-size:14px;cursor:pointer;}
+  .btn{width:100%;margin-top:20px;padding:15px;font-size:16px;font-weight:800;border:none;border-radius:9px;background:var(--accent);color:#fff;cursor:pointer;}
+  .btn:disabled{background:var(--ink-faint);}
+  .btn.ghost{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);margin-top:8px;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;}
+  .toast.err{background:#9a3b2e;}
+  canvas{display:none;}
+  .navlink{display:inline-block;margin-top:16px;font-size:13px;color:var(--accent);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📦 상품 관리</h1>
+    <div class="sub">설명·사진·품절을 바로 바꿀 수 있어요. (가격은 여기서 안 바뀝니다)</div>
+  </header>
+
+  <div class="pwbar">
+    <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password" />
+    <div class="hint">갤러리·배송사진과 같은 비밀번호예요. 기기에 저장됩니다.</div>
+  </div>
+
+  <div class="tools">
+    <input type="text" id="search" placeholder="상품 이름 검색" />
+  </div>
+  <div class="pills" id="pills"></div>
+  <div class="list" id="list"></div>
+  <a class="navlink" href="/admin.html">← 갤러리 사진 올리기</a>
+</div>
+
+<!-- 편집 시트 -->
+<div class="sheet" id="sheet">
+  <div class="sheet-inner">
+    <h2 id="editTitle">상품 편집</h2>
+    <div class="pnm" id="editPc"></div>
+
+    <label>한줄설명</label>
+    <input type="text" id="fSubtitle" placeholder="예) 분홍 거베라 다발" />
+
+    <label>상세설명 <span style="font-weight:400;color:var(--ink-faint)">(손님 상세보기에 표시)</span></label>
+    <textarea id="fDesc" placeholder="꽃 구성, 크기, 추천 상황 등을 자유롭게 적어주세요."></textarea>
+
+    <label>판매상태</label>
+    <div class="seg">
+      <button type="button" id="segSell" onclick="setStatus('판매중')">판매중</button>
+      <button type="button" id="segSold" onclick="setStatus('품절')">품절</button>
+    </div>
+
+    <label>사진 <span style="font-weight:400;color:var(--ink-faint)">(맨 앞이 대표사진)</span></label>
+    <div class="photos" id="photos"></div>
+    <input type="file" id="file" accept="image/*" style="display:none" />
+
+    <div class="pending" id="pending">
+      <img id="pendImg" alt="" />
+      <div class="prow">
+        <button type="button" onclick="rotatePending()">↻ 돌리기</button>
+        <button type="button" onclick="cancelPending()">취소</button>
+        <button type="button" onclick="confirmPending()" style="background:var(--accent);color:#fff;border-color:var(--accent);">이 사진 추가</button>
+      </div>
+    </div>
+
+    <button class="btn" id="saveBtn" onclick="doSave()">저장</button>
+    <button class="btn ghost" onclick="closeSheet()">닫기</button>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<script src="/supabase-config.js"></script>
+<script src="/products.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const CAT_LABEL = {bouquet:"꽃다발", basket:"꽃바구니", plant:"관엽", orchid:"난", condolence:"근조화환", congrats:"축하화환"};
+const CAT_ORDER = ["bouquet","basket","plant","orchid","condolence","congrats"];
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let PRODUCTS = (window.PRODUCTS || []).map(p => ({...p, photos:(p.photos||[]).slice()}));
+let overrides = {};        // pc -> override row (편집됨 표시용)
+let curCat = "";           // "" = 전체
+let cur = null;            // 편집 중 상태
+
+// 비번 기억(관리자 공유)
+$("pw").value = localStorage.getItem("af_admin_pw") || "";
+$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
+
+// ── override 불러와 정적 상품에 덮기 ──
+async function loadOverrides(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  try{
+    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,subtitle,description,status,photos`,
+      { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
+    if(!r.ok) return;
+    const rows = await r.json();
+    for(const o of (Array.isArray(rows)?rows:[])){
+      overrides[o.pc] = o;
+      const p = PRODUCTS.find(x=>x.pc===o.pc); if(!p) continue;
+      if(o.subtitle!=null) p.subtitle = o.subtitle;
+      if(o.description!=null) p.description = o.description;
+      if(o.status!=null) p.status = o.status;
+      if(Array.isArray(o.photos)&&o.photos.length) p.photos = o.photos.slice();
+    }
+  }catch(e){}
+  render();
+}
+
+// ── 목록 렌더 ──
+function renderPills(){
+  const cats = CAT_ORDER.filter(c=>PRODUCTS.some(p=>p.cat===c));
+  $("pills").innerHTML =
+    `<button class="pill ${curCat===""?"on":""}" onclick="setCat('')">전체</button>` +
+    cats.map(c=>`<button class="pill ${curCat===c?"on":""}" onclick="setCat('${c}')">${esc(CAT_LABEL[c]||c)}</button>`).join("");
+}
+function setCat(c){ curCat=c; renderPills(); render(); }
+function render(){
+  renderPills();
+  const q = $("search").value.trim().toLowerCase();
+  let list = PRODUCTS.filter(p => (!curCat || p.cat===curCat));
+  if(q) list = list.filter(p => (p.name+" "+(p.subtitle||"")+" "+p.pc).toLowerCase().includes(q));
+  $("list").innerHTML = list.map(p=>{
+    const sold = p.status && p.status!=="판매중";
+    const edited = !!overrides[p.pc];
+    const thumb = (p.photos&&p.photos[0])||"";
+    return `<div class="row" onclick="openEdit('${esc(p.pc)}')">
+      <img class="thumb" src="${esc(thumb)}" alt="" onerror="this.style.visibility='hidden'">
+      <div>
+        <div class="nm">${esc(p.name)}${sold?'<span class="badge b-sold">품절</span>':''}${edited?'<span class="badge b-edit">수정됨</span>':''}</div>
+        <div class="meta">${esc(p.subtitle||CAT_LABEL[p.cat]||"")}</div>
+      </div>
+      <div class="price">${(p.price||0).toLocaleString()}원</div>
+    </div>`;
+  }).join("") || `<div style="text-align:center;color:var(--ink-faint);padding:30px 0;">해당 상품이 없어요.</div>`;
+}
+$("search").addEventListener("input", render);
+
+// ── 편집 시트 ──
+function openEdit(pc){
+  const p = PRODUCTS.find(x=>x.pc===pc); if(!p) return;
+  cur = { pc, subtitle:p.subtitle||"", description:p.description||"", status:p.status||"판매중", photos:(p.photos||[]).slice() };
+  $("editTitle").textContent = p.name;
+  $("editPc").textContent = pc + " · " + (CAT_LABEL[p.cat]||p.cat);
+  $("fSubtitle").value = cur.subtitle;
+  $("fDesc").value = cur.description;
+  setStatus(cur.status);
+  renderPhotos();
+  cancelPending();
+  $("sheet").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeSheet(){ $("sheet").classList.remove("open"); document.body.style.overflow=""; cur=null; cancelPending(); }
+function setStatus(s){
+  cur.status = s;
+  $("segSell").className = s==="판매중" ? "on-sell" : "";
+  $("segSold").className = s==="품절" ? "on-sold" : "";
+}
+function renderPhotos(){
+  const wrap = $("photos");
+  wrap.innerHTML = cur.photos.map((u,i)=>`
+    <div class="ph ${i===0?'first':''}">
+      <img src="${esc(u)}" alt="" onerror="this.style.visibility='hidden'">
+      <button class="x" onclick="delPhoto(${i})" title="삭제">✕</button>
+      <div class="main" ${i===0?'':`onclick="makeMain(${i})"`}>${i===0?'대표':'대표로'}</div>
+    </div>`).join("")
+    + (cur.photos.length<8 ? `<div class="addph" onclick="$('file').click()">＋ 사진<br>추가</div>` : "");
+}
+function delPhoto(i){ cur.photos.splice(i,1); renderPhotos(); }
+function makeMain(i){ const [x]=cur.photos.splice(i,1); cur.photos.unshift(x); renderPhotos(); }
+
+// ── 사진 추가(회전·압축) ──
+let pImg=null, pRot=0;
+$("file").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ pImg=new Image(); pImg.onload=()=>{ pRot=0; drawPending(); }; pImg.src=rd.result; };
+  rd.readAsDataURL(f);
+  e.target.value="";
+});
+function drawPending(){
+  if(!pImg) return;
+  const maxd=1080, scale=Math.min(1, maxd/Math.max(pImg.width,pImg.height));
+  const sw=Math.round(pImg.width*scale), sh=Math.round(pImg.height*scale);
+  const r=((pRot%360)+360)%360, swap=(r===90||r===270);
+  const cv=$("canvas"); cv.width=swap?sh:sw; cv.height=swap?sw:sh;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.save(); ctx.translate(cv.width/2,cv.height/2); ctx.rotate(r*Math.PI/180);
+  ctx.drawImage(pImg,-sw/2,-sh/2,sw,sh); ctx.restore();
+  $("pendImg").src=cv.toDataURL("image/jpeg",0.85);
+  $("pending").style.display="block";
+}
+function rotatePending(){ pRot+=90; drawPending(); }
+function cancelPending(){ pImg=null; pRot=0; $("pending").style.display="none"; }
+async function confirmPending(){
+  if(!pImg) return;
+  let b64=$("canvas").toDataURL("image/jpeg",0.85);
+  if(b64.length>3500000) b64=$("canvas").toDataURL("image/jpeg",0.6);
+  await doSave(b64);   // 사진은 저장과 함께 즉시 업로드
+  cancelPending();
+}
+
+// ── 저장 ──
+async function doSave(newPhotoBase64){
+  const pw=$("pw").value.trim();
+  if(!pw) return toast("비밀번호를 입력해주세요.","err");
+  if(!cur) return;
+  cur.subtitle=$("fSubtitle").value.trim();
+  cur.description=$("fDesc").value.trim();
+  const payload={ password:pw, pc:cur.pc, subtitle:cur.subtitle, description:cur.description, status:cur.status, photos:cur.photos };
+  if(newPhotoBase64) payload.newPhotoBase64=newPhotoBase64;
+  $("saveBtn").disabled=true; $("saveBtn").textContent="저장 중…";
+  try{
+    const r=await fetch("/api/product-edit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||"저장 실패");
+    localStorage.setItem("af_admin_pw",pw);
+    const item=data.item||{};
+    if(Array.isArray(item.photos)) cur.photos=item.photos.slice();
+    // 로컬 상품·override 갱신
+    overrides[cur.pc]=item;
+    const p=PRODUCTS.find(x=>x.pc===cur.pc);
+    if(p){ p.subtitle=cur.subtitle||p.subtitle; p.description=cur.description; p.status=cur.status; if(cur.photos.length) p.photos=cur.photos.slice(); }
+    renderPhotos(); render();
+    toast(newPhotoBase64 ? "사진을 추가했어요 ✓" : "저장했어요 ✓");
+  }catch(e){ toast("❌ "+(e.message||"저장 실패"),"err"); }
+  finally{ $("saveBtn").disabled=false; $("saveBtn").textContent="저장"; }
+}
+
+let toastT=null;
+function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2200); }
+
+// 시작
+render();
+loadOverrides();
+</script>
+</body>
+</html>
