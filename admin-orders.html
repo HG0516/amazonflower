@@ -133,9 +133,11 @@ function render(){
     + `<div class="sumcard"><div class="n">${undel}</div><div class="l">미배송</div></div>`
     + `<div class="sumcard urgent"><div class="n">${urg}</div><div class="l">🔴 임박·지남</div></div>`;
   $("bar").style.display = "flex";
-  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"]];
+  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["stats","📊 통계"]];
   $("bar").innerHTML = F.map(([k,l])=>`<button class="pill ${curFilter===k?"on":""}" onclick="setFilter('${k}')">${l}</button>`).join("")
     + `<button class="refresh" onclick="load()">↻ 새로고침</button>`;
+
+  if(curFilter==="stats"){ $("list").innerHTML = statsHtml(); return; }
 
   let list = ORDERS.slice();
   if(curFilter==="urgent") list = list.filter(isUrgent);
@@ -178,6 +180,25 @@ function render(){
   }).join("");
 }
 function setFilter(k){ curFilter=k; render(); }
+
+// ── 통계 ──
+function statsHtml(){
+  const os=ORDERS;
+  const paid=os.reduce((s,o)=>s+(Number(o.paid_amount||o.amount)||0),0);
+  const cnt=os.length, avg=cnt?Math.round(paid/cnt):0;
+  const delivered=os.filter(o=>o.status==="delivered").length;
+  const now=nowMs(); const d7=os.filter(o=>o.created_at && (now-new Date(o.created_at).getTime())<7*86400000).length;
+  const ch={}; for(const o of os){ const k=o.utm_source||o.referral_source||"직접/기타"; ch[k]=(ch[k]||0)+1; }
+  const cat={}; for(const o of os){ const k=o.category||o.order_type||"기타"; cat[k]=(cat[k]||0)+1; }
+  const top=(obj)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const bars=(arr)=>{ const max=Math.max(1,...arr.map(x=>x[1])); return arr.map(([k,v])=>`<div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:13px;"><div style="width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-soft);">${esc(k)}</div><div style="flex:1;background:#f0ece3;border-radius:4px;height:15px;"><div style="width:${Math.round(v/max*100)}%;background:var(--accent);height:15px;border-radius:4px;"></div></div><div style="width:26px;text-align:right;font-weight:700;">${v}</div></div>`).join(""); };
+  const cell=(n,l)=>`<div style="flex:1;"><div style="font-size:19px;font-weight:800;font-family:var(--font-display,inherit);">${n}</div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${l}</div></div>`;
+  return `<div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;">
+    <div style="display:flex;gap:8px;text-align:center;">${cell(won(paid),"총 매출(결제액)")}${cell(cnt,"주문 수")}${cell(won(avg),"평균 객단가")}</div>
+    <div style="display:flex;gap:8px;text-align:center;margin-top:14px;">${cell(d7,"최근 7일 주문")}${cell(delivered,"배송완료")}${cell(cnt-delivered,"미배송")}</div>
+    ${cnt?`<div style="font-size:13px;font-weight:800;margin-top:18px;">유입 채널</div>${bars(top(ch))}<div style="font-size:13px;font-weight:800;margin-top:16px;">상품 종류</div>${bars(top(cat))}`:'<div style="text-align:center;color:var(--ink-faint);padding:20px 0;font-size:13px;">주문이 쌓이면 매출·유입채널·인기상품 통계가 여기 나와요.</div>'}
+  </div>`;
+}
 
 async function setStatus(orderId, status){
   const data = await api({ action:"status", orderId, status });
