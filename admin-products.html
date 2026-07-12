@@ -8,50 +8,74 @@
 <link rel="stylesheet" href="/tokens.css" />
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px;padding:0 0 60px;}
-  .wrap{max-width:560px;margin:0 auto;padding:0 16px;}
-  header{text-align:center;padding:22px 0 6px;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.55;font-size:16px;padding:0 0 60px;}
+  .wrap{max-width:620px;margin:0 auto;padding:0 16px;}
+  header{text-align:center;padding:20px 0 4px;}
   h1{font-size:20px;font-weight:800;}
   .sub{font-size:13px;color:var(--ink-soft);margin-top:5px;}
-  input,textarea,button{font-family:inherit;}
+  input,textarea,button,select{font-family:inherit;}
   input[type=text],input[type=password],textarea{width:100%;font-size:16px;padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;color:var(--ink);}
-  textarea{resize:vertical;min-height:96px;line-height:1.6;}
+  textarea{resize:vertical;min-height:88px;line-height:1.6;}
   input:focus,textarea:focus{outline:none;border-color:var(--accent);}
   .pwbar{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;}
   .hint{font-size:12px;color:var(--ink-faint);margin-top:6px;}
-  .tools{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center;}
-  .tools input{flex:1;min-width:150px;}
+  .tools{display:flex;gap:8px;margin-top:14px;}
+  .tools input{flex:1;}
   .pills{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;-webkit-overflow-scrolling:touch;}
-  .pill{white-space:nowrap;padding:7px 13px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+  .pill{white-space:nowrap;padding:8px 14px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
   .pill.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-  .list{margin-top:6px;}
-  .row{display:flex;gap:12px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;cursor:pointer;}
-  .row:active{background:#f6f2ea;}
-  .thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;background:#f0ece3;flex-shrink:0;}
-  .row .nm{font-size:15px;font-weight:700;}
-  .row .meta{font-size:12px;color:var(--ink-soft);margin-top:2px;}
-  .badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px;}
-  .b-sold{background:#fbecea;color:#9a3b2e;}
-  .b-edit{background:#eef4ff;color:#2f5bd0;}
-  .price{margin-left:auto;font-size:13px;color:var(--ink-faint);white-space:nowrap;}
+
+  /* 고객 카탈로그와 동일한 카드 모양 (2열 그리드, 사진 3/4) */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;}
+  .item{position:relative;text-align:left;cursor:pointer;}
+  .item .photo{position:relative;aspect-ratio:3/4;background:var(--photo-bg,#f0ece3);border:1px solid var(--line);border-radius:var(--radius,10px);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);font-size:12px;}
+  .item .photo img{width:100%;height:100%;object-fit:cover;object-position:center 40%;}
+  .item[data-cat="congrats"] .photo img,.item[data-cat="condolence"] .photo img{object-fit:contain;padding:10px;}
+  .item.sold .photo img{filter:grayscale(1);opacity:.55;}
+  .item .nm{font-family:var(--font-display,inherit);font-weight:700;font-size:16px;color:var(--ink);margin-top:8px;}
+  .item .nm-sub{font-size:12.5px;color:var(--ink-soft);margin-top:1px;}
+  .item .price{font-family:var(--font-display,inherit);font-size:19px;font-weight:700;color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums;}
+  .tag{position:absolute;top:7px;left:7px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .tag.sold{background:#fbecea;color:#9a3b2e;}
+  .tag.edit{top:7px;left:auto;right:7px;background:#eef4ff;color:#2f5bd0;}
+  .edit-hint{position:absolute;bottom:0;left:0;right:0;background:rgba(31,29,24,.72);color:#fff;font-size:11px;font-weight:700;text-align:center;padding:4px 0;border-radius:0 0 var(--radius,10px) var(--radius,10px);}
+
   /* 편집 시트 */
   .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:50;}
   .sheet.open{display:flex;}
-  .sheet-inner{background:var(--bg);width:100%;max-width:560px;margin:0 auto;border-radius:16px 16px 0 0;max-height:92vh;overflow-y:auto;padding:18px 16px 34px;}
-  .sheet h2{font-size:17px;font-weight:800;}
-  .sheet .pnm{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .sheet-inner{background:var(--bg);width:100%;max-width:620px;margin:0 auto;border-radius:16px 16px 0 0;max-height:94vh;overflow-y:auto;padding:16px 16px 34px;}
+  .sheet h2{font-size:16px;font-weight:800;}
+  .sheet .pnm{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+  /* 손님 미리보기 (고객 상세화면과 동일 느낌) */
+  .pv-wrap{margin-top:12px;border:1px solid var(--accent);border-radius:12px;overflow:hidden;background:var(--paper);}
+  .pv-flag{background:var(--accent-soft,#eaf3ec);color:var(--accent-deep,#1f4733);font-size:12px;font-weight:800;padding:7px 12px;}
+  .pv{padding:12px;}
+  .pv-photo{aspect-ratio:1/1;background:var(--photo-bg,#f0ece3);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);font-size:12px;}
+  .pv-photo img{width:100%;height:100%;object-fit:cover;}
+  .pv.contain .pv-photo img{object-fit:contain;padding:10px;}
+  .pv-dots{text-align:center;margin-top:6px;font-size:11px;color:var(--ink-faint);}
+  .pv-nm{font-family:var(--font-display,inherit);font-weight:800;font-size:19px;margin-top:10px;}
+  .pv-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .pv-meta{margin-top:6px;}
+  .band-tag{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft,#eaf3ec);padding:2px 8px;border-radius:20px;}
+  .kind-tag{font-size:11px;color:var(--ink-soft);background:#f0ece3;padding:2px 8px;border-radius:20px;margin-left:4px;}
+  .pv-price{font-family:var(--font-display,inherit);font-size:22px;font-weight:800;margin-top:8px;}
+  .pv-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.7;margin-top:8px;white-space:pre-line;}
+  .pv-soldbar{background:#fbecea;color:#9a3b2e;font-weight:800;font-size:13px;text-align:center;padding:8px;}
+
   label{display:block;font-size:13px;font-weight:700;margin:16px 0 6px;}
   .seg{display:flex;gap:8px;}
   .seg button{flex:1;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:15px;font-weight:700;color:var(--ink-soft);cursor:pointer;}
-  .seg button.on-sell{background:#eaf3ec;border-color:var(--accent);color:var(--accent-deep);}
+  .seg button.on-sell{background:#eaf3ec;border-color:var(--accent);color:var(--accent-deep,#1f4733);}
   .seg button.on-sold{background:#fbecea;border-color:#c0503f;color:#9a3b2e;}
   .photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;}
-  .ph{position:relative;width:78px;height:78px;border-radius:8px;overflow:hidden;border:1px solid var(--line);}
+  .ph{position:relative;width:76px;height:76px;border-radius:8px;overflow:hidden;border:1px solid var(--line);}
   .ph img{width:100%;height:100%;object-fit:cover;}
   .ph .x{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;line-height:20px;}
   .ph .main{position:absolute;bottom:0;left:0;right:0;font-size:10px;text-align:center;background:rgba(0,0,0,.55);color:#fff;padding:1px 0;cursor:pointer;}
   .ph.first .main{background:var(--accent);cursor:default;}
-  .addph{width:78px;height:78px;border:2px dashed var(--line);border-radius:8px;background:var(--paper);font-size:12px;color:var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;}
+  .addph{width:76px;height:76px;border:2px dashed var(--line);border-radius:8px;background:var(--paper);font-size:12px;color:var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;}
   .pending{margin-top:10px;border:1px solid var(--accent);border-radius:10px;padding:10px;text-align:center;display:none;}
   .pending img{max-width:100%;max-height:220px;border-radius:8px;}
   .pending .prow{display:flex;gap:8px;margin-top:8px;}
@@ -70,7 +94,7 @@
 <div class="wrap">
   <header>
     <h1>📦 상품 관리</h1>
-    <div class="sub">설명·사진·품절을 바로 바꿀 수 있어요. (가격은 여기서 안 바뀝니다)</div>
+    <div class="sub">손님이 보는 화면 그대로예요. 상품을 눌러 설명·사진·품절을 바꿉니다. (가격은 여기서 안 바뀝니다)</div>
   </header>
 
   <div class="pwbar">
@@ -78,11 +102,9 @@
     <div class="hint">갤러리·배송사진과 같은 비밀번호예요. 기기에 저장됩니다.</div>
   </div>
 
-  <div class="tools">
-    <input type="text" id="search" placeholder="상품 이름 검색" />
-  </div>
+  <div class="tools"><input type="text" id="search" placeholder="상품 이름 검색" /></div>
   <div class="pills" id="pills"></div>
-  <div class="list" id="list"></div>
+  <div class="grid" id="list"></div>
   <a class="navlink" href="/admin.html">← 갤러리 사진 올리기</a>
 </div>
 
@@ -92,10 +114,16 @@
     <h2 id="editTitle">상품 편집</h2>
     <div class="pnm" id="editPc"></div>
 
-    <label>한줄설명</label>
+    <!-- 손님 미리보기 -->
+    <div class="pv-wrap">
+      <div class="pv-flag">👀 손님에게는 이렇게 보여요</div>
+      <div id="preview"></div>
+    </div>
+
+    <label>한줄설명 <span style="font-weight:400;color:var(--ink-faint)">(이름 아래 작은 글씨)</span></label>
     <input type="text" id="fSubtitle" placeholder="예) 분홍 거베라 다발" />
 
-    <label>상세설명 <span style="font-weight:400;color:var(--ink-faint)">(손님 상세보기에 표시)</span></label>
+    <label>상세설명 <span style="font-weight:400;color:var(--ink-faint)">(상품 눌렀을 때 자세히)</span></label>
     <textarea id="fDesc" placeholder="꽃 구성, 크기, 추천 상황 등을 자유롭게 적어주세요."></textarea>
 
     <label>판매상태</label>
@@ -129,28 +157,34 @@
 <script src="/products.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const CAT_LABEL = {bouquet:"꽃다발", basket:"꽃바구니", plant:"관엽", orchid:"난", condolence:"근조화환", congrats:"축하화환"};
-const CAT_ORDER = ["bouquet","basket","plant","orchid","condolence","congrats"];
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-let PRODUCTS = (window.PRODUCTS || []).map(p => ({...p, photos:(p.photos||[]).slice()}));
-let overrides = {};        // pc -> override row (편집됨 표시용)
-let curCat = "";           // "" = 전체
-let cur = null;            // 편집 중 상태
+// 고객 카탈로그와 동일한 카테고리 체계 (catalog.html AXES/catAxis 그대로)
+const AXES = [
+  {key:"basket",     label:"꽃다발·꽃바구니"},
+  {key:"plant",      label:"관엽·식물"},
+  {key:"orchid",     label:"난"},
+  {key:"congrats",   label:"축하화환"},
+  {key:"condolence", label:"근조화환"},
+];
+const AXIS_LABEL = {basket:"꽃다발·꽃바구니", plant:"관엽·식물", orchid:"난", congrats:"축하화환", condolence:"근조화환"};
+const catAxis = (cat)=> (cat==="bouquet"||cat==="basket") ? "basket" : cat;   // 상품 cat → 탭키(고객과 동일)
 
-// 비번 기억(관리자 공유)
+let PRODUCTS = (window.PRODUCTS || []).map(p => ({...p, photos:(p.photos||[]).slice()}));
+let overrides = {};
+let curAxis = "";      // "" = 전체
+let cur = null, pvIdx = 0;
+
 $("pw").value = localStorage.getItem("af_admin_pw") || "";
 $("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
 
-// ── override 불러와 정적 상품에 덮기 ──
 async function loadOverrides(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
   try{
     const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,subtitle,description,status,photos`,
       { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
     if(!r.ok) return;
-    const rows = await r.json();
-    for(const o of (Array.isArray(rows)?rows:[])){
+    for(const o of (await r.json())||[]){
       overrides[o.pc] = o;
       const p = PRODUCTS.find(x=>x.pc===o.pc); if(!p) continue;
       if(o.subtitle!=null) p.subtitle = o.subtitle;
@@ -162,58 +196,89 @@ async function loadOverrides(){
   render();
 }
 
-// ── 목록 렌더 ──
 function renderPills(){
-  const cats = CAT_ORDER.filter(c=>PRODUCTS.some(p=>p.cat===c));
+  const axesPresent = AXES.filter(a => PRODUCTS.some(p => catAxis(p.cat)===a.key));
   $("pills").innerHTML =
-    `<button class="pill ${curCat===""?"on":""}" onclick="setCat('')">전체</button>` +
-    cats.map(c=>`<button class="pill ${curCat===c?"on":""}" onclick="setCat('${c}')">${esc(CAT_LABEL[c]||c)}</button>`).join("");
+    `<button class="pill ${curAxis===""?"on":""}" onclick="setAxis('')">전체</button>` +
+    axesPresent.map(a=>`<button class="pill ${curAxis===a.key?"on":""}" onclick="setAxis('${a.key}')">${esc(a.label)}</button>`).join("");
 }
-function setCat(c){ curCat=c; renderPills(); render(); }
+function setAxis(k){ curAxis=k; render(); }
+
 function render(){
   renderPills();
   const q = $("search").value.trim().toLowerCase();
-  let list = PRODUCTS.filter(p => (!curCat || p.cat===curCat));
+  let list = PRODUCTS.filter(p => (!curAxis || catAxis(p.cat)===curAxis));
   if(q) list = list.filter(p => (p.name+" "+(p.subtitle||"")+" "+p.pc).toLowerCase().includes(q));
   $("list").innerHTML = list.map(p=>{
     const sold = p.status && p.status!=="판매중";
     const edited = !!overrides[p.pc];
-    const thumb = (p.photos&&p.photos[0])||"";
-    return `<div class="row" onclick="openEdit('${esc(p.pc)}')">
-      <img class="thumb" src="${esc(thumb)}" alt="" onerror="this.style.visibility='hidden'">
-      <div>
-        <div class="nm">${esc(p.name)}${sold?'<span class="badge b-sold">품절</span>':''}${edited?'<span class="badge b-edit">수정됨</span>':''}</div>
-        <div class="meta">${esc(p.subtitle||CAT_LABEL[p.cat]||"")}</div>
+    const photo = (p.photos&&p.photos[0])||"";
+    return `<div class="item ${sold?'sold':''}" data-cat="${esc(p.cat)}" onclick="openEdit('${esc(p.pc)}')">
+      <div class="photo">${photo?`<img src="${esc(photo)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML='사진 준비 중'">`:'사진 준비 중'}
+        ${sold?'<span class="tag sold">품절</span>':''}${edited?'<span class="tag edit">수정됨</span>':''}
+        <span class="edit-hint">✎ 눌러서 수정</span>
       </div>
+      <div class="nm">${esc(p.name)}</div>
+      <div class="nm-sub">${esc(p.subtitle||AXIS_LABEL[catAxis(p.cat)]||"")}</div>
       <div class="price">${(p.price||0).toLocaleString()}원</div>
     </div>`;
-  }).join("") || `<div style="text-align:center;color:var(--ink-faint);padding:30px 0;">해당 상품이 없어요.</div>`;
+  }).join("") || `<div style="grid-column:1/-1;text-align:center;color:var(--ink-faint);padding:30px 0;">해당 상품이 없어요.</div>`;
 }
 $("search").addEventListener("input", render);
+
+// ── 손님 미리보기 (고객 상세화면과 동일 느낌) ──
+function renderPreview(){
+  if(!cur) return;
+  const p = PRODUCTS.find(x=>x.pc===cur.pc) || {};
+  const photos = cur.photos.length ? cur.photos : [""];
+  if(pvIdx >= photos.length) pvIdx = 0;
+  const img = photos[pvIdx] || "";
+  const sold = cur.status && cur.status!=="판매중";
+  const contain = (p.cat==="congrats"||p.cat==="condolence");
+  const kind = AXIS_LABEL[catAxis(p.cat)] || "";
+  const desc = cur.description ? esc(cur.description)
+    : "전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.";
+  $("preview").innerHTML =
+    (sold?`<div class="pv-soldbar">품절 — 손님이 주문할 수 없어요</div>`:``) +
+    `<div class="pv ${contain?'contain':''}">
+      <div class="pv-photo" ${photos.length>1?'onclick="pvNext()" style="cursor:pointer"':''}>${img?`<img src="${esc(img)}" alt="" onerror="this.style.display='none';this.parentElement.innerHTML='사진 준비 중'">`:'사진 준비 중'}</div>
+      ${photos.length>1?`<div class="pv-dots" onclick="pvNext()" style="cursor:pointer">사진 ${pvIdx+1} / ${photos.length} · 눌러서 다음 ▸</div>`:``}
+      <div class="pv-nm">${esc(p.name||"")}</div>
+      ${cur.subtitle?`<div class="pv-sub">${esc(cur.subtitle)}</div>`:``}
+      <div class="pv-meta"><span class="band-tag">${esc(p.band||"")}</span><span class="kind-tag">${esc(kind)}</span></div>
+      <div class="pv-price">${(p.price||0).toLocaleString()}원</div>
+      <div class="pv-desc">${desc}</div>
+    </div>`;
+}
+function pvNext(){ const n=(cur.photos.length||1); pvIdx=(pvIdx+1)%n; renderPreview(); }
 
 // ── 편집 시트 ──
 function openEdit(pc){
   const p = PRODUCTS.find(x=>x.pc===pc); if(!p) return;
   cur = { pc, subtitle:p.subtitle||"", description:p.description||"", status:p.status||"판매중", photos:(p.photos||[]).slice() };
+  pvIdx = 0;
   $("editTitle").textContent = p.name;
-  $("editPc").textContent = pc + " · " + (CAT_LABEL[p.cat]||p.cat);
+  $("editPc").textContent = pc + " · " + (AXIS_LABEL[catAxis(p.cat)]||p.cat) + " · " + (p.price||0).toLocaleString() + "원";
   $("fSubtitle").value = cur.subtitle;
   $("fDesc").value = cur.description;
   setStatus(cur.status);
-  renderPhotos();
-  cancelPending();
+  renderPhotos(); renderPreview(); cancelPending();
   $("sheet").classList.add("open");
   document.body.style.overflow="hidden";
 }
 function closeSheet(){ $("sheet").classList.remove("open"); document.body.style.overflow=""; cur=null; cancelPending(); }
 function setStatus(s){
-  cur.status = s;
+  if(cur) cur.status = s;
   $("segSell").className = s==="판매중" ? "on-sell" : "";
   $("segSold").className = s==="품절" ? "on-sold" : "";
+  renderPreview();
 }
+// 입력하면 미리보기 즉시 갱신
+$("fSubtitle").addEventListener("input", ()=>{ if(cur){ cur.subtitle=$("fSubtitle").value; renderPreview(); } });
+$("fDesc").addEventListener("input", ()=>{ if(cur){ cur.description=$("fDesc").value; renderPreview(); } });
+
 function renderPhotos(){
-  const wrap = $("photos");
-  wrap.innerHTML = cur.photos.map((u,i)=>`
+  $("photos").innerHTML = cur.photos.map((u,i)=>`
     <div class="ph ${i===0?'first':''}">
       <img src="${esc(u)}" alt="" onerror="this.style.visibility='hidden'">
       <button class="x" onclick="delPhoto(${i})" title="삭제">✕</button>
@@ -221,8 +286,8 @@ function renderPhotos(){
     </div>`).join("")
     + (cur.photos.length<8 ? `<div class="addph" onclick="$('file').click()">＋ 사진<br>추가</div>` : "");
 }
-function delPhoto(i){ cur.photos.splice(i,1); renderPhotos(); }
-function makeMain(i){ const [x]=cur.photos.splice(i,1); cur.photos.unshift(x); renderPhotos(); }
+function delPhoto(i){ cur.photos.splice(i,1); if(pvIdx>=cur.photos.length) pvIdx=0; renderPhotos(); renderPreview(); }
+function makeMain(i){ const [x]=cur.photos.splice(i,1); cur.photos.unshift(x); pvIdx=0; renderPhotos(); renderPreview(); }
 
 // ── 사진 추가(회전·압축) ──
 let pImg=null, pRot=0;
@@ -230,8 +295,7 @@ $("file").addEventListener("change", e=>{
   const f=e.target.files[0]; if(!f) return;
   const rd=new FileReader();
   rd.onload=()=>{ pImg=new Image(); pImg.onload=()=>{ pRot=0; drawPending(); }; pImg.src=rd.result; };
-  rd.readAsDataURL(f);
-  e.target.value="";
+  rd.readAsDataURL(f); e.target.value="";
 });
 function drawPending(){
   if(!pImg) return;
@@ -252,7 +316,7 @@ async function confirmPending(){
   if(!pImg) return;
   let b64=$("canvas").toDataURL("image/jpeg",0.85);
   if(b64.length>3500000) b64=$("canvas").toDataURL("image/jpeg",0.6);
-  await doSave(b64);   // 사진은 저장과 함께 즉시 업로드
+  await doSave(b64);
   cancelPending();
 }
 
@@ -273,11 +337,10 @@ async function doSave(newPhotoBase64){
     localStorage.setItem("af_admin_pw",pw);
     const item=data.item||{};
     if(Array.isArray(item.photos)) cur.photos=item.photos.slice();
-    // 로컬 상품·override 갱신
     overrides[cur.pc]=item;
     const p=PRODUCTS.find(x=>x.pc===cur.pc);
     if(p){ p.subtitle=cur.subtitle||p.subtitle; p.description=cur.description; p.status=cur.status; if(cur.photos.length) p.photos=cur.photos.slice(); }
-    renderPhotos(); render();
+    renderPhotos(); renderPreview(); render();
     toast(newPhotoBase64 ? "사진을 추가했어요 ✓" : "저장했어요 ✓");
   }catch(e){ toast("❌ "+(e.message||"저장 실패"),"err"); }
   finally{ $("saveBtn").disabled=false; $("saveBtn").textContent="저장"; }
@@ -286,7 +349,6 @@ async function doSave(newPhotoBase64){
 let toastT=null;
 function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2200); }
 
-// 시작
 render();
 loadOverrides();
 </script>
