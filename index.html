@@ -686,8 +686,7 @@
       <input type="email" id="corpEmail" autocomplete="email" enterkeyhint="done" placeholder="name@company.com" inputmode="email" />
     </div>
 
-    <div id="pay-method"></div>
-    <div id="pay-agree"></div>
+    <div class="delivery-note" style="text-align:center;">아래 <b>결제하기</b>를 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다. 카드·간편결제로 진행해 주세요.</div>
 
     <div class="delivery-note">
       <b>안심 배송 · 보증</b><br>
@@ -779,7 +778,7 @@
 </div>
 
 <script>
-const TOSS_CLIENT_KEY = "test_ck_docs_Ovk5rk1EwklEnvz3lmeM92Po";
+const TOSS_CLIENT_KEY = "test_ck_Ba5PzR0ArnWXApg2gyLG8vmYnNeD"; // 아마존 API 개별 연동 테스트 클라이언트키(결제창). 라이브 심사 통과 후 live_ck_로 교체.
 
 const order = {
   src:"", type:"unknown", side:"", category:"wreath", toppings:[],
@@ -878,7 +877,7 @@ const RIBBON = {
   },
 };
 
-let widgets=null, widgetsRendered=false;
+let payment=null; // 토스 결제창(payment window) 인스턴스
 function isUrl(s){ return /^https?:\/\//i.test(s.trim()); }
 
 async function pasteFromClipboard(){
@@ -1384,7 +1383,7 @@ function changeQty(delta){
   // 결제 카드가 열려 있으면 금액 동기화
   if(!document.getElementById("payCard").classList.contains("hidden")){
     document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
-    try{ if(window.widgets) widgets.setAmount({currency:"KRW",value:orderTotal()}); }catch(e){}
+    // 결제창은 requestPayment 시점에 금액 전달 — 위젯 setAmount 동기화 불필요
   }
 }
 function qtyRowHtml(){
@@ -1415,7 +1414,6 @@ async function toggleTopping(code){
   if(!document.getElementById("payCard").classList.contains("hidden")){
     const total=orderTotal();
     document.getElementById("totalAmt").textContent=total.toLocaleString()+"원";
-    try{ if(widgets) await widgets.setAmount({currency:"KRW",value:total}); }catch(e){ console.error(e); }
   }
 }
 
@@ -1740,15 +1738,9 @@ document.addEventListener("input",e=>{
 async function initPay(amount){
   try{
     const tp=TossPayments(TOSS_CLIENT_KEY);
-    widgets=tp.widgets({customerKey:TossPayments.ANONYMOUS});
-    await widgets.setAmount({currency:"KRW",value:amount});
-    if(!widgetsRendered){
-      await Promise.all([
-        widgets.renderPaymentMethods({selector:"#pay-method",variantKey:"DEFAULT"}),
-        widgets.renderAgreement({selector:"#pay-agree",variantKey:"AGREEMENT"}),
-      ]);
-      widgetsRendered=true;
-    }
+    // 결제창(payment window) 방식 — 아마존 API 개별 연동 키(test_ck/test_sk) 사용.
+    // 위젯(embed)이 아니라 '결제하기'를 누르면 토스 결제창이 열린다. 금액은 requestPayment에서 전달.
+    payment=tp.payment({customerKey:TossPayments.ANONYMOUS});
   }catch(e){ console.error(e); showErr(document.getElementById("payErr"),"결제 모듈 로딩 오류가 발생했습니다."); }
 }
 
@@ -1788,8 +1780,7 @@ async function requestPay(){
     if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)){ markErr(document.getElementById("corpEmail")); return showErr(err,"계산서를 받으실 이메일을 정확히 입력해주세요."); }
   }
 
-  if(!widgets) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
-  try{ await widgets.setAmount({currency:"KRW",value:orderTotal()}); }catch(e){ console.error(e); }
+  if(!payment) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
 
   // 유입 채널(UTM)을 주문에 실어 보냄 — 채널별 주문수 집계용(30일 이내 마지막 유입 기준)
   try{
@@ -1799,7 +1790,9 @@ async function requestPay(){
   const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,8).toUpperCase();
   try{ sessionStorage.setItem("af_"+orderId, JSON.stringify(order)); }catch(_){}
   try{
-    await widgets.requestPayment({
+    await payment.requestPayment({
+      method:"CARD",
+      amount:{currency:"KRW",value:orderTotal()},
       orderId, orderName:order.productLabel||"꽃 주문",
       successUrl:location.origin+"/?payresult=success",
       failUrl:location.origin+"/?payresult=fail",
