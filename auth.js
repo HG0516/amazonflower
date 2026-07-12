@@ -119,6 +119,7 @@
       + '<div style="font-size:12px;font-weight:800;color:#fff;letter-spacing:1px;margin-bottom:9px;">🔧 관리자 모드</div>'
       + link('/admin-orders.html', '📋 주문 관리 (들어온 주문·배송완료)')
       + link('/admin-products.html', '📦 상품 관리 (설명·사진·품절)')
+      + link('/admin-home.html', '🏠 홈 화면 (첫 화면 리뷰사진)')
       + link('/admin.html', '🖼️ 갤러리 사진 올리기')
       + link('/admin-order.html', '📷 배송완료 사진 보내기')
       + '<div style="font-size:11px;color:#b9b4a8;margin-top:2px;text-align:center;">관리자 비밀번호로 한 번 더 확인해요.</div>'

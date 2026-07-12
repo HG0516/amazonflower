@@ -45,6 +45,23 @@ function allowedPhoto(url, supabaseUrl) {
   if (u.startsWith(`${supabaseUrl}/storage/v1/object/public/gallery/`)) return u;
   return null;
 }
+// 사진(base64) → gallery 버킷의 subdir/ 경로에 저장 후 public URL 반환. 실패시 {err}.
+async function uploadPhotoToGallery(base64, subdir, SUPABASE_URL, SERVICE_KEY) {
+  if (typeof base64 !== "string" || base64.length > MAX_B64) return { err: "사진 용량이 큽니다. 더 작게 찍어 올려주세요." };
+  let buf;
+  try { buf = Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ""), "base64"); }
+  catch { return { err: "사진 데이터를 읽을 수 없습니다." }; }
+  if (!buf.length || buf.length > MAX_BYTES) return { err: "사진 용량이 큽니다. (3MB 이하)" };
+  if (!(buf[0] === 0xFF && buf[1] === 0xD8)) return { err: "JPG 이미지만 올릴 수 있어요." };
+  const path = `${subdir}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`;
+  const up = await fetch(`${SUPABASE_URL}/storage/v1/object/gallery/${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "image/jpeg", "x-upsert": "true" },
+    body: buf,
+  });
+  if (!up.ok) { console.error("photo upload fail", up.status, await up.text().catch(() => "")); return { err: "사진 저장에 실패했습니다. 잠시 후 다시 시도해주세요." }; }
+  return { url: `${SUPABASE_URL}/storage/v1/object/public/gallery/${path}` };
+}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", ORIGIN);
@@ -94,6 +111,50 @@ export default async function handler(req, res) {
     if (!r.ok) { console.error("orders list fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "주문을 불러오지 못했습니다." }); }
     const orders = await r.json().catch(() => []);
     return res.status(200).json({ ok: true, orders: Array.isArray(orders) ? orders : [] });
+  }
+
+  // ─────────────────────── 홈 리뷰사진 관리 ───────────────────────
+  if (body.resource === "review") {
+    const { action } = body;
+    const REVIEW_CATS = new Set(["condolence", "congrats", "orchid", "plant", "basket", "bouquet", ""]);
+    if (action === "add") {
+      const upl = await uploadPhotoToGallery(body.imageBase64, "review", SUPABASE_URL, SERVICE_KEY);
+      if (upl.err) return res.status(413).json({ error: upl.err });
+      const cap = clean(body.caption, 80) || null;
+      const cat = REVIEW_CATS.has(body.cat) ? (body.cat || null) : null;
+      const sort = Number.isFinite(+body.sort) ? Math.max(0, Math.min(9999, parseInt(body.sort, 10) || 0)) : 999;
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({ photo_url: upl.url, caption: cap, cat, sort, visible: true }),
+      });
+      if (!r.ok) { console.error("review insert fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "저장에 실패했습니다." }); }
+      const rows = await r.json().catch(() => []);
+      return res.status(200).json({ ok: true, item: Array.isArray(rows) ? rows[0] : rows });
+    }
+    if (action === "save" || action === "delete") {
+      const id = String(body.id || "");
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: "id가 올바르지 않습니다." });
+      if (action === "delete") {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews?id=eq.${id}`, { method: "DELETE", headers: sb });
+        if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
+        return res.status(200).json({ ok: true });
+      }
+      const patch = {};
+      if (body.caption != null) patch.caption = clean(body.caption, 80) || null;
+      if (typeof body.visible === "boolean") patch.visible = body.visible;
+      if (body.sort != null && Number.isFinite(+body.sort)) patch.sort = Math.max(0, Math.min(9999, parseInt(body.sort, 10)));
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews?id=eq.${id}`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) return res.status(502).json({ error: "저장에 실패했습니다." });
+      return res.status(200).json({ ok: true });
+    }
+    // 목록 (기본): 숨김 포함 전체 (관리자용)
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews?select=id,photo_url,caption,cat,sort,visible&order=sort.asc,created_at.asc`, { headers: sb });
+    if (!r.ok) return res.status(502).json({ error: "리뷰를 불러오지 못했습니다." });
+    const reviews = await r.json().catch(() => []);
+    return res.status(200).json({ ok: true, reviews: Array.isArray(reviews) ? reviews : [] });
   }
 
   // ─────────────────────── 상품 편집 (기본) ───────────────────────

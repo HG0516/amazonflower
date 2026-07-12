@@ -2432,5 +2432,22 @@ refreshReorderBanner((window.afAuth&&window.afAuth.user)||null);
 // 다른 페이지(내 주문 등)에서 '다시 주문'으로 넘어온 경우 폼 재현
 try{ var _rj=sessionStorage.getItem("af_reorder"); if(_rj){ sessionStorage.removeItem("af_reorder"); var _ro=JSON.parse(_rj); setTimeout(function(){ if(window.afReorder) window.afReorder(_ro); },300); } }catch(_e){}
 </script>
+<script>
+// 홈 '잘 전했습니다' 리뷰사진을 관리자(/admin-home)에서 관리한 DB(home_reviews)로 교체.
+// DB 비었거나 실패하면 정적 6장 그대로. (배열=sort 순서, 고객 노출과 동일)
+document.addEventListener("DOMContentLoaded", function(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  fetch(SUPA.url + "/rest/v1/home_reviews?select=photo_url,caption&visible=eq.true&order=sort.asc", { headers:{ apikey:SUPA.anon, Authorization:"Bearer "+SUPA.anon } })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(rows){
+      if(!Array.isArray(rows) || !rows.length) return;
+      var grid = document.querySelector(".reviews-grid"); if(!grid) return;
+      var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+      grid.innerHTML = rows.map(function(v){
+        return '<div class="review-card"><img src="'+esc(v.photo_url)+'" alt="'+esc(v.caption||"제작 실사진")+'" loading="lazy" onerror="this.closest(\'.review-card\').style.display=\'none\';"><div class="review-cap">'+esc(v.caption||"")+'</div></div>';
+      }).join("");
+    }).catch(function(){});
+});
+</script>
 </body>
 </html>

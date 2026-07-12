@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>홈 화면 관리 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;padding:0 0 40px;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 14px;}
+  header{text-align:center;padding:18px 0 4px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  input[type=text],input[type=password]{width:100%;font-size:16px;padding:11px 13px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;color:var(--ink);font-family:inherit;}
+  input:focus{outline:none;border-color:var(--accent);}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:14px;}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+  label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;}
+  label:first-child{margin-top:0;}
+  .photo-pick{display:flex;flex-direction:column;align-items:center;gap:8px;border:2px dashed var(--line);border-radius:10px;padding:16px;text-align:center;color:var(--ink-faint);font-size:13px;cursor:pointer;}
+  .photo-pick.has{border-style:solid;border-color:var(--accent);padding:8px;}
+  #preview{max-width:100%;max-height:220px;border-radius:8px;display:none;}
+  .rotate-btn{margin-top:6px;display:none;padding:8px 14px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .btn{width:100%;margin-top:14px;padding:13px;font-size:15px;font-weight:800;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
+  .btn:disabled{background:var(--ink-faint);}
+  .sect-title{font-size:14px;font-weight:800;margin:22px 4px 4px;}
+  .rev{display:flex;gap:10px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;}
+  .rev.hidden-item{opacity:.5;}
+  .rev img{width:60px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#f0ece3;}
+  .rev .mid{flex:1;min-width:0;}
+  .rev .cap{width:100%;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-family:inherit;background:#fcfbf8;}
+  .rev .acts{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+  .rev .acts button{font-size:12px;font-weight:700;padding:5px 9px;border:1px solid var(--line);border-radius:6px;background:var(--paper);cursor:pointer;font-family:inherit;color:var(--ink-soft);}
+  .rev .acts .del{color:#9a3b2e;}
+  .rev .acts .vis.on{background:#eaf3ec;border-color:var(--accent);color:var(--accent-deep,#1f4733);}
+  .arrows{display:flex;flex-direction:column;gap:4px;}
+  .arrows button{width:30px;height:26px;border:1px solid var(--line);border-radius:6px;background:var(--paper);cursor:pointer;font-size:12px;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+  canvas{display:none;}
+  .navlink{display:inline-block;margin-top:16px;font-size:13px;color:var(--accent);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🏠 홈 화면 관리</h1>
+    <div class="sub">첫 화면 "잘 전했습니다" 사진을 추가·삭제·순서 바꿔요. (손님에게 이 순서 그대로 보여요)</div>
+  </header>
+
+  <div class="card">
+    <label>관리자 비밀번호</label>
+    <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" />
+    <div class="hint">상품·갤러리와 같은 비밀번호예요.</div>
+  </div>
+
+  <div class="sect-title">＋ 새 사진 추가</div>
+  <div class="card">
+    <div class="photo-pick" id="pickBox" onclick="document.getElementById('file').click()">
+      <div id="pickText">📷 눌러서 사진 선택 / 촬영</div>
+      <img id="preview" alt="" />
+    </div>
+    <input type="file" id="file" accept="image/*" style="display:none" />
+    <button type="button" class="rotate-btn" id="rotateBtn" onclick="rotate()">↻ 90° 돌리기</button>
+    <label>사진 설명 (캡션)</label>
+    <input type="text" id="cap" maxlength="80" placeholder="예) 근조 3단 화환 · 흰 국화 · 제작 실사진" />
+    <button class="btn" id="addBtn" onclick="addReview()">이 사진 올리기</button>
+  </div>
+
+  <div class="sect-title">현재 홈 사진 (<span id="cnt">0</span>장)</div>
+  <div id="list"></div>
+  <a class="navlink" href="/admin-products.html">← 상품 관리</a>
+</div>
+
+<canvas id="canvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<script src="/supabase-config.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let REVIEWS = [], img=null, rotation=0;
+
+$("pw").value = localStorage.getItem("af_admin_pw") || "";
+$("pw").addEventListener("change", ()=>{ localStorage.setItem("af_admin_pw", $("pw").value); load(); });
+
+async function api(payload){
+  const pw = $("pw").value.trim();
+  if(!pw){ toast("비밀번호를 입력해주세요.","err"); return null; }
+  const r = await fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:pw, resource:"review", ...payload}) });
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok){ toast("❌ "+(data.error||"오류"),"err"); return null; }
+  localStorage.setItem("af_admin_pw", pw);
+  return data;
+}
+async function load(){ const d = await api({action:"list"}); if(!d) return; REVIEWS = d.reviews||[]; render(); }
+
+function render(){
+  $("cnt").textContent = REVIEWS.length;
+  $("list").innerHTML = REVIEWS.map((v,i)=>`
+    <div class="rev ${v.visible?'':'hidden-item'}">
+      <img src="${esc(v.photo_url)}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="mid">
+        <input class="cap" value="${esc(v.caption||"")}" placeholder="사진 설명" onchange="saveCap('${v.id}', this.value)">
+        <div class="acts">
+          <button class="vis ${v.visible?'on':''}" onclick="toggleVis('${v.id}', ${!v.visible})">${v.visible?'보임':'숨김'}</button>
+          <button class="del" onclick="del('${v.id}')">삭제</button>
+        </div>
+      </div>
+      <div class="arrows">
+        <button onclick="move(${i},-1)" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+        <button onclick="move(${i},1)" ${i===REVIEWS.length-1?'disabled style=opacity:.3':''}>▼</button>
+      </div>
+    </div>`).join("") || `<div style="text-align:center;color:var(--ink-faint);padding:24px 0;">사진이 없어요. 위에서 추가하세요.</div>`;
+}
+
+async function saveCap(id, val){ await api({action:"save", id, caption:val}); const v=REVIEWS.find(x=>x.id===id); if(v) v.caption=val; toast("설명 저장 ✓"); }
+async function toggleVis(id, vis){ await api({action:"save", id, visible:vis}); const v=REVIEWS.find(x=>x.id===id); if(v) v.visible=vis; render(); toast(vis?"보임으로 ✓":"숨김으로 ✓"); }
+async function del(id){ if(!confirm("이 사진을 홈에서 뺄까요?")) return; await api({action:"delete", id}); REVIEWS=REVIEWS.filter(x=>x.id!==id); render(); toast("삭제했어요 ✓"); }
+async function move(i, dir){
+  const j=i+dir; if(j<0||j>=REVIEWS.length) return;
+  const a=REVIEWS[i], b=REVIEWS[j];
+  const as=a.sort, bs=b.sort;
+  [REVIEWS[i], REVIEWS[j]] = [REVIEWS[j], REVIEWS[i]];
+  a.sort=bs; b.sort=as;
+  render();
+  await api({action:"save", id:a.id, sort:a.sort});
+  await api({action:"save", id:b.id, sort:b.sort});
+  toast("순서 바꿈 ✓");
+}
+
+// 사진 선택·회전
+$("file").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ img=new Image(); img.onload=()=>{ rotation=0; draw(); }; img.src=rd.result; };
+  rd.readAsDataURL(f);
+});
+function draw(){
+  if(!img) return;
+  const maxd=1200, scale=Math.min(1,maxd/Math.max(img.width,img.height));
+  const sw=Math.round(img.width*scale), sh=Math.round(img.height*scale);
+  const r=((rotation%360)+360)%360, swap=(r===90||r===270);
+  const cv=$("canvas"); cv.width=swap?sh:sw; cv.height=swap?sw:sh;
+  const ctx=cv.getContext("2d");
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.save(); ctx.translate(cv.width/2,cv.height/2); ctx.rotate(r*Math.PI/180);
+  ctx.drawImage(img,-sw/2,-sh/2,sw,sh); ctx.restore();
+  const p=$("preview"); p.src=cv.toDataURL("image/jpeg",0.85); p.style.display="block";
+  $("pickText").style.display="none"; $("pickBox").classList.add("has"); $("rotateBtn").style.display="inline-block";
+}
+function rotate(){ rotation+=90; draw(); }
+
+async function addReview(){
+  if(!img) return toast("사진을 선택해주세요.","err");
+  let b64=$("canvas").toDataURL("image/jpeg",0.85);
+  if(b64.length>3500000) b64=$("canvas").toDataURL("image/jpeg",0.6);
+  const sort = REVIEWS.length ? Math.max(...REVIEWS.map(v=>v.sort||0))+1 : 1;
+  $("addBtn").disabled=true; $("addBtn").textContent="올리는 중…";
+  const d = await api({action:"add", imageBase64:b64, caption:$("cap").value.trim(), sort});
+  $("addBtn").disabled=false; $("addBtn").textContent="이 사진 올리기";
+  if(!d) return;
+  if(d.item) REVIEWS.push(d.item);
+  img=null; rotation=0; $("preview").style.display="none"; $("pickText").style.display="block"; $("pickBox").classList.remove("has"); $("rotateBtn").style.display="none"; $("file").value=""; $("cap").value="";
+  render(); toast("홈에 올렸어요 ✓");
+}
+
+let toastT=null;
+function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2200); }
+
+if($("pw").value) load();
+</script>
+</body>
+</html>
