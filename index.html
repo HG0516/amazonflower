@@ -392,7 +392,7 @@
   .reviews-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-top: 30px; margin-bottom: 12px; }
   .reviews-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 8px; }
   .reviews-sub { font-size: var(--fs-caption); color: var(--ink-soft); margin-bottom: 22px; }
-  .reviews-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 0 4px; }
+  .reviews-grid { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 0 4px; }
   .review-card { text-align: left; }
   .review-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
   .review-cap { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.5; margin-top: 8px; }
@@ -452,7 +452,6 @@
 
   <!-- 히어로: 대형 실사진 1장(첫 화면 LCP). 오버레이 금지 · 카피는 사진 아래 -->
   <section class="hero home-sect">
-    <img class="hero-photo" src="/photos/hero/대표1.jpg" width="2512" height="1799" fetchpriority="high" decoding="async" alt="꽃안부 대표 꽃 작품 실사진">
     <h1>안부는, 꽃으로</h1>
     <p class="lede">근조도 축하도, 마음을 담아 정성껏 보내드립니다.</p>
   </section>
@@ -718,6 +717,7 @@
   </section>
 
   <section class="story">
+    <img class="hero-photo" src="/photos/hero/대표1.jpg" width="2512" height="1799" fetchpriority="high" decoding="async" alt="꽃안부 대표 꽃 작품 실사진">
     <div class="story-label">SINCE 1993</div>
     <div class="story-title">한 자리에서, 33년</div>
     <div class="story-body">
