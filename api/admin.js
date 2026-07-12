@@ -186,6 +186,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // 배송완료 사진 보기(관리자) — 비공개 버킷 서명URL 발급
+    if (action === "photo") {
+      const oid = String(orderId || "").trim();
+      if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+      const lr = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=completed_photo&limit=1`, { headers: sb });
+      const rows = await lr.json().catch(() => []);
+      const path = Array.isArray(rows) && rows[0] && rows[0].completed_photo;
+      if (!path) return res.status(404).json({ error: "이 주문엔 배송완료 사진이 없어요." });
+      const sr = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/order-photos/${encodeURI(path)}`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json" }, body: JSON.stringify({ expiresIn: 600 }) });
+      if (!sr.ok) return res.status(502).json({ error: "사진을 불러오지 못했어요." });
+      const sd = await sr.json().catch(() => ({}));
+      return res.status(200).json({ ok: true, url: sd.signedURL ? `${SUPABASE_URL}/storage/v1${sd.signedURL}` : null });
+    }
+
     // 목록 (기본)
     const limit = Math.min(200, Math.max(1, parseInt(body.limit, 10) || 100));
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=${ORDER_COLS}&order=created_at.desc&limit=${limit}`, { headers: sb });

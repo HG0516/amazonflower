@@ -169,7 +169,7 @@ function render(){
         ${req?`<div><span class="lbl">요청</span>${esc(req)}</div>`:''}
       </div>
       ${ribbon?`<div class="o-ribbon">🎀 <b>리본</b> · ${esc(ribbon)}</div>`:''}
-      ${o.completed_photo||o.delivered_photo_url?`<div class="o-photo"><span style="font-size:12px;color:#1f4733;font-weight:700;">✅ 배송완료 사진 있음</span></div>`:''}
+      ${o.completed_photo?`<div class="o-photo"><button onclick="viewPhoto('${oid}',this)" style="font-size:12px;color:#1f4733;font-weight:700;background:#e8f0ea;border:1px solid #1f4733;border-radius:7px;padding:6px 11px;cursor:pointer;font-family:inherit;">📷 올린 사진 보기</button></div>`:''}
       <div class="o-actions">
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
@@ -207,6 +207,13 @@ async function setStatus(orderId, status){
   if(o){ o.status=status; if(status==="delivered") o.completed_at=o.completed_at||new Date().toISOString(); }
   render();
   toast(status==="delivered"?"배송완료로 표시했어요 ✓":"준비중으로 표시했어요 ✓");
+}
+
+async function viewPhoto(orderId, btn){
+  btn.textContent="여는 중…"; btn.disabled=true;
+  const data = await api({ action:"photo", orderId });
+  if(!data || !data.url){ btn.textContent="📷 올린 사진 보기"; btn.disabled=false; return; }
+  btn.parentElement.innerHTML = `<img src="${data.url}" alt="배송완료 사진" style="max-width:170px;border-radius:8px;">`;
 }
 
 let toastT=null;
