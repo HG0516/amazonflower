@@ -113,6 +113,10 @@
   </div>
 
   <div class="tools"><input type="text" id="search" placeholder="상품 이름 검색" /></div>
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button onclick="openNew()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;">＋ 새 상품 추가</button>
+    <button onclick="openToppings()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;">⚙️ 옵션 가격</button>
+  </div>
   <div class="pills" id="pills"></div>
   <div id="list"></div>
   <a class="navlink" href="/admin.html">← 갤러리 사진 올리기</a>
@@ -163,6 +167,45 @@
 
     <button class="btn" id="saveBtn" onclick="doSave()">저장</button>
     <button class="btn ghost" onclick="closeSheet()">닫기</button>
+  </div>
+</div>
+
+<!-- 새 상품 시트 -->
+<div class="sheet" id="newSheet">
+  <div class="sheet-inner">
+    <h2>＋ 새 상품 추가</h2>
+    <div class="pnm">손님 카탈로그에 새 상품을 올려요. 가격은 결제에 반영됩니다.</div>
+    <label>카테고리</label>
+    <select id="nCat" style="width:100%;font-size:16px;padding:12px 13px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;font-family:inherit;color:var(--ink);">
+      <option value="bouquet">꽃다발</option><option value="basket">꽃바구니</option>
+      <option value="plant">관엽·식물</option><option value="orchid">난</option>
+      <option value="congrats">축하화환</option><option value="condolence">근조화환</option>
+    </select>
+    <label>상품 이름</label><input type="text" id="nName" maxlength="40" placeholder="예) 봄맞이 꽃다발" />
+    <label>가격 (원)</label><input type="text" id="nPrice" inputmode="numeric" placeholder="예) 65000" />
+    <label>한줄설명</label><input type="text" id="nSub" maxlength="60" placeholder="예) 노란 프리지아 다발" />
+    <label>사진 (선택 — 나중에 상품 눌러서 크롭도 가능)</label>
+    <div class="photos"><div class="addph" id="nPickBox" onclick="$('nFile').click()">＋ 사진</div></div>
+    <input type="file" id="nFile" accept="image/*" style="display:none" />
+    <button class="btn" id="nBtn" onclick="createProduct()">만들기</button>
+    <button class="btn ghost" onclick="closeNew()">닫기</button>
+  </div>
+</div>
+
+<!-- 옵션(토핑) 가격 시트 -->
+<div class="sheet" id="topSheet">
+  <div class="sheet-inner">
+    <h2>⚙️ 옵션 가격</h2>
+    <div class="pnm">추가상품(쌀·리본·명패 등) 가격을 바꾸거나 새 옵션을 만들어요.</div>
+    <div id="topList" style="margin-top:12px;"></div>
+    <div style="border-top:1px solid var(--line);margin:18px 0 4px;"></div>
+    <div style="font-size:14px;font-weight:800;">새 옵션 만들기</div>
+    <label>이름</label><input type="text" id="tNm" maxlength="40" placeholder="예) 선물 포장" />
+    <label>가격 (원)</label><input type="text" id="tPrice" inputmode="numeric" placeholder="예) 7000" />
+    <label>어디에 보일까요 (여러 개 선택)</label>
+    <div id="tCats" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;"></div>
+    <button class="btn" id="tBtn" onclick="saveNewTopping()">옵션 추가</button>
+    <button class="btn ghost" onclick="closeTop()">닫기</button>
   </div>
 </div>
 
@@ -401,6 +444,98 @@ async function doSave(newPhotoBase64){
 
 let toastT=null;
 function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2200); }
+
+// ── 새 상품 만들기 (#1) ──
+let nPhoto=null;
+function openNew(){ $("nName").value=""; $("nPrice").value=""; $("nSub").value=""; nPhoto=null; $("nPickBox").textContent="＋ 사진"; $("newSheet").classList.add("open"); document.body.style.overflow="hidden"; }
+function closeNew(){ $("newSheet").classList.remove("open"); document.body.style.overflow=""; }
+$("nFile").addEventListener("change", e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ const im=new Image(); im.onload=()=>{
+    const maxd=1080, s=Math.min(1,maxd/Math.max(im.width,im.height));
+    const cv=document.createElement("canvas"); cv.width=Math.round(im.width*s); cv.height=Math.round(im.height*s);
+    cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+    nPhoto=cv.toDataURL("image/jpeg",0.85); if(nPhoto.length>3500000) nPhoto=cv.toDataURL("image/jpeg",0.6);
+    $("nPickBox").textContent="사진 ✓";
+  }; im.src=rd.result; };
+  rd.readAsDataURL(f); e.target.value="";
+});
+async function createProduct(){
+  const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
+  const name=$("nName").value.trim(); const price=parseInt(($("nPrice").value||"").replace(/[^0-9]/g,""),10);
+  if(!name) return toast("상품 이름을 입력해주세요.","err");
+  if(!(price>0)) return toast("가격을 입력해주세요.","err");
+  $("nBtn").disabled=true; $("nBtn").textContent="만드는 중…";
+  try{
+    const payload={password:pw, resource:"product", action:"create", cat:$("nCat").value, name, price, subtitle:$("nSub").value.trim()};
+    if(nPhoto) payload.newPhotoBase64=nPhoto;
+    const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
+    if(d.item){ PRODUCTS.push({...d.item, desc:d.item.description, photos:d.item.photos||[]}); overrides[d.item.pc]=d.item; }
+    closeNew(); render(); toast("새 상품을 올렸어요 ✓ "+(d.pc||""));
+  }catch(e){ toast("❌ "+(e.message||"실패"),"err"); }
+  finally{ $("nBtn").disabled=false; $("nBtn").textContent="만들기"; }
+}
+
+// ── 옵션(토핑) 가격 (#5) ──
+const STATIC_TOPPINGS=[
+  {code:"top_rice",nm:"쌀 10kg 얹기",price:20000},{code:"top_ribbon",nm:"금박 고급 리본",price:10000},
+  {code:"top_pot",nm:"도자기 분 업그레이드",price:20000},{code:"top_plaque",nm:"나무 명패",price:10000},
+  {code:"top_wheel",nm:"바퀴 화분받침",price:15000},{code:"top_lush_p1",nm:"조금 더 크게",price:20000},
+  {code:"top_lush_p2",nm:"훨씬 크게",price:30000},{code:"top_lush_b1",nm:"조금 더 풍성하게",price:10000},
+  {code:"top_lush_b2",nm:"많이 풍성하게",price:20000},{code:"top_wine",nm:"와인 동봉",price:30000},
+  {code:"top_card",nm:"손글씨 카드",price:5000},
+];
+const TCATS=[["wreath","화환"],["orchid","난"],["plant","관엽"],["basket","꽃바구니"]];
+const TDEFCAT={top_rice:["wreath"],top_ribbon:["wreath","orchid"],top_pot:["orchid"],top_plaque:["orchid","plant"],top_wheel:["plant"],top_lush_p1:["plant"],top_lush_p2:["plant"],top_lush_b1:["basket"],top_lush_b2:["basket"],top_wine:["basket"],top_card:["basket"]};
+let DBTOP={};
+async function openToppings(){
+  $("tCats").innerHTML=TCATS.map(([k,l])=>`<label style="font-size:14px;"><input type="checkbox" class="tcat" value="${k}"> ${l}</label>`).join("");
+  $("tNm").value=""; $("tPrice").value="";
+  $("topSheet").classList.add("open"); document.body.style.overflow="hidden";
+  const pw=$("pw").value.trim(); if(!pw) toast("비밀번호를 입력해주세요.","err");
+  DBTOP={};
+  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",action:"list"})});
+    const d=await r.json().catch(()=>({})); if(r.ok&&Array.isArray(d.toppings)) for(const t of d.toppings) DBTOP[t.code]=t; }catch(e){}
+  renderTopList();
+}
+function closeTop(){ $("topSheet").classList.remove("open"); document.body.style.overflow=""; }
+function renderTopList(){
+  const merged={}; for(const t of STATIC_TOPPINGS) merged[t.code]={code:t.code,nm:t.nm,price:t.price,src:"기본"};
+  for(const c in DBTOP){ const t=DBTOP[c]; merged[c]={code:c,nm:t.nm||(merged[c]&&merged[c].nm)||c,price:t.price,src:merged[c]?"수정됨":"신규"}; }
+  $("topList").innerHTML=Object.values(merged).map(t=>`
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <div style="flex:1;font-size:13px;">${esc(t.nm)} <span style="color:var(--ink-faint);font-size:11px;">${t.src}</span></div>
+      <input type="text" inputmode="numeric" value="${t.price}" id="tp_${esc(t.code)}" style="width:88px;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:6px;background:#fcfbf8;font-family:inherit;text-align:right;">
+      <button onclick="saveTop('${esc(t.code)}','${esc(t.nm)}')" style="padding:8px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">저장</button>
+    </div>`).join("");
+}
+async function saveTop(code, nm){
+  const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
+  const price=parseInt(($("tp_"+code).value||"").replace(/[^0-9]/g,""),10);
+  if(!(price>=0)) return toast("가격을 확인해주세요.","err");
+  const cats=(DBTOP[code]&&DBTOP[code].cats)||TDEFCAT[code]||[];
+  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,price,nm,cats})});
+    const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
+    DBTOP[code]=d.item||{code,price,nm,cats}; renderTopList(); toast("옵션 가격 저장 ✓");
+  }catch(e){ toast("❌ "+(e.message||"실패"),"err"); }
+}
+async function saveNewTopping(){
+  const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
+  const nm=$("tNm").value.trim(); const price=parseInt(($("tPrice").value||"").replace(/[^0-9]/g,""),10);
+  const cats=[...document.querySelectorAll(".tcat:checked")].map(c=>c.value);
+  if(!nm) return toast("옵션 이름을 입력해주세요.","err");
+  if(!(price>=0)) return toast("가격을 입력해주세요.","err");
+  if(!cats.length) return toast("어디에 보일지 하나 이상 선택해주세요.","err");
+  const code="top_"+Date.now().toString(36);
+  $("tBtn").disabled=true; $("tBtn").textContent="추가 중…";
+  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,nm,price,cats})});
+    const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
+    DBTOP[code]=d.item||{code,nm,price,cats}; $("tNm").value=""; $("tPrice").value=""; document.querySelectorAll(".tcat:checked").forEach(c=>c.checked=false); renderTopList(); toast("새 옵션 추가 ✓");
+  }catch(e){ toast("❌ "+(e.message||"실패"),"err"); }
+  finally{ $("tBtn").disabled=false; $("tBtn").textContent="옵션 추가"; }
+}
 
 render();
 loadOverrides();
