@@ -1369,6 +1369,49 @@ const TOPPINGS_BY_CAT = {
   basket: ["top_lush_b1","top_lush_b2","top_wine","top_card"],
 };
 
+// 신규상품(CU-)·옵션가격을 Supabase에서 읽어 window.PRODUCTS append + 로컬 TOPPINGS in-place 병합.
+// 실패/비어있으면 정적 그대로. (결제검증은 confirm-payment가 서버 권위가격으로 재검증 — 프론트값 안 믿음)
+async function loadLiveCatalog(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  const H={ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` };
+  try{
+    // (1) 신규상품 append
+    const pr = await fetch(`${SUPA.url}/rest/v1/product_overrides?is_custom=eq.true&active=eq.true&select=pc,name,subtitle,description,status,photos,price,cat,sub,band`, { headers:H });
+    if(pr.ok){
+      const rows = await pr.json();
+      if(Array.isArray(rows) && window.PRODUCTS){
+        const known=new Set(window.PRODUCTS.map(p=>p.pc));
+        for(const o of rows){
+          if(o.price==null || known.has(o.pc)) continue;
+          window.PRODUCTS.push({ pc:o.pc, cat:o.cat, sub:o.sub||"", name:o.name||"", subtitle:o.subtitle||"", price:o.price, band:o.band||"", grade:null, size:null, status:o.status||"판매중", photos:Array.isArray(o.photos)?o.photos:[] });
+          known.add(o.pc);
+        }
+      }
+    }
+    // (2) 토핑 override/신규 → TOPPINGS·TOPPINGS_BY_CAT in-place 병합
+    const tr = await fetch(`${SUPA.url}/rest/v1/topping_overrides?select=code,nm,price,d,grp,cats,active,sort&order=sort.asc`, { headers:H });
+    if(tr.ok){
+      const trows = await tr.json();
+      if(Array.isArray(trows)) for(const t of trows){
+        if(!/^top_[a-z0-9_]+$/.test(t.code||"")) continue;
+        if(t.price!=null && Number.isFinite(+t.price)){
+          const prev=TOPPINGS[t.code]||{};
+          TOPPINGS[t.code] = { nm: t.nm||prev.nm||t.code, price:+t.price, d: t.d||prev.d||"", ...(t.grp?{grp:t.grp}:(prev.grp?{grp:prev.grp}:{})) };
+        }
+        for(const cat of Object.keys(TOPPINGS_BY_CAT)){
+          const arr=TOPPINGS_BY_CAT[cat], idx=arr.indexOf(t.code);
+          const show = t.active!==false && Array.isArray(t.cats) && t.cats.includes(cat);
+          if(show && idx<0) arr.push(t.code);
+          if(!show && idx>=0) arr.splice(idx,1);
+        }
+      }
+    }
+    try{ renderToppings(); }catch(_){}
+    const pc0=new URLSearchParams(location.search).get("pc");
+    if(pc0 && /^CU-\d{4}$/.test(pc0)){ try{ handleProductParam(); }catch(_){} }  // CU- 딥링크 레이스 차단
+  }catch(e){ /* 라이브 실패 → 정적 그대로 */ }
+}
+
 function orderTotal(){
   const per = order.price + (order.toppings||[]).reduce((s,c)=>s+(TOPPINGS[c]?TOPPINGS[c].price:0),0);
   return per * (order.quantity||1);
@@ -2377,6 +2420,7 @@ renderBest();
 handleProductParam();
 handleWorderParam();
 handleCatalogParam();
+loadLiveCatalog();  // 신규상품·옵션가격 라이브 병합(정적 먼저 렌더 후 비동기 보강)
 // 푸터/타 페이지의 '법인·단체 주문'(/#corporate) 진입 시 법인 접기를 펼치고 스크롤
 function openCorp(){
   const sec=document.getElementById("corporate"); if(!sec) return;

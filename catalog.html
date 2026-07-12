@@ -623,7 +623,7 @@ async function loadLiveGallery(){
 async function loadLiveProducts(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
   try{
-    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,name,subtitle,description,status,photos`,
+    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,name,subtitle,description,status,photos,price,cat,sub,band,is_custom,active`,
       { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
     if(!r.ok) return;
     const rows = await r.json();
@@ -636,6 +636,14 @@ async function loadLiveProducts(){
       if(o.description!=null) p.desc=o.description;
       if(o.status!=null) p.status=o.status;
       if(Array.isArray(o.photos)&&o.photos.length) p.photos=o.photos;
+    }
+    // 신규상품(CU-): 정적에 없는 is_custom·active·가격있는 행을 목록에 합성(106 회귀 방지 위해 기존 루프 유지)
+    const known=new Set(PRODUCTS.map(p=>p.pc));
+    for(const o of rows){
+      if(o.is_custom && o.active && o.price!=null && !known.has(o.pc)){
+        PRODUCTS.push({ pc:o.pc, cat:o.cat, sub:o.sub||"", name:o.name||"", subtitle:o.subtitle||"", desc:o.description||"", price:o.price, band:o.band||"", grade:null, size:null, status:o.status||"판매중", photos:Array.isArray(o.photos)?o.photos:[] });
+        known.add(o.pc);
+      }
     }
     const si=document.getElementById("searchInput");
     if(currentCat && (!si || !si.value.trim())){ try{ showCat(currentCat, true); }catch(_){} }
