@@ -392,8 +392,8 @@
   .reviews-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-top: 30px; margin-bottom: 12px; }
   .reviews-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 8px; }
   .reviews-sub { font-size: var(--fs-caption); color: var(--ink-soft); margin-bottom: 22px; }
-  .reviews-grid { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 0 4px; }
-  .review-card { text-align: left; }
+  .reviews-grid { display: flex; gap: 14px; padding: 0 4px 8px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .review-card { text-align: left; flex: 0 0 72%; max-width: 280px; scroll-snap-align: start; }
   .review-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
   .review-cap { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.5; margin-top: 8px; }
 
