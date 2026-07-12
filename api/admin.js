@@ -1,0 +1,147 @@
+// api/admin.js — 관리자 통합 API
+// (Vercel Hobby 서버리스 함수 12개 제한 대응: product-edit + admin-orders 를 한 함수로 통합)
+//
+//  body.resource === 'order'  → 주문 관리: action 'list'(기본) | 'status'(new→ordered→delivered)
+//  그 외(기본)                → 상품 편집: product_overrides upsert (이름·설명·사진·품절)
+//
+// 보안(gallery-add.js 원칙): SERVICE_ROLE_KEY·ADMIN_PASSWORD 서버 전용, 비번 상수시간 비교,
+//   입력 정화, JPEG 매직바이트, CORS 자기 도메인. orders 는 개인정보라 service_role 로만 조회.
+
+import crypto from "node:crypto";
+import { PRODUCTS } from "../products.mjs";
+
+export const config = { runtime: "nodejs" };
+
+const ORIGIN = "https://amazonflower.vercel.app";
+const VALID_PC = new Set(PRODUCTS.map((p) => p.pc));
+const STATUS_ALLOWED = new Set(["판매중", "품절"]);
+const ORDER_STATUS = new Set(["new", "ordered", "delivered"]);
+const MAX_PHOTOS = 8;
+const MAX_B64 = 4_000_000;
+const MAX_BYTES = 3 * 1024 * 1024;
+const ORDER_COLS = [
+  "order_id","created_at","status","product_label","product_code","category","order_type",
+  "amount","paid_amount","discount_points",
+  "recipient_name","recipient_phone",
+  "venue","address","road_address","detail_address","building_name","room_info","zip_code",
+  "event_date","event_time","event_at","delivery_date","delivery_time_slot",
+  "sender_name","sender_phone","orderer_name","orderer_phone","orderer_email",
+  "ribbon","ribbon_text","ribbon_sender","note","request_note",
+  "completed_photo","delivered_photo_url","completed_at","ordered_at","alerted_at",
+  "utm_source","utm_medium","referral_source"
+].join(",");
+
+function clean(s, n) {
+  return String(s == null ? "" : s).replace(/[<>"'`\\]/g, "").replace(/[^\S\n]+/g, " ").replace(/\n{3,}/g, "\n\n").trim().slice(0, n);
+}
+function safeEqual(a, b) {
+  const ba = Buffer.from(String(a || "")), bb = Buffer.from(String(b || ""));
+  if (ba.length !== bb.length) return false;
+  try { return crypto.timingSafeEqual(ba, bb); } catch { return false; }
+}
+function allowedPhoto(url, supabaseUrl) {
+  const u = String(url || "");
+  if (/^\/photos\/[A-Za-z0-9가-힣/_\-.]+\.(jpg|jpeg|png|webp)$/i.test(u)) return u;
+  if (u.startsWith(`${supabaseUrl}/storage/v1/object/public/gallery/`)) return u;
+  return null;
+}
+
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", ORIGIN);
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "POST 요청만 지원합니다." });
+
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const ADMIN_PW = process.env.ADMIN_PASSWORD;
+  if (!SUPABASE_URL || !SERVICE_KEY || !ADMIN_PW) {
+    return res.status(503).json({ error: "관리자 기능이 아직 설정되지 않았습니다." });
+  }
+
+  let body = req.body;
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
+  body = body || {};
+
+  if (!safeEqual(body.password, ADMIN_PW)) return res.status(401).json({ error: "비밀번호가 맞지 않습니다." });
+
+  const sb = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+
+  // ─────────────────────── 주문 관리 ───────────────────────
+  if (body.resource === "order") {
+    const { action, orderId, status } = body;
+
+    if (action === "status") {
+      if (!orderId || typeof orderId !== "string" || orderId.length > 60) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+      if (!ORDER_STATUS.has(status)) return res.status(400).json({ error: "상태 값이 올바르지 않습니다." });
+      const patch = { status };
+      const nowIso = new Date().toISOString();
+      if (status === "ordered") patch.ordered_at = nowIso;
+      if (status === "delivered" && !body.keepCompletedAt) patch.completed_at = nowIso;
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}`, {
+        method: "PATCH",
+        headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) { console.error("order status fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상태 변경에 실패했습니다." }); }
+      return res.status(200).json({ ok: true });
+    }
+
+    // 목록 (기본)
+    const limit = Math.min(200, Math.max(1, parseInt(body.limit, 10) || 100));
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=${ORDER_COLS}&order=created_at.desc&limit=${limit}`, { headers: sb });
+    if (!r.ok) { console.error("orders list fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "주문을 불러오지 못했습니다." }); }
+    const orders = await r.json().catch(() => []);
+    return res.status(200).json({ ok: true, orders: Array.isArray(orders) ? orders : [] });
+  }
+
+  // ─────────────────────── 상품 편집 (기본) ───────────────────────
+  const { pc, name, subtitle, description, status, photos, newPhotoBase64 } = body;
+  if (!VALID_PC.has(pc)) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
+
+  let finalPhotos = [];
+  if (Array.isArray(photos)) {
+    for (const p of photos) {
+      const ok = allowedPhoto(p, SUPABASE_URL);
+      if (ok && !finalPhotos.includes(ok)) finalPhotos.push(ok);
+    }
+    finalPhotos = finalPhotos.slice(0, MAX_PHOTOS);
+  }
+
+  if (newPhotoBase64) {
+    if (typeof newPhotoBase64 !== "string" || newPhotoBase64.length > MAX_B64) return res.status(413).json({ error: "사진 용량이 큽니다. 더 작게 찍어 올려주세요." });
+    if (finalPhotos.length >= MAX_PHOTOS) return res.status(400).json({ error: `사진은 최대 ${MAX_PHOTOS}장까지예요.` });
+    let buf;
+    try { buf = Buffer.from(newPhotoBase64.replace(/^data:image\/\w+;base64,/, ""), "base64"); }
+    catch { return res.status(400).json({ error: "사진 데이터를 읽을 수 없습니다." }); }
+    if (!buf.length || buf.length > MAX_BYTES) return res.status(413).json({ error: "사진 용량이 큽니다. (3MB 이하)" });
+    if (!(buf[0] === 0xFF && buf[1] === 0xD8)) return res.status(400).json({ error: "JPG 이미지만 올릴 수 있어요." });
+    const path = `product/${encodeURIComponent(pc)}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`;
+    const up = await fetch(`${SUPABASE_URL}/storage/v1/object/gallery/${path}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "image/jpeg", "x-upsert": "true" },
+      body: buf,
+    });
+    if (!up.ok) { console.error("product photo upload fail", up.status, await up.text().catch(() => "")); return res.status(502).json({ error: "사진 저장에 실패했습니다. 잠시 후 다시 시도해주세요." }); }
+    finalPhotos.push(`${SUPABASE_URL}/storage/v1/object/public/gallery/${path}`);
+  }
+
+  const row = {
+    pc,
+    name: name != null ? (clean(name, 40) || null) : null,
+    subtitle: subtitle != null ? (clean(subtitle, 60) || null) : null,
+    description: description != null ? (clean(description, 800) || null) : null,
+    status: STATUS_ALLOWED.has(status) ? status : null,
+    photos: finalPhotos.length ? finalPhotos : null,
+    updated_at: new Date().toISOString(),
+  };
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides?on_conflict=pc`, {
+    method: "POST",
+    headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(row),
+  });
+  if (!r.ok) { console.error("override upsert fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "저장에 실패했습니다. 다시 시도해주세요." }); }
+  const rows = await r.json().catch(() => []);
+  return res.status(200).json({ ok: true, item: Array.isArray(rows) ? rows[0] : rows });
+}

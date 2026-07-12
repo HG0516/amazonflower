@@ -110,7 +110,7 @@ function fmtAddr(o){
 async function api(payload){
   const pw = $("pw").value.trim();
   if(!pw){ toast("비밀번호를 입력해주세요.","err"); return null; }
-  const r = await fetch("/api/admin-orders", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:pw, ...payload}) });
+  const r = await fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:pw, resource:"order", ...payload}) });
   const data = await r.json().catch(()=>({}));
   if(!r.ok){ toast("❌ "+(data.error||"오류"),"err"); return null; }
   localStorage.setItem("af_admin_pw", pw);
