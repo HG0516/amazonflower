@@ -623,7 +623,7 @@ async function loadLiveGallery(){
 async function loadLiveProducts(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
   try{
-    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,subtitle,description,status,photos`,
+    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,name,subtitle,description,status,photos`,
       { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
     if(!r.ok) return;
     const rows = await r.json();
@@ -631,6 +631,7 @@ async function loadLiveProducts(){
     const byPc={}; for(const o of rows) byPc[o.pc]=o;
     for(const p of PRODUCTS){
       const o=byPc[p.pc]; if(!o) continue;
+      if(o.name!=null) p.name=o.name;
       if(o.subtitle!=null) p.subtitle=o.subtitle;
       if(o.description!=null) p.desc=o.description;
       if(o.status!=null) p.status=o.status;

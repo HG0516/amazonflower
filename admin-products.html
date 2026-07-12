@@ -129,6 +129,9 @@
       <div id="preview"></div>
     </div>
 
+    <label>상품 이름</label>
+    <input type="text" id="fName" placeholder="상품 이름" maxlength="40" />
+
     <label>한줄설명 <span style="font-weight:400;color:var(--ink-faint)">(이름 아래 작은 글씨)</span></label>
     <input type="text" id="fSubtitle" placeholder="예) 분홍 거베라 다발" />
 
@@ -193,12 +196,13 @@ $("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("
 async function loadOverrides(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
   try{
-    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,subtitle,description,status,photos`,
+    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,name,subtitle,description,status,photos`,
       { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
     if(!r.ok) return;
     for(const o of (await r.json())||[]){
       overrides[o.pc] = o;
       const p = PRODUCTS.find(x=>x.pc===o.pc); if(!p) continue;
+      if(o.name!=null) p.name = o.name;
       if(o.subtitle!=null) p.subtitle = o.subtitle;
       if(o.description!=null) p.description = o.description;
       if(o.status!=null) p.status = o.status;
@@ -269,7 +273,7 @@ function renderPreview(){
     `<div class="pv ${contain?'contain':''}">
       <div class="pv-photo" ${photos.length>1?'onclick="pvNext()" style="cursor:pointer"':''}>${img?`<img src="${esc(img)}" alt="" onerror="this.style.display='none';this.parentElement.innerHTML='사진 준비 중'">`:'사진 준비 중'}</div>
       ${photos.length>1?`<div class="pv-dots" onclick="pvNext()" style="cursor:pointer">사진 ${pvIdx+1} / ${photos.length} · 눌러서 다음 ▸</div>`:``}
-      <div class="pv-nm">${esc(p.name||"")}</div>
+      <div class="pv-nm">${esc((cur.name!=null?cur.name:p.name)||"")}</div>
       ${cur.subtitle?`<div class="pv-sub">${esc(cur.subtitle)}</div>`:``}
       <div class="pv-meta"><span class="band-tag">${esc(p.band||"")}</span><span class="kind-tag">${esc(kind)}</span></div>
       <div class="pv-price">${(p.price||0).toLocaleString()}원</div>
@@ -281,10 +285,11 @@ function pvNext(){ const n=(cur.photos.length||1); pvIdx=(pvIdx+1)%n; renderPrev
 // ── 편집 시트 ──
 function openEdit(pc){
   const p = PRODUCTS.find(x=>x.pc===pc); if(!p) return;
-  cur = { pc, subtitle:p.subtitle||"", description:p.description||"", status:p.status||"판매중", photos:(p.photos||[]).slice() };
+  cur = { pc, name:p.name||"", subtitle:p.subtitle||"", description:p.description||"", status:p.status||"판매중", photos:(p.photos||[]).slice() };
   pvIdx = 0;
   $("editTitle").textContent = p.name;
   $("editPc").textContent = pc + " · " + (AXIS_LABEL[catAxis(p.cat)]||p.cat) + " · " + (p.price||0).toLocaleString() + "원";
+  $("fName").value = cur.name;
   $("fSubtitle").value = cur.subtitle;
   $("fDesc").value = cur.description;
   setStatus(cur.status);
@@ -299,6 +304,7 @@ function setStatus(s){
   $("segSold").className = s==="품절" ? "on-sold" : "";
   renderPreview();
 }
+$("fName").addEventListener("input", ()=>{ if(cur){ cur.name=$("fName").value; renderPreview(); } });
 $("fSubtitle").addEventListener("input", ()=>{ if(cur){ cur.subtitle=$("fSubtitle").value; renderPreview(); } });
 $("fDesc").addEventListener("input", ()=>{ if(cur){ cur.description=$("fDesc").value; renderPreview(); } });
 
@@ -371,9 +377,10 @@ async function doSave(newPhotoBase64){
   const pw=$("pw").value.trim();
   if(!pw) return toast("비밀번호를 입력해주세요.","err");
   if(!cur) return;
+  cur.name=$("fName").value.trim();
   cur.subtitle=$("fSubtitle").value.trim();
   cur.description=$("fDesc").value.trim();
-  const payload={ password:pw, pc:cur.pc, subtitle:cur.subtitle, description:cur.description, status:cur.status, photos:cur.photos };
+  const payload={ password:pw, pc:cur.pc, name:cur.name, subtitle:cur.subtitle, description:cur.description, status:cur.status, photos:cur.photos };
   if(newPhotoBase64) payload.newPhotoBase64=newPhotoBase64;
   $("saveBtn").disabled=true; $("saveBtn").textContent="저장 중…";
   try{
@@ -385,7 +392,7 @@ async function doSave(newPhotoBase64){
     if(Array.isArray(item.photos)) cur.photos=item.photos.slice();
     overrides[cur.pc]=item;
     const p=PRODUCTS.find(x=>x.pc===cur.pc);
-    if(p){ p.subtitle=cur.subtitle||p.subtitle; p.description=cur.description; p.status=cur.status; if(cur.photos.length) p.photos=cur.photos.slice(); }
+    if(p){ p.name=cur.name||p.name; p.subtitle=cur.subtitle||p.subtitle; p.description=cur.description; p.status=cur.status; if(cur.photos.length) p.photos=cur.photos.slice(); }
     renderPhotos(); renderPreview(); render();
     toast(newPhotoBase64 ? "사진을 추가했어요 ✓" : "저장했어요 ✓");
   }catch(e){ toast("❌ "+(e.message||"저장 실패"),"err"); }

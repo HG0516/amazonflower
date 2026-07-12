@@ -55,7 +55,7 @@ export default async function handler(req, res) {
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
-  const { password, pc, subtitle, description, status, photos, newPhotoBase64 } = body;
+  const { password, pc, name, subtitle, description, status, photos, newPhotoBase64 } = body;
 
   if (!safeEqual(password, ADMIN_PW)) return res.status(401).json({ error: "비밀번호가 맞지 않습니다." });
   if (!VALID_PC.has(pc)) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
@@ -98,6 +98,7 @@ export default async function handler(req, res) {
   // 필드 정화 — 빈 값은 null(정적 기본값으로 복귀)
   const row = {
     pc,
+    name: name != null ? (clean(name, 40) || null) : null,
     subtitle: subtitle != null ? (clean(subtitle, 60) || null) : null,
     description: description != null ? (clean(description, 800) || null) : null,
     status: STATUS_ALLOWED.has(status) ? status : null,
