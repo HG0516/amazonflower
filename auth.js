@@ -224,6 +224,7 @@
       + '<div id="af-anniv-list" style="margin-bottom:8px;"></div>'
       + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">'
       + '<input id="af-anniv-label" maxlength="30" placeholder="예) 어머니 생신" style="flex:1;min-width:120px;font-size:14px;padding:9px 10px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;"/>'
+      + '<select id="af-anniv-cal" style="font-size:14px;padding:9px 6px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;"><option value="solar">양력</option><option value="lunar">음력</option></select>'
       + '<select id="af-anniv-month" style="font-size:14px;padding:9px 6px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;">' + months + '</select>'
       + '<select id="af-anniv-day" style="font-size:14px;padding:9px 6px;border:1px solid #dcd9cf;border-radius:6px;font-family:inherit;">' + days + '</select>'
       + '<button id="af-anniv-add" style="background:#1f4733;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:inherit;">추가</button>'
@@ -234,7 +235,7 @@
     loadAnniv();
   }
   function loadAnniv() {
-    sb.from('anniversaries').select('id,label,month,day,recipient')
+    sb.from('anniversaries').select('id,label,month,day,recipient,cal_type')
       .order('month', { ascending: true }).order('day', { ascending: true })
       .then(function (res) { renderAnnivList((res && res.data) || []); })
       .catch(function () {});
@@ -244,7 +245,7 @@
     if (!rows.length) { el.innerHTML = '<div style="font-size:12.5px;color:#9e9a8f;">등록한 기념일이 없어요. 추가해두면 일주일 전에 알려드려요.</div>'; return; }
     el.innerHTML = rows.map(function (a) {
       return '<div style="display:flex;justify-content:space-between;align-items:center;border:1px solid #eeece4;border-radius:8px;padding:8px 10px;margin-bottom:6px;">'
-        + '<span style="font-size:13.5px;color:#1f1d18;"><b>' + a.month + '/' + a.day + '</b> · ' + esc(a.label) + (a.recipient ? ' <span style="color:#9e9a8f;">(' + esc(a.recipient) + ')</span>' : '') + '</span>'
+        + '<span style="font-size:13.5px;color:#1f1d18;">' + (a.cal_type === 'lunar' ? '<span style="font-size:11px;color:#8a5a2b;font-weight:700;">음력</span> ' : '') + '<b>' + a.month + '/' + a.day + '</b> · ' + esc(a.label) + (a.recipient ? ' <span style="color:#9e9a8f;">(' + esc(a.recipient) + ')</span>' : '') + '</span>'
         + '<button class="af-anniv-del" data-id="' + esc(a.id) + '" style="background:transparent;border:none;color:#9a3b2e;font-size:13px;cursor:pointer;font-family:inherit;">삭제</button>'
         + '</div>';
     }).join('');
@@ -256,7 +257,8 @@
     var day = parseInt(document.getElementById('af-anniv-day').value, 10);
     if (!label) { alert('기념일 이름을 적어주세요. (예: 어머니 생신)'); return; }
     var u = window.afAuth.user; if (!u) { alert('로그인이 필요해요.'); return; }
-    sb.from('anniversaries').insert({ user_id: u.id, label: label, month: month, day: day })
+    var calType = (document.getElementById('af-anniv-cal') || {}).value === 'lunar' ? 'lunar' : 'solar';
+    sb.from('anniversaries').insert({ user_id: u.id, label: label, month: month, day: day, cal_type: calType })
       .then(function (res) {
         if (res.error) { alert('저장 실패: ' + res.error.message); return; }
         document.getElementById('af-anniv-label').value = '';

@@ -5,6 +5,7 @@
 
 import webpush from "web-push";
 import crypto from "node:crypto";
+import KoreanLunarCalendar from "korean-lunar-calendar";
 
 export const config = { runtime: "nodejs" };
 
@@ -37,11 +38,23 @@ export default async function handler(req, res) {
   const day = kst7.getUTCDate();
   const todayStr = `${kstNow.getUTCFullYear()}-${String(kstNow.getUTCMonth() + 1).padStart(2, "0")}-${String(kstNow.getUTCDate()).padStart(2, "0")}`;
 
-  // D-7 기념일 (오늘 이미 보낸 건 제외)
+  // D-7 양력날짜(m,day)를 음력으로도 환산(lm,ld) → 음력 기념일도 올해 해당 양력일에 알림
+  let lm = null, ld = null;
+  try {
+    const cal = new KoreanLunarCalendar();
+    cal.setSolarDate(kst7.getUTCFullYear(), m, day);
+    const lu = cal.getLunarCalendar();
+    if (lu && lu.month && lu.day) { lm = lu.month; ld = lu.day; }
+  } catch (e) { /* 변환 실패 → 양력만 매칭(안전) */ }
+
+  // D-7 기념일 (오늘 이미 보낸 건 제외). 양력 + 음력 둘 다 매칭.
   let annivs = [];
   try {
-    const url = `${SUPABASE_URL}/rest/v1/anniversaries?select=id,user_id,label,recipient,notified_on`
-      + `&month=eq.${m}&day=eq.${day}&or=(notified_on.is.null,notified_on.neq.${todayStr})`;
+    const dateFilter = (lm && ld)
+      ? `or(and(cal_type.eq.solar,month.eq.${m},day.eq.${day}),and(cal_type.eq.lunar,month.eq.${lm},day.eq.${ld}))`
+      : `and(cal_type.eq.solar,month.eq.${m},day.eq.${day})`;
+    const url = `${SUPABASE_URL}/rest/v1/anniversaries?select=id,user_id,label,recipient,notified_on,cal_type`
+      + `&and=(${dateFilter},or(notified_on.is.null,notified_on.neq.${todayStr}))`;
     const r = await fetch(url, { headers: sb });
     if (!r.ok) return res.status(502).json({ error: "anniv query failed", detail: await r.text().catch(() => "") });
     annivs = await r.json();

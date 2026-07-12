@@ -8,6 +8,7 @@
     "build-products": "node scripts/build-products.mjs"
   },
   "dependencies": {
+    "korean-lunar-calendar": "^0.4.0",
     "web-push": "^3.6.7"
   }
 }
