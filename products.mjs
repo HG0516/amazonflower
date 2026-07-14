@@ -1978,6 +1978,11 @@ const TOPPINGS = {
   "nm": "케이크 소형",
   "price": 39000,
   "d": "작은 케이크를 함께 (생신·기념일)"
+ },
+ "top_planting": {
+  "nm": "추가 식재",
+  "price": 40000,
+  "d": "화분에 식물을 더 심어 풍성하게"
  }
 };
 
@@ -1992,8 +1997,7 @@ const TOPPINGS_BY_CAT = {
  ],
  "orchid": [
   "top_pot",
-  "top_plaque",
-  "top_ribbon"
+  "top_planting"
  ],
  "plant": [
   "top_lush_p2",
