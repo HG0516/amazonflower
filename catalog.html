@@ -93,6 +93,13 @@
   .special-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .special-note { grid-column: 1 / -1; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; font-size: var(--fs-sub); line-height: 1.8; color: var(--ink); }
   .special-note b { color: var(--accent-deep); }
+  /* 웨딩 부케 갤러리 */
+  .wed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .wed-group { grid-column: 1 / -1; font-family: var(--font-display); font-size: var(--fs-body); font-weight: 700; color: var(--ink); margin: 14px 0 0; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+  .wed-group:first-child { margin-top: 0; }
+  .wed-item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .wed-item img { width: 100%; aspect-ratio: 4/5; object-fit: cover; display: block; background: var(--photo-bg); }
+  .wed-cta { display: block; text-align: center; margin-top: 18px; text-decoration: none; }
   .special-item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
   .special-photo { aspect-ratio: 4/3; background: var(--photo-bg); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: var(--fs-caption); text-align: center; overflow: hidden; padding: 6px; }
   .special-photo img { width: 100%; height: 100%; object-fit: cover; }
@@ -370,6 +377,16 @@
     <a class="insta-more" href="https://instagram.com/amazonflower3003" target="_blank" rel="noopener">Instagram @amazonflower3003 — 제작 사진 더 보기</a>
   </div>
 
+  <!-- 웨딩 부케 — 결혼(축하) 탭에서만 노출. 실제 제작 사진(웨딩후 보정컷) + 웨딩 페이지 연결 -->
+  <div class="special" id="wedSec" hidden>
+    <div class="special-head">
+      <div class="special-title">웨딩 부케</div>
+      <div class="special-sub">어머니가 30년 손끝으로 한 송이씩 엮는 생화 수제 부케입니다.<br>본식·야외촬영용 모두 제작 — 토·일 각 1~2건만 받는 소수 예약제.</div>
+    </div>
+    <div class="wed-grid" id="wedArea"></div>
+    <a class="scall wed-cta" href="/wedding.html">웨딩 부케 가격·예약 안내 보기</a>
+  </div>
+
   <div class="note">
     마음에 드는 상품의 <b>주문하기</b>를 누르면 받는 곳 정보만 입력하고 바로 주문하실 수 있습니다.<br>
     계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.
@@ -487,6 +504,28 @@ function showSpecial(key){
         ${it.link?`<a class="scall" href="${it.link}" style="background:var(--accent);">웨딩 부케 자세히 보기</a>`:`<a class="scall" href="tel:031-314-3003">전화 상담</a>`}
       </div>
     </div>`;}).join("");
+}
+
+// 웨딩 부케 실제 제작 사진 (웨딩후 보정컷) — 결혼 탭 하단 '웨딩 부케' 섹션
+const WEDDING_GROUPS = [
+  { label:"핸드타이드 · 분홍 미니장미", photos:["핸드타이드분홍미니장미NO1-1","핸드타이드분홍미니장미NO1-2","핸드타이드분홍미니장미NO1-3","핸드타이드분홍미니장미NO2-1","핸드타이드분홍미니장미NO2-2"] },
+  { label:"핸드타이드 라운드 · 마트리카리아", photos:["핸드타이드라운드마트리카리아내추럴NO2-1","핸드타이드라운드마트리카리아내추럴NO2-2"] },
+  { label:"핸드타이드 라운드 · 카라", photos:["핸드타이드라운드카라NO3","핸드타이드라운드카라NO3-1"] },
+  { label:"핸드타이드 내추럴 · 카라 혼합", photos:["핸드타이드카라혼합내추럴NO4","핸드타이드카라혼합내추럴NO4-1","핸드타이드카라혼합내추럴NO4-2","핸드타이드카라혼합내추럴NO4-3","핸드타이드카라혼합내추럴NO4-4"] },
+  { label:"케스케이드(폭포) 부케", photos:["케스케이드폭포부케NO1","케스케이드폭포부케NO1-1","케스케이드폭포부케NO1-2","케스케이드폭포부케NO1-3"] },
+  { label:"부토니아 (신랑·혼주 꽃)", photos:["부토니아NO1","부토니아NO1-1","부토니아NO1-2","부토니아NO2","부토니아NO3-1","부토니아NO3-2","부토니아3-1"] },
+];
+let wedRendered=false;
+function showWedding(key){
+  const sec=document.getElementById("wedSec");
+  if(!sec) return;
+  sec.hidden = (key!=="congrats");
+  if(sec.hidden || wedRendered) return;
+  wedRendered=true;
+  document.getElementById("wedArea").innerHTML = WEDDING_GROUPS.map(g=>
+    `<div class="wed-group">${g.label}</div>` +
+    g.photos.map(p=>`<div class="wed-item"><img src="/photos/웨딩/${p}.jpg" alt="${g.label} 제작 사진" loading="lazy" onerror="this.closest('.wed-item').style.display='none'"></div>`).join("")
+  ).join("");
 }
 
 // 상품 단일 소스(products.js) 기반. 5축 탭 → (서브탭) → 금액대 칩 → 정렬 → 2열 카드.
@@ -695,6 +734,7 @@ function showCat(key, keepFilter){
   const isWreath = (key==="congrats" || key==="condolence");
   document.getElementById("galleryArea").innerHTML = isWreath ? "" : galleryHTML(key, galFilter[key]||"");
   showSpecial(key);
+  showWedding(key);
 }
 
 // ── 상황(경조사) 모드 ────────────────────────────────────────────────
@@ -717,6 +757,7 @@ function showOccasion(occKey){
   renderOccProducts();
   document.getElementById("galleryArea").innerHTML = "";
   showSpecial(oc.types[0]);
+  showWedding(oc.types[0]);
 }
 function renderOccTypeChips(){
   const oc = OCCASIONS[currentOccasion]; if(!oc) return;
