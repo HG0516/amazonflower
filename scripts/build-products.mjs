@@ -73,8 +73,8 @@ const TOPPINGS = {
   top_deliv2:  { nm: "추가 배송비 (도서·산간)", price: 30000, d: "도서·산간·제주 등 먼 지역", grp: "deliv" },
 };
 const TOPPINGS_BY_CAT = {
-  congrats: ["top_rice", "top_ribbon", "top_deliv1", "top_deliv2"],
-  condolence: ["top_rice", "top_ribbon", "top_deliv1", "top_deliv2"],
+  congrats: ["top_ribbon", "top_deliv1", "top_deliv2"],
+  condolence: ["top_ribbon", "top_deliv1", "top_deliv2"],
   orchid: ["top_pot", "top_planting"],
   plant: ["top_lush_p2", "top_wheel"],
   bouquet: ["top_lush_b1", "top_lush_b2", "top_cake"],

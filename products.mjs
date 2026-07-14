@@ -2016,13 +2016,11 @@ const TOPPINGS = {
 
 const TOPPINGS_BY_CAT = {
  "congrats": [
-  "top_rice",
   "top_ribbon",
   "top_deliv1",
   "top_deliv2"
  ],
  "condolence": [
-  "top_rice",
   "top_ribbon",
   "top_deliv1",
   "top_deliv2"
