@@ -1950,13 +1950,13 @@ const TOPPINGS = {
  },
  "top_lush_b1": {
   "nm": "조금 더 풍성하게",
-  "price": 10000,
+  "price": 20000,
   "d": "꽃 물량을 한 단계 늘립니다",
   "grp": "lush"
  },
  "top_lush_b2": {
   "nm": "많이 풍성하게",
-  "price": 20000,
+  "price": 30000,
   "d": "꽃 물량을 두 단계 늘립니다",
   "grp": "lush"
  },

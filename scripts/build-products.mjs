@@ -61,8 +61,8 @@ const TOPPINGS = {
   top_lush_p1: { nm: "조금 더 크게",         price: 20000, d: "한 단계 큰 수형으로", grp: "lush" },
   top_lush_p2: { nm: "훨씬 크게",            price: 30000, d: "두 단계 큰 수형으로 가장 풍성하게", grp: "lush" },
   // 꽃바구니·꽃다발 '더 풍성하게' 2단계 — 배타
-  top_lush_b1: { nm: "조금 더 풍성하게",     price: 10000, d: "꽃 물량을 한 단계 늘립니다", grp: "lush" },
-  top_lush_b2: { nm: "많이 풍성하게",        price: 20000, d: "꽃 물량을 두 단계 늘립니다", grp: "lush" },
+  top_lush_b1: { nm: "조금 더 풍성하게",     price: 20000, d: "꽃 물량을 한 단계 늘립니다", grp: "lush" },
+  top_lush_b2: { nm: "많이 풍성하게",        price: 30000, d: "꽃 물량을 두 단계 늘립니다", grp: "lush" },
   top_more:    { nm: "더 풍성하게",          price: 20000, d: "꽃 물량을 한 단계 늘립니다" }, // 구버전 재주문 호환(신규 미노출)
   top_wine:    { nm: "와인 동봉",            price: 30000, d: "축하 와인 한 병을 함께" }, // 구주문 호환(신규 미노출)
   top_card:    { nm: "손글씨 카드",          price: 5000,  d: "메시지를 카드에 정성껏 적어 동봉" }, // 구주문 호환(신규 미노출)
