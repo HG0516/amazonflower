@@ -2000,17 +2000,33 @@ const TOPPINGS = {
   "nm": "추가 식재",
   "price": 40000,
   "d": "화분에 식물을 더 심어 풍성하게"
+ },
+ "top_deliv1": {
+  "nm": "추가 배송비 (원거리)",
+  "price": 10000,
+  "d": "군 단위·외곽 등 원거리 지역",
+  "grp": "deliv"
+ },
+ "top_deliv2": {
+  "nm": "추가 배송비 (도서·산간)",
+  "price": 30000,
+  "d": "도서·산간·제주 등 먼 지역",
+  "grp": "deliv"
  }
 };
 
 const TOPPINGS_BY_CAT = {
  "congrats": [
   "top_rice",
-  "top_ribbon"
+  "top_ribbon",
+  "top_deliv1",
+  "top_deliv2"
  ],
  "condolence": [
   "top_rice",
-  "top_ribbon"
+  "top_ribbon",
+  "top_deliv1",
+  "top_deliv2"
  ],
  "orchid": [
   "top_pot",

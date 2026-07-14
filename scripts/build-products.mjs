@@ -68,10 +68,13 @@ const TOPPINGS = {
   top_card:    { nm: "손글씨 카드",          price: 5000,  d: "메시지를 카드에 정성껏 적어 동봉" }, // 구주문 호환(신규 미노출)
   top_cake:    { nm: "케이크 소형",          price: 39000, d: "작은 케이크를 함께 (생신·기념일)" },
   top_planting:{ nm: "추가 식재",            price: 40000, d: "화분에 식물을 더 심어 풍성하게" },
+  // 화환 배송 할증(원거리·도서산간) — 배타(하나만)
+  top_deliv1:  { nm: "추가 배송비 (원거리)",   price: 10000, d: "군 단위·외곽 등 원거리 지역", grp: "deliv" },
+  top_deliv2:  { nm: "추가 배송비 (도서·산간)", price: 30000, d: "도서·산간·제주 등 먼 지역", grp: "deliv" },
 };
 const TOPPINGS_BY_CAT = {
-  congrats: ["top_rice", "top_ribbon"],
-  condolence: ["top_rice", "top_ribbon"],
+  congrats: ["top_rice", "top_ribbon", "top_deliv1", "top_deliv2"],
+  condolence: ["top_rice", "top_ribbon", "top_deliv1", "top_deliv2"],
   orchid: ["top_pot", "top_planting"],
   plant: ["top_lush_p2", "top_wheel"],
   bouquet: ["top_lush_b1", "top_lush_b2", "top_cake"],
