@@ -823,7 +823,7 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "가지마루",
   "subtitle": null,
-  "price": 147000,
+  "price": 128000,
   "band": "10만↑",
   "grade": null,
   "size": {
