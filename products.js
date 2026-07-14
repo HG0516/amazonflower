@@ -1747,12 +1747,12 @@ const PRODUCTS = [
   "sub": "근조",
   "name": "근조 오브제",
   "subtitle": null,
-  "price": 70000,
-  "band": "7만대",
+  "price": 99000,
+  "band": "9만대",
   "grade": "오브제",
   "size": null,
   "status": "판매중",
-  "legacyTier": "condolence_c2",
+  "legacyTier": "condolence_c3",
   "photos": [
    "/photos/products/WC-03_1.jpg"
   ]
@@ -1883,6 +1883,22 @@ const PRODUCTS = [
   "legacyTier": "congrats_g4",
   "photos": [
    "/photos/products/WG-05_1.jpg"
+  ]
+ },
+ {
+  "pc": "WG-06",
+  "cat": "congrats",
+  "sub": "축하",
+  "name": "축하 쌀화환10KG",
+  "subtitle": null,
+  "price": 99000,
+  "band": "9만대",
+  "grade": "쌀화환10KG",
+  "size": null,
+  "status": "판매중",
+  "legacyTier": "congrats_g3",
+  "photos": [
+   "/photos/products/WG-06_1.jpg"
   ]
  }
 ];
