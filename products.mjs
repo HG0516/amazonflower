@@ -1973,6 +1973,11 @@ const TOPPINGS = {
   "nm": "손글씨 카드",
   "price": 5000,
   "d": "메시지를 카드에 정성껏 적어 동봉"
+ },
+ "top_cake": {
+  "nm": "케이크 소형",
+  "price": 39000,
+  "d": "작은 케이크를 함께 (생신·기념일)"
  }
 };
 
@@ -1999,14 +2004,12 @@ const TOPPINGS_BY_CAT = {
  "bouquet": [
   "top_lush_b1",
   "top_lush_b2",
-  "top_wine",
-  "top_card"
+  "top_cake"
  ],
  "basket": [
   "top_lush_b1",
   "top_lush_b2",
-  "top_wine",
-  "top_card"
+  "top_cake"
  ]
 };
 
