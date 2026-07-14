@@ -485,8 +485,8 @@ const SPECIAL_HEAD = {
 };
 const SPECIAL = {
   congrats: [
-    {nm:"결혼식 당일 부케", photo:"특별제작/부케_결혼당일.jpg", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다.", link:"/wedding.html"},
-    {nm:"웨딩 촬영용 부케", photo:"특별제작/부케_촬영용.jpg", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다.", link:"/wedding.html"},
+    {nm:"결혼식 당일 부케", photo:"웨딩/핸드타이드라운드마트리카리아내추럴NO2-2.jpg", pos:"center 22%", price:"맞춤 상담", d:"신부 부케 + 양가 아버님 코사지 구성. 그날 유행하는 스타일로 제작해드립니다.", link:"/wedding.html"},
+    {nm:"웨딩 촬영용 부케", photo:"웨딩/핸드타이드분홍미니장미NO23.jpg", pos:"center 35%", price:"맞춤 상담", d:"웨딩 촬영용 부케. 콘셉트·색감에 맞춰 상담 후 제작합니다.", link:"/wedding.html"},
   ],
   condolence: [
     // 근조 바구니 2종은 근조화환 하단(renderWreath)으로 이동 (26.7.14)
@@ -520,8 +520,8 @@ document.addEventListener("click", e=>{
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeLightbox(); });
 
 // 사진 자동 로드 — img 태그로 시도, 실패 시 placeholder 표시
-function photoBox(srcPath, fallbackLabel){
-  return `<img src="/photos/${srcPath}" alt="" onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;text-align:center;line-height:1.6;&quot;>사진 준비 중<br>${fallbackLabel||''}</div>';">`;
+function photoBox(srcPath, fallbackLabel, pos){
+  return `<img src="/photos/${srcPath}" alt=""${pos?` style="object-position:${pos}"`:""} onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;text-align:center;line-height:1.6;&quot;>사진 준비 중<br>${fallbackLabel||''}</div>';">`;
 }
 
 function showSpecial(key){
@@ -533,7 +533,7 @@ function showSpecial(key){
     if(it.note) return `<div class="special-note">${it.note}</div>`;
     return `
     <div class="special-item">
-      <div class="special-photo">${photoBox(it.photo)}</div>
+      <div class="special-photo">${photoBox(it.photo, "", it.pos)}</div>
       <div class="special-body">
         <div class="snm">${it.nm}</div>
         <div class="sdesc">${it.d}</div>
