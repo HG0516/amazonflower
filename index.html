@@ -694,7 +694,12 @@
       <a href="#" onclick="showPolicy('delivery');return false;" style="color:var(--ink);font-weight:600;text-decoration:underline;">전체 배송 안내 보기 →</a>
     </div>
 
-    <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:14px;">결제하기</button>
+    <!-- 개인정보 수집·이용 동의 (비회원 구매 필수 — 토스 휴대폰결제 심사 요건) -->
+    <label style="display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:12px 14px;background:#f7f7f3;border-radius:var(--radius-sm);cursor:pointer;">
+      <input type="checkbox" id="privacyAgree" style="width:19px;height:19px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);">
+      <span style="font-size:var(--fs-caption);color:var(--ink);line-height:1.6;"><b>[필수] 개인정보 수집·이용 동의</b> — 주문·배송 처리를 위해 주문자·받는 분 정보(성함·연락처·주소)를 수집·이용하며, 관련 법령에 따른 기간 동안 보관 후 파기됩니다. <a href="/privacy.html" target="_blank" rel="noopener" style="color:var(--ink);font-weight:600;text-decoration:underline;" onclick="event.stopPropagation();">자세히 보기</a></span>
+    </label>
+    <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">결제하기</button>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제 완료 후 사장님이 주문을 확인하고 준비합니다. 안부가 닿으면 도착 사진을 입력하신 번호로 보내드립니다 — "잘 전했습니다" 보고까지 한 번에 끝나도록.</div>
     <div class="notice hidden" id="corpNotice">계산서는 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 발행됩니다.</div>
@@ -1813,6 +1818,9 @@ async function requestPay(){
   if(!order.price) return showErr(err,"가격대를 선택해주세요.");
   if(!order.senderName){ markErr(senderNameEl); return showErr(err,"보내는 분 성함을 입력해주세요."); }
   if(!order.senderPhone){ markErr(senderPhoneEl); return showErr(err,"연락처를 입력해주세요."); }
+  // 개인정보 수집·이용 동의(필수) — 비회원 구매 요건
+  const pvA=document.getElementById("privacyAgree");
+  if(pvA && !pvA.checked){ pvA.closest("label").scrollIntoView({behavior:"smooth",block:"center"}); return showErr(err,"개인정보 수집·이용에 동의해주세요. (필수)"); }
   // 리본 왼편이 비어있으면 보내는 분 성함으로 자동 채움
   if(!order.ribbonLeft){ order.ribbonLeft = order.senderName; document.getElementById("ribbonLeft").value = order.senderName; }
 
