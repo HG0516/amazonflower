@@ -1457,12 +1457,12 @@ const PRODUCTS = [
   "sub": "관엽",
   "name": "크로톤",
   "subtitle": null,
-  "price": 108000,
+  "price": 128000,
   "band": "10만↑",
   "grade": null,
   "size": null,
   "status": "판매중",
-  "legacyTier": "plant_p3",
+  "legacyTier": "plant_p4",
   "photos": [
    "/photos/products/PL-038_1.jpg"
   ]
