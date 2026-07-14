@@ -1747,12 +1747,12 @@ const PRODUCTS = [
   "sub": "근조",
   "name": "근조 오브제",
   "subtitle": null,
-  "price": 57000,
-  "band": "5만대",
+  "price": 70000,
+  "band": "7만대",
   "grade": "오브제",
   "size": null,
   "status": "판매중",
-  "legacyTier": "condolence_c1",
+  "legacyTier": "condolence_c2",
   "photos": [
    "/photos/products/WC-03_1.jpg"
   ]
