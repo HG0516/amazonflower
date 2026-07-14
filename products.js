@@ -1971,7 +1971,7 @@ const TOPPINGS = {
   "grp": "lush"
  },
  "top_lush_b2": {
-  "nm": "특상",
+  "nm": "프리미엄특",
   "price": 40000,
   "d": "꽃 물량을 두 단계 늘려 가장 풍성하게",
   "grp": "lush"
