@@ -59,7 +59,7 @@ const TOPPINGS = {
   top_wheel:   { nm: "바퀴 화분받침",        price: 15000, d: "이동이 편한 바퀴형 받침 — 실내 배치·청소 편리" },
   // 관엽 '더 크게'(수형 업그레이드) 2단계 — 배타
   top_lush_p1: { nm: "조금 더 크게",         price: 20000, d: "한 단계 큰 수형으로", grp: "lush" },
-  top_lush_p2: { nm: "훨씬 크게",            price: 30000, d: "두 단계 큰 수형으로 가장 풍성하게", grp: "lush" },
+  top_lush_p2: { nm: "프리미엄",             price: 30000, d: "더 크고 고급스러운 수형으로 업그레이드", grp: "lush" },
   // 꽃바구니·꽃다발 '더 풍성하게' 2단계 — 배타
   top_lush_b1: { nm: "프리미엄",             price: 20000, d: "꽃 물량을 한 단계 늘립니다", grp: "lush" },
   top_lush_b2: { nm: "특상",                 price: 40000, d: "꽃 물량을 두 단계 늘려 가장 풍성하게", grp: "lush" },
@@ -72,7 +72,7 @@ const TOPPINGS_BY_CAT = {
   congrats: ["top_rice", "top_ribbon"],
   condolence: ["top_rice", "top_ribbon"],
   orchid: ["top_pot", "top_plaque", "top_ribbon"],
-  plant: ["top_lush_p1", "top_lush_p2", "top_wheel", "top_plaque"],
+  plant: ["top_lush_p2", "top_wheel"],
   bouquet: ["top_lush_b1", "top_lush_b2", "top_cake"],
   basket: ["top_lush_b1", "top_lush_b2", "top_cake"],
 };

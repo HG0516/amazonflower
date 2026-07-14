@@ -1942,9 +1942,9 @@ const TOPPINGS = {
   "grp": "lush"
  },
  "top_lush_p2": {
-  "nm": "훨씬 크게",
+  "nm": "프리미엄",
   "price": 30000,
-  "d": "두 단계 큰 수형으로 가장 풍성하게",
+  "d": "더 크고 고급스러운 수형으로 업그레이드",
   "grp": "lush"
  },
  "top_lush_b1": {
@@ -1996,10 +1996,8 @@ const TOPPINGS_BY_CAT = {
   "top_ribbon"
  ],
  "plant": [
-  "top_lush_p1",
   "top_lush_p2",
-  "top_wheel",
-  "top_plaque"
+  "top_wheel"
  ],
  "bouquet": [
   "top_lush_b1",
