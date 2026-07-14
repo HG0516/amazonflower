@@ -64,10 +64,13 @@
   function injectStyles() {
     if (document.getElementById('af-auth-style')) return;
     var css = ''
-      + '.af-auth-chip{position:fixed;top:12px;left:12px;z-index:998;display:inline-flex;align-items:center;gap:6px;'
+      // 우측 하단 고정 — 상단 제목·버전배지와 겹침 방지. 탭바(af-nav-on)가 있으면 그 위로.
+      + '.af-auth-chip{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:89;display:inline-flex;align-items:center;gap:6px;'
       + 'background:rgba(255,255,255,.95);border:1px solid #dcd9cf;border-radius:999px;color:#1f1d18;'
       + 'font-size:14px;font-weight:700;padding:7px 13px;cursor:pointer;'
-      + 'font-family:-apple-system,"Apple SD Gothic Neo","Pretendard",sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.08);}'
+      + 'font-family:-apple-system,"Apple SD Gothic Neo","Pretendard",sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.12);}'
+      + 'body.af-nav-on .af-auth-chip{bottom:calc(70px + env(safe-area-inset-bottom,0px));}'
+      + 'body.ordering .af-auth-chip{display:none;}' // 주문 진행 중엔 숨김(주문바와 충돌 방지)
       + '.af-auth-chip:active{opacity:.85;}'
       + '.af-auth-ov{position:fixed;inset:0;z-index:10002;background:rgba(31,29,24,.55);display:none;'
       + 'align-items:flex-end;justify-content:center;}'
