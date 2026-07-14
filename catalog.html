@@ -871,32 +871,18 @@ function renderWreath(key){
           <div class="wprice">${p.price.toLocaleString()}원</div>
           <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">${ORDER_VERB[key]||'이 화환 보내기'}</button>
         </div>
-      </div>`).join("") + `</div>`;
-  // 근조 탭: 화환 하단에 근조 바구니 2종 (특별제작에서 이동 — 사장님 요청 26.7.14)
-  if(key==="condolence"){
-    html += `<div class="section-label" style="margin-top:32px;">근조 오브제 · 꽃바구니</div>
-      <div class="section-desc">장례식장에 보내는 근조 오브제와 꽃바구니입니다. 정확한 가격은 전화 상담 후 확정됩니다.</div>
-      <div class="special-grid">
-        <div class="special-item">
-          <div class="special-photo">${photoBox("특별제작/근조바구니_기본.jpg")}</div>
-          <div class="special-body">
-            <div class="snm">근조 바구니 (기본)</div>
-            <div class="sdesc">단정하고 정성스럽게 제작합니다.</div>
-            <div class="sprice">70,000원~</div>
-            <a class="scall" href="tel:031-314-3003">전화 상담</a>
-          </div>
+      </div>`).join("")
+    // 근조 탭: 근조 바구니 카드를 근조화환 그리드에 통합 (26.7.14 — 별도 섹션·근조오브제 삭제)
+    + (key==="condolence" ? `
+      <div class="wcard">
+        <div class="wphoto">${photoBox("특별제작/근조바구니_기본.jpg")}</div>
+        <div class="wbody">
+          <div class="wtier">근조 바구니</div>
+          <div class="wprice">70,000원~</div>
+          <a class="worder" href="tel:031-314-3003" style="display:block;text-align:center;text-decoration:none;">전화 상담</a>
         </div>
-        <div class="special-item">
-          <div class="special-photo">${photoBox("특별제작/근조오브제.jpg")}</div>
-          <div class="special-body">
-            <div class="snm">근조 오브제</div>
-            <div class="sdesc">화환 반입이 어려운 장례식장에 보내는 근조 오브제입니다.</div>
-            <div class="sprice">99,000원~</div>
-            <a class="scall" href="tel:031-314-3003">전화 상담</a>
-          </div>
-        </div>
-      </div>`;
-  }
+      </div>` : "")
+    + `</div>`;
   document.getElementById("catArea").innerHTML=html;
 }
 function toggleWreathMore(btn){
