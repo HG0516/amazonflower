@@ -39,6 +39,7 @@ const ORDER_COLS = [
   "sender_name","sender_phone","orderer_name","orderer_phone","orderer_email",
   "ribbon","ribbon_text","ribbon_sender","note","request_note",
   "completed_photo","delivered_photo_url","completed_at","ordered_at","alerted_at","canceled_at",
+  "corp_name","corp_regno","corp_email",
   "utm_source","utm_medium","referral_source"
 ].join(",");
 

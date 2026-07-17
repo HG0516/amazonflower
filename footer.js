@@ -1,7 +1,24 @@
 // footer.js — 전자상거래법 필수 표시(사업자정보) + 정책 링크 공통 푸터.
+//              + 유입경로(UTM) 기록: 전 페이지에 로드되는 유일한 공통 스크립트라 여기에 둔다.
 // [필수] 아래 BIZ 의 빈 항목([])을 실제 값으로 채우세요(법적 필수). 빈 값은 화면에 노출되지 않습니다.
 (function () {
   'use strict';
+
+  // ── 유입경로 기록 (전 페이지) ──
+  // 예전엔 index.html 안에만 있어서, 인스타·지도 링크를 catalog 로 걸면 유입이 집계에서 통째로 사라졌다.
+  // 마지막 유입 기준 30일 보관 → 결제 시 주문에 실려 관리자 '📊 통계'의 채널별 집계가 된다.
+  try {
+    var q = new URLSearchParams(location.search);
+    var src = q.get('utm_source');
+    if (src) {
+      localStorage.setItem('af_utm', JSON.stringify({
+        s: src.slice(0, 64),
+        m: (q.get('utm_medium') || '').slice(0, 64),
+        c: (q.get('utm_campaign') || '').slice(0, 64),
+        t: Date.now()
+      }));
+    }
+  } catch (_e) {}
   var BIZ = {
     company: '꽃안부 · 주식회사 아마존',
     owner: '권점숙',              // 대표자명
@@ -10,7 +27,8 @@
     addr: '경기 시흥시 신천3길 23, 103호',
     tel: '031-314-3003',
     email: '',                    // [필수] 고객문의 이메일 — 정해지면 채우기
-    privacyOfficer: '권점숙'      // 개인정보 보호책임자(대표자)
+    privacyOfficer: '권점숙',     // 개인정보 보호책임자(대표자)
+    insta: 'amazonflower3003'     // 인스타 계정(@ 없이) — 푸터 링크
   };
 
   function row(label, val) { return val ? '<span class="af-ft-i"><b>' + label + '</b> ' + val + '</span>' : ''; }
@@ -26,6 +44,10 @@
       + '.af-footer .af-ft-i{display:inline-block;margin-right:12px;}'
       + '.af-footer .af-ft-links{margin-top:10px;}'
       + '.af-footer .af-ft-links a{color:#1f4733;font-weight:700;text-decoration:none;margin-right:14px;}'
+      + '.af-footer .af-ft-insta{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:7px 12px;'
+      + 'border:1px solid #dcd9cf;border-radius:999px;color:#1f1d18;text-decoration:none;font-size:var(--fs-caption);font-weight:700;}'
+      + '.af-footer .af-ft-insta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;flex-shrink:0;}'
+      + '.af-footer .af-ft-insta:active{opacity:.7;}'
       + '.af-footer .af-ft-policy{margin-top:10px;font-size:var(--fs-caption);color:#9e9a8f;}'
       + '.af-footer .af-ft-origin{margin-top:10px;font-size:var(--fs-caption);}'
       + '.af-footer .af-ft-origin>summary{color:#1f4733;font-weight:700;cursor:pointer;list-style:revert;}'
@@ -58,6 +80,10 @@
       + (BIZ.tel ? '<a class="af-ft-tel" href="tel:' + BIZ.tel.replace(/[^0-9]/g, '') + '">전화 주문·문의 ' + BIZ.tel + '</a>' : '')
       + info
       + '<div class="af-ft-links"><a href="/wedding.html">웨딩 부케</a><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="/#corporate">법인·단체 주문</a><a href="sms:0313143003?body=%5B%EB%8F%99%EB%84%A4%EA%BD%83%EC%A7%91%20%ED%8C%8C%ED%8A%B8%EB%84%88%20%EB%AC%B8%EC%9D%98%5D%20%EC%83%81%ED%98%B8%3A%20%2F%20%EC%A7%80%EC%97%AD%3A%20%2F%20%EC%97%B0%EB%9D%BD%EC%B2%98%3A">동네꽃집 파트너</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
+      // 인스타 — 제작 사진이 쌓여 있는데 지금껏 홈에서 가는 길이 없었다. 전 페이지 푸터에 한 줄.
+      + '<a class="af-ft-insta" href="https://instagram.com/' + BIZ.insta + '" target="_blank" rel="noopener">'
+      + '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.2" fill="currentColor" stroke="none"/></svg>'
+      + '<span>인스타그램 @' + BIZ.insta + ' — 오늘 만든 꽃 보기</span></a>'
       + '<details class="af-ft-origin"><summary>원산지 표시 (농수산물 원산지 표시제)</summary>'
       + '<div class="af-ft-origin-body"><table><tbody>'
       + '<tr><th>국산</th><td>장미·국화·카네이션·백합·튤립·글라디올러스·거베라·아이리스·프리지아·카라·안개꽃·관엽식물·동양란·서양란·분재·다육선인장, 부자재(화분·화병·꽃바구니·꽃상자·포장재·리본 등)</td></tr>'

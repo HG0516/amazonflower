@@ -1089,7 +1089,8 @@ function escapeJs(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'
 
 async function shareItem(pc){
   const p = PRODUCTS.find(x=>x.pc===pc); if(!p) return;
-  const url = location.origin + "/catalog.html?item=" + encodeURIComponent(pc);
+  // 공유는 /s/<pc> 로 — 이 주소만 상품별 미리보기 카드(og)를 갖는다. 사람이 열면 즉시 이 상세로 돌아온다.
+  const url = location.origin + "/s/" + encodeURIComponent(pc);
   const kind = CAT_TITLE[catAxis(p.cat)]||"꽃";
   const text = `[꽃안부] ${p.name}${p.subtitle?" · "+p.subtitle:""} ${p.price.toLocaleString()}원 — ${kind} 전국 당일배송`;
   // 모바일: 기본 공유창(카톡·문자 등) / PC: 링크 복사

@@ -336,6 +336,17 @@ async function saveOrder(order, payment) {
     utm_source: String(order.utmSource || "").slice(0, 64) || null,
     utm_medium: String(order.utmMedium || "").slice(0, 64) || null,
     utm_campaign: String(order.utmCampaign || "").slice(0, 64) || null,
+    // 법인(계산서) 주문 — 예전엔 사장님 문자 본문에만 실려 흘러갔다. 거래처별 재주문을 보려면 남아야 한다.
+    // 사업자번호는 숫자만(하이픈 유무로 같은 거래처가 둘로 갈리지 않게).
+    ...(order.buyerType === "corp" && order.corpName
+      ? {
+          corp_name: String(order.corpName).slice(0, 60),
+          corp_regno: String(order.corpRegNo || "").replace(/\D/g, "").slice(0, 10) || null,
+          corp_email: String(order.corpEmail || "").slice(0, 120) || null,
+          corp_ceo: String(order.corpCeo || "").slice(0, 40) || null,
+          corp_addr: String(order.corpAddr || "").slice(0, 120) || null,
+        }
+      : {}),
   };
   try {
     // 멱등: 같은 order_id 가 이미 저장돼 있으면 재삽입·재알림 안 함(isNew:false)

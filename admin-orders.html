@@ -135,11 +135,12 @@ function render(){
     + `<div class="sumcard"><div class="n">${undel}</div><div class="l">미배송</div></div>`
     + `<div class="sumcard urgent"><div class="n">${urg}</div><div class="l">🔴 임박·지남</div></div>`;
   $("bar").style.display = "flex";
-  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["stats","📊 통계"]];
+  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["corp","🏢 법인"],["stats","📊 통계"]];
   $("bar").innerHTML = F.map(([k,l])=>`<button class="pill ${curFilter===k?"on":""}" onclick="setFilter('${k}')">${l}</button>`).join("")
     + `<button class="refresh" onclick="load()">↻ 새로고침</button>`;
 
   if(curFilter==="stats"){ $("list").innerHTML = statsHtml(); return; }
+  if(curFilter==="corp"){ $("list").innerHTML = corpHtml(); return; }
 
   let list = ORDERS.slice();
   if(curFilter==="urgent") list = list.filter(isUrgent);
@@ -184,6 +185,52 @@ function render(){
   }).join("");
 }
 function setFilter(k){ curFilter=k; render(); }
+
+// ── 법인 거래처 ──
+// 사업자번호 기준으로 묶는다(상호는 '(주)' 유무 등 표기가 흔들려 같은 회사가 갈린다).
+function corpHtml(){
+  const os=ORDERS.filter(o=>o.corp_name && o.status!=="canceled");
+  if(!os.length) return `<div class="empty">아직 법인(계산서) 주문이 없어요.<br><span style="font-size:12px;">계산서로 주문이 들어오면 거래처별로 여기 모입니다.</span></div>`;
+  const g={};
+  for(const o of os){
+    const k=o.corp_regno||o.corp_name;
+    (g[k]=g[k]||{nm:o.corp_name,regno:o.corp_regno,email:o.corp_email,n:0,sum:0,last:null,orders:[]});
+    g[k].n++; g[k].sum+=Number(o.paid_amount||o.amount)||0;
+    if(!g[k].last||String(o.created_at)>String(g[k].last)) g[k].last=o.created_at;
+    g[k].orders.push(o);
+  }
+  const list=Object.values(g).sort((a,b)=>b.sum-a.sum);
+  const fmtNo=n=>n&&n.length===10?`${n.slice(0,3)}-${n.slice(3,5)}-${n.slice(5)}`:(n||"");
+  const days=d=>d?Math.floor((nowMs()-new Date(d).getTime())/86400000):null;
+  return `<div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;">
+      <div style="font-size:13px;color:var(--ink-soft);">거래처 <b style="color:var(--ink);">${list.length}곳</b> · 법인 주문 <b style="color:var(--ink);">${os.length}건</b> · 합계 <b style="color:var(--accent-deep,#1f4733);">${won(list.reduce((s,c)=>s+c.sum,0))}</b></div>
+    </div>`
+    + list.map(c=>{
+      const d=days(c.last);
+      const cold=d!=null&&d>=60;
+      return `<div class="order">
+        <div class="o-top">
+          <div class="o-name">${esc(c.nm)} <span class="to">${esc(fmtNo(c.regno))}</span></div>
+          <div><span class="badge ${c.n>=3?'b-ordered':'b-new'}">${c.n}건</span>${cold?'<span class="badge b-urgent">뜸함</span>':''}</div>
+        </div>
+        <div class="o-rows">
+          <div><span class="lbl">누적</span><b>${won(c.sum)}</b> · 평균 ${won(Math.round(c.sum/c.n))}</div>
+          <div><span class="lbl">최근</span>${c.last?esc(String(c.last).slice(0,10)):"-"}${d!=null?` (${d}일 전)`:""}</div>
+          ${c.email?`<div><span class="lbl">계산서</span>${esc(c.email)}</div>`:''}
+        </div>
+        <div class="o-actions">
+          <button onclick="copyCorpLink('${esc(c.regno||"")}',this)">🔗 전용 주문 링크</button>
+        </div>
+      </div>`;
+    }).join("");
+}
+// 거래처 전용 링크 — 총무팀이 열면 상호·사업자번호·이메일이 채워진 채로 시작한다(입력 5칸 → 0칸).
+async function copyCorpLink(regno, btn){
+  if(!regno){ toast("사업자번호가 없는 거래처예요.","err"); return; }
+  const url = location.origin + "/?corp=" + encodeURIComponent(regno) + "&utm_source=biz";
+  try{ await navigator.clipboard.writeText(url); toast("링크 복사됨 — 거래처 담당자에게 보내세요 ✓"); btn.textContent="✓ 복사됨"; }
+  catch(e){ prompt("이 링크를 거래처에 보내세요:", url); }
+}
 
 // ── 통계 ──
 function statsHtml(){

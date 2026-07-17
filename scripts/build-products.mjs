@@ -291,5 +291,13 @@ dump("파싱 실패", report.parseFail);
 dump("가격 이상치(3만 미만·30만 초과, 제외됨)", report.priceOut);
 dump("그룹 내 가격 불일치", report.dupCut);
 if (report.notes.length) dump("참고", report.notes);
+// 상품별 공유 페이지(/s/*.html) 재생성 — 이름·가격이 바뀌면 카톡 미리보기 카드도 같이 바뀌어야 한다.
+// products.js 를 방금 새로 썼으므로 캐시를 피해 동적 import.
+{
+  const { buildShare } = await import("./build-share.mjs?t=" + Date.now());
+  const n = buildShare();
+  console.log(`공유 페이지 ${n}개 갱신 → s/*.html`);
+}
+
 console.log(`\n산출: products.js / ids.json / photo-manifest.json`);
 console.log(`다음: python scripts/optimize-photos.py  (사진 ${manifest.length}장 → photos/products/)`);

@@ -2557,16 +2557,7 @@ window.addEventListener("hashchange",function(){ if(location.hash==="#corporate"
   el.value=s; cleanUrl();
   if(typeof runParse==="function") setTimeout(runParse, 60);
 })();
-// UTM 유입 기록(전단 QR·검색광고 등 채널 성과 집계) — 마지막 유입 기준 30일 보관, 결제 시 주문에 실림
-(function captureUtm(){
-  try{
-    const q=new URLSearchParams(location.search);
-    const s=q.get("utm_source"); if(!s) return;
-    localStorage.setItem("af_utm", JSON.stringify({
-      s:s.slice(0,64), m:(q.get("utm_medium")||"").slice(0,64), c:(q.get("utm_campaign")||"").slice(0,64), t:Date.now()
-    }));
-  }catch(_e){}
-})();
+// UTM 유입 기록은 footer.js 로 일원화(전 페이지 공통) — 여기 있던 중복 구현 제거.
 // 재주문 배너 — 로그인 회원은 서버 주문내역(openAccount), 비로그인이라도 로컬에 지난 주문이 있으면 원탭 재주문
 function afReorderBtn(onclick){
   return '<button onclick="'+onclick+'" style="width:100%;min-height:52px;border:1px solid var(--accent);background:#fff;border-radius: var(--radius);font-size:15px;font-weight:700;font-family:var(--font-body);color:var(--accent-deep);cursor:pointer;">지난 주문 그대로 다시 보내기 →</button>';
