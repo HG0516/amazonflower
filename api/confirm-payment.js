@@ -236,10 +236,19 @@ async function notifyTelegram(order, payment) {
   if (oid && cs) {
     const tk = crypto.createHmac("sha256", cs).update("confirm:" + oid).digest("hex").slice(0, 20);
     const base = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
-    reply_markup = { inline_keyboard: [[
+    const rows = [[
       { text: "✅ 발주 완료 처리", url: `${base}/api/order-confirm?id=${encodeURIComponent(oid)}&t=${tk}` },
       { text: "📷 완료사진", url: `${base}/admin-order?order=${encodeURIComponent(oid)}` }
-    ]] };
+    ]];
+    // 환불 버튼 — 전용 시크릿(REFUND_LINK_SECRET)이 있을 때만. 토큰=주문+발급월 결박(당월·전월만 유효).
+    const rs = process.env.REFUND_LINK_SECRET;
+    if (rs) {
+      const d = new Date(Date.now() + 9 * 3600000);
+      const ym = `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+      const ck = crypto.createHmac("sha256", rs).update(`cancel:${oid}:${ym}`).digest("hex").slice(0, 24);
+      rows.push([{ text: "💸 결제취소(환불)", url: `${base}/api/order-confirm?mode=cancel&id=${encodeURIComponent(oid)}&t=${ck}` }]);
+    }
+    reply_markup = { inline_keyboard: rows };
   }
   try {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

@@ -110,21 +110,26 @@ export default async function handler(req, res) {
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), 4500);
         const r = await fetch(
-          `https://apis.data.go.kr/1160100/service/GetCorpBasicInfoService_V2/getCorpOutline_V2?serviceKey=${enc}&pageNo=1&numOfRows=8&resultType=json&corpNm=${encodeURIComponent(q)}`,
+          `https://apis.data.go.kr/1160100/service/GetCorpBasicInfoService_V2/getCorpOutline_V2?serviceKey=${enc}&pageNo=1&numOfRows=40&resultType=json&corpNm=${encodeURIComponent(q)}`,
           { signal: ctrl.signal }
         );
         clearTimeout(t);
         if (!r.ok) return res.status(200).json({ ok: true, items: [], skip: true });
         const j = await r.json();
         const raw = j?.response?.body?.items?.item || [];
-        const items = (Array.isArray(raw) ? raw : [raw])
-          .filter((it) => it && /^\d{10}$/.test(String(it.bzno || "")))
-          .slice(0, 6)
-          .map((it) => ({
-            name: String(it.corpNm || "").slice(0, 60),
-            bzno: String(it.bzno),
-            addr: String(it.enpBsadr || "").slice(0, 80),
-          }));
+        // 같은 회사가 출처별로 중복 수록됨 → bzno 기준 dedup(주소 있는 레코드 우선), 상위 6개만
+        const byBzno = new Map();
+        for (const it of (Array.isArray(raw) ? raw : [raw])) {
+          if (!it || !/^\d{10}$/.test(String(it.bzno || ""))) continue;
+          const cur = byBzno.get(it.bzno);
+          if (!cur || (!cur.enpBsadr && it.enpBsadr)) byBzno.set(it.bzno, it);
+          if (byBzno.size >= 24) break;
+        }
+        const items = [...byBzno.values()].slice(0, 6).map((it) => ({
+          name: String(it.corpNm || "").slice(0, 60),
+          bzno: String(it.bzno),
+          addr: String(it.enpBsadr || "").slice(0, 80),
+        }));
         return res.status(200).json({ ok: true, items });
       } catch (e) {
         console.error("corpsearch error:", e && e.message);

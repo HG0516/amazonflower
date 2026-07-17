@@ -36,6 +36,8 @@
   .b-new{background:#f0eee8;color:#7a766c;}
   .b-ordered{background:#e8f0ea;color:#1f4733;}
   .b-delivered{background:#eaf0f6;color:#355d8a;}
+  .b-canceled{background:#fbecea;color:#9a3b2e;}
+  .order.canceled{opacity:.62;}
   .b-urgent{background:#fbecea;color:#9a3b2e;margin-left:5px;}
   .o-prod{font-size:15px;font-weight:700;margin-top:8px;}
   .o-amt{color:var(--accent-deep,#1f4733);font-weight:800;}
@@ -80,7 +82,7 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const won = n => (Number(n)||0).toLocaleString()+"원";
-const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료" };
+const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료", canceled:"취소됨" };
 let ORDERS = [];
 let curFilter = "all";
 
@@ -89,7 +91,7 @@ $("pw").addEventListener("change", () => { localStorage.setItem("af_admin_pw", $
 
 function nowMs(){ return new Date().getTime(); }
 function isUrgent(o){
-  if(o.status==="delivered") return false;
+  if(o.status==="delivered" || o.status==="canceled") return false;
   if(!o.event_at) return false;
   const t = new Date(o.event_at).getTime();
   if(isNaN(t)) return false;
@@ -125,7 +127,7 @@ async function load(){
 }
 
 function render(){
-  const undel = ORDERS.filter(o=>o.status!=="delivered").length;
+  const undel = ORDERS.filter(o=>o.status!=="delivered" && o.status!=="canceled").length;
   const urg = ORDERS.filter(isUrgent).length;
   $("summary").style.display = "flex";
   $("summary").innerHTML =
@@ -155,7 +157,7 @@ function render(){
     const ribbon = o.ribbon_text || o.ribbon || "";
     const req = o.request_note || o.note || "";
     const oid = esc(o.order_id||"");
-    return `<div class="order ${urgent?'urgent':''}">
+    return `<div class="order ${urgent?'urgent':''} ${st==='canceled'?'canceled':''}">
       <div class="o-top">
         <div class="o-name">${esc(o.recipient_name||"(받는분 미상)")} <span class="to">받는 분</span></div>
         <div><span class="badge b-${st}">${STLABEL[st]||st}</span>${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
@@ -170,12 +172,13 @@ function render(){
       </div>
       ${ribbon?`<div class="o-ribbon">🎀 <b>리본</b> · ${esc(ribbon)}</div>`:''}
       ${o.completed_photo?`<div class="o-photo"><button onclick="viewPhoto('${oid}',this)" style="font-size:12px;color:#1f4733;font-weight:700;background:#e8f0ea;border:1px solid #1f4733;border-radius:7px;padding:6px 11px;cursor:pointer;font-family:inherit;">📷 올린 사진 보기</button></div>`:''}
-      <div class="o-actions">
+      ${st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:`<div class="o-actions">
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
         <button onclick="copyLink('${oid}',this)">🔗 기사 링크</button>
-      </div>
+        <button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>
+      </div>`}
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
     </div>`;
   }).join("");
@@ -184,7 +187,8 @@ function setFilter(k){ curFilter=k; render(); }
 
 // ── 통계 ──
 function statsHtml(){
-  const os=ORDERS;
+  const os=ORDERS.filter(o=>o.status!=="canceled");
+  const canceledCnt=ORDERS.length-os.length;
   const paid=os.reduce((s,o)=>s+(Number(o.paid_amount||o.amount)||0),0);
   const cnt=os.length, avg=cnt?Math.round(paid/cnt):0;
   const delivered=os.filter(o=>o.status==="delivered").length;
@@ -196,7 +200,7 @@ function statsHtml(){
   const cell=(n,l)=>`<div style="flex:1;"><div style="font-size:19px;font-weight:800;font-family:var(--font-display,inherit);">${n}</div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px;">${l}</div></div>`;
   return `<div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;">
     <div style="display:flex;gap:8px;text-align:center;">${cell(won(paid),"총 매출(결제액)")}${cell(cnt,"주문 수")}${cell(won(avg),"평균 객단가")}</div>
-    <div style="display:flex;gap:8px;text-align:center;margin-top:14px;">${cell(d7,"최근 7일 주문")}${cell(delivered,"배송완료")}${cell(cnt-delivered,"미배송")}</div>
+    <div style="display:flex;gap:8px;text-align:center;margin-top:14px;">${cell(d7,"최근 7일 주문")}${cell(delivered,"배송완료")}${cell(canceledCnt,"취소·환불")}</div>
     ${cnt?`<div style="font-size:13px;font-weight:800;margin-top:18px;">유입 채널</div>${bars(top(ch))}<div style="font-size:13px;font-weight:800;margin-top:16px;">상품 종류</div>${bars(top(cat))}`:'<div style="text-align:center;color:var(--ink-faint);padding:20px 0;font-size:13px;">주문이 쌓이면 매출·유입채널·인기상품 통계가 여기 나와요.</div>'}
   </div>`;
 }
@@ -208,6 +212,23 @@ async function setStatus(orderId, status){
   if(o){ o.status=status; if(status==="delivered") o.completed_at=o.completed_at||new Date().toISOString(); }
   render();
   toast(status==="delivered"?"배송완료로 표시했어요 ✓":"준비중으로 표시했어요 ✓");
+}
+
+async function cancelOrder(orderId, btn){
+  const o = ORDERS.find(x=>x.order_id===orderId);
+  const amt = o ? won(o.paid_amount||o.amount) : "";
+  if(!confirm(`이 주문(${amt})의 결제를 취소(전액 환불)할까요?`)) return;
+  if(!confirm("정말요? 되돌릴 수 없습니다. 손님 카드로 환불됩니다.")) return;
+  const old=btn.textContent; btn.textContent="환불 중…"; btn.disabled=true;
+  let data=null;
+  try{ data = await api({ action:"cancel", orderId }); }
+  catch(e){ toast("네트워크 오류 — 환불이 됐는지 새로고침으로 확인해주세요","err"); }
+  btn.disabled=false; btn.textContent=old;
+  if(!data) return;
+  if(o){ o.status="canceled"; o.canceled_at=new Date().toISOString(); }
+  render();
+  if(data.alreadyCanceled) toast("이미 취소된 결제였어요 — 목록만 정리했어요");
+  else toast(`✓ 결제취소 완료 — ${data.amount?data.amount.toLocaleString()+"원 ":""}환불 처리됐어요`+(data.dbSynced===false?" (목록 갱신 실패 — 새로고침)":""));
 }
 
 async function copyLink(orderId, btn){
