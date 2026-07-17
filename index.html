@@ -673,16 +673,17 @@
 
     <div class="corp-box hidden" id="corpBox">
       <div class="corp-note">계산서 발행을 위해 사업자 정보를 입력해주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 031-314-3003).</div>
+      <div class="hidden" id="corpPrefillNote" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;margin:8px 0 2px;">✓ 지난 주문의 사업자 정보를 불러왔어요 — 바뀐 내용이 있으면 수정해주세요.</div>
       <label class="fl">상호 (회사명) <span class="required-mark">(필수)</span></label>
-      <input type="text" id="corpName" placeholder="예) (주)KCC · 삼성전자 인사총무팀" />
-      <label class="fl">사업자등록번호 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 계산서 발행에 필요합니다</span></label>
-      <input type="text" id="corpRegNo" placeholder="000-00-00000" inputmode="numeric" />
-      <label class="fl">대표자 성함</label>
-      <input type="text" id="corpCeo" placeholder="홍길동" />
-      <label class="fl">사업장 주소</label>
-      <input type="text" id="corpAddr" placeholder="서울시 ○○구 ○○로 00" />
+      <input type="text" id="corpName" autocomplete="organization" enterkeyhint="next" placeholder="예) (주)KCC · 삼성전자 인사총무팀" oninput="clearErr(this)" />
+      <label class="fl">사업자등록번호 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 숫자만 누르셔도 됩니다</span></label>
+      <input type="text" id="corpRegNo" placeholder="000-00-00000" inputmode="numeric" maxlength="12" enterkeyhint="next" oninput="formatBizNo(this);clearErr(this)" />
+      <label class="fl">대표자 성함 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택 — 몰라도 됩니다)</span></label>
+      <input type="text" id="corpCeo" enterkeyhint="next" placeholder="홍길동" />
+      <label class="fl">사업장 주소 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택)</span></label>
+      <input type="text" id="corpAddr" autocomplete="street-address" enterkeyhint="next" placeholder="서울시 ○○구 ○○로 00" />
       <label class="fl">담당자 이메일 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 계산서 받으실 주소</span></label>
-      <input type="email" id="corpEmail" autocomplete="email" enterkeyhint="done" placeholder="name@company.com" inputmode="email" />
+      <input type="email" id="corpEmail" autocomplete="email" enterkeyhint="done" placeholder="name@company.com" inputmode="email" oninput="clearErr(this)" />
     </div>
 
     <div class="delivery-note" style="text-align:center;">아래 <b>결제하기</b>를 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다. 카드·간편결제로 진행해 주세요.</div>
@@ -1832,7 +1833,10 @@ async function requestPay(){
     order.corpEmail=document.getElementById("corpEmail").value.trim();
     if(!order.corpName){ markErr(document.getElementById("corpName")); return showErr(err,"계산서 발행을 위해 상호(회사명)를 입력해주세요."); }
     if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호를 정확히 입력해주세요. (예: 000-00-00000)"); }
+    if(!bizNoValid(order.corpRegNo)){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호가 올바르지 않아요. 숫자를 다시 확인해주세요."); }
     if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)){ markErr(document.getElementById("corpEmail")); return showErr(err,"계산서를 받으실 이메일을 정확히 입력해주세요."); }
+    // 검증 통과한 사업자 정보는 이 기기에 저장 — 다음 주문 때 자동 채움
+    try{ localStorage.setItem("af_corp", JSON.stringify({name:order.corpName,regNo:order.corpRegNo,ceo:order.corpCeo,addr:order.corpAddr,email:order.corpEmail})); }catch(_e){}
   }
 
   if(!payment) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
@@ -2018,6 +2022,39 @@ function selBuyer(type){
   document.getElementById("buyerCorp").classList.toggle("on",isCorp);
   document.getElementById("corpBox").classList.toggle("hidden",!isCorp);
   document.getElementById("corpNotice").classList.toggle("hidden",!isCorp);
+  // 재주문 총무팀 배려: 지난 주문에서 저장한 사업자 정보 자동 채움 (빈 칸일 때만)
+  if(isCorp && !document.getElementById("corpName").value){
+    try{
+      const c=JSON.parse(localStorage.getItem("af_corp")||"null");
+      if(c && c.name){
+        document.getElementById("corpName").value=c.name;
+        document.getElementById("corpRegNo").value=c.regNo||"";
+        document.getElementById("corpCeo").value=c.ceo||"";
+        document.getElementById("corpAddr").value=c.addr||"";
+        document.getElementById("corpEmail").value=c.email||"";
+        document.getElementById("corpPrefillNote").classList.remove("hidden");
+      }
+    }catch(_e){}
+  }
+}
+
+// 사업자등록번호 000-00-00000 자동 하이픈
+function formatBizNo(el){
+  const d=el.value.replace(/\D/g,"").slice(0,10);
+  el.value = d.length>5 ? d.slice(0,3)+"-"+d.slice(3,5)+"-"+d.slice(5)
+           : d.length>3 ? d.slice(0,3)+"-"+d.slice(3)
+           : d;
+}
+
+// 사업자등록번호 검증(국세청 체크섬) — 오타로 계산서 발행이 막히는 사고 방지
+function bizNoValid(no){
+  const d=(no||"").replace(/\D/g,"");
+  if(d.length!==10) return false;
+  const w=[1,3,7,1,3,7,1,3,5];
+  let s=0;
+  for(let i=0;i<9;i++) s+=(+d[i])*w[i];
+  s+=Math.floor((+d[8])*5/10);
+  return (s+ +d[9])%10===0;
 }
 
 const POLICY = {
