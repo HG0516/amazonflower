@@ -1121,6 +1121,9 @@ function openSharedItem(){
         c.scrollIntoView({behavior:"smooth",block:"center"});
       }
     });
+    // 공유 링크(/s/<pc>)를 타고 온 사람은 '그 상품'을 보러 온 것 — 상세를 바로 열어준다.
+    // 뒤로가기로 닫으면 목록에 그대로 남도록 강조·스크롤은 그대로 둔다.
+    openDetail(item);
   },100);
 }
 
