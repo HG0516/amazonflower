@@ -383,13 +383,18 @@
 
   /* ── 사장님 이야기 ── */
   .story { margin-top: 36px; padding: 32px 4px 28px; border-top: 1px solid var(--line); text-align: center; }
+  .reviews-sect { margin-top: 36px; padding: 32px 4px 28px; border-top: 1px solid var(--line); text-align: center; }
+  /* 자동 넘김 중에는 스냅을 끈다 — 스냅이 걸리면 부드러운 자동 스크롤이 튄다. 손으로 만지면 다시 켬 */
+  .reviews-grid.auto { scroll-snap-type: none; }
+  .reviews-grid::-webkit-scrollbar { display: none; }
+  .reviews-grid { scrollbar-width: none; }
   .story-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
   .story-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 18px; }
   .story-body { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.9; max-width: 460px; margin: 0 auto; text-align: left; padding: 0 4px; }
   .story-divider { margin: 30px auto 0; width: 50px; border-top: 1px solid var(--line); }
 
   /* ── 후기 ── */
-  .reviews-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-top: 30px; margin-bottom: 12px; }
+  .reviews-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
   .reviews-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 8px; }
   .reviews-sub { font-size: var(--fs-caption); color: var(--ink-soft); margin-bottom: 22px; }
   .reviews-grid { display: flex; gap: 14px; padding: 0 4px 8px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
@@ -532,20 +537,6 @@
     </div>
     <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
     <a class="catalogue-link" href="/wedding.html" style="margin-top:8px;">웨딩 부케 · 어머니의 생화 수제 (소수 예약제) →</a>
-  </section>
-
-  <section class="home-sect" style="margin-top:var(--space-sect);">
-    <details class="af-fold">
-      <summary>가게 안내 — 취급 · 가격 · 배송 · 주문</summary>
-      <div class="spec">
-        <dl>
-          <dt>취급</dt><dd>근조·축하 화환 · 동양란·서양란 · 관엽식물 · 꽃바구니·꽃다발</dd>
-          <dt>가격</dt><dd>55,000원부터 · 품목별 실물 정찰제</dd>
-          <dt>배송</dt><dd>전국 당일 배송 (기본 배송비 무료)</dd>
-          <dt>주문</dt><dd>청첩장 · 부고 링크 붙여넣기 또는 직접 입력 · 도착 사진 회신</dd>
-        </dl>
-      </div>
-    </details>
   </section>
 
   <section class="card hidden" id="prodCard">
@@ -724,18 +715,9 @@
     </details>
   </section>
 
-  <section class="story">
-    <img class="hero-photo" src="/photos/hero/대표1.jpg" width="2512" height="1799" fetchpriority="high" decoding="async" alt="꽃안부 대표 꽃 작품 실사진">
-    <div class="story-label">SINCE 1993</div>
-    <div class="story-title">한 자리에서, 33년</div>
-    <div class="story-body">
-      1993년 시흥에서 시작한 작은 꽃집 아마존플라워가, 30년이 지나 "꽃안부"라는 이름으로 안부를 전합니다.<br><br>
-      같은 사장님이 같은 자리에서 꽃을 다뤄왔습니다. 거래처의 부고도, 친구의 청첩장도 — 말로 다 못 하는 마음을 꽃으로 대신 전해드릴 수 있도록, 가족이 운영하는 작은 사업입니다.<br><br>
-      한 분, 한 분의 안부가 정성스럽게 닿을 수 있게 — 30년이 지나도 같은 마음입니다.
-    </div>
-
-    <div class="story-divider hidden"></div>
-
+  <!-- 잘 전했습니다 — 배송 직후 도착 사진. 사진은 자동으로 넘어가고(손으로도 넘길 수 있음),
+       관리자(/admin-home)에서 올린 사진이 있으면 그걸로 교체된다. -->
+  <section class="reviews-sect home-sect">
     <div class="reviews-wrap">
       <div class="reviews-label">REVIEWS</div>
       <div class="reviews-title">잘 전했습니다</div>
@@ -766,6 +748,18 @@
           <div class="review-cap">근조 3단 화환 · 노랑 포인트 · 제작 실사진</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- 한 자리에서 33년 — 페이지 맨 아래(대표 사진 포함) -->
+  <section class="story">
+    <img class="hero-photo" src="/photos/hero/대표1.jpg" width="2512" height="1799" fetchpriority="high" decoding="async" alt="꽃안부 대표 꽃 작품 실사진">
+    <div class="story-label">SINCE 1993</div>
+    <div class="story-title">한 자리에서, 33년</div>
+    <div class="story-body">
+      1993년 시흥에서 시작한 작은 꽃집 아마존플라워가, 30년이 지나 "꽃안부"라는 이름으로 안부를 전합니다.<br><br>
+      같은 사장님이 같은 자리에서 꽃을 다뤄왔습니다. 거래처의 부고도, 친구의 청첩장도 — 말로 다 못 하는 마음을 꽃으로 대신 전해드릴 수 있도록, 가족이 운영하는 작은 사업입니다.<br><br>
+      한 분, 한 분의 안부가 정성스럽게 닿을 수 있게 — 30년이 지나도 같은 마음입니다.
     </div>
   </section>
 
@@ -2629,8 +2623,54 @@ document.addEventListener("DOMContentLoaded", function(){
       grid.innerHTML = rows.map(function(v){
         return '<div class="review-card"><img src="'+esc(v.photo_url)+'" alt="'+esc(v.caption||"제작 실사진")+'" loading="lazy" onerror="this.closest(\'.review-card\').style.display=\'none\';"><div class="review-cap">'+esc(v.caption||"")+'</div></div>';
       }).join("");
+      startReviewAuto();   // DB 사진으로 갈아끼운 뒤 다시 자동 넘김 시작
     }).catch(function(){});
 });
+
+// '잘 전했습니다' 사진 자동 넘김.
+// 손으로 넘기는 것도 그대로 되게 기존 가로 스크롤러를 쓰고, 카드를 한 벌 복제해 끝에서 처음으로 티 안 나게 되돌린다.
+// 만지는 동안엔 멈추고(6초 뒤 재개), 다른 탭이면 멈추고, 애니메이션 줄이기 설정이면 아예 안 돈다.
+var reviewTimer = null, reviewResume = null;
+function startReviewAuto(){
+  var grid = document.querySelector(".reviews-grid");
+  if(!grid) return;
+  clearInterval(reviewTimer); clearTimeout(reviewResume);
+  grid.classList.remove("auto");
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  var cards = grid.querySelectorAll(".review-card");
+  if(cards.length < 3) return;                      // 두 장 이하면 돌릴 게 없다
+
+  if(!grid.dataset.looped){                          // 무한 루프용 복제(한 번만)
+    grid.insertAdjacentHTML("beforeend", grid.innerHTML);
+    grid.dataset.looped = "1";
+  }
+  grid.classList.add("auto");
+  var half = function(){ return grid.scrollWidth / 2; };
+  var step = function(){
+    var c = grid.querySelector(".review-card");
+    return c ? c.getBoundingClientRect().width + 14 : 240;   // 카드 + gap
+  };
+
+  var tick = function(){
+    if(document.hidden) return;
+    if(grid.scrollLeft >= half() - 2){               // 복제 지점 도달 → 티 안 나게 되감기
+      grid.scrollLeft = grid.scrollLeft - half();
+    }
+    grid.scrollBy({ left: step(), behavior: "smooth" });
+  };
+  reviewTimer = setInterval(tick, 3200);
+
+  var pause = function(){
+    clearInterval(reviewTimer); clearTimeout(reviewResume);
+    grid.classList.remove("auto");                   // 손으로 넘길 땐 스냅 복구
+    reviewResume = setTimeout(startReviewAuto, 6000);
+  };
+  ["pointerdown","touchstart","wheel"].forEach(function(ev){
+    grid.addEventListener(ev, pause, { passive: true });
+  });
+}
+document.addEventListener("DOMContentLoaded", startReviewAuto);
 </script>
 </body>
 </html>
