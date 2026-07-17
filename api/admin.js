@@ -17,7 +17,10 @@ const VALID_PC = new Set(PRODUCTS.map((p) => p.pc));
 const STATUS_ALLOWED = new Set(["판매중", "품절"]);
 const ORDER_STATUS = new Set(["new", "ordered", "delivered"]);
 const CAT_PRODUCT = new Set(["bouquet", "basket", "plant", "orchid", "congrats", "condolence"]);
-const CAT_TOPPING = new Set(["wreath", "orchid", "plant", "basket"]);
+// 옵션도 상품과 같은 카테고리 체계를 쓴다 = products.mjs TOPPINGS_BY_CAT 의 키.
+// ⚠️ 예전엔 ["wreath","orchid","plant","basket"] 이라 화환(congrats/condolence)·꽃다발(bouquet)과
+//    이름이 어긋났고, 그 값이 저장되면 손님 화면 병합에서 해당 옵션이 splice 돼 사라졌다.
+const CAT_TOPPING = CAT_PRODUCT;
 const bandOf = (p) => p < 70000 ? "5만대" : p < 90000 ? "7만대" : p < 100000 ? "9만대" : "10만↑";
 async function nextCustomPc(URL, sb) {                       // 문자정렬 미사용 → CU-1000 채번버그 없음
   const r = await fetch(`${URL}/rest/v1/product_overrides?pc=like.CU-*&select=pc`, { headers: sb });
@@ -370,7 +373,10 @@ export default async function handler(req, res) {
 
   // ─────────────────────── 상품 편집 (기본) ───────────────────────
   const { pc, name, subtitle, description, status, photos, newPhotoBase64 } = body;
-  if (!VALID_PC.has(pc)) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
+  // 정적 106개 + 관리자가 만든 신규상품(CU-). CU-도 여기로 받아야 편집 시트에서 이름·설명·사진·품절을
+  // 고칠 수 있다(예전엔 400 → 만든 상품을 영영 수정 못 했음). 아래 upsert 는 merge-duplicates 라
+  // cat·price·is_custom·active 를 건드리지 않으므로 신규상품 정보가 날아가지 않는다.
+  if (!VALID_PC.has(pc) && !/^CU-\d{4}$/.test(pc || "")) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
 
   let finalPhotos = [];
   if (Array.isArray(photos)) {

@@ -239,10 +239,11 @@ $("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("
 async function loadOverrides(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
   try{
-    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,name,subtitle,description,status,photos`,
+    const r = await fetch(`${SUPA.url}/rest/v1/product_overrides?select=pc,name,subtitle,description,status,photos,price,cat,sub,band,is_custom,active`,
       { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
     if(!r.ok) return;
-    for(const o of (await r.json())||[]){
+    const rows = (await r.json())||[];
+    for(const o of rows){
       overrides[o.pc] = o;
       const p = PRODUCTS.find(x=>x.pc===o.pc); if(!p) continue;
       if(o.name!=null) p.name = o.name;
@@ -250,6 +251,18 @@ async function loadOverrides(){
       if(o.description!=null) p.description = o.description;
       if(o.status!=null) p.status = o.status;
       if(Array.isArray(o.photos)&&o.photos.length) p.photos = o.photos.slice();
+    }
+    // 새로 만든 상품(CU-)은 정적 목록에 없어 위 루프가 건너뛴다. 합성해서 넣지 않으면
+    // 손님 화면엔 팔리고 있는데 관리자 목록에선 사라져 수정·품절·삭제가 아예 불가능해진다.
+    // (catalog.html 의 합성 로직과 같은 기준: is_custom + active + 가격 있음)
+    const known = new Set(PRODUCTS.map(p=>p.pc));
+    for(const o of rows){
+      if(o.is_custom && o.active && o.price!=null && !known.has(o.pc)){
+        PRODUCTS.push({ pc:o.pc, cat:o.cat, sub:o.sub||"", name:o.name||"", subtitle:o.subtitle||"",
+          description:o.description||"", price:o.price, band:o.band||"", grade:null, size:null,
+          status:o.status||"판매중", photos:Array.isArray(o.photos)?o.photos.slice():[] });
+        known.add(o.pc);
+      }
     }
   }catch(e){}
   render();
@@ -479,16 +492,27 @@ async function createProduct(){
 }
 
 // ── 옵션(토핑) 가격 (#5) ──
-const STATIC_TOPPINGS=[
-  {code:"top_rice",nm:"쌀 10kg 얹기",price:20000},{code:"top_ribbon",nm:"금박 고급 리본",price:10000},
-  {code:"top_pot",nm:"도자기 분 업그레이드",price:20000},{code:"top_plaque",nm:"나무 명패",price:10000},
-  {code:"top_wheel",nm:"바퀴 화분받침",price:15000},{code:"top_lush_p1",nm:"조금 더 크게",price:20000},
-  {code:"top_lush_p2",nm:"프리미엄",price:30000},{code:"top_lush_b1",nm:"프리미엄",price:20000},
-  {code:"top_lush_b2",nm:"프리미엄특",price:40000},{code:"top_wine",nm:"와인 동봉",price:30000},
-  {code:"top_card",nm:"손글씨 카드",price:5000},{code:"top_cake",nm:"케이크 소형",price:39000},{code:"top_planting",nm:"추가 식재",price:40000},{code:"top_deliv1",nm:"추가 배송비 (원거리)",price:10000},{code:"top_deliv2",nm:"추가 배송비 (도서·산간)",price:30000},
-];
-const TCATS=[["wreath","화환"],["orchid","난"],["plant","관엽"],["basket","꽃바구니"]];
-const TDEFCAT={top_rice:["wreath"],top_ribbon:["wreath","orchid"],top_pot:["orchid"],top_plaque:["orchid","plant"],top_wheel:["plant"],top_lush_p1:["plant"],top_lush_p2:["plant"],top_lush_b1:["basket"],top_lush_b2:["basket"],top_wine:["basket"],top_card:["basket"],top_cake:["basket"],top_planting:["orchid"],top_deliv1:["wreath"],top_deliv2:["wreath"]};
+// 옵션 목록·카테고리는 products.js(window.TOPPINGS / TOPPINGS_BY_CAT) 단일 소스에서 파생한다.
+// ⚠️ 예전엔 여기 손으로 복사해뒀는데 원장이 바뀌자 조용히 갈라졌다(top_more 누락 + 손님에겐
+//    안 보이는 유령 옵션이 목록에 뜸). 카테고리 이름도 손님 화면과 달라서(wreath ↔ congrats/
+//    condolence) 저장 한 번에 손님 화면에서 옵션이 splice 되던 버그의 원인이었다.
+const TOPSRC = window.TOPPINGS || {};
+const BYCAT = window.TOPPINGS_BY_CAT || {};
+const TCAT_LABEL = { congrats:"축하화환", condolence:"근조화환", orchid:"난", plant:"관엽", bouquet:"꽃다발", basket:"꽃바구니" };
+const TCATS = Object.keys(BYCAT).map(k => [k, TCAT_LABEL[k] || k]);
+// 옛 키(화환 하나로 묶여 있던 시절) → 손님 화면 키로 승격. DB에 남아 있어도 저장 때 교정된다.
+const LEGACY_CAT = { wreath:["congrats","condolence"], bouquet:["bouquet"] };
+// 이 옵션이 지금 손님 화면 어디에 붙어 있는지를 역산한다(하드코딩 기본값 대신 실제 노출 기준).
+function catsOf(code){ return Object.keys(BYCAT).filter(c => (BYCAT[c]||[]).includes(code)); }
+function normCats(cats){
+  if(!Array.isArray(cats)) return null;
+  const out=new Set();
+  for(const c of cats){
+    if(BYCAT[c]) out.add(c);
+    else if(LEGACY_CAT[c]) LEGACY_CAT[c].forEach(x=>{ if(BYCAT[x]) out.add(x); });
+  }
+  return out.size ? [...out] : null;
+}
 let DBTOP={};
 async function openToppings(){
   $("tCats").innerHTML=TCATS.map(([k,l])=>`<label style="font-size:14px;"><input type="checkbox" class="tcat" value="${k}"> ${l}</label>`).join("");
@@ -502,20 +526,29 @@ async function openToppings(){
 }
 function closeTop(){ $("topSheet").classList.remove("open"); document.body.style.overflow=""; }
 function renderTopList(){
-  const merged={}; for(const t of STATIC_TOPPINGS) merged[t.code]={code:t.code,nm:t.nm,price:t.price,src:"기본"};
+  const merged={};
+  for(const code in TOPSRC){ const t=TOPSRC[code]; merged[code]={code,nm:t.nm,price:t.price,src:"기본"}; }
   for(const c in DBTOP){ const t=DBTOP[c]; merged[c]={code:c,nm:t.nm||(merged[c]&&merged[c].nm)||c,price:t.price,src:merged[c]?"수정됨":"신규"}; }
-  $("topList").innerHTML=Object.values(merged).map(t=>`
+  $("topList").innerHTML=Object.values(merged).map(t=>{
+    // 어디에 보이는지 = 손님 화면 기준. 안 보이는 옵션 가격을 고치는 헛수고를 막는다.
+    const cats = normCats(DBTOP[t.code]&&DBTOP[t.code].cats) || catsOf(t.code);
+    const where = cats.length ? cats.map(c=>TCAT_LABEL[c]||c).join("·") : "손님에게 안 보이는 옵션";
+    const wcol = cats.length ? "var(--ink-faint)" : "var(--danger)";
+    return `
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-      <div style="flex:1;font-size:13px;">${esc(t.nm)} <span style="color:var(--ink-faint);font-size:11px;">${t.src}</span></div>
+      <div style="flex:1;font-size:13px;">${esc(t.nm)} <span style="color:var(--ink-faint);font-size:11px;">${t.src}</span><br><span style="color:${wcol};font-size:11px;">${esc(where)}</span></div>
       <input type="text" inputmode="numeric" value="${t.price}" id="tp_${esc(t.code)}" style="width:88px;font-size:14px;padding:8px;border:1px solid var(--line);border-radius:6px;background:#fcfbf8;font-family:inherit;text-align:right;">
       <button onclick="saveTop('${esc(t.code)}','${esc(t.nm)}')" style="padding:8px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">저장</button>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 async function saveTop(code, nm){
   const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
   const price=parseInt(($("tp_"+code).value||"").replace(/[^0-9]/g,""),10);
   if(!(price>=0)) return toast("가격을 확인해주세요.","err");
-  const cats=(DBTOP[code]&&DBTOP[code].cats)||TDEFCAT[code]||[];
+  // 이미 DB에 있으면 그 값(옛 키는 교정), 없으면 손님 화면에 실제로 붙어 있는 자리를 그대로 유지.
+  // 여기가 틀리면 저장하는 순간 손님 화면에서 그 옵션이 사라진다.
+  const cats = normCats(DBTOP[code]&&DBTOP[code].cats) || catsOf(code);
   try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,price,nm,cats})});
     const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
     DBTOP[code]=d.item||{code,price,nm,cats}; renderTopList(); toast("옵션 가격 저장 ✓");
@@ -529,8 +562,10 @@ async function saveNewTopping(){
   if(!(price>=0)) return toast("가격을 입력해주세요.","err");
   if(!cats.length) return toast("어디에 보일지 하나 이상 선택해주세요.","err");
   const code="top_"+Date.now().toString(36);
+  // sort를 안 보내면 서버가 0으로 저장해서 새 옵션이 손님 화면 맨 앞에 끼어든다 → 기존 뒤로.
+  const sort = Math.max(0, ...Object.values(DBTOP).map(t=>+t.sort||0)) + 1;
   $("tBtn").disabled=true; $("tBtn").textContent="추가 중…";
-  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,nm,price,cats})});
+  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,nm,price,cats,sort})});
     const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
     DBTOP[code]=d.item||{code,nm,price,cats}; $("tNm").value=""; $("tPrice").value=""; document.querySelectorAll(".tcat:checked").forEach(c=>c.checked=false); renderTopList(); toast("새 옵션 추가 ✓");
   }catch(e){ toast("❌ "+(e.message||"실패"),"err"); }
