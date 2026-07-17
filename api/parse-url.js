@@ -91,6 +91,52 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "POST 요청만 지원합니다." });
   }
 
+  // ── 사업자등록 상태조회 (국세청 공공데이터 프록시) ──
+  // body: {action:"bizcheck", bizNo:"000-00-00000"}
+  // NTS_API_KEY(공공데이터포털 인증키, Decoding 값) 미설정·API 장애 시 {ok:true,skip:true} — 주문을 막지 않는다(fail-open)
+  {
+    let early = req.body;
+    if (typeof early === "string") { try { early = JSON.parse(early || "{}"); } catch { early = {}; } }
+    if (early && early.action === "bizcheck") {
+      const digits = String(early.bizNo || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(digits)) {
+        return res.status(400).json({ error: "사업자등록번호 10자리가 필요합니다." });
+      }
+      const ntsKey = process.env.NTS_API_KEY;
+      if (!ntsKey) return res.status(200).json({ ok: true, skip: true });
+      try {
+        const enc = ntsKey.includes("%") ? ntsKey : encodeURIComponent(ntsKey);
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000);
+        const r = await fetch(
+          `https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=${enc}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ b_no: [digits] }),
+            signal: ctrl.signal,
+          }
+        );
+        clearTimeout(t);
+        if (!r.ok) return res.status(200).json({ ok: true, skip: true });
+        const j = await r.json();
+        const d = (j.data && j.data[0]) || {};
+        // b_stt_cd: 01 계속 / 02 휴업 / 03 폐업, 미등록이면 빈 값 + tax_type에 안내문
+        const registered = !!d.b_stt_cd;
+        return res.status(200).json({
+          ok: true,
+          registered,
+          status: d.b_stt || (registered ? "" : "미등록"),
+          statusCode: d.b_stt_cd || "",
+          endDate: d.end_dt || "",
+        });
+      } catch (e) {
+        console.error("bizcheck error:", e && e.message);
+        return res.status(200).json({ ok: true, skip: true });
+      }
+    }
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res

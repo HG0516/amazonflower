@@ -678,6 +678,7 @@
       <input type="text" id="corpName" autocomplete="organization" enterkeyhint="next" placeholder="예) (주)KCC · 삼성전자 인사총무팀" oninput="clearErr(this)" />
       <label class="fl">사업자등록번호 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 숫자만 누르셔도 됩니다</span></label>
       <input type="text" id="corpRegNo" placeholder="000-00-00000" inputmode="numeric" maxlength="12" enterkeyhint="next" oninput="formatBizNo(this);clearErr(this)" />
+      <div id="bizStatusNote" class="hidden" style="font-size:var(--fs-caption);font-weight:600;margin:6px 0 2px;"></div>
       <label class="fl">대표자 성함 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택 — 몰라도 됩니다)</span></label>
       <input type="text" id="corpCeo" enterkeyhint="next" placeholder="홍길동" />
       <label class="fl">사업장 주소 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택)</span></label>
@@ -1834,6 +1835,7 @@ async function requestPay(){
     if(!order.corpName){ markErr(document.getElementById("corpName")); return showErr(err,"계산서 발행을 위해 상호(회사명)를 입력해주세요."); }
     if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호를 정확히 입력해주세요. (예: 000-00-00000)"); }
     if(!bizNoValid(order.corpRegNo)){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호가 올바르지 않아요. 숫자를 다시 확인해주세요."); }
+    if(bizCheckState.no===order.corpRegNo.replace(/\D/g,"") && bizCheckState.status==="미등록"){ markErr(document.getElementById("corpRegNo")); return showErr(err,"국세청에 등록되지 않은 사업자등록번호예요. 다시 확인해주세요."); }
     if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)){ markErr(document.getElementById("corpEmail")); return showErr(err,"계산서를 받으실 이메일을 정확히 입력해주세요."); }
     // 검증 통과한 사업자 정보는 이 기기에 저장 — 다음 주문 때 자동 채움
     try{ localStorage.setItem("af_corp", JSON.stringify({name:order.corpName,regNo:order.corpRegNo,ceo:order.corpCeo,addr:order.corpAddr,email:order.corpEmail})); }catch(_e){}
@@ -2044,6 +2046,39 @@ function formatBizNo(el){
   el.value = d.length>5 ? d.slice(0,3)+"-"+d.slice(3,5)+"-"+d.slice(5)
            : d.length>3 ? d.slice(0,3)+"-"+d.slice(3)
            : d;
+  scheduleBizCheck(d);
+}
+
+// 국세청 상태조회 — 10자리+체크섬 통과 시 자동 확인, 결과는 표시용(장애 시 조용히 통과)
+let bizCheckState={no:"",status:""}, bizCheckTimer=null;
+function scheduleBizCheck(digits){
+  const note=document.getElementById("bizStatusNote");
+  clearTimeout(bizCheckTimer);
+  bizCheckState={no:"",status:""};
+  if(note) note.classList.add("hidden");
+  if(digits.length!==10 || !bizNoValid(digits)) return;
+  bizCheckTimer=setTimeout(async()=>{
+    try{
+      const cached=sessionStorage.getItem("af_biz_"+digits);
+      const r=cached ? JSON.parse(cached)
+        : await (await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"bizcheck",bizNo:digits})})).json();
+      if(!cached) try{ sessionStorage.setItem("af_biz_"+digits, JSON.stringify(r)); }catch(_e){}
+      if(!r || r.skip || !r.ok) return;
+      bizCheckState={no:digits,status:r.status||""};
+      if(!note) return;
+      if(r.statusCode==="01"){
+        note.textContent="✓ 국세청 확인 — 정상 사업자입니다.";
+        note.style.color="var(--accent-deep)";
+      }else if(!r.registered){
+        note.textContent="⚠️ 국세청에 등록되지 않은 번호예요. 숫자를 다시 확인해주세요.";
+        note.style.color="#b3261e";
+      }else{
+        note.textContent="⚠️ 국세청 조회 결과 "+r.status+(r.endDate?"("+r.endDate.slice(0,4)+"."+r.endDate.slice(4,6)+"."+r.endDate.slice(6)+")":"")+"로 확인돼요. 계산서 발행이 어려울 수 있으니 번호를 확인해주세요.";
+        note.style.color="#8a6d00";
+      }
+      note.classList.remove("hidden");
+    }catch(_e){}
+  }, 400);
 }
 
 // 사업자등록번호 검증(국세청 체크섬) — 오타로 계산서 발행이 막히는 사고 방지
