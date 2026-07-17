@@ -2,6 +2,8 @@
 // 청첩장/부고 URL 또는 직접 입력 텍스트를 받아 Claude API로 파싱한다.
 // 보안: ANTHROPIC_API_KEY는 이 서버 함수 안에서만 사용된다. 프론트에 절대 노출되지 않는다.
 
+import crypto from "node:crypto";
+
 export const config = {
   runtime: "nodejs",
 };
@@ -143,6 +145,46 @@ export default async function handler(req, res) {
       } catch (e) {
         console.error("corpsearch error:", e && e.message);
         return res.status(200).json({ ok: true, items: [], skip: true });
+      }
+    }
+
+    // ── 거래처 전용 링크 수신 (?corp=<사업자번호>&t=<토큰>) ──
+    // body: {action:"corpinfo", regno, token} → {ok, corp:{name,regno,email,ceo,addr}}
+    // 사장님이 그 거래처에만 준 링크의 서명 토큰이 맞을 때만 응답한다.
+    // (토큰 없이 사업자번호만으로 열면 남의 거래처 담당자 이메일이 새므로 반드시 검증)
+    if (early && early.action === "corpinfo") {
+      const regno = String(early.regno || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "설정이 필요합니다." });
+      const expect = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      const got = String(early.token || "");
+      const a = Buffer.from(got), b = Buffer.from(expect);
+      if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+        return res.status(401).json({ error: "링크가 유효하지 않습니다." });
+      }
+      const URL_ = process.env.SUPABASE_URL, KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!URL_ || !KEY_) return res.status(503).json({ error: "설정이 필요합니다." });
+      try {
+        // 이 거래처의 가장 최근 주문에서 계산서 정보만 꺼낸다(받는분·보내는분 등 다른 주문정보는 절대 반환 안 함).
+        const r = await fetch(
+          `${URL_}/rest/v1/orders?corp_regno=eq.${regno}&select=corp_name,corp_regno,corp_email,corp_ceo,corp_addr&order=created_at.desc&limit=1`,
+          { headers: { apikey: KEY_, Authorization: `Bearer ${KEY_}` } }
+        );
+        if (!r.ok) return res.status(502).json({ error: "거래처 정보를 불러오지 못했습니다." });
+        const rows = await r.json().catch(() => []);
+        if (!rows.length) return res.status(404).json({ error: "이 거래처의 지난 주문을 찾지 못했어요." });
+        const c = rows[0];
+        return res.status(200).json({
+          ok: true,
+          corp: {
+            name: c.corp_name || "", regno: c.corp_regno || regno,
+            email: c.corp_email || "", ceo: c.corp_ceo || "", addr: c.corp_addr || "",
+          },
+        });
+      } catch (e) {
+        console.error("corpinfo error:", e && e.message);
+        return res.status(502).json({ error: "거래처 정보를 불러오지 못했습니다." });
       }
     }
 

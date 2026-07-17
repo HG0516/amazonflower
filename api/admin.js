@@ -275,6 +275,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, url: sd.signedURL ? `${SUPABASE_URL}/storage/v1${sd.signedURL}` : null });
     }
 
+    // 거래처 전용 주문 링크 발급 — 총무팀이 열면 계산서 정보가 채워진 채로 시작한다.
+    if (action === "corplink") {
+      const regno = String(body.regno || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요." });
+      const tok = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      return res.status(200).json({ ok: true, url: `${ORIGIN}/?corp=${regno}&t=${tok}&utm_source=biz` });
+    }
+
     // 배송사진 업로드 링크 발급 — 배달 기사/파트너 화원에게 전달(그 사람이 직접 도착사진 업로드)
     if (action === "link") {
       const oid = String(orderId || "").trim();

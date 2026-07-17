@@ -2468,6 +2468,33 @@ function handleProductParam(){
   scrollTo("prodCard");
 }
 
+// 거래처 전용 주문 링크 (/?corp=<사업자번호>&t=<토큰>)
+// 사장님이 거래처 담당자에게 보낸 링크 — 열면 '법인·계산서'가 켜진 채로 상호·사업자번호·이메일이 채워져 있다.
+// 토큰이 없거나 틀리면 서버가 거절하므로, 사업자번호만 아는 사람이 남의 거래처 정보를 열 수 없다.
+async function handleCorpParam(){
+  const q=new URLSearchParams(location.search);
+  const regno=(q.get("corp")||"").replace(/\D/g,"");
+  const t=q.get("t")||"";
+  if(!/^\d{10}$/.test(regno) || !t) return;
+  try{
+    const r=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action:"corpinfo",regno,token:t})});
+    const d=await r.json();
+    if(!d || !d.ok || !d.corp) return;   // 링크가 낡았거나 지난 주문이 없으면 조용히 일반 주문으로
+    const c=d.corp;
+    // 다음 주문부터는 서버 없이도 채워지도록 이 기기에 저장(기존 자동채움과 같은 저장소)
+    try{ localStorage.setItem("af_corp", JSON.stringify({name:c.name,regNo:c.regno,ceo:c.ceo,addr:c.addr,email:c.email})); }catch(_e){}
+    if(typeof selBuyer==="function") selBuyer("corp");
+    const set=(id,v)=>{ const el=document.getElementById(id); if(el && v) el.value=v; };
+    set("corpName",c.name);
+    const rn=document.getElementById("corpRegNo");
+    if(rn && c.regno){ rn.value=c.regno; if(typeof formatBizNo==="function") formatBizNo(rn); }
+    set("corpCeo",c.ceo); set("corpAddr",c.addr); set("corpEmail",c.email);
+    const note=document.getElementById("corpPrefillNote");
+    if(note){ note.textContent="✓ "+c.name+" 거래처로 확인했어요 — 계산서 정보는 그대로 두시면 됩니다."; note.classList.remove("hidden"); }
+  }catch(_e){}
+}
+
 // 카탈로그 화환 사다리(등급 주문) → 주문 플로우 티어 주문. 단일 기준 = WREATH_TIERS(59/79/99/129).
 // /?worder=funeral|congrats & tier=0..3
 function handleWorderParam(){
@@ -2539,6 +2566,7 @@ handleRedirect();
 renderBest();
 handleProductParam();
 handleWorderParam();
+handleCorpParam();
 handleCatalogParam();
 loadLiveCatalog();  // 신규상품·옵션가격 라이브 병합(정적 먼저 렌더 후 비동기 보강)
 // 푸터/타 페이지의 '법인·단체 주문'(/#corporate) 진입 시 법인 접기를 펼치고 스크롤

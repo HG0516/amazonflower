@@ -227,9 +227,12 @@ function corpHtml(){
 // 거래처 전용 링크 — 총무팀이 열면 상호·사업자번호·이메일이 채워진 채로 시작한다(입력 5칸 → 0칸).
 async function copyCorpLink(regno, btn){
   if(!regno){ toast("사업자번호가 없는 거래처예요.","err"); return; }
-  const url = location.origin + "/?corp=" + encodeURIComponent(regno) + "&utm_source=biz";
-  try{ await navigator.clipboard.writeText(url); toast("링크 복사됨 — 거래처 담당자에게 보내세요 ✓"); btn.textContent="✓ 복사됨"; }
-  catch(e){ prompt("이 링크를 거래처에 보내세요:", url); }
+  const old=btn.textContent; btn.textContent="만드는 중…"; btn.disabled=true;
+  const data = await api({ action:"corplink", regno });
+  btn.disabled=false;
+  if(!data || !data.url){ btn.textContent=old; return; }
+  try{ await navigator.clipboard.writeText(data.url); toast("링크 복사됨 — 거래처 담당자에게 보내세요 ✓"); btn.textContent="✓ 복사됨"; }
+  catch(e){ prompt("이 링크를 거래처에 보내세요:", data.url); btn.textContent=old; }
 }
 
 // ── 통계 ──
