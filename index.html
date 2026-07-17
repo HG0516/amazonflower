@@ -2623,6 +2623,9 @@ document.addEventListener("DOMContentLoaded", function(){
       grid.innerHTML = rows.map(function(v){
         return '<div class="review-card"><img src="'+esc(v.photo_url)+'" alt="'+esc(v.caption||"제작 실사진")+'" loading="lazy" onerror="this.closest(\'.review-card\').style.display=\'none\';"><div class="review-cap">'+esc(v.caption||"")+'</div></div>';
       }).join("");
+      // 사진을 통째로 갈아끼웠으니 복제 표시도 지워야 한다.
+      // (안 지우면 복제를 건너뛰어 루프 기준점이 어긋나고 목록 중간에서 되감긴다)
+      grid.removeAttribute("data-looped");
       startReviewAuto();   // DB 사진으로 갈아끼운 뒤 다시 자동 넘김 시작
     }).catch(function(){});
 });
