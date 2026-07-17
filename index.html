@@ -674,8 +674,9 @@
     <div class="corp-box hidden" id="corpBox">
       <div class="corp-note">계산서 발행을 위해 사업자 정보를 입력해주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 031-314-3003).</div>
       <div class="hidden" id="corpPrefillNote" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;margin:8px 0 2px;">✓ 지난 주문의 사업자 정보를 불러왔어요 — 바뀐 내용이 있으면 수정해주세요.</div>
-      <label class="fl">상호 (회사명) <span class="required-mark">(필수)</span></label>
-      <input type="text" id="corpName" autocomplete="organization" enterkeyhint="next" placeholder="예) (주)KCC · 삼성전자 인사총무팀" oninput="clearErr(this)" />
+      <label class="fl">상호 (회사명) <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 회사명을 치면 사업자번호를 찾아드려요</span></label>
+      <input type="text" id="corpName" autocomplete="organization" enterkeyhint="next" placeholder="예) (주)KCC · 삼성전자 인사총무팀" oninput="clearErr(this);corpSearchInput(this)" />
+      <div id="corpSearchList" class="hidden" style="border:1px solid var(--line);border-radius:var(--radius-sm);margin-top:4px;overflow:hidden;background:var(--paper);"></div>
       <label class="fl">사업자등록번호 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 숫자만 누르셔도 됩니다</span></label>
       <input type="text" id="corpRegNo" placeholder="000-00-00000" inputmode="numeric" maxlength="12" enterkeyhint="next" oninput="formatBizNo(this);clearErr(this)" />
       <div id="bizStatusNote" class="hidden" style="font-size:var(--fs-caption);font-weight:600;margin:6px 0 2px;"></div>
@@ -2038,6 +2039,41 @@ function selBuyer(type){
       }
     }catch(_e){}
   }
+}
+
+// 상호 검색 자동완성 — 금융위 법인 DB(서버 프록시). 못 찾으면 그냥 직접 입력하면 됨.
+let corpSearchTimer=null, corpSearchSeq=0;
+function corpSearchInput(el){
+  const list=document.getElementById("corpSearchList");
+  clearTimeout(corpSearchTimer);
+  const q=el.value.trim();
+  if(q.length<2){ if(list) list.classList.add("hidden"); return; }
+  corpSearchTimer=setTimeout(async()=>{
+    const seq=++corpSearchSeq;
+    try{
+      const r=await (await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"corpsearch",q})})).json();
+      if(seq!==corpSearchSeq || !list) return; // 최신 입력만 반영
+      if(!r || !r.ok || !r.items || !r.items.length){ list.classList.add("hidden"); return; }
+      const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      list.innerHTML=r.items.map((it,i)=>
+        `<button type="button" onclick="pickCorp(${i})" style="display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line-soft);padding:11px 13px;cursor:pointer;font-family:inherit;">
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">${esc(it.name)}</div>
+          <div style="font-size:var(--fs-caption);color:var(--ink-faint);margin-top:2px;">${esc(it.addr||"주소 정보 없음")}</div>
+        </button>`).join("")
+        +`<div style="padding:8px 13px;font-size:var(--fs-caption);color:var(--ink-faint);">찾는 회사가 없으면 그냥 직접 입력하세요</div>`;
+      window.__corpItems=r.items;
+      list.classList.remove("hidden");
+    }catch(_e){ if(list) list.classList.add("hidden"); }
+  },450);
+}
+function pickCorp(i){
+  const it=(window.__corpItems||[])[i]; if(!it) return;
+  document.getElementById("corpName").value=it.name;
+  const rn=document.getElementById("corpRegNo");
+  rn.value=it.bzno; formatBizNo(rn); // 하이픈 + 국세청 상태조회까지 자동
+  if(it.addr && !document.getElementById("corpAddr").value) document.getElementById("corpAddr").value=it.addr;
+  document.getElementById("corpSearchList").classList.add("hidden");
+  document.getElementById("corpEmail").focus();
 }
 
 // 사업자등록번호 000-00-00000 자동 하이픈

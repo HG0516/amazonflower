@@ -97,6 +97,41 @@ export default async function handler(req, res) {
   {
     let early = req.body;
     if (typeof early === "string") { try { early = JSON.parse(early || "{}"); } catch { early = {}; } }
+    // ── 법인 상호 검색 (금융위 기업기본정보 프록시) ──
+    // body: {action:"corpsearch", q:"회사명"} → {ok, items:[{name,bzno,addr}]}
+    // 커버리지=법인(외감+비외감). 실패·미설정 시 빈 목록(fail-open) — 폼은 수기 입력 폴백 유지.
+    if (early && early.action === "corpsearch") {
+      const q = String(early.q || "").trim().slice(0, 40);
+      if (q.length < 2) return res.status(200).json({ ok: true, items: [] });
+      const ntsKey = process.env.NTS_API_KEY;
+      if (!ntsKey) return res.status(200).json({ ok: true, items: [], skip: true });
+      try {
+        const enc = ntsKey.includes("%") ? ntsKey : encodeURIComponent(ntsKey);
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4500);
+        const r = await fetch(
+          `https://apis.data.go.kr/1160100/service/GetCorpBasicInfoService_V2/getCorpOutline_V2?serviceKey=${enc}&pageNo=1&numOfRows=8&resultType=json&corpNm=${encodeURIComponent(q)}`,
+          { signal: ctrl.signal }
+        );
+        clearTimeout(t);
+        if (!r.ok) return res.status(200).json({ ok: true, items: [], skip: true });
+        const j = await r.json();
+        const raw = j?.response?.body?.items?.item || [];
+        const items = (Array.isArray(raw) ? raw : [raw])
+          .filter((it) => it && /^\d{10}$/.test(String(it.bzno || "")))
+          .slice(0, 6)
+          .map((it) => ({
+            name: String(it.corpNm || "").slice(0, 60),
+            bzno: String(it.bzno),
+            addr: String(it.enpBsadr || "").slice(0, 80),
+          }));
+        return res.status(200).json({ ok: true, items });
+      } catch (e) {
+        console.error("corpsearch error:", e && e.message);
+        return res.status(200).json({ ok: true, items: [], skip: true });
+      }
+    }
+
     if (early && early.action === "bizcheck") {
       const digits = String(early.bizNo || "").replace(/\D/g, "");
       if (!/^\d{10}$/.test(digits)) {
