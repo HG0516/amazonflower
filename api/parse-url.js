@@ -125,11 +125,20 @@ export default async function handler(req, res) {
           if (!cur || (!cur.enpBsadr && it.enpBsadr)) byBzno.set(it.bzno, it);
           if (byBzno.size >= 24) break;
         }
-        const items = [...byBzno.values()].slice(0, 6).map((it) => ({
-          name: String(it.corpNm || "").slice(0, 60),
-          bzno: String(it.bzno),
-          addr: String(it.enpBsadr || "").slice(0, 80),
-        }));
+        // 찾는 회사가 맨 위로: 검색어로 시작하는 이름 우선 → 이름 짧은 순(본사가 지점·판매점보다 짧다)
+        const nq = q.replace(/\s+/g, "");
+        const items = [...byBzno.values()]
+          .map((it) => ({
+            name: String(it.corpNm || "").replace(/\s+/g, " ").trim().slice(0, 60),
+            bzno: String(it.bzno),
+            addr: String(it.enpBsadr || "").replace(/\s+/g, " ").trim().slice(0, 80),
+          }))
+          .sort((a, b) => {
+            const pa = a.name.replace(/\s+/g, "").startsWith(nq) ? 0 : 1;
+            const pb = b.name.replace(/\s+/g, "").startsWith(nq) ? 0 : 1;
+            return pa - pb || a.name.length - b.name.length;
+          })
+          .slice(0, 6);
         return res.status(200).json({ ok: true, items });
       } catch (e) {
         console.error("corpsearch error:", e && e.message);
