@@ -12,6 +12,31 @@ function safeEq(a, b) {
   return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
 }
 
+// 처리 결과를 단톡방에 돌려준다 — 사장님 두 분과 함께 쓰는 방이라, 버튼을 누른 사람 말고
+// 나머지도 "이미 챙겼구나"를 알아야 거래처에 두 번 발주가 나가지 않는다.
+// (check-deadlines.js 의 sendTelegram 과 같은 방식. 실패해도 발주 처리 자체는 성공으로 둔다.)
+async function sendTelegram(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+  const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: tag + text, disable_web_page_preview: true }),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+function kstHm() {
+  const d = new Date(Date.now() + 9 * 3600000);
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+}
+
 function page(res, ok, title, sub) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.status(ok ? 200 : 400).send(
@@ -116,8 +141,9 @@ export default async function handler(req, res) {
   if (!SUPABASE_URL || !SERVICE_KEY) return page(res, false, "서버 설정 오류", "Supabase 환경변수가 없습니다.");
 
   try {
-    // 취소(환불)된 주문은 되살리지 않는다 — status=neq.canceled 가드 + 갱신행 확인
-    const guard = `order_id=eq.${encodeURIComponent(id)}&status=neq.canceled`;
+    // 아직 발주 전(new)인 주문만 갱신한다 — 취소된 주문을 되살리지 않고,
+    // 이미 처리된 주문을 다시 눌러도 단톡방에 회신이 두 번 가지 않는다(사장님 두 분이 같은 방에서 누른다).
+    const guard = `order_id=eq.${encodeURIComponent(id)}&status=eq.new`;
     const hdrs = {
       apikey: SERVICE_KEY,
       Authorization: `Bearer ${SERVICE_KEY}`,
@@ -138,10 +164,34 @@ export default async function handler(req, res) {
       if (!r2.ok) return page(res, false, "처리 실패", "잠시 후 다시 시도해주세요.");
       updated = await r2.json().catch(() => null);
     }
+    // 갱신된 행이 없다 = new 가 아니었다. 왜인지 알려줘야 "왜 안 되지?" 하고 다시 누르지 않는다.
     if (Array.isArray(updated) && updated.length === 0) {
-      return page(res, false, "처리할 수 없는 주문이에요.", "이미 취소(환불)됐거나 없는 주문입니다.");
+      let cur = null;
+      try {
+        const q = await fetch(
+          `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(id)}&select=status,ordered_at&limit=1`,
+          { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+        );
+        if (q.ok) cur = ((await q.json().catch(() => [])) || [])[0] || null;
+      } catch {}
+      const st = cur && cur.status;
+      if (st === "ordered") {
+        const at = cur.ordered_at ? new Date(new Date(cur.ordered_at).getTime() + 9 * 3600000) : null;
+        const atStr = at ? `${String(at.getUTCHours()).padStart(2, "0")}:${String(at.getUTCMinutes()).padStart(2, "0")}에 ` : "";
+        return page(res, true, "이미 발주 완료된 주문이에요.", `${atStr}처리됐어요. 다시 누르지 않으셔도 됩니다.`);
+      }
+      if (st === "delivered") return page(res, true, "이미 배송완료된 주문이에요.", "다시 처리할 필요 없어요.");
+      if (st === "canceled") return page(res, false, "취소(환불)된 주문이에요.", "발주하지 마세요.");
+      return page(res, false, "처리할 수 없는 주문이에요.", "없는 주문번호입니다.");
     }
-    return page(res, true, "발주 확인 완료!", "이 주문은 챙긴 것으로 표시했어요. 마감 경고가 더 오지 않습니다.");
+
+    // 방에 있는 나머지 분들께 "이건 챙겼다"를 알린다 (중복 발주 방지). 실패해도 처리는 완료로 둔다.
+    const o = (Array.isArray(updated) && updated[0]) || null;
+    const what = o ? (o.product_label || o.product_code || "주문") : "주문";
+    const to = o && o.recipient_name ? ` · 받는분 ${o.recipient_name}` : "";
+    await sendTelegram(`✅ 발주 완료 처리 — ${kstHm()}\n${what}${to}\n${id}`);
+
+    return page(res, true, "발주 확인 완료!", "챙긴 것으로 표시하고 단톡방에도 알렸어요. 마감 경고가 더 오지 않습니다.");
   } catch (e) {
     return page(res, false, "오류가 발생했습니다.", "잠시 후 다시 시도해주세요.");
   }
