@@ -8,9 +8,29 @@
 //   입력 정화, JPEG 매직바이트, CORS 자기 도메인. orders 는 개인정보라 service_role 로만 조회.
 
 import crypto from "node:crypto";
-import { PRODUCTS } from "../products.mjs";
+import { PRODUCTS, TOPPINGS } from "../products.mjs";
 
 export const config = { runtime: "nodejs" };
+
+// ── 변경 알림 ──
+// 사장님이 상품·옵션·사진을 바꾸면 단톡방에 남긴다. 손님에게 보이는 것이 바뀌는데
+// 아무도 모르는 상태를 없애기 위한 것 — 감사 흔적 겸 "이거 누가 바꿨지?"의 답.
+// 실패해도 작업 자체는 성공으로 둔다(알림 때문에 저장이 막히면 안 된다). env 없으면 생략.
+async function notifyChange(text) {
+  const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
+  if (!tg || !tgc) return;
+  const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  try {
+    await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: tgc, text: tag + text, disable_web_page_preview: true }),
+    });
+  } catch { /* 알림 실패는 무시 */ }
+}
+const won = (n) => `${Number(n || 0).toLocaleString()}원`;
+const CAT_LABEL = { congrats: "축하화환", condolence: "근조화환", orchid: "난", plant: "관엽", bouquet: "꽃다발", basket: "꽃바구니" };
+const catNames = (cats) => (Array.isArray(cats) && cats.length ? cats.map((c) => CAT_LABEL[c] || c).join("·") : "어디에도 안 보임");
 
 const ORIGIN = "https://amazonflower.vercel.app";
 const VALID_PC = new Set(PRODUCTS.map((p) => p.pc));
@@ -114,9 +134,12 @@ export default async function handler(req, res) {
     if (act === "delete") {                                    // 소프트삭제만(하드삭제 금지 → pc 재사용 없음)
       if (!/^CU-\d{4}$/.test(body.pc || "")) return res.status(400).json({ error: "상품 코드가 올바르지 않습니다." });
       const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides?pc=eq.${encodeURIComponent(body.pc)}`, {
-        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" },
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
         body: JSON.stringify({ active: false, updated_at: new Date().toISOString() }) });
-      return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true } : { error: "삭제에 실패했습니다." });
+      if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
+      const gone = ((await r.json().catch(() => [])) || [])[0];
+      await notifyChange(`🗑 상품 내림 — ${gone?.name || body.pc} (${body.pc})\n손님 화면에서 사라집니다`);
+      return res.status(200).json({ ok: true });
     }
     if (!CAT_PRODUCT.has(body.cat)) return res.status(400).json({ error: "카테고리가 올바르지 않습니다." });
     const price = parseInt(body.price, 10);
@@ -140,13 +163,17 @@ export default async function handler(req, res) {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides?pc=eq.${encodeURIComponent(body.pc)}`, {
         method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
       if (!r.ok) return res.status(502).json({ error: "수정에 실패했습니다." });
+      await notifyChange(`📦 상품 수정 — ${nm} (${body.pc})\n${won(price)} · ${CAT_LABEL[body.cat] || body.cat} · ${row.status}`);
       return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
     }
     for (let i = 0; i < 5; i++) {                              // 채번 경쟁 → PK 409 재시도
       row.pc = await nextCustomPc(SUPABASE_URL, sb);
       const r = await fetch(`${SUPABASE_URL}/rest/v1/product_overrides`, {
         method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
-      if (r.ok) return res.status(200).json({ ok: true, pc: row.pc, item: (await r.json().catch(() => []))[0] });
+      if (r.ok) {
+        await notifyChange(`🆕 새 상품 — ${nm} (${row.pc})\n${won(price)} · ${CAT_LABEL[body.cat] || body.cat} · ${row.status}\n손님 화면에 바로 올라갑니다`);
+        return res.status(200).json({ ok: true, pc: row.pc, item: (await r.json().catch(() => []))[0] });
+      }
       if (r.status !== 409) { console.error("product create", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상품 생성에 실패했습니다." }); }
     }
     return res.status(500).json({ error: "코드 발급 재시도 초과. 다시 시도해주세요." });
@@ -163,6 +190,13 @@ export default async function handler(req, res) {
     const price = parseInt(body.price, 10);
     if (!(Number.isInteger(price) && price >= 0 && price <= 1000000)) return res.status(400).json({ error: "옵션 가격이 올바르지 않습니다." });
     const cats = Array.isArray(body.cats) ? body.cats.filter((c) => CAT_TOPPING.has(c)) : [];
+    // "얼마에서 얼마로" 를 알림에 싣기 위해 이전 가격을 먼저 읽는다.
+    // DB에 없으면 지금 손님에게 적용 중인 값은 정적 원장(products.mjs)의 가격이다.
+    let prevPrice = TOPPINGS[code] ? TOPPINGS[code].price : null;
+    try {
+      const pr = await fetch(`${SUPABASE_URL}/rest/v1/topping_overrides?code=eq.${encodeURIComponent(code)}&select=price&limit=1`, { headers: sb });
+      if (pr.ok) { const rows = await pr.json().catch(() => []); if (rows[0] && rows[0].price != null) prevPrice = rows[0].price; }
+    } catch { /* 못 읽으면 정적 가격을 이전값으로 본다 */ }
     const row = {
       code, price, nm: clean(body.nm, 40) || null, d: clean(body.d, 120) || null,
       grp: body.grp ? clean(body.grp, 20) : null, cats, active: body.active !== false,
@@ -171,6 +205,13 @@ export default async function handler(req, res) {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/topping_overrides?on_conflict=code`, {
       method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" }, body: JSON.stringify(row) });
     if (!r.ok) return res.status(502).json({ error: "옵션 저장에 실패했습니다." });
+    const tnm = row.nm || (TOPPINGS[code] && TOPPINGS[code].nm) || code;
+    const isNew = !TOPPINGS[code] && prevPrice == null;
+    await notifyChange(
+      (isNew ? `🆕 새 옵션 — ${tnm} ${won(price)}` : `⚙️ 옵션 가격 바뀜 — ${tnm}\n${prevPrice != null && prevPrice !== price ? `${won(prevPrice)} → ${won(price)}` : `${won(price)} (금액 그대로)`}`)
+      + `\n${catNames(cats)}에 표시`
+      + (row.active === false ? "\n⛔ 숨김 상태" : "")
+    );
     return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
   }
 
@@ -260,6 +301,16 @@ export default async function handler(req, res) {
       if (!r.ok) { console.error("order status fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상태 변경에 실패했습니다." }); }
       const updated = await r.json().catch(() => []);
       if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소(환불)된 주문이라 상태를 바꿀 수 없어요." });
+      // 텔레그램 버튼(order-confirm.js)으로 처리하면 방에 회신이 가는데, 관리 화면에서 바꾸면
+      // 아무 흔적이 없어 나머지 두 분은 모른다 → 같은 문구로 맞춰준다(중복 발주 방지).
+      const o = updated[0] || {};
+      const LBL = { new: "접수(발주 전)로 되돌림", ordered: "발주 완료 처리", delivered: "배송완료 처리" };
+      const EMO = { new: "↩️", ordered: "✅", delivered: "🚚" };
+      await notifyChange(
+        `${EMO[status] || "📋"} ${LBL[status] || status} — 관리 화면`
+        + `\n${o.product_label || o.product_code || "주문"}${o.recipient_name ? ` · 받는분 ${o.recipient_name}` : ""}`
+        + `\n${orderId}`
+      );
       return res.status(200).json({ ok: true });
     }
 
@@ -311,8 +362,16 @@ export default async function handler(req, res) {
     const { action } = body;
     if (action === "delete") {
       if (!/^[0-9a-f-]{36}$/i.test(body.id || "")) return res.status(400).json({ error: "id가 올바르지 않습니다." });
+      // 무엇을 지웠는지 알림에 담으려면 지우기 전에 읽어야 한다(지운 뒤엔 알 길이 없다).
+      let gnm = "";
+      try {
+        const q = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?id=eq.${body.id}&select=name&limit=1`, { headers: sb });
+        if (q.ok) gnm = ((((await q.json().catch(() => [])) || [])[0]) || {}).name || "";
+      } catch { /* 이름 못 읽어도 삭제는 진행 */ }
       const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?id=eq.${body.id}`, { method: "DELETE", headers: sb });
-      return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true } : { error: "삭제에 실패했습니다." });
+      if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
+      await notifyChange(`🗑 갤러리 사진 삭제 — ${gnm || "이름 없음"}\n되돌릴 수 없어요`);
+      return res.status(200).json({ ok: true });
     }
     if (action === "save") {
       if (!/^[0-9a-f-]{36}$/i.test(body.id || "")) return res.status(400).json({ error: "id가 올바르지 않습니다." });
@@ -320,8 +379,14 @@ export default async function handler(req, res) {
       if (typeof body.visible === "boolean") patch.visible = body.visible;
       if (body.sort != null && Number.isFinite(+body.sort)) patch.sort = Math.max(0, Math.min(99999, parseInt(body.sort, 10)));
       const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?id=eq.${body.id}`, {
-        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(patch) });
-      return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true } : { error: "저장에 실패했습니다." });
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(patch) });
+      if (!r.ok) return res.status(502).json({ error: "저장에 실패했습니다." });
+      // 순서(▲▼)는 알리지 않는다 — 한 번 정리할 때마다 알림이 쏟아진다. 손님에게 보이고 안 보이고만 알린다.
+      if (typeof body.visible === "boolean") {
+        const g = ((await r.json().catch(() => [])) || [])[0];
+        await notifyChange(`🖼 갤러리 사진 ${body.visible ? "다시 보임" : "숨김"} — ${g?.name || "이름 없음"}`);
+      }
+      return res.status(200).json({ ok: true });
     }
     const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?select=id,category,name,sub,photo_url,visible,sort&order=sort.asc,created_at.desc`, { headers: sb });
     return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true, items: await r.json().catch(() => []) } : { error: "불러오지 못했습니다." });
@@ -343,14 +408,22 @@ export default async function handler(req, res) {
       });
       if (!r.ok) { console.error("review insert fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "저장에 실패했습니다." }); }
       const rows = await r.json().catch(() => []);
+      await notifyChange(`🏠 홈 사진 추가${cap ? ` — ${cap}` : ""}${cat ? ` (${CAT_LABEL[cat] || cat})` : ""}`);
       return res.status(200).json({ ok: true, item: Array.isArray(rows) ? rows[0] : rows });
     }
     if (action === "save" || action === "delete") {
       const id = String(body.id || "");
       if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: "id가 올바르지 않습니다." });
       if (action === "delete") {
+        // 지운 뒤엔 무엇이었는지 알 수 없으므로 먼저 읽는다
+        let rcap = "";
+        try {
+          const q = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews?id=eq.${id}&select=caption&limit=1`, { headers: sb });
+          if (q.ok) rcap = ((((await q.json().catch(() => [])) || [])[0]) || {}).caption || "";
+        } catch { /* 이름 못 읽어도 삭제는 진행 */ }
         const r = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews?id=eq.${id}`, { method: "DELETE", headers: sb });
         if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
+        await notifyChange(`🗑 홈 사진 삭제${rcap ? ` — ${rcap}` : ""}\n되돌릴 수 없어요`);
         return res.status(200).json({ ok: true });
       }
       const patch = {};
@@ -362,6 +435,8 @@ export default async function handler(req, res) {
         body: JSON.stringify(patch),
       });
       if (!r.ok) return res.status(502).json({ error: "저장에 실패했습니다." });
+      // 순서는 알리지 않는다(▲▼ 연타 = 알림 폭탄). 보임/숨김만.
+      if (typeof body.visible === "boolean") await notifyChange(`🏠 홈 사진 ${body.visible ? "다시 보임" : "숨김"}`);
       return res.status(200).json({ ok: true });
     }
     // 목록 (기본): 숨김 포함 전체 (관리자용)
@@ -421,5 +496,14 @@ export default async function handler(req, res) {
   });
   if (!r.ok) { console.error("override upsert fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "저장에 실패했습니다. 다시 시도해주세요." }); }
   const rows = await r.json().catch(() => []);
-  return res.status(200).json({ ok: true, item: Array.isArray(rows) ? rows[0] : rows });
+  const saved = Array.isArray(rows) ? rows[0] : rows;
+  const staticName = (PRODUCTS.find((p) => p.pc === pc) || {}).name;
+  const bits = [];
+  if (newPhotoBase64) bits.push("사진 추가");
+  if (row.status) bits.push(row.status);
+  await notifyChange(
+    `✏️ 상품 정보 수정 — ${row.name || staticName || pc} (${pc})`
+    + (bits.length ? `\n${bits.join(" · ")}` : "")
+  );
+  return res.status(200).json({ ok: true, item: saved });
 }
