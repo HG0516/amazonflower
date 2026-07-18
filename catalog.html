@@ -165,6 +165,20 @@
   .gempty { text-align: center; color: var(--ink-faint); font-size: 14px; padding: 36px 0; }
   @media (max-width: 480px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
 
+  /* 다른 종류 둘러보기(크로스셀) — '보유 종류 둘러보기' 대체 */
+  .crosscat { margin-top: 34px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .crosscat-head { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+  .crosscat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .ccx-card { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--paper); cursor: pointer; padding: 0; font-family: inherit; text-align: center; transition: border-color var(--dur-fast), transform .05s; display: flex; flex-direction: column; }
+  .ccx-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(31,29,24,.08); }
+  .ccx-card:active { transform: scale(0.98); }
+  .ccx-ph { aspect-ratio: 4/3; background: var(--photo-bg); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .ccx-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ccx-em { font-size: 34px; }
+  .ccx-nm { font-size: 14px; font-weight: 700; color: var(--ink); padding: 9px 6px 2px; }
+  .ccx-cnt { font-size: var(--fs-caption); color: var(--accent); font-weight: 700; padding: 0 6px 10px; }
+  @media (max-width: 380px) { .crosscat-row { gap: 7px; } .ccx-nm { font-size: 13px; } }
+
   /* 서브탭(꽃다발/꽃바구니, 동양란/서양란) */
   .subtabs { display: flex; gap: 8px; margin: 16px 0 4px; flex-wrap: wrap; }
   .subtabs:empty { display: none; }
@@ -370,7 +384,8 @@
 
   <div id="linkOrderArea"></div>
 
-  <div class="pricing-note"><span class="pn-ic" aria-hidden="true">●</span><span><b>전 품목 정찰제</b> — 표시된 가격 그대로입니다. 거품 없는 가격, 할인·이중가격 표기가 없습니다.</span></div>
+  <!-- 정찰제 배너 제거 — 헤더 부제('전 품목 정찰제 · 법인 계산서·후불 · 전국 당일배송')와 중복이라
+       상품을 밀어내기만 했다(2026-07-18). 신뢰 문구는 헤더에 한 번으로 충분. -->
 
   <div id="catArea"></div>
   <div id="galleryArea"></div>
@@ -676,6 +691,49 @@ function galleryHTML(key, filterSub){
     ${chips}<div class="gallery-grid">${cards}</div></div>`;
 }
 function setGalFilter(key, sub){ galFilter[key]=sub; document.getElementById("galleryArea").innerHTML=galleryHTML(key, sub); }
+// ── 다른 종류 둘러보기(크로스셀) ──
+// 같은 종류를 46장 더 보여주던 '보유 종류 둘러보기'(두 번째 매장)를 대체.
+// 지금 보는 종류를 빼고, 성격이 맞는 다른 종류로 안내한다(발견 + 페이지 단축).
+// ⚠️ 근조화환은 교차추천 없음 — 상중에 축하 종류를 권하지 않는다.
+const CROSS = {
+  basket:     ["plant", "orchid", "congrats"],
+  plant:      ["basket", "orchid", "congrats"],
+  orchid:     ["basket", "plant", "congrats"],
+  congrats:   ["basket", "plant", "orchid"],
+  condolence: [],
+};
+const CAT_EMOJI = { basket:"💐", plant:"🪴", orchid:"🌸", congrats:"🎉", condolence:"🕊️" };
+function catProductsFor(k){
+  const cats = (AXES[k] && AXES[k].cats) || [];
+  return (window.PRODUCTS || []).filter(p => cats.includes(p.cat) && p.status !== "품절");
+}
+function repPhotoFor(k){
+  for(const p of catProductsFor(k)){ if(p.photos && p.photos[0]) return p.photos[0]; }
+  return null;
+}
+function crossCatHTML(key){
+  const others = CROSS[key] || [];
+  if(!others.length) return "";
+  const cards = others.map(k => {
+    const ph = repPhotoFor(k), n = catProductsFor(k).length;
+    const inner = ph
+      ? `<img src="${esc(ph)}" alt="${esc(CAT_TITLE[k]||k)}" loading="lazy">`
+      : `<span class="ccx-em">${CAT_EMOJI[k]||"🌿"}</span>`;
+    return `<button class="ccx-card" onclick="pickCat('${k}')">
+      <div class="ccx-ph">${inner}</div>
+      <div class="ccx-nm">${esc(CAT_TITLE[k]||k)}</div>
+      <div class="ccx-cnt">${n?`${n}종 둘러보기`:"둘러보기"}</div>
+    </button>`;
+  }).join("");
+  return `<div class="crosscat"><div class="crosscat-head">이런 것도 함께 보내보세요</div><div class="crosscat-row">${cards}</div></div>`;
+}
+function pickCat(k){
+  const si = document.getElementById("searchInput"); if(si) si.value="";
+  doSearch("");
+  showCat(k);
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
 // 갤러리/검색 사진 클릭 → 해당 카테고리 가격대로 이동
 function pickFromGallery(key, pc){
   // 사진이 판매상품과 연결돼 있으면(pc) 그 상품 주문으로 바로 — "이 사진 그대로 주문"
@@ -768,9 +826,9 @@ function showCat(key, keepFilter){
     renderSortBar();
     renderProducts();
   }
-  // 화환 탭에는 '보유 종류 둘러보기' 갤러리를 넣지 않는다(사다리표·특별제작으로 충분)
-  const isWreath = (key==="congrats" || key==="condolence");
-  document.getElementById("galleryArea").innerHTML = isWreath ? "" : galleryHTML(key, galFilter[key]||"");
+  // '보유 종류 둘러보기'(같은 종류 46장 = 두 번째 매장) → '다른 종류 둘러보기'(크로스셀)로 교체.
+  // 부모님이 /admin에서 올린 사진과 정적 갤러리는 검색(doSearch의 GAL 매칭)에 그대로 남는다.
+  document.getElementById("galleryArea").innerHTML = crossCatHTML(key);
   showSpecial(key);
   showWedding(key);
 }

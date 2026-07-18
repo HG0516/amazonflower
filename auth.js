@@ -135,7 +135,9 @@
       chip.textContent = (isAdmin(user) ? '🔧 ' : '🌸 ') + shortName(user);
       chip.onclick = openAccountSheet;
     } else {
-      chip.textContent = '로그인';
+      // 혜택(가입 1,000원 적립·기념일 알림)은 이미 라이브인데 칩이 그냥 '로그인'이라 아무도 몰랐다.
+      // 이득을 버튼에 바로 노출 → 가입 유인. 누르면 기존 로그인 모달이 나머지 혜택을 설명.
+      chip.textContent = '🎁 가입 1,000원';
       chip.onclick = openLoginSheet;
     }
     // 페이지(홈 재주문 배너 등)가 로그인 상태 변화에 반응할 수 있게 알림
