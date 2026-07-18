@@ -53,6 +53,24 @@
   .cta{display:flex;align-items:center;justify-content:center;min-height:56px;background:var(--accent);color:#fff;border-radius:var(--radius);padding:14px 16px;font-size:17px;font-weight:700;text-decoration:none;margin-top:18px;}
   .back{display:inline-block;min-height:48px;line-height:48px;margin:16px 0 4px;color:var(--accent);text-decoration:none;font-size:15px;}
   .tag{display:inline-block;background:var(--accent-soft);color:var(--accent-deep);font-size:var(--fs-caption);font-weight:700;padding:4px 10px;border-radius:var(--radius-pill);}
+  /* 예약 상담 폼 */
+  .wedform{display:flex;flex-direction:column;gap:16px;margin-top:6px;}
+  .wf{display:flex;flex-direction:column;gap:7px;}
+  .wf>label{font-size:14px;font-weight:700;color:var(--ink-soft);}
+  .wf>label span{color:var(--danger);}
+  .wf>label em{font-style:normal;font-weight:400;color:var(--ink-faint);font-size:12.5px;}
+  .wf input[type=text],.wf input[type=date],.wf textarea{width:100%;font-size:16px;font-family:inherit;padding:13px 14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink);}
+  .wf input:focus,.wf textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  .wf textarea{resize:vertical;line-height:1.7;}
+  .wchips{display:flex;flex-wrap:wrap;gap:8px;}
+  .wchips label{display:inline-flex;align-items:center;gap:6px;font-size:14px;border:1px solid var(--line);border-radius:var(--radius-pill);padding:9px 14px;background:#fff;cursor:pointer;color:var(--ink-soft);}
+  .wchips label:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep);font-weight:700;}
+  .wchips input{accent-color:var(--accent);width:16px;height:16px;}
+  .wchips.region label{flex:1;justify-content:center;min-width:64px;}
+  .wf input[type=file]{font-size:14px;font-family:inherit;color:var(--ink-soft);}
+  .wnote{font-size:12.5px;color:var(--ink-faint);line-height:1.6;}
+  #wedThumbs{display:flex;gap:8px;flex-wrap:wrap;}
+  #wedThumbs img{width:64px;height:64px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--line);}
 </style>
 </head>
 <body>
@@ -121,12 +139,122 @@
         · 본식 D-1 컨디셔닝 후 당일 새벽 제작해 가장 싱싱한 상태로 전합니다.<br>
         · 날짜·구성 상담은 전화로 편하게 문의해 주세요.
       </div>
-      <a class="cta" href="tel:0313143003">📞 웨딩 부케 예약 문의 · 031-314-3003</a>
-      <p style="text-align:center;font-size:var(--fs-caption);color:var(--ink-faint);margin-top:10px;">※ 온라인 예약(슬롯 캘린더)은 준비 중입니다.</p>
+      <form id="wedForm" class="wedform" onsubmit="return submitWed(event)">
+        <div class="wf"><label>성함 <span>*</span></label><input name="name" type="text" required maxlength="30" placeholder="신부님 또는 예약자 성함" /></div>
+        <div class="wf"><label>연락처 <span>*</span></label><input name="contact" type="text" required maxlength="40" placeholder="전화번호 또는 카카오톡 ID" /></div>
+        <div class="wf"><label>예식(사용) 날짜 <span>*</span></label><input name="date" type="date" required /></div>
+        <div class="wf">
+          <label>지역 <span>*</span> <em>· 수도권만 예약</em></label>
+          <div class="wchips region">
+            <label><input type="radio" name="region" value="서울" required /> 서울</label>
+            <label><input type="radio" name="region" value="경기" /> 경기</label>
+            <label><input type="radio" name="region" value="인천" /> 인천</label>
+            <label><input type="radio" name="region" value="그 외" /> 그 외</label>
+          </div>
+          <p id="regionNote" class="wnote" hidden>웨딩 부케는 수도권(서울·경기·인천)만 예약받아요. 그래도 문의는 남겨주시면 확인 후 연락드릴게요.</p>
+        </div>
+        <div class="wf">
+          <label>필요한 것 <span>*</span> <em>· 복수 선택</em></label>
+          <div class="wchips">
+            <label><input type="checkbox" name="needs" value="본식 부케" /> 본식 부케</label>
+            <label><input type="checkbox" name="needs" value="촬영용 부케" /> 촬영용 부케</label>
+            <label><input type="checkbox" name="needs" value="부토니아·코사지" /> 부토니아·코사지</label>
+            <label><input type="checkbox" name="needs" value="신부 올인원" /> 신부 올인원</label>
+            <label><input type="checkbox" name="needs" value="프리저브드 보존" /> 프리저브드 보존</label>
+          </div>
+        </div>
+        <div class="wf"><label>원하는 구성 · 색감 · 분위기</label><textarea name="style" maxlength="500" rows="3" placeholder="예) 화이트·그린 내추럴, 마트리카리아 데이지 중심, 야외촬영용"></textarea></div>
+        <div class="wf">
+          <label>참고 사진 <em>· 선택 · 최대 3장</em></label>
+          <input id="wedPhotos" type="file" accept="image/jpeg,image/png" multiple onchange="wedPreview()" />
+          <div id="wedThumbs"></div>
+          <p class="wnote">원하는 스타일·무드보드 사진이 있으면 올려주세요.</p>
+        </div>
+        <button type="submit" class="cta" id="wedSubmit" style="width:100%;border:none;cursor:pointer;font-family:inherit;">예약 상담 신청</button>
+        <p id="wedMsg" class="wnote" style="text-align:center;min-height:18px;"></p>
+        <p style="text-align:center;font-size:var(--fs-caption);color:var(--ink-faint);">전화가 편하시면 <a href="tel:0313143003" style="color:var(--accent-deep);font-weight:700;text-decoration:none;">031-314-3003</a> 으로 문의하셔도 돼요.</p>
+      </form>
     </section>
 
     <a class="back" href="/">← 꽃안부 홈으로</a>
   </div>
+<script>
+// 웨딩 예약 상담 폼. 폼 필드는 f.name/f.style 같은 DOM 프로퍼티 충돌을 피해 전부 querySelector로 읽는다.
+// 사진은 캔버스로 축소해서(Vercel 함수 본문 4.5MB 제한) 최대 3장 base64 로 보낸다. 제출은 /api/order-meta.
+(function(){
+  var photosData = [];
+  var fileInput = document.getElementById("wedPhotos");
+  var q = function(sel){ return document.getElementById("wedForm").querySelector(sel); };
+  function setMsg(t, ok){ var m = document.getElementById("wedMsg"); if(!m) return; m.textContent = t || ""; m.style.color = ok ? "var(--accent-deep)" : "var(--danger)"; }
+
+  // 지역 '그 외' 안내
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=region]"), function(r){
+    r.addEventListener("change", function(){ var n = document.getElementById("regionNote"); if(n) n.hidden = (this.value !== "그 외"); });
+  });
+
+  function resizeImg(file, cb){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var max = 1280, w = img.width, h = img.height;
+        if(w > max || h > max){ var s = max / Math.max(w, h); w = Math.round(w*s); h = Math.round(h*s); }
+        var cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+        cv.getContext("2d").drawImage(img, 0, 0, w, h);
+        cb(cv.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = function(){ cb(null); };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  window.wedPreview = function(){
+    var files = Array.prototype.slice.call(fileInput.files, 0, 3);
+    var thumbs = document.getElementById("wedThumbs");
+    thumbs.innerHTML = ""; photosData = [];
+    files.forEach(function(f){
+      resizeImg(f, function(dataUrl){
+        if(!dataUrl) return;
+        photosData.push(dataUrl);
+        var img = document.createElement("img"); img.src = dataUrl; thumbs.appendChild(img);
+      });
+    });
+    setMsg(fileInput.files.length > 3 ? "사진은 최대 3장까지예요. 앞 3장만 올려요." : "", false);
+  };
+
+  window.submitWed = function(e){
+    e.preventDefault();
+    var name = q("input[name=name]").value.trim();
+    var contact = q("input[name=contact]").value.trim();
+    var date = q("input[name=date]").value;
+    var regionEl = q("input[name=region]:checked");
+    var region = regionEl ? regionEl.value : "";
+    var needs = Array.prototype.map.call(document.querySelectorAll("#wedForm input[name=needs]:checked"), function(c){ return c.value; });
+    var style = q("textarea[name=style]").value.trim();
+    if(!name || !contact || !date || !region){ setMsg("별표(*) 항목을 채워주세요.", false); return false; }
+    if(!needs.length){ setMsg("필요한 것을 하나 이상 골라주세요.", false); return false; }
+
+    var btn = document.getElementById("wedSubmit");
+    btn.disabled = true; btn.textContent = "신청 중…"; setMsg("", true);
+    fetch("/api/order-meta", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "wedding", name: name, contact: contact, date: date, region: region, needs: needs, style: style, photos: photosData })
+    }).then(function(r){ return r.json().then(function(d){ return { ok: r.ok, d: d }; }); })
+    .then(function(res){
+      if(!res.ok) throw new Error((res.d && res.d.error) || "접수에 실패했어요.");
+      var form = document.getElementById("wedForm");
+      var safe = contact.replace(/[<>&]/g, "");
+      form.innerHTML = '<div class="note" style="text-align:center;"><div style="font-size:40px;">✅</div><b>예약 상담이 접수됐어요.</b><br>사장님이 확인 후 <b>' + safe + '</b>로 연락드립니다.<br><span class="wnote">급하시면 031-314-3003 으로 전화 주셔도 돼요.</span></div>';
+    })
+    .catch(function(err){
+      btn.disabled = false; btn.textContent = "예약 상담 신청";
+      setMsg((err.message || "접수 실패") + " 잠시 후 다시 시도하거나 031-314-3003 으로 연락 주세요.", false);
+    });
+    return false;
+  };
+})();
+</script>
 <script src="/footer.js" defer></script>
 <script src="/bottom-nav.js" defer></script>
 </body>
