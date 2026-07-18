@@ -283,6 +283,17 @@
   .pm-sub { font-size: var(--fs-sub); color: var(--ink-soft); margin-top: 3px; }
   .pm-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
   .pm-price { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--ink); margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
+  /* 묶인 상품 상세 — 가격대·색 선택 */
+  .glbl { font-size: var(--fs-caption); font-weight: 700; color: var(--ink-faint); letter-spacing: .04em; margin: 14px 0 6px; }
+  .gtiers { display: flex; gap: 6px; flex-wrap: wrap; }
+  .gtier { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink-soft); padding: 8px 10px; min-width: 58px; text-align: center; font-size: 12px; font-weight: 700; line-height: 1.35; cursor: pointer; font-family: inherit; }
+  .gtier.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); }
+  .gtier .gtp { font-size: 11px; font-weight: 400; color: var(--ink-faint); }
+  .gtier.on .gtp { color: var(--accent-deep); }
+  .gcolors { display: flex; gap: 8px; flex-wrap: wrap; }
+  .gcolor { width: 46px; height: 46px; border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; padding: 0; cursor: pointer; background: var(--photo-bg); }
+  .gcolor img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gcolor.on { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
   /* 정찰제 신뢰 안내 — 세그먼트 공통 1회 */
   .pricing-note { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
   .pricing-note b { color: var(--ink); font-weight: 700; }
@@ -674,6 +685,41 @@ function productCard(p){
       </div>`;
 }
 
+// ── 같은 이름 묶기 ── 같은 이름 상품(호접란 12개 등)을 카드 하나로 묶어 목록을 깔끔하게.
+// 결제는 안 건드린다: 상세에서 가격대·색을 고르면 결국 '단일 상품코드'로 주문 플로우에 넘긴다.
+function groupByName(list){
+  const m = new Map();
+  for(const p of list){ if(!m.has(p.name)) m.set(p.name, []); m.get(p.name).push(p); }
+  return [...m.values()];
+}
+function renderList(list){
+  return groupByName(list).map(g => g.length === 1 ? productCard(g[0]) : groupCard(g)).join("");
+}
+// 묶인 상품 카드 한 장 (대표 사진 + 가격범위 + 'N가지 가격대')
+function groupCard(g){
+  const rep = g[0];
+  const photo = (rep.photos && rep.photos[0]) || "";
+  const prices = g.map(p=>p.price);
+  const min = Math.min(...prices), max = Math.max(...prices);
+  const nTiers = new Set(prices).size;
+  const priceLabel = min===max ? `${min.toLocaleString()}원` : `${min.toLocaleString()}~${max.toLocaleString()}원`;
+  const allSold = g.every(p=>p.status && p.status!=="판매중");
+  const nm = escapeJs(rep.name);
+  const tierText = nTiers>1 ? `${nTiers}가지 가격대` : `${g.length}가지`;
+  return `
+      <div class="item" data-group="${esc(rep.name)}">
+        <div class="photo" onclick="openGroup('${nm}')"><img src="${esc(photo)}" alt="${esc(rep.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
+        <div class="body">
+          <div class="nm" onclick="openGroup('${nm}')">${esc(rep.name)}</div>
+          <div class="meta"><span class="band-tag">${tierText}</span></div>
+          <div class="price">${priceLabel}</div>
+          ${allSold
+            ? `<button class="order" disabled>품절</button>`
+            : `<button class="order" onclick="openGroup('${nm}')">가격대·색 고르기 →</button>`}
+        </div>
+      </div>`;
+}
+
 // 보유 종류 갤러리
 let galFilter = {};
 function galleryHTML(key, filterSub){
@@ -989,13 +1035,14 @@ function renderProducts(){
       const list=productsFor(currentCat, s, currentBand);
       if(!list.length) continue;
       any=true;
-      html+=`<div class="group-head">${esc(s)} <span class="group-count">${list.length}</span></div>`;
-      html+=`<div class="grid">`+list.map(productCard).join("")+`</div>`;
+      const groups=groupByName(list).length;
+      html+=`<div class="group-head">${esc(s)} <span class="group-count">${groups}</span></div>`;
+      html+=`<div class="grid">`+renderList(list)+`</div>`;
     }
     if(!any) html+=`<div class="grid"><div class="cat-empty">해당 조건의 상품이 없어요. 필터를 바꿔보세요.</div></div>`;
   } else {
     const list=productsFor(currentCat, currentSub, currentBand);
-    html+=`<div class="grid">`+(list.length?list.map(productCard).join("")
+    html+=`<div class="grid">`+(list.length?renderList(list)
       :`<div class="cat-empty">해당 조건의 상품이 없어요. 필터를 바꿔보세요.</div>`)+`</div>`;
   }
   document.getElementById("catArea").innerHTML=html;
@@ -1091,6 +1138,67 @@ function renderDetail(){
     </div>`;
 }
 function addToCartDetail(pc){ addToCart(pc,1); renderDetail(); }
+
+/* ───────── 묶인 상품 상세(가격대·색 선택) ───────── */
+// 같은 이름 상품을 상세에서 가격대→색(사진)으로 고른다. 고르면 detailPc에 단일 상품코드가 잡혀
+// '이 난 보내기'가 그 상품으로 주문(결제 검증 불변). pmodal 을 그대로 재사용한다.
+let groupSel = null;
+const GRADE_WORDS = ["일반","중급","고급","최고급","프리미엄"];
+function openGroup(name){
+  const list = productsFor(currentCat, currentSub, currentBand)
+    .filter(p=>p.name===name).sort((a,b)=> a.price-b.price || a.pc.localeCompare(b.pc,"en",{numeric:true}));
+  if(!list.length) return;
+  if(list.length===1){ openDetail(list[0].pc); return; }
+  groupSel = { list, price:list[0].price, pc:list[0].pc };
+  detailPc = list[0].pc; detailIdx = 0;
+  renderGroupDetail();
+  document.getElementById("pmodal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+function pickGroupPrice(price){
+  if(!groupSel) return;
+  groupSel.price = price;
+  const at = groupSel.list.filter(p=>p.price===price);
+  groupSel.pc = at.length ? at[0].pc : groupSel.pc;
+  detailPc = groupSel.pc; detailIdx = 0;
+  renderGroupDetail();
+}
+function pickGroupPc(pc){ if(!groupSel) return; groupSel.pc = pc; detailPc = pc; detailIdx = 0; renderGroupDetail(); }
+function renderGroupDetail(){
+  if(!groupSel) return;
+  const { list } = groupSel;
+  const p = list.find(x=>x.pc===groupSel.pc) || list[0];
+  const prices = [...new Set(list.map(x=>x.price))].sort((a,b)=>a-b);
+  const atPrice = list.filter(x=>x.price===groupSel.price);
+  const kind = CAT_TITLE[catAxis(p.cat)]||"";
+  const photo = (p.photos&&p.photos[0])||"";
+  const sold = p.status && p.status!=="판매중";
+  const tierTabs = prices.map((pr,i)=>{
+    const w = prices.length>1 ? GRADE_WORDS[Math.min(i, GRADE_WORDS.length-1)] : "";
+    return `<button class="gtier ${pr===groupSel.price?'on':''}" onclick="pickGroupPrice(${pr})">${w?esc(w)+'<br>':''}<span class="gtp">${(pr/10000).toLocaleString()}만원</span></button>`;
+  }).join("");
+  const colorOpts = atPrice.length>1
+    ? atPrice.map(x=>`<button class="gcolor ${x.pc===groupSel.pc?'on':''}" onclick="pickGroupPc('${esc(x.pc)}')"><img src="${esc((x.photos&&x.photos[0])||'')}" alt="${esc(x.name)}" loading="lazy" onerror="this.style.display='none'"></button>`).join("")
+    : "";
+  document.getElementById("pmodalBody").innerHTML=`
+    <div class="pm-photo"><img src="${esc(photo)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'"></div>
+    <div class="pm-body">
+      <div class="pm-nm">${esc(p.name)}</div>
+      <div class="pm-meta"><span class="size-tag">${esc(kind)}</span></div>
+      <div class="glbl">가격대 (크기·등급)</div>
+      <div class="gtiers">${tierTabs}</div>
+      ${colorOpts?`<div class="glbl">색·구성 고르기</div><div class="gcolors">${colorOpts}</div>`:""}
+      <div class="pm-price">${p.price.toLocaleString()}원</div>
+      <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${p.size.h}cm · 폭 약 ${p.size.w}cm`:""}</div>
+      <div class="pm-actions">
+        ${sold
+          ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
+          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||'이 상품 보내기'}</button>
+             <button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}
+        <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
+      </div>
+    </div>`;
+}
 
 /* ───────── 장바구니(로컬 저장) ───────── */
 const CART_KEY="af_cart";
