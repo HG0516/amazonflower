@@ -215,6 +215,30 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
   }
 
+  // ─────────────────────── 맞춤 결제 링크 (지인·전화 주문) ───────────────────────
+  // 관리자가 금액을 정해 링크를 발급 → 손님에게 카톡/문자로 보냄 → 손님이 그 금액만 결제.
+  // 정가 카탈로그를 안 건드리고(가격은 코드로만 관리 유지), LIVE_PRICING·DB 없이 동작한다.
+  // 보안: 금액을 HMAC 으로 봉인해 orderId 에 결박. confirm-payment.js 가 같은 식으로 검증한다.
+  //  ⚠️ 서명 문자열 `pay:${orderId}:${amount}` 는 confirm-payment.js 와 반드시 동일해야 한다.
+  if (body.resource === "paylink") {
+    const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+    if (!SECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요(CRON_SECRET)." });
+    const amount = parseInt(body.amount, 10);
+    if (!(Number.isInteger(amount) && amount >= 1000 && amount <= 3000000)) {
+      return res.status(400).json({ error: "금액은 1,000원 ~ 3,000,000원 사이로 넣어주세요." });
+    }
+    const label = clean(body.label, 40) || "맞춤 주문";
+    // orderId: 정가 주문(AF…)과 구분되게 AFC(=커스텀). 토스는 orderId 유일성만 요구.
+    // Date/랜덤 불가 제약이 없는 서버리스 런타임이라 여기선 Date/랜덤 사용 가능(워크플로 스크립트 아님).
+    const rnd = crypto.randomBytes(4).toString("hex").toUpperCase();
+    const ymd = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
+    const orderId = `AFC${ymd}-${rnd}`;
+    const token = crypto.createHmac("sha256", SECRET).update(`pay:${orderId}:${amount}`).digest("hex").slice(0, 32);
+    const url = `${ORIGIN}/pay.html?oid=${orderId}&amt=${amount}&t=${token}&label=${encodeURIComponent(label)}`;
+    await notifyChange(`🔗 맞춤 결제 링크 발급 — ${label}\n${won(amount)}\n손님이 결제하면 새 주문으로 알려드려요`);
+    return res.status(200).json({ ok: true, url, orderId, amount, label });
+  }
+
   // ─────────────────────── 주문 관리 ───────────────────────
   if (body.resource === "order") {
     const { action, orderId, status } = body;

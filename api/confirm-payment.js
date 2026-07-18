@@ -417,41 +417,64 @@ export default async function handler(req, res) {
     // 프론트가 보낸 amount를 그대로 믿지 않는다.
     // order.productCode 기준 정가와 대조한다.
     const productCode = order && order.productCode;
-    const { price: basePrice, label: customLabel } = await resolveBasePrice(productCode);
-    if (basePrice == null) {
-      return res
-        .status(400)
-        .json({ error: "알 수 없는 상품입니다.", productCode });
-    }
-    // 토핑 합산 (중복 제거 + 알 수 없는 코드 거부)
-    const toppings = Array.isArray(order && order.toppings)
-      ? [...new Set(order.toppings)]
-      : [];
-    const tPrices = await resolveToppingPrices(toppings);
-    let toppingSum = 0;
-    for (const t of toppings) {
-      const tp = (t in tPrices) ? tPrices[t] : null;
-      if (tp == null) {
+    const isCustom = !!(order && order.customPay);
+    let customLabel = null;
+
+    if (isCustom) {
+      // ── 맞춤 결제 ── 관리자가 금액을 정해 발급한 링크(지인·전화 주문 등).
+      // 금액이 HMAC 서명으로 봉인돼 있어 손님이 못 바꾼다(바꾸면 서명 불일치로 거절).
+      // 정가·토핑 검증은 건너뛰고, "이 금액이 관리자가 서명한 그 금액인지"만 확인한다.
+      // ⚠️ 서명 대상 문자열은 admin.js 의 링크 생성(pay:orderId:amount)과 반드시 동일해야 한다.
+      const secret = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      const given = String((order && order.payToken) || "");
+      const expect = secret
+        ? crypto.createHmac("sha256", secret).update(`pay:${orderId}:${Number(amount)}`).digest("hex").slice(0, 32)
+        : "";
+      const good = expect.length === 32 && given.length === expect.length
+        && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expect));
+      if (!good) {
+        console.error(`맞춤결제 서명 불일치: orderId=${orderId} amount=${amount}`);
+        return res.status(400).json({ error: "결제 링크가 유효하지 않거나 금액이 바뀌었습니다." });
+      }
+      // 서명이 맞으면 청구금액 = 관리자가 정한 금액. 추가 대조 불필요.
+    } else {
+      const { price: basePrice, label } = await resolveBasePrice(productCode);
+      customLabel = label;
+      if (basePrice == null) {
         return res
           .status(400)
-          .json({ error: "알 수 없는 추가 옵션입니다.", topping: t });
+          .json({ error: "알 수 없는 상품입니다.", productCode });
       }
-      toppingSum += tp;
-    }
-    // 수량(같은 상품 여러 개). 정수 1~99만 허용.
-    const qty = parseInt(order && order.quantity, 10);
-    const quantity = Number.isFinite(qty) && qty >= 1 && qty <= 99 ? qty : 1;
-    if (order && order.quantity != null && !(Number.isFinite(qty) && qty >= 1 && qty <= 99)) {
-      return res.status(400).json({ error: "수량이 올바르지 않습니다." });
-    }
-    const expectedPrice = (basePrice + toppingSum) * quantity;
-    if (Number(amount) !== expectedPrice) {
-      console.error(
-        `금액 불일치: 요청 ${amount} vs 정가 ${expectedPrice} (${productCode} x${quantity} + [${toppings.join(",")}])`
-      );
-      return res.status(400).json({
-        error: "결제 금액이 상품 가격과 일치하지 않습니다.",
-      });
+      // 토핑 합산 (중복 제거 + 알 수 없는 코드 거부)
+      const toppings = Array.isArray(order && order.toppings)
+        ? [...new Set(order.toppings)]
+        : [];
+      const tPrices = await resolveToppingPrices(toppings);
+      let toppingSum = 0;
+      for (const t of toppings) {
+        const tp = (t in tPrices) ? tPrices[t] : null;
+        if (tp == null) {
+          return res
+            .status(400)
+            .json({ error: "알 수 없는 추가 옵션입니다.", topping: t });
+        }
+        toppingSum += tp;
+      }
+      // 수량(같은 상품 여러 개). 정수 1~99만 허용.
+      const qty = parseInt(order && order.quantity, 10);
+      const quantity = Number.isFinite(qty) && qty >= 1 && qty <= 99 ? qty : 1;
+      if (order && order.quantity != null && !(Number.isFinite(qty) && qty >= 1 && qty <= 99)) {
+        return res.status(400).json({ error: "수량이 올바르지 않습니다." });
+      }
+      const expectedPrice = (basePrice + toppingSum) * quantity;
+      if (Number(amount) !== expectedPrice) {
+        console.error(
+          `금액 불일치: 요청 ${amount} vs 정가 ${expectedPrice} (${productCode} x${quantity} + [${toppings.join(",")}])`
+        );
+        return res.status(400).json({
+          error: "결제 금액이 상품 가격과 일치하지 않습니다.",
+        });
+      }
     }
 
     // ── 2. 토스 결제 승인 ────────────────────────────────
@@ -505,10 +528,12 @@ export default async function handler(req, res) {
     // ── 3. 사장님(어머니) 두 분께 알림 (하청 X) ───────────
     const userId = await getUserId(req);
     const authLabel =
-      customLabel
+      (isCustom && order && order.productLabel)
+      || customLabel
       || PRODUCT_LABELS[productCode]
       || (PRODUCTS.find((p) => p.pc === productCode) || {}).name
-      || productCode;
+      || productCode
+      || "맞춤 결제";
     const orderInfo = {
       ...(order || {}),
       productLabel: authLabel,

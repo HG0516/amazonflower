@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>맞춤 결제 — 꽃안부</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/tokens.css">
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<style>
+  /* 맞춤 결제 링크 전용 페이지. 정가 카탈로그(index.html)와 별개 — 관리자가 발급한 링크로 진입.
+     금액은 서버에서 HMAC 서명으로 봉인돼 있어(confirm-payment.js) 손님이 못 바꾼다. */
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);
+       line-height:1.65;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:460px;margin:0 auto;padding:28px 18px 60px;}
+  .brand{text-align:center;font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+  .brand small{display:block;font-family:var(--font-body);font-size:12px;color:var(--ink-faint);letter-spacing:.14em;margin-top:4px;font-weight:400;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px 20px;margin-top:18px;}
+  .amtcard{text-align:center;}
+  .amtcard .lbl{font-size:15px;color:var(--ink-soft);}
+  .amtcard .amt{font-size:34px;font-weight:800;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums;}
+  .amtcard .amt small{font-size:20px;font-weight:700;}
+  .amtcard .oid{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink-faint);margin-top:8px;}
+  label.f{display:block;margin-top:16px;font-size:13px;font-weight:600;color:var(--ink-soft);}
+  label.f .opt{color:var(--ink-faint);font-weight:400;}
+  input,textarea{width:100%;margin-top:6px;padding:13px;font-size:16px;border:1px solid var(--line);
+    border-radius:var(--radius);background:#fcfbf8;font-family:inherit;color:var(--ink);}
+  input:focus,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  textarea{resize:vertical;min-height:56px;}
+  .btn{width:100%;margin-top:22px;padding:16px;border:none;border-radius:var(--radius);
+    background:var(--accent);color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;}
+  .btn:disabled{opacity:.55;}
+  .note{font-size:12px;color:var(--ink-faint);text-align:center;margin-top:14px;}
+  .err{display:none;background:#f7e9e7;border:1px solid var(--danger);color:var(--danger);
+    border-radius:var(--radius);padding:12px 14px;font-size:14px;margin-top:16px;}
+  .center{text-align:center;padding:20px 0;}
+  .big{font-size:48px;}
+  .spinner{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){.spinner{animation:none;}}
+  .receipt{display:inline-block;margin-top:14px;font-size:14px;color:var(--accent);text-decoration:underline;}
+  h2{font-family:var(--font-display);font-size:20px;margin:10px 0 4px;}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="brand">꽃안부<small>맞춤 결제</small></div>
+  <div id="view"></div>
+</div>
+
+<script>
+const TOSS_CLIENT_KEY = "live_ck_Poxy1XQL8Rw601W9mEAX37nO5Wml"; // 공개 클라이언트키(결제창) — index.html과 동일
+const $ = (id) => document.getElementById(id);
+const view = $("view");
+const won = (n) => Number(n).toLocaleString() + "원";
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function screenError(msg, sub){
+  view.innerHTML = `<div class="card center">
+    <div class="big">⚠️</div>
+    <h2>${esc(msg)}</h2>
+    <p class="note">${esc(sub||"")}</p>
+    <p class="note">문의: 꽃안부 031-314-3003</p>
+  </div>`;
+}
+
+// ── 결제 요청 화면 (링크로 처음 진입) ──
+let payment = null;
+function renderForm(oid, amt, token, label){
+  view.innerHTML = `
+    <div class="card amtcard">
+      <div class="lbl">${esc(label)}</div>
+      <div class="amt">${Number(amt).toLocaleString()}<small>원</small></div>
+      <div class="oid">주문번호 ${esc(oid)}</div>
+    </div>
+    <div class="card">
+      <label class="f">보내는 분 성함
+        <input id="sname" type="text" autocomplete="name" placeholder="예: 홍길동">
+      </label>
+      <label class="f">연락처
+        <input id="sphone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-0000-0000">
+      </label>
+      <label class="f">받는 분 <span class="opt">(선택)</span>
+        <input id="rname" type="text" placeholder="예: 김영수 / ○○병원 장례식장">
+      </label>
+      <label class="f">받는 곳 · 희망일 <span class="opt">(선택)</span>
+        <input id="rvenue" type="text" placeholder="예: 3호실 · 7/20 오전">
+      </label>
+      <label class="f">요청사항 <span class="opt">(선택)</span>
+        <textarea id="snote" placeholder="리본 문구 등 전하실 말씀"></textarea>
+      </label>
+      <div class="err" id="err"></div>
+      <button class="btn" id="go">${Number(amt).toLocaleString()}원 결제하기</button>
+      <p class="note">결제하기를 누르면 카드 결제창이 열립니다.</p>
+    </div>`;
+
+  try{ payment = TossPayments(TOSS_CLIENT_KEY).payment({ customerKey: TossPayments.ANONYMOUS }); }
+  catch(e){ console.error(e); }
+
+  $("go").onclick = async function(){
+    const err = $("err"); err.style.display = "none";
+    const sname = $("sname").value.trim();
+    const sphone = $("sphone").value.trim();
+    if(!sname){ err.textContent="보내는 분 성함을 입력해주세요."; err.style.display="block"; $("sname").focus(); return; }
+    if(sphone.replace(/\D/g,"").length < 9){ err.textContent="연락처를 정확히 입력해주세요."; err.style.display="block"; $("sphone").focus(); return; }
+    if(!payment){ err.textContent="결제 모듈이 준비되지 않았어요. 새로고침 후 다시 시도해주세요."; err.style.display="block"; return; }
+
+    // 주문 정보를 저장 — 결제창→리다이렉트 후 이 값으로 승인 요청한다(index.html과 동일 패턴).
+    // customPay/payToken 이 서버 검증의 핵심. 나머지는 주문 기록·사장님 알림용.
+    const order = {
+      customPay: true,
+      payToken: token,
+      productLabel: label,
+      senderName: sname,
+      senderPhone: sphone,
+      recipientName: $("rname").value.trim() || null,
+      venue: $("rvenue").value.trim() || null,
+      senderNote: $("snote").value.trim() || null,
+    };
+    try{ sessionStorage.setItem("afc_"+oid, JSON.stringify(order)); }catch(_){}
+
+    this.disabled = true; this.textContent = "결제창 여는 중…";
+    try{
+      await payment.requestPayment({
+        method:"CARD",
+        amount:{ currency:"KRW", value: Number(amt) },
+        orderId: oid,
+        orderName: label,
+        // 토큰·상품명을 successUrl에도 싣는다 — 리다이렉트 후 sessionStorage가 비어도
+        // 결제 승인은 반드시 되게(돈만 빠지고 확인 실패하는 사고 방지). 토큰은 서명값이라 노출 안전.
+        successUrl: location.origin + "/pay.html?payresult=success&t=" + encodeURIComponent(token) + "&label=" + encodeURIComponent(label),
+        failUrl: location.origin + "/pay.html?payresult=fail",
+        customerName: sname,
+        customerMobilePhone: sphone.replace(/[^0-9]/g,""),
+      });
+    }catch(e){
+      console.error(e);
+      this.disabled = false; this.textContent = Number(amt).toLocaleString()+"원 결제하기";
+      err.textContent = e.message || "결제 요청 중 오류가 발생했습니다.";
+      err.style.display = "block";
+    }
+  };
+}
+
+// ── 결제 완료 처리 (토스가 successUrl로 리다이렉트) ──
+async function handleRedirect(q){
+  const r = q.get("payresult");
+  if(r === "fail"){
+    view.innerHTML = `<div class="card center"><div class="big">❌</div>
+      <h2>결제가 취소되었어요</h2>
+      <p class="note">${esc(q.get("message")||"결제창이 닫혔거나 실패했습니다.")}</p></div>`;
+    return true;
+  }
+  if(r !== "success") return false;
+
+  const paymentKey = q.get("paymentKey"), orderId = q.get("orderId"), amount = q.get("amount");
+  // 새로고침/뒤로가기 재진입 시 승인 재호출 방지
+  let done=null; try{ done=JSON.parse(sessionStorage.getItem("afc_done_"+orderId)||"null"); }catch(_){}
+  if(done){ renderDone(done); return true; }
+
+  view.innerHTML = `<div class="card center"><span class="spinner"></span> &nbsp;결제를 확인하고 있어요…</div>`;
+  let saved={}; try{ saved=JSON.parse(sessionStorage.getItem("afc_"+orderId)||"{}"); }catch(_){}
+  // 서버 검증에 꼭 필요한 값은 URL(successUrl에 실어둠)에서 다시 확정한다 — sessionStorage가 비어도 승인되게.
+  const urlLabel = q.get("label");
+  const order = {
+    ...saved,
+    customPay: true,
+    payToken: q.get("t") || saved.payToken,
+    productLabel: (urlLabel != null ? urlLabel : saved.productLabel) || "맞춤 주문",
+  };
+  try{
+    const res = await fetch("/api/confirm-payment", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ paymentKey, orderId, amount:Number(amount), order })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || "결제 승인에 실패했습니다.");
+    sessionStorage.removeItem("afc_"+orderId);
+    const info = { orderId, amount:Number(amount), label:order.productLabel||"맞춤 주문", receipt:(data.payment&&data.payment.receiptUrl)||null };
+    try{ sessionStorage.setItem("afc_done_"+orderId, JSON.stringify(info)); }catch(_){}
+    renderDone(info);
+  }catch(e){
+    view.innerHTML = `<div class="card center"><div class="big">⚠️</div>
+      <h2>결제 확인 오류</h2>
+      <p class="note">${esc(e.message)}</p>
+      <p class="note">결제가 출금됐는데 이 화면이 보이면 꽃안부(031-314-3003)로<br>주문번호 <b>${esc(orderId||"")}</b>를 알려주세요.</p></div>`;
+  }
+  return true;
+}
+
+function renderDone(info){
+  view.innerHTML = `<div class="card center">
+    <div class="big">✅</div>
+    <h2>결제가 완료됐어요</h2>
+    <div class="amt" style="font-size:26px;font-weight:800;margin-top:6px;">${won(info.amount)}</div>
+    <p class="note" style="margin-top:6px;">${esc(info.label)}</p>
+    <p class="note">주문번호 ${esc(info.orderId)}</p>
+    ${info.receipt ? `<a class="receipt" href="${esc(info.receipt)}" target="_blank" rel="noopener">영수증 보기</a>` : ""}
+    <p class="note" style="margin-top:16px;">꽃안부에서 확인 후 준비해 드립니다. 감사합니다 🌸</p>
+  </div>`;
+}
+
+(async function(){
+  const q = new URLSearchParams(location.search);
+  if(await handleRedirect(q)) return;
+
+  // 초기 진입: 링크 파라미터 검증
+  const oid = q.get("oid") || "";
+  const amt = parseInt(q.get("amt"), 10);
+  const token = q.get("t") || "";
+  const label = (q.get("label") || "맞춤 주문").slice(0, 60);
+  if(!/^AFC\d{8}-[0-9A-F]{8}$/.test(oid) || !token){
+    return screenError("잘못된 결제 링크예요.", "링크 주소가 올바르지 않습니다. 보내주신 분께 다시 요청해주세요.");
+  }
+  if(!(Number.isInteger(amt) && amt >= 1000 && amt <= 3000000)){
+    return screenError("결제 금액이 올바르지 않아요.", "링크를 다시 확인해주세요.");
+  }
+  renderForm(oid, amt, token, label);
+})();
+</script>
+</body>
+</html>

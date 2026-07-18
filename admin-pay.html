@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>맞춤 결제 링크 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);
+       background:var(--bg);color:var(--ink);line-height:1.55;font-size:17px;padding:0 0 60px;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px;}
+  header{text-align:center;padding:20px 0 4px;}
+  h1{font-size:22px;font-weight:800;}
+  .sub{font-size:14px;color:var(--ink-soft);margin-top:6px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px 16px;margin-top:16px;}
+  label.f{display:block;margin-top:16px;font-size:15px;font-weight:700;color:var(--ink-soft);}
+  label.f:first-child{margin-top:0;}
+  label.f .opt{font-weight:400;color:var(--ink-faint);}
+  input{width:100%;margin-top:8px;padding:15px 14px;font-size:18px;border:1px solid var(--line);
+    border-radius:8px;background:#fcfbf8;color:var(--ink);font-family:inherit;}
+  input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  #amt{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;}
+  .amtprev{text-align:right;font-size:14px;color:var(--accent);font-weight:700;min-height:18px;margin-top:6px;}
+  .btn{width:100%;margin-top:20px;padding:17px;border:none;border-radius:8px;
+    background:var(--accent);color:#fff;font-size:18px;font-weight:800;font-family:inherit;cursor:pointer;}
+  .btn:disabled{opacity:.5;}
+  .pwbar{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;}
+  .pwbar input{font-size:16px;padding:12px;}
+  .hint{font-size:13px;color:var(--ink-faint);margin-top:8px;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;
+    padding:13px 18px;border-radius:10px;font-size:15px;max-width:90%;text-align:center;opacity:0;
+    pointer-events:none;transition:opacity .2s;z-index:50;}
+  .toast.show{opacity:1;}
+  .toast.err{background:var(--danger);}
+  /* 발급 결과 */
+  .result{margin-top:18px;display:none;}
+  .result.show{display:block;}
+  .linkbox{background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:14px;}
+  .linkbox .rlabel{font-size:14px;color:var(--ink-soft);}
+  .linkbox .ramt{font-size:24px;font-weight:800;margin:4px 0 10px;}
+  .linkurl{word-break:break-all;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:11px;}
+  .rbtns{display:flex;gap:8px;margin-top:12px;}
+  .rbtns button{flex:1;padding:14px;border-radius:8px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;border:none;}
+  .copy{background:var(--accent);color:#fff;}
+  .kakao{background:#fee500;color:#3c1e1e;}
+  .again{background:var(--paper);border:1px solid var(--line)!important;color:var(--ink-soft);}
+  .backlink{display:inline-block;margin-top:20px;font-size:14px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>💳 맞춤 결제 링크</h1>
+    <div class="sub">지인·전화 주문 등, 금액을 정해서 손님에게 결제 링크를 보냅니다.<br>정가 상품과 별개예요.</div>
+  </header>
+
+  <div class="pwbar">
+    <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password" />
+    <div class="hint">주문·상품 관리와 같은 비밀번호예요. 기기에 저장됩니다.</div>
+  </div>
+
+  <div class="card" id="form">
+    <label class="f">결제 금액
+      <input id="amt" type="text" inputmode="numeric" placeholder="예: 150000" />
+    </label>
+    <div class="amtprev" id="amtprev"></div>
+    <label class="f">상품 이름 <span class="opt">(손님에게 보여요)</span>
+      <input id="label" type="text" maxlength="40" placeholder="예: 축하화환 대형 맞춤" />
+    </label>
+    <button class="btn" id="make">결제 링크 만들기</button>
+    <div class="hint" style="margin-top:14px;">만든 링크를 손님에게 카톡·문자로 보내면, 손님이 그 금액만 카드로 결제해요. 결제되면 단톡방에 새 주문으로 알림이 옵니다.</div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="linkbox">
+      <div class="rlabel" id="rlabel"></div>
+      <div class="ramt" id="ramt"></div>
+      <div class="linkurl" id="rurl"></div>
+      <div class="rbtns">
+        <button class="copy" id="copy">링크 복사</button>
+        <button class="kakao" id="share">공유하기</button>
+      </div>
+      <div class="rbtns"><button class="again" id="again">＋ 새 링크 만들기</button></div>
+    </div>
+    <div class="hint">이 링크는 이 금액 전용이에요. 손님이 금액을 바꿀 수 없습니다. 결제 전까지 몇 번이든 열 수 있어요.</div>
+  </div>
+
+  <a href="/admin-orders.html" class="backlink">← 주문 관리로</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let lastUrl = "", lastLabel = "", lastAmt = 0;
+
+$("pw").value = localStorage.getItem("af_admin_pw") || "";
+$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
+
+let toastT = null;
+function toast(msg, err){
+  const t = $("toast"); t.textContent = msg; t.className = "toast show" + (err ? " err" : "");
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = "toast", 2600);
+}
+
+// 금액 미리보기 — 60대가 자릿수를 눈으로 확인하게(15만? 150만? 헷갈림 방지)
+$("amt").addEventListener("input", () => {
+  const n = parseInt($("amt").value.replace(/\D/g, ""), 10);
+  $("amtprev").textContent = Number.isInteger(n) && n > 0 ? n.toLocaleString() + "원" : "";
+});
+
+$("make").addEventListener("click", async function(){
+  const pw = $("pw").value.trim();
+  if(!pw) return toast("비밀번호를 입력해주세요.", true);
+  const amount = parseInt($("amt").value.replace(/\D/g, ""), 10);
+  const label = $("label").value.trim();
+  if(!(Number.isInteger(amount) && amount >= 1000)) return toast("금액을 1,000원 이상 넣어주세요.", true);
+  if(amount > 3000000) return toast("금액은 300만원까지예요.", true);
+
+  // 자릿수 오타 방지턱 — 실제 청구되는 돈이라 한 번 확인받는다.
+  if(!confirm(`손님에게 ${amount.toLocaleString()}원 결제 링크를 만들까요?\n\n상품: ${label || "맞춤 주문"}`)) return;
+
+  this.disabled = true; this.textContent = "만드는 중…";
+  try{
+    const r = await fetch("/api/admin", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ password:pw, resource:"paylink", amount, label })
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || "링크를 만들지 못했어요.");
+    localStorage.setItem("af_admin_pw", pw);
+    lastUrl = d.url; lastLabel = d.label; lastAmt = d.amount;
+    $("rlabel").textContent = d.label;
+    $("ramt").textContent = Number(d.amount).toLocaleString() + "원";
+    $("rurl").textContent = d.url;
+    $("form").style.display = "none";
+    $("result").classList.add("show");
+    window.scrollTo({ top:0, behavior:"smooth" });
+  }catch(e){
+    toast("❌ " + (e.message || "실패"), true);
+  }finally{
+    this.disabled = false; this.textContent = "결제 링크 만들기";
+  }
+});
+
+$("copy").addEventListener("click", async function(){
+  try{ await navigator.clipboard.writeText(lastUrl); toast("링크를 복사했어요. 손님에게 붙여넣어 보내세요."); }
+  catch(_){
+    // 클립보드 권한 없을 때 폴백 — 주소를 선택 상태로
+    const sel = window.getSelection(); const range = document.createRange();
+    range.selectNodeContents($("rurl")); sel.removeAllRanges(); sel.addRange(range);
+    toast("길게 눌러 복사해주세요.", true);
+  }
+});
+
+$("share").addEventListener("click", async function(){
+  const text = `[꽃안부] ${lastLabel} ${Number(lastAmt).toLocaleString()}원 결제\n${lastUrl}`;
+  if(navigator.share){
+    try{ await navigator.share({ title:"꽃안부 결제", text }); }catch(_){}
+  }else{
+    try{ await navigator.clipboard.writeText(text); toast("문구를 복사했어요. 카톡에 붙여넣어 보내세요."); }
+    catch(_){ toast("복사가 안 돼요. 링크 복사를 눌러주세요.", true); }
+  }
+});
+
+$("again").addEventListener("click", function(){
+  $("amt").value = ""; $("label").value = ""; $("amtprev").textContent = "";
+  $("result").classList.remove("show"); $("form").style.display = "";
+  $("amt").focus();
+});
+</script>
+</body>
+</html>
