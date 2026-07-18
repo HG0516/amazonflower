@@ -36,10 +36,10 @@
   .lead b{color:var(--ink);font-weight:700;}
 
   /* 비대칭 겹침 그리드 7fr / 5fr */
-  .split{display:grid;grid-template-columns:7fr 5fr;gap:12px;align-items:start;margin:30px 0 6px;}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;margin:30px 0 6px;}
   .split figure{margin:0;}
-  .split img{display:block;width:100%;height:auto;border-radius:var(--radius);border:1px solid var(--line);}
-  .split .b{margin-top:-24px;}         /* 그리드를 살짝 침범해 겹침 연출 */
+  .split img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:var(--radius);border:1px solid var(--line);}
+  .split .b{margin-top:0;}              /* 두 사진 크기·높이 동일하게 맞춤(예전 7fr/5fr 겹침 제거) */
   .split figcaption{font-size:var(--fs-caption);color:var(--ink-faint);margin-top:8px;line-height:1.6;}
 
   .divider{border:none;border-top:1px solid var(--line);margin:32px 0;}

@@ -231,7 +231,9 @@
   /* ── 통일 필터(종류·가격대·정렬): 왼쪽 라벨로 줄 맞춤 + 한 가지 알약 ── */
   .subtabs, .bandchips, .sortbar { display: flex; align-items: flex-start; gap: 10px; margin: 9px 0 0; flex-wrap: nowrap; }
   .frow-label { flex: 0 0 42px; font-size: var(--fs-caption); color: var(--ink-faint); font-weight: 700; padding-top: 11px; letter-spacing: 0.5px; }
-  .frow-pills { display: flex; gap: 7px; flex-wrap: wrap; flex: 1; }
+  .frow-pills { display: flex; gap: 7px; flex-wrap: nowrap; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .frow-pills::-webkit-scrollbar { display: none; }
+  .frow-pills .fpill { flex: 0 0 auto; }
   .fpill { font-size: var(--fs-caption); font-weight: 600; padding: 9px 15px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); min-height: 48px; }
   .fpill:hover { border-color: var(--ink); }
   .fpill.on { background: var(--ink); color: #fff; border-color: var(--ink); }
