@@ -456,7 +456,9 @@
     header { padding-top: 24px; }
     .hero .lede { line-height: 1.6; }
     .hero-photo { height: 400px; }
-    .cat-grid .cat-photo { height: 280px; }
+    /* 데스크톱에서 height 고정을 주면 aspect-ratio(3/4)와 충돌해 너비가 좁아지고 카드 오른쪽에
+       흰 공백이 생긴다 → aspect-ratio 그대로 두어 모바일·데스크톱 동일하게 꽉 차게. */
+    .cat-grid .cat-photo { height: auto; }
   }
 </style>
 </head>
@@ -504,9 +506,7 @@
       <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">붙여넣기</button>
       <span style="font-size:var(--fs-caption);color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
     </div>
-    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:var(--fs-caption);color:var(--ink-soft);">
-      전화가 편하시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:800;text-decoration:none;white-space:nowrap;">031-314-3003</a> 로 바로 주문하셔도 돼요.
-    </div>
+    <a href="tel:031-314-3003" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;padding:12px;min-height:48px;background:#fff;border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent-deep);font-weight:700;font-size:15px;text-decoration:none;">📞 전화로 주문 · 031-314-3003</a>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
   </section>
