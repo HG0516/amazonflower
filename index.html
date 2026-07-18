@@ -307,7 +307,8 @@
   .reco-opt { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; cursor: pointer; background: var(--paper); transition: border-color var(--dur-fast); user-select: none; }
   .reco-opt:hover { border-color: var(--ink); }
   .reco-opt.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .reco-opt-photo { height: 116px; background: #f1ede4; overflow: hidden; }
+  /* 116px 고정이라 세로로 긴 화환(3:4)이 가운데만 남고 잘렸음 → 3:4로 전체가 보이게. */
+  .reco-opt-photo { aspect-ratio: 3 / 4; background: #f1ede4; overflow: hidden; }
   .reco-opt-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .reco-opt-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; padding: 9px 12px 0; color: var(--ink); }
   .reco-opt-price { font-size: 18px; font-weight: 700; padding: 2px 12px 12px; color: var(--ink); font-family: var(--font-display); font-variant-numeric: tabular-nums; }
