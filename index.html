@@ -148,11 +148,11 @@
   .cat-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
   .cat-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; padding: 10px 12px 2px; color: var(--ink); }
   .cat-desc { font-size: var(--fs-sub); color: var(--ink-faint); padding: 0 12px 12px; }
-  /* 2×2 그리드: 세로를 넉넉히(짤림 방지). 사진은 cover, 세로로 긴 화환 타일만 contain+배경 */
-  .cat-grid .cat-photo { height: 190px; background: var(--photo-bg); }
+  /* 2×2 그리드: 화환 사진 비율(768×1024=3:4)에 맞춘 세로 카드로 통일. 전부 cover —
+     화환은 딱 맞아 여백·크롭 0, 꽃다발(정사각)·식물(세로)은 위아래만 살짝 크롭.
+     (예전엔 가로 박스에 세로 사진 → 꽃다발·식물 심하게 잘리고 화환은 좌우 여백 컸음) */
+  .cat-grid .cat-photo { height: auto; aspect-ratio: 3 / 4; background: var(--photo-bg); }
   .cat-grid .cat-photo img { object-fit: cover; object-position: center 40%; }
-  .cat-grid .cat-tile.wreath .cat-photo img { object-fit: contain; object-position: center; padding: 12px; }
-  @media (min-width: 1000px) { .cat-grid .cat-photo { height: 240px; } }
 
   /* ── 카드 — 그림자 없이 선만 ── */
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; margin-top: 20px; }
