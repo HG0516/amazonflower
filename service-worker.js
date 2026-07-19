@@ -8,7 +8,7 @@
 //
 // 코드를 바꾸면 VERSION 을 올려야 옛 캐시가 정리됩니다.
 
-const VERSION = 'v1.12.7';
+const VERSION = 'v1.12.8';
 const CACHE = `kkotanbu-${VERSION}`;
 
 // 오프라인 폴백용 최소 앱셸 (하나라도 404면 install 실패하므로 확실한 것만)

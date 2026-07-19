@@ -673,8 +673,10 @@ function productsFor(key, sub, band){
   return list.sort(sorters[currentSort]||sorters.pop);
 }
 
-// 주문 버튼 문구 — 카테고리별 구체 동사(모호한 '주문하기' 대신, 무엇을 보내는지 분명하게)
-const ORDER_VERB = { condolence:"이 화환 보내기", congrats:"이 화환 보내기", orchid:"이 난 보내기", plant:"이 화분 보내기", basket:"이 꽃바구니 보내기", bouquet:"이 꽃 보내기" };
+// 주문 버튼 문구 — 전 카테고리 공용(근조 포함 안전). 카드에 사진·상품명이 보여 '무엇을'은 이미 분명.
+// '마음'=브랜드(꽃안부) 결, '보내기'=주문 액션 명확. 감성어 '~전하기'는 액션 신호가 약해 제외.
+const ORDER_LABEL = "마음 담아 보내기";
+const ORDER_VERB = { condolence:ORDER_LABEL, congrats:ORDER_LABEL, orchid:ORDER_LABEL, plant:ORDER_LABEL, basket:ORDER_LABEL, bouquet:ORDER_LABEL };
 
 // 개별상품 카드 한 장
 function productCard(p){
@@ -694,7 +696,7 @@ function productCard(p){
           ${sold
             ? `<button class="order" disabled>${esc(p.status)}</button>`
             : `<div class="card-actions">
-                 <button class="order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||'이 상품 보내기'}</button>
+                 <button class="order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
                  <button class="cart-add" onclick="addToCartFb('${esc(p.pc)}',this)">담기</button>
                </div>`}
           <button class="share-btn" onclick="shareItem('${esc(p.pc)}')">공유하기</button>
@@ -732,7 +734,11 @@ function groupCard(g){
           <div class="price">${priceLabel}</div>
           ${allSold
             ? `<button class="order" disabled>품절</button>`
-            : `<button class="order" onclick="openGroup('${nm}')">가격대·색 고르기 →</button>`}
+            : `<div class="card-actions">
+                 <button class="order" onclick="openGroup('${nm}')">가격대·색 고르기 →</button>
+                 <button class="cart-add" onclick="openGroup('${nm}')">담기</button>
+               </div>`}
+          <button class="share-btn" onclick="shareItem('${esc(rep.pc)}')">공유하기</button>
         </div>
       </div>`;
 }
@@ -993,7 +999,7 @@ function renderWreath(key){
         <div class="wbody">
           <div class="wtier">${esc(p.name)}</div>
           <div class="wprice">${p.price.toLocaleString()}원</div>
-          <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">${ORDER_VERB[key]||'이 화환 보내기'}</button>
+          <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">${ORDER_VERB[key]||ORDER_LABEL}</button>
         </div>
       </div>`).join("")
     // 근조 탭: 근조 바구니 카드를 근조화환 그리드에 통합 (26.7.14 — 별도 섹션·근조오브제 삭제)
@@ -1148,7 +1154,7 @@ function renderDetail(){
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
-          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||'이 상품 보내기'}</button>
+          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
              ${inCart
                 ? `<button class="pm-cart added" onclick="openCart()">장바구니에 담김 · 열어보기</button>`
                 : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}`}
@@ -1160,7 +1166,7 @@ function addToCartDetail(pc){ addToCart(pc,1); renderDetail(); }
 
 /* ───────── 묶인 상품 상세(가격대·색 선택) ───────── */
 // 같은 이름 상품을 상세에서 가격대→색(사진)으로 고른다. 고르면 detailPc에 단일 상품코드가 잡혀
-// '이 난 보내기'가 그 상품으로 주문(결제 검증 불변). pmodal 을 그대로 재사용한다.
+// 상세의 '마음 담아 보내기'가 그 상품으로 주문(결제 검증 불변). pmodal 을 그대로 재사용한다.
 let groupSel = null;
 const GRADE_WORDS = ["일반","중급","고급","최고급","프리미엄"];
 function openGroup(name){
@@ -1212,7 +1218,7 @@ function renderGroupDetail(){
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
-          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||'이 상품 보내기'}</button>
+          : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
              <button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}
         <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
       </div>
