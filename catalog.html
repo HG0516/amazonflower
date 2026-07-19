@@ -228,19 +228,30 @@
   .wreath-extra { margin-top: 16px; font-size: var(--fs-sub); color: var(--ink-soft); background: var(--line-soft); border-radius: var(--radius); padding: 12px 14px; line-height: 1.7; }
   @media (max-width: 420px){ .ladder-row { grid-template-columns: 52px 1fr auto; } .lr-photo{width:52px;height:52px;} .lr-order{ grid-column: 1/-1; width:100%; } }
 
-  /* ── 통일 필터(종류·가격대·정렬): 왼쪽 라벨로 줄 맞춤 + 한 가지 알약 ── */
-  .subtabs, .bandchips, .sortbar { display: flex; align-items: flex-start; gap: 10px; margin: 9px 0 0; flex-wrap: nowrap; }
-  .frow-label { flex: 0 0 42px; font-size: var(--fs-caption); color: var(--ink-faint); font-weight: 700; padding-top: 11px; letter-spacing: 0.5px; }
-  .frow-pills { display: flex; gap: 7px; flex-wrap: nowrap; flex: 1; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .frow-pills::-webkit-scrollbar { display: none; }
+  /* ── 압축 필터: [종류·가격대 한 줄 가로스크롤] + [정렬 우측 고정 드롭다운] ── */
+  .filterbar { display: flex; align-items: center; gap: 10px; margin: 12px 0 2px; }
+  /* 화환 탭 등 세 렌더타깃이 모두 비면 필터바 통째 숨김 (JS 분기 불필요) */
+  .filterbar:not(:has(.subtabs:not(:empty), .bandchips:not(:empty), .sortbar:not(:empty))) { display: none; }
+  /* 종류+가격대 = 하나의 가로스크롤 트랙(통째로 스크롤 → 5칩 안 잘림) */
+  .fb-scroll { display: flex; align-items: center; flex: 1 1 auto; min-width: 0; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .fb-scroll::-webkit-scrollbar { display: none; }
+  .fb-scroll .subtabs, .fb-scroll .bandchips { display: flex; align-items: center; flex: 0 0 auto; gap: 8px; margin: 0; overflow: visible; }
+  .fb-scroll .subtabs:empty, .fb-scroll .bandchips:empty { display: none; }   /* 종류 없는 탭·밴드 1개면 자동 숨김 */
+  .fb-scroll .subtabs:not(:empty) + .bandchips:not(:empty) { border-left: 1px solid var(--line-soft); padding-left: 12px; }
+  .frow-label { flex: 0 0 auto; font-size: var(--fs-caption); color: var(--ink-faint); font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
+  .frow-pills { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; overflow: visible; }
   .frow-pills .fpill { flex: 0 0 auto; }
-  .fpill { font-size: var(--fs-caption); font-weight: 600; padding: 9px 15px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); min-height: 48px; }
+  .fpill { font-size: var(--fs-caption); font-weight: 600; padding: 9px 15px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); min-height: 48px; white-space: nowrap; }
   .fpill:hover { border-color: var(--ink); }
   .fpill.on { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .fsort { gap: 2px; }
-  .fsort .fpill { border: none; background: transparent; padding: 8px 10px; min-height: 48px; border-radius: var(--radius-sm); color: var(--ink-faint); }
-  .fsort .fpill:hover { border: none; color: var(--ink); }
-  .fsort .fpill.on { background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+  /* 정렬 = 우측 고정 native select(스크롤에 안 밀림·항상 보임·현재값 노출) */
+  .sortbar { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; margin: 0; }
+  .sortbar:empty { display: none; }
+  .fsort-sel { font-family: var(--font-body); font-size: 16px; font-weight: 600; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0 12px; min-height: 48px; cursor: pointer; color-scheme: light dark; }
+  .fsort-sel:hover { border-color: var(--ink); }
+  .fsort-sel:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* 데스크톱: 트랙이 넘치면 가로스크롤 대신 줄바꿈 */
+  @media (min-width: 1000px){ .filterbar { align-items: flex-start; } .fb-scroll { overflow-x: visible; flex-wrap: wrap; row-gap: 6px; } }
 
   /* ── 화환 2×2 큰 카드 ── */
   .wreath-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px; }
@@ -391,9 +402,15 @@
     <button id="tabCondo" class="condo" onclick="showCat('condolence')">근조화환</button>
   </div>
 
-  <div id="subTabs" class="subtabs"></div>
-  <div id="bandChips" class="bandchips"></div>
-  <div id="sortBar" class="sortbar"></div>
+  <!-- 압축 필터: 종류+가격대는 한 줄 가로스크롤 트랙에, 정렬은 우측 고정. id 3개는 그대로라
+       showCat/renderBandChips/renderSortBar 타깃 불변. -->
+  <div id="filterBar" class="filterbar">
+    <div class="fb-scroll">
+      <div id="subTabs" class="subtabs"></div>
+      <div id="bandChips" class="bandchips"></div>
+    </div>
+    <div id="sortBar" class="sortbar"></div>
+  </div>
 
   <div id="linkOrderArea"></div>
 
@@ -1021,9 +1038,11 @@ function renderBandChips(){
 function renderSortBar(){
   const el=document.getElementById("sortBar");
   const opts=[["pop","인기순"],["new","신상품"],["price","낮은가격순"],["priceHigh","높은가격순"]];
-  el.innerHTML = `<span class="frow-label">정렬</span><div class="frow-pills fsort">`
-    + opts.map(([k,l])=>`<button class="fpill ${currentSort===k?"on":""}" onclick="setSort('${k}')">${l}</button>`).join("")
-    + `</div>`;
+  // 알약 4개 → 우측 고정 native select(한 줄 압축 + 고령 친숙 + 현재값 노출).
+  el.innerHTML = `<span class="frow-label">정렬</span>`
+    + `<select class="fsort-sel" aria-label="정렬 기준" onchange="setSort(this.value)">`
+    + opts.map(([k,l])=>`<option value="${k}" ${currentSort===k?"selected":""}>${l}</option>`).join("")
+    + `</select>`;
 }
 function renderProducts(){
   const ax=AXES[currentCat];
