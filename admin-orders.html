@@ -222,6 +222,7 @@ function corpHtml(){
         </div>
         <div class="o-actions">
           <button onclick="copyCorpLink('${esc(c.regno||"")}',this)">🔗 전용 주문 링크</button>
+          <button onclick="copyAcctLink('${esc(c.regno||"")}',this)">📋 계정·주문내역 링크</button>
         </div>
       </div>`;
     }).join("");
@@ -235,6 +236,16 @@ async function copyCorpLink(regno, btn){
   if(!data || !data.url){ btn.textContent=old; return; }
   try{ await navigator.clipboard.writeText(data.url); toast("링크 복사됨 — 거래처 담당자에게 보내세요 ✓"); btn.textContent="✓ 복사됨"; }
   catch(e){ prompt("이 링크를 거래처에 보내세요:", data.url); btn.textContent=old; }
+}
+// 거래처 계정·주문내역 링크 — 열면 corp.html 에서 자기 회사 지난 주문·계산서 확인 + 재주문(재발급 가능 토큰).
+async function copyAcctLink(regno, btn){
+  if(!regno){ toast("사업자번호가 없는 거래처예요.","err"); return; }
+  const old=btn.textContent; btn.textContent="만드는 중…"; btn.disabled=true;
+  const data = await api({ resource:"corp", action:"acctlink", regno });
+  btn.disabled=false;
+  if(!data || !data.url){ btn.textContent=old; return; }
+  try{ await navigator.clipboard.writeText(data.url); toast("계정 링크 복사됨 — 거래처에 보내면 주문내역을 봅니다 ✓"); btn.textContent="✓ 복사됨"; }
+  catch(e){ prompt("이 계정·주문내역 링크를 거래처에 보내세요:", data.url); btn.textContent=old; }
 }
 
 // ── 통계 ──
