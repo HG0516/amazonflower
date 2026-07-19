@@ -76,6 +76,7 @@
   .item .nm { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); }
   .item .code { font-size: var(--fs-caption); color: var(--ink-faint); letter-spacing: 1px; margin-top: -2px; }
   .item .nm-sub { font-size: var(--fs-sub); color: var(--ink-soft); margin-top: -2px; }
+  .item .sizeword { font-size: 11px; font-weight: 800; color: var(--accent-deep); background: var(--accent-soft); padding: 1px 7px; border-radius: var(--radius-pill); margin-left: 5px; vertical-align: middle; }
   .item .price { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .item .desc { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.6; margin-top: 4px; }
   .item .order { margin-top: 12px; padding: 13px; border: none; border-radius: var(--radius-sm); background: var(--accent); color: var(--paper); font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
@@ -720,8 +721,9 @@ const FEATURE = {
 };
 
 // 개별상품 카드 한 장
-function productCard(p){
+function productCard(p, sizeWord){
   const photo = (p.photos&&p.photos[0])||"";
+  const sizeBadge = sizeWord ? ` <span class="sizeword">${esc(sizeWord)}</span>` : "";
   const sizeTag = (p.cat==="plant" && p.size) ? `<span class="size-tag">${cmH(p.size.h)}×${cmH(p.size.w)}cm</span>` : "";
   const cutTag = (p.photos&&p.photos.length>1) ? `<span class="cutcount">사진 ${p.photos.length}컷</span>` : "";
   const gradeTag = p.grade ? ` <span style="font-size: var(--fs-caption);color:var(--gold);">${esc(p.grade)}</span>` : "";
@@ -730,7 +732,7 @@ function productCard(p){
       <div class="item${sold?' is-sold':''}" data-pc="${esc(p.pc)}" data-cat="${esc(p.cat)}">
         <div class="photo" onclick="openDetail('${esc(p.pc)}')">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
-          <div class="nm" onclick="openDetail('${esc(p.pc)}')">${esc(p.name)}${gradeTag}</div>
+          <div class="nm" onclick="openDetail('${esc(p.pc)}')">${esc(p.name)}${sizeBadge}${gradeTag}</div>
           ${(p.subtitle||FEATURE[p.name])?`<div class="nm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
           <div class="price">${p.price.toLocaleString()}원</div>
@@ -752,8 +754,30 @@ function groupByName(list){
   for(const p of list){ if(!m.has(p.name)) m.set(p.name, []); m.get(p.name).push(p); }
   return [...m.values()];
 }
+// 관엽은 크기별로 크기어 부여(가격 오름차순 = 작은 것→큰 것).
+function sizeWords(n){
+  if(n<=1) return [""];
+  if(n===2) return ["소형","대형"];
+  if(n===3) return ["소형","중형","대형"];
+  if(n===4) return ["소형","중형","대형","특대"];
+  const base=["소형","중소형","중형","대형","특대"];
+  return Array.from({length:n},(_,i)=> base[Math.min(i, base.length-1)]);
+}
 function renderList(list){
-  return groupByName(list).map(g => g.length === 1 ? productCard(g[0]) : groupCard(g)).join("");
+  // 관엽은 '크기=다른 상품'이라 묶지 않고 크기별 개별 카드로 분리(소·중·대).
+  // 난(호접란 12티어 등)·기타 같은-이름 묶음은 카드 폭증을 막기 위해 그대로 유지.
+  const out = [];
+  for(const g of groupByName(list)){
+    if(g.length === 1){ out.push(productCard(g[0])); continue; }
+    if(g[0].cat === "plant"){
+      const s = g.slice().sort((a,b)=> a.price-b.price || a.pc.localeCompare(b.pc,"en",{numeric:true}));
+      const w = sizeWords(s.length);
+      s.forEach((p,i)=> out.push(productCard(p, w[i])));
+    } else {
+      out.push(groupCard(g));
+    }
+  }
+  return out.join("");
 }
 // 묶인 상품 카드 한 장 (대표 사진 + 가격범위 + 'N가지 가격대')
 function groupCard(g){
