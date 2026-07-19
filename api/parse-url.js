@@ -203,7 +203,7 @@ export default async function handler(req, res) {
       if (!URL_ || !KEY_) return res.status(503).json({ error: "설정이 필요합니다." });
       try {
         const r = await fetch(
-          `${URL_}/rest/v1/orders?corp_regno=eq.${regno}&select=order_id,created_at,product_label,amount,status,order_type,event_date&order=created_at.desc&limit=60`,
+          `${URL_}/rest/v1/orders?corp_regno=eq.${regno}&select=order_id,created_at,product_label,amount,status,order_type,event_date,sender_name&order=created_at.desc&limit=60`,
           { headers: { apikey: KEY_, Authorization: `Bearer ${KEY_}` } }
         );
         if (!r.ok) return res.status(502).json({ error: "주문내역을 불러오지 못했습니다." });
@@ -213,6 +213,31 @@ export default async function handler(req, res) {
         console.error("corporders error:", e && e.message);
         return res.status(502).json({ error: "주문내역을 불러오지 못했습니다." });
       }
+    }
+
+    // ── 거래처: 세금계산서 재발행 요청 → 사장님 텔레그램 알림 (corp.html) ──
+    // 같은 corp 토큰 검증 후, 전화 대신 사장님 단톡방에 요청을 남긴다. DB 변경 없음.
+    if (early && early.action === "corpreq") {
+      const regno = String(early.regno || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "설정이 필요합니다." });
+      const expect = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      const got = String(early.token || "");
+      const a = Buffer.from(got), b = Buffer.from(expect);
+      if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(401).json({ error: "링크가 유효하지 않습니다." });
+      const memo = String(early.memo || "").replace(/\s+/g, " ").trim().slice(0, 200);
+      const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
+      if (tg && tgc) {
+        const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+        try {
+          await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: tgc, text: `${tag}🧾 세금계산서 재발행 요청\n사업자번호 ${regno}${memo ? `\n메모: ${memo}` : ""}\n(거래처 대시보드에서 요청)`, disable_web_page_preview: true }),
+          });
+        } catch { /* 알림 실패는 무시 */ }
+      }
+      return res.status(200).json({ ok: true });
     }
 
     if (early && early.action === "bizcheck") {

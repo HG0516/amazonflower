@@ -10,7 +10,7 @@
   :root{
     --bg:#f6f6f3; --paper:#fff; --ink:#1f1d18; --ink-soft:#5a564d; --ink-faint:#8c877d;
     --line:#e3e0d7; --line-soft:#eeece4; --accent:#1f4733; --accent-deep:#14311f; --accent-soft:#e8f1ea;
-    --warn:#8a6a32; --warn-soft:#f4ecdc; --danger:#963a30;
+    --warn:#8a6a32; --warn-soft:#f4ecdc; --danger:#963a30; --blue:#2b5b8a; --blue-soft:#e6eef7;
     --radius:10px; --radius-sm:7px; --radius-pill:999px;
     --font-display:"Nanum Myeongjo","Apple SD Gothic Neo",serif;
     --font-body:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -19,7 +19,7 @@
   @media (prefers-color-scheme:dark){:root{
     --bg:#17191b; --paper:#1f2225; --ink:#e9e7e1; --ink-soft:#a9a49a; --ink-faint:#837f76;
     --line:#33383c; --line-soft:#282c30; --accent:#7fb896; --accent-deep:#a6d4b8; --accent-soft:#1c2f26;
-    --warn:#cfa964; --warn-soft:#2e2718; --danger:#e08b80;
+    --warn:#cfa964; --warn-soft:#2e2718; --danger:#e08b80; --blue:#8ab4e0; --blue-soft:#1a2634;
   }}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
@@ -28,17 +28,24 @@
   .brand small{font-family:var(--font-body);font-weight:600;font-size:11px;color:var(--ink-faint);margin-left:7px;letter-spacing:.02em;}
   .call{font-size:12.5px;font-weight:700;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:var(--radius-pill);padding:6px 12px;}
   .wrap{max-width:620px;margin:0 auto;padding:20px 16px 60px;}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;}
   .biz-name{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink);display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
-  .badge{font-size:11px;font-weight:800;padding:2px 9px;border-radius:var(--radius-pill);}
-  .badge.ok{background:var(--accent-soft);color:var(--accent);}
-  .badge.pending{background:var(--warn-soft);color:var(--warn);}
+  .badge{font-size:11px;font-weight:800;padding:2px 9px;border-radius:var(--radius-pill);background:var(--accent-soft);color:var(--accent);}
   .biz-meta{font-size:var(--fs-sub);color:var(--ink-soft);margin-top:6px;}
   .biz-meta b{color:var(--ink);font-variant-numeric:tabular-nums;}
-  .actions{display:flex;flex-direction:column;gap:9px;margin-top:16px;}
   .btn{display:block;text-align:center;padding:14px;border-radius:var(--radius);font-size:15px;font-weight:700;font-family:var(--font-body);text-decoration:none;cursor:pointer;border:none;}
-  .btn.primary{background:var(--accent);color:#fff;}
-  .btn.ghost{background:var(--paper);border:1.5px solid var(--line);color:var(--ink);}
+  .btn.primary{background:var(--accent);color:#fff;margin-top:14px;}
+  .sect-h2{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:7px;}
+  .sect-note{font-size:var(--fs-caption);color:var(--ink-faint);margin:5px 0 11px;line-height:1.55;}
+  .sect-note b{color:var(--ink-soft);}
+  .docs{display:flex;gap:9px;}
+  .doc-btn{flex:1;text-align:center;text-decoration:none;border:1.5px solid var(--accent);border-radius:var(--radius-sm);background:var(--accent-soft);color:var(--accent-deep);font-weight:700;font-size:13px;padding:13px 8px;}
+  .doc-btn:hover{background:var(--accent);color:#fff;}
+  .doc-ph{font-size:var(--fs-caption);color:var(--ink-faint);background:var(--bg);border:1px dashed var(--line);border-radius:var(--radius-sm);padding:12px 13px;line-height:1.6;}
+  .doc-ph a{color:var(--accent);font-weight:700;text-decoration:none;}
+  .req-btn{width:100%;padding:13px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--paper);color:var(--ink);font-weight:700;font-size:14px;font-family:var(--font-body);cursor:pointer;}
+  .req-btn:hover{background:var(--ink);color:var(--paper);}
+  .req-btn:disabled{opacity:.75;cursor:default;background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
   .sect-h{font-size:13px;font-weight:800;color:var(--ink-faint);letter-spacing:.05em;margin:22px 4px 10px;}
   .order{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:9px;}
   .o-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
@@ -47,7 +54,7 @@
   .o-sub{font-size:var(--fs-caption);color:var(--ink-soft);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
   .ostat{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:var(--radius-pill);}
   .ostat.new{background:var(--warn-soft);color:var(--warn);}
-  .ostat.ordered{background:#e6eef7;color:#2b5b8a;}
+  .ostat.ordered{background:var(--blue-soft);color:var(--blue);}
   .ostat.delivered{background:var(--accent-soft);color:var(--accent);}
   .ostat.canceled{background:#f0e7e5;color:var(--danger);}
   .muted{color:var(--ink-faint);font-size:var(--fs-caption);}
@@ -71,12 +78,16 @@
     <div id="error" class="state hidden"></div>
     <div class="foot">
       꽃안부 · 1993년부터 · 전국 당일배송<br>
-      계산서 재발행·문의는 <a href="tel:031-314-3003">031-314-3003</a>
+      문의 <a href="tel:031-314-3003">031-314-3003</a>
     </div>
   </div>
 
 <script>
 (function(){
+  // 공급자(꽃안부·주식회사 아마존) 서류 — 파일 등록되면 아래 배열만 채우면 버튼이 뜬다.
+  // 예: [{label:"사업자등록증", url:"/docs/amazon-biz-reg.pdf"}, {label:"통장사본", url:"/docs/amazon-bankbook.pdf"}]
+  var SUPPLIER_DOCS = [];
+
   var q = new URLSearchParams(location.search);
   var regno = (q.get("corp")||"").replace(/\D/g,"");
   var token = q.get("t")||"";
@@ -93,40 +104,69 @@
     e.innerHTML = '<div class="em">🌸</div><h2>'+esc(title)+'</h2><div>'+esc(msg)+'</div>';
   }
 
-  async function post(action){
-    var r = await fetch("/api/parse-url", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ action:action, regno:regno, token:token })
-    });
+  async function post(action, extra){
+    var body = { action:action, regno:regno, token:token };
+    if(extra){ for(var k in extra) body[k]=extra[k]; }
+    var r = await fetch("/api/parse-url", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
     var data = await r.json().catch(function(){ return {}; });
     return { ok:r.ok, status:r.status, data:data };
   }
 
+  // 세금계산서 재발행 요청 → 사장님 텔레그램
+  window.requestInvoice = async function(btn){
+    var old = btn.textContent; btn.disabled = true; btn.textContent = "요청 보내는 중…";
+    try {
+      var r = await post("corpreq");
+      if(r.ok){ btn.textContent = "✓ 요청됐어요 — 사장님이 확인합니다"; }
+      else { btn.disabled = false; btn.textContent = old; alert((r.data && r.data.error) || "잠시 후 다시 시도해주세요."); }
+    } catch(e){ btn.disabled = false; btn.textContent = old; }
+  };
+
+  function docsBlock(){
+    var inner = SUPPLIER_DOCS.length
+      ? '<div class="docs">' + SUPPLIER_DOCS.map(function(d){
+          return '<a class="doc-btn" href="'+esc(d.url)+'" target="_blank" rel="noopener" download>📄 '+esc(d.label)+'</a>';
+        }).join("") + '</div>'
+      : '<div class="doc-ph">서류 준비 중 — 사장님이 등록하면 여기서 바로 받으실 수 있어요.<br>급히 필요하시면 <a href="tel:031-314-3003">031-314-3003</a> 로 요청해주세요.</div>';
+    return '<div class="card">'
+      + '<div class="sect-h2">📎 공급자 서류</div>'
+      + '<div class="sect-note">꽃안부(주식회사 아마존)를 <b>거래처로 등록</b>하거나 대금 품의 올릴 때 쓰세요.</div>'
+      + inner + '</div>';
+  }
+
+  function invoiceBlock(email){
+    return '<div class="card">'
+      + '<div class="sect-h2">🧾 세금계산서</div>'
+      + '<div class="sect-note">주문 확인 후 영업일 1~2일 내에 '+(email?('<b>'+esc(email)+'</b> 로'):'입력하신 이메일로')+' 발행됩니다.</div>'
+      + '<button class="req-btn" onclick="requestInvoice(this)">계산서 재발행 요청하기</button>'
+      + '</div>';
+  }
+
   function render(acc, prefillToken, orders){
-    var approvedBadge = '<span class="badge ok">거래처 전용</span>';
     var reorderUrl = "/?corp="+encodeURIComponent(regno)+"&t="+encodeURIComponent(prefillToken||"");
     var html = ''
       + '<div class="card">'
-      +   '<div class="biz-name">'+esc(acc.name||"거래처")+approvedBadge+'</div>'
+      +   '<div class="biz-name">'+esc(acc.name||"거래처")+'<span class="badge">거래처 전용</span></div>'
       +   '<div class="biz-meta">사업자번호 <b>'+esc(fmtNo(acc.regno))+'</b>'+(acc.email?' · 계산서 '+esc(acc.email):'')+'</div>'
-      +   '<div class="actions">'
-      +     '<a class="btn primary" href="'+reorderUrl+'">새 주문하기 (정보 자동 채움) →</a>'
-      +     '<a class="btn ghost" href="tel:031-314-3003">계산서 재발행·문의 (전화)</a>'
-      +   '</div>'
-      + '</div>';
+      +   '<a class="btn primary" href="'+reorderUrl+'">새 주문하기 (정보 자동 채움) →</a>'
+      + '</div>'
+      + docsBlock()
+      + invoiceBlock(acc.email);
 
-    html += '<div class="sect-h">지난 주문 '+(orders.length?('· '+orders.length+'건'):'')+'</div>';
+    html += '<div class="sect-h">지난 주문'+(orders.length?(' · '+orders.length+'건'):'')+'</div>';
     if(!orders.length){
       html += '<div class="card muted" style="text-align:center;">아직 이 거래처로 저장된 주문이 없어요.<br>위 “새 주문하기”로 첫 주문을 시작하실 수 있어요.</div>';
     } else {
       html += orders.map(function(o){
         var st = o.status || "new";
+        var by = o.sender_name ? ('보낸이 '+esc(o.sender_name)) : '';
         return '<div class="order">'
           + '<div class="o-top"><div class="o-prod">'+esc(o.product_label||"주문")+'</div><div class="o-amt">'+won(o.amount)+'</div></div>'
           + '<div class="o-sub">'
           +   '<span class="ostat '+st+'">'+esc(STAT[st]||st)+'</span>'
           +   '<span>'+esc(fmtDate(o.created_at))+' 주문</span>'
           +   (o.event_date?'<span>· 행사 '+esc(fmtDate(o.event_date))+'</span>':'')
+          +   (by?'<span>· '+by+'</span>':'')
           + '</div>'
           + '</div>';
       }).join("");
