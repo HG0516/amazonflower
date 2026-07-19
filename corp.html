@@ -86,7 +86,7 @@
 (function(){
   // 공급자(꽃안부·주식회사 아마존) 서류 — 파일 등록되면 아래 배열만 채우면 버튼이 뜬다.
   // 예: [{label:"사업자등록증", url:"/docs/amazon-biz-reg.pdf"}, {label:"통장사본", url:"/docs/amazon-bankbook.pdf"}]
-  var SUPPLIER_DOCS = [];
+  var SUPPLIER_DOCS = [{ label:"사업자등록증", url:"/files/amazon-biz-reg.pdf" }];
 
   var q = new URLSearchParams(location.search);
   var regno = (q.get("corp")||"").replace(/\D/g,"");
