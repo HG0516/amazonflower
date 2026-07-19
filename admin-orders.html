@@ -181,6 +181,7 @@ function render(){
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
         <button onclick="copyLink('${oid}',this)">🔗 기사 링크</button>
         <button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>
+        ${o.corp_name?`<button onclick="markInvoice('${oid}',this)">🧾 계산서 발행</button>`:''}
       </div>`}
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
     </div>`;
@@ -246,6 +247,14 @@ async function copyAcctLink(regno, btn){
   if(!data || !data.url){ btn.textContent=old; return; }
   try{ await navigator.clipboard.writeText(data.url); toast("계정 링크 복사됨 — 거래처에 보내면 주문내역을 봅니다 ✓"); btn.textContent="✓ 복사됨"; }
   catch(e){ prompt("이 계정·주문내역 링크를 거래처에 보내세요:", data.url); btn.textContent=old; }
+}
+// 세금계산서 발행완료 표시 — 거래처 대시보드에 '발행완료'로 보임(invoice_issued 컬럼 필요).
+async function markInvoice(oid, btn){
+  const old=btn.textContent; btn.textContent="처리 중…"; btn.disabled=true;
+  const data = await api({ resource:"corp", action:"invoice", order_id:oid, issued:true });
+  btn.disabled=false;
+  if(!data){ btn.textContent=old; return; }
+  toast("계산서 발행완료로 표시했어요 ✓"); btn.textContent="✓ 발행완료";
 }
 
 // ── 통계 ──

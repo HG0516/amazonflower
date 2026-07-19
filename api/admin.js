@@ -393,6 +393,19 @@ export default async function handler(req, res) {
       const tok = crypto.createHmac("sha256", CSECRET).update("corp:" + regno).digest("hex").slice(0, 24);
       return res.status(200).json({ ok: true, url: `${ORIGIN}/corp.html?corp=${regno}&t=${tok}` });
     }
+    // 세금계산서 발행완료 표시 → 거래처 대시보드에 '발행완료/대기'로 보임 (invoice_issued 컬럼)
+    if (body.action === "invoice") {
+      const oid = String(body.order_id || "").trim();
+      if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+      const issued = body.issued !== false;
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json" },
+        body: JSON.stringify({ invoice_issued: issued }),
+      });
+      if (!r.ok) { console.error("corp invoice fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "계산서 상태 변경 실패.(invoice_issued 컬럼 확인 — supabase-corp.sql 실행)" }); }
+      await notifyChange(`🧾 계산서 ${issued ? "발행완료" : "대기"} — 주문 ${oid}`);
+      return res.status(200).json({ ok: true });
+    }
     return res.status(400).json({ error: "알 수 없는 요청입니다." });
   }
 

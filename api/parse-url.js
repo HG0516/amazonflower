@@ -203,11 +203,13 @@ export default async function handler(req, res) {
       if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(401).json({ error: "링크가 유효하지 않습니다." });
       const URL_ = process.env.SUPABASE_URL, KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!URL_ || !KEY_) return res.status(503).json({ error: "설정이 필요합니다." });
+      const hdr = { apikey: KEY_, Authorization: `Bearer ${KEY_}` };
+      const base = "order_id,created_at,product_label,amount,status,order_type,event_date,sender_name";
+      const qry = (cols) => `${URL_}/rest/v1/orders?corp_regno=eq.${regno}&select=${cols}&order=created_at.desc&limit=60`;
       try {
-        const r = await fetch(
-          `${URL_}/rest/v1/orders?corp_regno=eq.${regno}&select=order_id,created_at,product_label,amount,status,order_type,event_date,sender_name&order=created_at.desc&limit=60`,
-          { headers: { apikey: KEY_, Authorization: `Bearer ${KEY_}` } }
-        );
+        // invoice_issued(계산서 발행상태) 포함 조회 → 컬럼 없으면 폴백(supabase-corp.sql 실행 전에도 안 깨짐).
+        let r = await fetch(qry(base + ",invoice_issued"), { headers: hdr });
+        if (!r.ok) r = await fetch(qry(base), { headers: hdr });
         if (!r.ok) return res.status(502).json({ error: "주문내역을 불러오지 못했습니다." });
         const rows = await r.json().catch(() => []);
         return res.status(200).json({ ok: true, orders: Array.isArray(rows) ? rows : [] });

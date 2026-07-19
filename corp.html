@@ -183,6 +183,7 @@
           +   '<span>'+esc(fmtDate(o.created_at))+' 주문</span>'
           +   (o.event_date?'<span>· 행사 '+esc(fmtDate(o.event_date))+'</span>':'')
           +   (by?'<span>· '+by+'</span>':'')
+          +   (o.invoice_issued===true?'<span>· 🧾 계산서 발행완료</span>':(o.invoice_issued===false?'<span class="muted">· 계산서 대기</span>':''))
           + '</div>'
           + '</div>';
       }).join("");

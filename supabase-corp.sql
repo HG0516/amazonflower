@@ -13,3 +13,7 @@ alter table public.orders
   add column if not exists corp_addr  text;
 
 create index if not exists orders_corp_regno_idx on public.orders (corp_regno);
+
+-- 세금계산서 발행상태 — 관리자가 '계산서 발행'을 누르면 true. 거래처 대시보드에 '발행완료/대기'로 보임.
+-- 없어도 대시보드는 폴백으로 동작하지만, 이 컬럼이 있어야 발행상태 표시가 켜진다.
+alter table public.orders add column if not exists invoice_issued boolean not null default false;
