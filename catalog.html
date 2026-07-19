@@ -77,6 +77,7 @@
   .item .code { font-size: var(--fs-caption); color: var(--ink-faint); letter-spacing: 1px; margin-top: -2px; }
   .item .nm-sub { font-size: var(--fs-sub); color: var(--ink-soft); margin-top: -2px; }
   .item .sizeword { font-size: 11px; font-weight: 800; color: var(--accent-deep); background: var(--accent-soft); padding: 1px 7px; border-radius: var(--radius-pill); margin-left: 5px; vertical-align: middle; }
+  .item .kind-chip { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent-deep); background: var(--accent-soft); padding: 2px 9px; border-radius: var(--radius-pill); margin-top: 1px; }
   .item .price { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .item .desc { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.6; margin-top: 4px; }
   .item .order { margin-top: 12px; padding: 13px; border: none; border-radius: var(--radius-sm); background: var(--accent); color: var(--paper); font-weight: 600; font-size: 14px; cursor: pointer; font-family: var(--font-body); letter-spacing: 0.5px; }
@@ -733,7 +734,9 @@ function productCard(p, sizeWord){
         <div class="photo" onclick="openDetail('${esc(p.pc)}')">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
           <div class="nm" onclick="openDetail('${esc(p.pc)}')">${esc(p.name)}${sizeBadge}${gradeTag}</div>
-          ${(p.subtitle||FEATURE[p.name])?`<div class="nm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
+          ${((p.cat==="bouquet"||p.cat==="basket")&&p.subtitle)
+            ? `<div><span class="kind-chip">${esc(p.subtitle)}</span></div>`
+            : ((p.subtitle||FEATURE[p.name])?`<div class="nm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:"")}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
           <div class="price">${p.price.toLocaleString()}원</div>
           ${sold
