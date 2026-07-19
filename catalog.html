@@ -677,11 +677,52 @@ function productsFor(key, sub, band){
 // '마음'=브랜드(꽃안부) 결, '보내기'=주문 액션 명확. 감성어 '~전하기'는 액션 신호가 약해 제외.
 const ORDER_LABEL = "마음 담아 보내기";
 const ORDER_VERB = { condolence:ORDER_LABEL, congrats:ORDER_LABEL, orchid:ORDER_LABEL, plant:ORDER_LABEL, basket:ORDER_LABEL, bouquet:ORDER_LABEL };
+// 관엽 크기는 원장 파일명에서 mm 로 들어온다(H1500=150cm). 방어적으로 300 초과면 mm→cm 변환.
+const cmH = (v) => (v > 300 ? Math.round(v / 10) : v);
+// 관엽·난 특색 한 줄(종별). 이름=식물종이라 크기 티어끼리 공유. subtitle 없는 관엽·난 카드에 표시.
+// (꽃다발·꽃바구니는 이미 subtitle 에 꽃종류가 있어 여기 안 넣는다)
+const FEATURE = {
+  "가지마루": "통통한 뿌리줄기 · 윤기 나는 작은 잎 · 책상에",
+  "금전수": "재물운 뜻하는 개업선물 · 두껍고 반들거리는 잎",
+  "녹보수": "잎이 촘촘하고 윤기 · 개업 축하로 인기",
+  "드라세나마지나타": "가는 잎 붉은 테두리 · 날씬해 사무실에",
+  "드라코": "굵은 줄기 위 뾰족한 잎 · 넓은 공간에 이국적",
+  "떡갈나무": "큼직한 잎이 시원시원 · 넓은 거실에",
+  "몬스테라": "잎에 구멍 숭숭 뚫린 · 인테리어에 인기",
+  "뱅갈고무나무": "하얀 잎맥 · 부드럽고 풍성해 거실에",
+  "스투키": "곧게 선 통잎 · 물 적게 줘도 되는 · 사무실에",
+  "아레카야자": "깃털 같은 잎 · 공기정화로 알려진 · 밝은 실내에",
+  "안시디움": "붉은 하트 모양 꽃 · 오래 피어 화사한 · 밝은 실내에",
+  "알로카시아": "화살촉 닮은 큰 잎 · 도드라진 잎맥 · 밝은 곳에",
+  "여인초": "바나나 닮은 큰 잎 · 키 큰 멋 · 넓은 공간에",
+  "율마": "상큼한 향 · 부드러운 연둣빛 잎 · 볕 드는 곳에",
+  "인도고무나무": "두툼한 진초록 잎 · 반질반질 윤기 · 거실에",
+  "인삼벤자민": "인삼 닮은 굵은 밑동 · 작은 잎 · 아담한 분재",
+  "자바": "늘씬하게 뻗은 잎 · 잎빛이 고운 · 무난한 실내 나무",
+  "초록몬스테라": "큼직하게 갈라진 잎 · 시원한 멋 · 거실에",
+  "칼라벤자민": "자잘한 잎에 흰 무늬 · 산뜻한 나무 · 밝은 실내",
+  "크로톤": "빨강 노랑 물든 잎 · 볕 좋은 창가에",
+  "킹벤자민": "잎이 큼직하고 반질한 · 우람한 나무 · 사무실 개업에",
+  "파키라": "땋아 올린 줄기 · 돈 부르는 나무 · 개업 축하",
+  "파키라특": "굵게 땋은 큰 줄기 · 듬직한 개업목 · 넓은 매장",
+  "해피트리": "이름부터 행복나무 · 반들한 잎 · 집들이 개업 선물",
+  "행운목": "행운을 뜻하는 이름 · 굵은 줄기 · 개업 단골",
+  "행운목괴목": "울퉁불퉁 멋스런 밑동 · 큼직한 행운목 · 큰 자리 선물",
+  "홍콩야자": "우산처럼 펼친 잎 · 튼튼해 키우기 쉬움 · 사무실",
+  "황금죽": "대나무 닮은 곧은 자태 · 동양적인 멋 · 가게 자리",
+  "스파티필룸": "실내에서 피는 흰 꽃 · 공기 맑히는 잎 · 은은한 선물",
+  "자마이카": "잎 가운데 연둣빛 줄 · 부드러운 멋 · 실내 어디나",
+  "대국": "진초록 잎이 사철 푸른 · 서재나 사무실에",
+  "철골소심": "맑은 향이 좋고 · 튼튼해 기르기 무난 · 개업선물",
+  "태양금": "잎에 든 노란 무늬가 화사 · 잎을 보는 난 · 밝은 거실에",
+  "황룡금": "이름처럼 황금빛 잎무늬 · 격조 있는 승진 축하",
+  "호접란": "큰 꽃이 오래가고 · 품격 있어 · 개업 승진 선물",
+};
 
 // 개별상품 카드 한 장
 function productCard(p){
   const photo = (p.photos&&p.photos[0])||"";
-  const sizeTag = (p.cat==="plant" && p.size) ? `<span class="size-tag">H${p.size.h}×W${p.size.w}</span>` : "";
+  const sizeTag = (p.cat==="plant" && p.size) ? `<span class="size-tag">${cmH(p.size.h)}×${cmH(p.size.w)}cm</span>` : "";
   const cutTag = (p.photos&&p.photos.length>1) ? `<span class="cutcount">사진 ${p.photos.length}컷</span>` : "";
   const gradeTag = p.grade ? ` <span style="font-size: var(--fs-caption);color:var(--gold);">${esc(p.grade)}</span>` : "";
   const sold = p.status && p.status !== "판매중";   // 품절·준비중 등
@@ -690,7 +731,7 @@ function productCard(p){
         <div class="photo" onclick="openDetail('${esc(p.pc)}')">${sold?`<span class="sold-tag">${esc(p.status)}</span>`:""}<img src="${esc(photo)}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
           <div class="nm" onclick="openDetail('${esc(p.pc)}')">${esc(p.name)}${gradeTag}</div>
-          ${p.subtitle?`<div class="nm-sub">${esc(p.subtitle)}</div>`:""}
+          ${(p.subtitle||FEATURE[p.name])?`<div class="nm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
           <div class="price">${p.price.toLocaleString()}원</div>
           ${sold
@@ -730,6 +771,7 @@ function groupCard(g){
         <div class="photo" onclick="openGroup('${nm}')"><img src="${esc(photo)}" alt="${esc(rep.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;font-size: var(--fs-caption);color:#9e9a8f;&quot;>사진 준비 중</div>'"></div>
         <div class="body">
           <div class="nm" onclick="openGroup('${nm}')">${esc(rep.name)}</div>
+          ${FEATURE[rep.name]?`<div class="nm-sub">${esc(FEATURE[rep.name])}</div>`:""}
           <div class="meta"><span class="band-tag">${tierText}</span></div>
           <div class="price">${priceLabel}</div>
           ${allSold
@@ -1147,10 +1189,10 @@ function renderDetail(){
     <div class="pm-photo"><img src="${esc(img)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'">${nav}</div>
     <div class="pm-body">
       <div class="pm-nm">${esc(p.name)}</div>
-      ${p.subtitle?`<div class="pm-sub">${esc(p.subtitle)}</div>`:""}
+      ${(p.subtitle||FEATURE[p.name])?`<div class="pm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
       <div class="pm-meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}<span class="size-tag">${esc(kind)}</span></div>
       <div class="pm-price">${p.price.toLocaleString()}원</div>
-      <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${p.size.h}cm · 폭 약 ${p.size.w}cm`:""}</div>
+      <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
@@ -1200,7 +1242,9 @@ function renderGroupDetail(){
   const sold = p.status && p.status!=="판매중";
   const tierTabs = prices.map((pr,i)=>{
     const w = prices.length>1 ? GRADE_WORDS[Math.min(i, GRADE_WORDS.length-1)] : "";
-    return `<button class="gtier ${pr===groupSel.price?'on':''}" onclick="pickGroupPrice(${pr})">${w?esc(w)+'<br>':''}<span class="gtp">${(pr/10000).toLocaleString()}만원</span></button>`;
+    const at = list.find(x=>x.price===pr);
+    const sz = (p.cat==="plant" && at && at.size) ? `${cmH(at.size.h)}cm · ` : "";
+    return `<button class="gtier ${pr===groupSel.price?'on':''}" onclick="pickGroupPrice(${pr})">${w?esc(w)+'<br>':''}<span class="gtp">${sz}${(pr/10000).toLocaleString()}만원</span></button>`;
   }).join("");
   const colorOpts = atPrice.length>1
     ? atPrice.map(x=>`<button class="gcolor ${x.pc===groupSel.pc?'on':''}" onclick="pickGroupPc('${esc(x.pc)}')"><img src="${esc((x.photos&&x.photos[0])||'')}" alt="${esc(x.name)}" loading="lazy" onerror="this.style.display='none'"></button>`).join("")
@@ -1209,12 +1253,13 @@ function renderGroupDetail(){
     <div class="pm-photo"><img src="${esc(photo)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'"></div>
     <div class="pm-body">
       <div class="pm-nm">${esc(p.name)}</div>
+      ${FEATURE[p.name]?`<div class="pm-sub">${esc(FEATURE[p.name])}</div>`:""}
       <div class="pm-meta"><span class="size-tag">${esc(kind)}</span></div>
       <div class="glbl">가격대 (크기·등급)</div>
       <div class="gtiers">${tierTabs}</div>
       ${colorOpts?`<div class="glbl">색·구성 고르기</div><div class="gcolors">${colorOpts}</div>`:""}
       <div class="pm-price">${p.price.toLocaleString()}원</div>
-      <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${p.size.h}cm · 폭 약 ${p.size.w}cm`:""}</div>
+      <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
