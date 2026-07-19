@@ -103,9 +103,7 @@
   }
 
   function render(acc, prefillToken, orders){
-    var approvedBadge = acc.approved
-      ? '<span class="badge ok">정기 거래처</span>'
-      : '<span class="badge pending">등록됨</span>';
+    var approvedBadge = '<span class="badge ok">거래처 전용</span>';
     var reorderUrl = "/?corp="+encodeURIComponent(regno)+"&t="+encodeURIComponent(prefillToken||"");
     var html = ''
       + '<div class="card">'
@@ -140,10 +138,10 @@
   async function boot(){
     if(!regno || !token){ showError("링크가 올바르지 않아요", "사장님께 받은 거래처 전용 링크로 다시 들어와 주세요."); return; }
     try {
-      var a = await post("corpaccount");
+      var a = await post("corpinfo");
       if(!a.ok){ showError("열 수 없는 링크예요", (a.data && a.data.error) || "링크가 만료됐거나 유효하지 않습니다. 사장님(031-314-3003)께 문의해주세요."); return; }
-      var acc = a.data.account || {};
-      var prefill = a.data.prefillToken || "";
+      var acc = a.data.corp || {};
+      var prefill = token;
       var o = await post("corporders");
       var orders = (o.ok && o.data && Array.isArray(o.data.orders)) ? o.data.orders : [];
       render(acc, prefill, orders);

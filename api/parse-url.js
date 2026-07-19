@@ -11,32 +11,6 @@ export const config = {
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 
-// ── 거래처 계정 링크(tier-2) 검증 ──
-// tier-1 corpinfo(무만료 corp:regno, 계산서 프리필)보다 강하게: 서명에 계정별 논스를 넣어
-// '재발급=옛 링크 무효'가 되게 한다. prefix 'corpacct:' 는 기존 5종(pay/corp/photo/confirm/cancel)과 안 겹침.
-const CORP_ERR = { unconfigured: [503, "설정이 필요합니다."], badreq: [400, "사업자번호가 올바르지 않습니다."], notfound: [404, "등록된 거래처가 아니에요. 사장님께 등록을 요청해주세요."], denied: [401, "링크가 유효하지 않습니다."], error: [502, "거래처 정보를 불러오지 못했습니다."] };
-async function loadCorpAccount(regno, token) {
-  const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
-  const URL_ = process.env.SUPABASE_URL, KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!SECRET || !URL_ || !KEY_) return { status: "unconfigured" };
-  if (!/^\d{10}$/.test(regno)) return { status: "badreq" };
-  let row;
-  try {
-    const r = await fetch(
-      `${URL_}/rest/v1/corp_accounts?regno=eq.${regno}&select=regno,biz_name,contact_email,ceo,addr,approved,token_nonce&limit=1`,
-      { headers: { apikey: KEY_, Authorization: `Bearer ${KEY_}` } }
-    );
-    if (!r.ok) return { status: "error" };
-    const rows = await r.json().catch(() => []);
-    row = Array.isArray(rows) && rows[0];
-  } catch { return { status: "error" }; }
-  if (!row) return { status: "notfound" };
-  const expect = crypto.createHmac("sha256", SECRET).update(`corpacct:${regno}:${row.token_nonce || ""}`).digest("hex").slice(0, 32);
-  const a = Buffer.from(String(token || "")), b = Buffer.from(expect);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return { status: "denied" };
-  return { status: "ok", account: row };
-}
-
 // 페이지 HTML에서 본문 텍스트만 대략 추출 (태그/스크립트 제거)
 function htmlToText(html) {
   return html
@@ -214,28 +188,19 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 거래처 계정 대시보드: 계정 상태 (corp.html) ──
-    // tier-2 토큰(corpacct:regno:nonce) 검증 후 계정 상태 + 재주문 프리필용 tier-1 토큰을 함께 반환.
-    if (early && early.action === "corpaccount") {
-      const regno = String(early.regno || "").replace(/\D/g, "");
-      const rr = await loadCorpAccount(regno, String(early.token || ""));
-      if (rr.status !== "ok") { const e = CORP_ERR[rr.status] || [502, "오류"]; return res.status(e[0]).json({ error: e[1] }); }
-      const a = rr.account;
-      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
-      const prefill = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
-      return res.status(200).json({
-        ok: true,
-        account: { regno: a.regno, name: a.biz_name || "", email: a.contact_email || "", ceo: a.ceo || "", addr: a.addr || "", approved: !!a.approved },
-        prefillToken: prefill,
-      });
-    }
-
-    // ── 거래처 계정 대시보드: 주문내역 (안전 컬럼만 — 받는분·주소·전화 등 배송 PII 는 절대 반환 안 함) ──
+    // ── 거래처 계정 대시보드: 주문내역 (corp.html) ──
+    // 기존 corp 링크 토큰(corp:regno, tier-1)을 corpinfo 와 동일하게 검증. 안전 컬럼만(배송 PII 없음).
     if (early && early.action === "corporders") {
       const regno = String(early.regno || "").replace(/\D/g, "");
-      const rr = await loadCorpAccount(regno, String(early.token || ""));
-      if (rr.status !== "ok") { const e = CORP_ERR[rr.status] || [502, "오류"]; return res.status(e[0]).json({ error: e[1] }); }
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "설정이 필요합니다." });
+      const expect = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      const got = String(early.token || "");
+      const a = Buffer.from(got), b = Buffer.from(expect);
+      if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(401).json({ error: "링크가 유효하지 않습니다." });
       const URL_ = process.env.SUPABASE_URL, KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!URL_ || !KEY_) return res.status(503).json({ error: "설정이 필요합니다." });
       try {
         const r = await fetch(
           `${URL_}/rest/v1/orders?corp_regno=eq.${regno}&select=order_id,created_at,product_label,amount,status,order_type,event_date&order=created_at.desc&limit=60`,

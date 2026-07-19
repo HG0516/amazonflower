@@ -381,94 +381,18 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, orders: Array.isArray(orders) ? orders : [] });
   }
 
-  // ─────────────────────── 정기 거래처 계정 (완만 게이팅) ───────────────────────
-  // 사업자번호(corp_regno)로 식별. 원장=corp_accounts. 계정 링크(tier-2)는 논스로 재발급 가능.
-  // ⚠️ 결제·토스와 무관(읽기전용 주문내역·계정관리). action 이름에 'cancel' 금지(비번면제 로직과 격리).
+  // ─────────────────────── 법인 거래처 계정 링크 발급 ───────────────────────
+  // tier-1 서명(corp:regno, 기존 '전용 주문 링크'와 동일 토큰)으로 corp.html 대시보드 링크 생성.
+  // 별도 테이블 불필요 — 연결된 Supabase 그대로 동작. 결제·order 블록 불변.
   if (body.resource === "corp") {
-    const act = body.action || "list";
-    const CSECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
-    const CA = `${SUPABASE_URL}/rest/v1/corp_accounts`;
-
-    if (act === "list") {
-      const r = await fetch(`${CA}?select=regno,biz_name,contact_email,contact_phone,ceo,addr,approved,note,created_at&order=created_at.desc&limit=500`, { headers: sb });
-      if (!r.ok) { console.error("corp list fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "거래처를 불러오지 못했습니다.(corp_accounts 테이블 확인)" }); }
-      const accounts = await r.json().catch(() => []);
-      return res.status(200).json({ ok: true, accounts: Array.isArray(accounts) ? accounts : [] });
-    }
-
-    const regno = String(body.regno || "").replace(/\D/g, "");
-    if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호 10자리가 필요합니다." });
-
-    if (act === "register") {
-      const row = {
-        regno,
-        biz_name: clean(body.biz_name, 60) || "(상호 미입력)",
-        contact_email: clean(body.contact_email, 120),
-        contact_phone: clean(body.contact_phone, 40),
-        ceo: clean(body.ceo, 40),
-        addr: clean(body.addr, 120),
-        note: clean(body.note, 200),
-        updated_at: new Date().toISOString(),
-      };
-      const r = await fetch(`${CA}?on_conflict=regno`, {
-        method: "POST",
-        headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
-        body: JSON.stringify(row),
-      });
-      if (!r.ok) { console.error("corp register fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "거래처 등록 실패.(corp_accounts 테이블 확인)" }); }
-      await notifyChange(`🏢 거래처 등록/수정 — ${row.biz_name} (${regno})`);
-      return res.status(200).json({ ok: true });
-    }
-
-    if (act === "approve") {
-      const r = await fetch(`${CA}?regno=eq.${regno}`, {
-        method: "PATCH", headers: { ...sb, "Content-Type": "application/json" },
-        body: JSON.stringify({ approved: true, updated_at: new Date().toISOString() }),
-      });
-      if (!r.ok) return res.status(502).json({ error: "승인 실패." });
-      await notifyChange(`✅ 거래처 승인 — ${regno}`);
-      return res.status(200).json({ ok: true });
-    }
-
-    if (act === "revoke") {
-      const nonce = crypto.randomBytes(4).toString("hex");
-      const r = await fetch(`${CA}?regno=eq.${regno}`, {
-        method: "PATCH", headers: { ...sb, "Content-Type": "application/json" },
-        body: JSON.stringify({ token_nonce: nonce, updated_at: new Date().toISOString() }),
-      });
-      if (!r.ok) return res.status(502).json({ error: "링크 재발급 실패." });
-      await notifyChange(`🔄 거래처 계정 링크 재발급 — ${regno} (옛 링크 무효)`);
-      if (!CSECRET) return res.status(200).json({ ok: true });
-      const tok = crypto.createHmac("sha256", CSECRET).update(`corpacct:${regno}:${nonce}`).digest("hex").slice(0, 32);
-      return res.status(200).json({ ok: true, url: `${ORIGIN}/corp.html?corp=${regno}&t=${tok}` });
-    }
-
-    if (act === "acctlink") {
+    if (body.action === "acctlink") {
+      const CSECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
       if (!CSECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요(CRON_SECRET)." });
-      // 있으면 논스 재사용, 없으면 주문에 남은 상호/이메일로 자동 등록.
-      const r = await fetch(`${CA}?regno=eq.${regno}&select=token_nonce&limit=1`, { headers: sb });
-      const rows = await r.json().catch(() => []);
-      let nonce = Array.isArray(rows) && rows[0] && rows[0].token_nonce;
-      if (!nonce) {
-        let bn = "(상호 미입력)", em = "";
-        const orr = await fetch(`${SUPABASE_URL}/rest/v1/orders?corp_regno=eq.${regno}&select=corp_name,corp_email&order=created_at.desc&limit=1`, { headers: sb });
-        const orows = await orr.json().catch(() => []);
-        if (Array.isArray(orows) && orows[0]) { bn = clean(orows[0].corp_name, 60) || bn; em = clean(orows[0].corp_email, 120); }
-        const ins = await fetch(`${CA}?on_conflict=regno`, {
-          method: "POST",
-          headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" },
-          body: JSON.stringify({ regno, biz_name: bn, contact_email: em, updated_at: new Date().toISOString() }),
-        });
-        if (!ins.ok) { console.error("corp acctlink insert fail", ins.status, await ins.text().catch(() => "")); return res.status(502).json({ error: "거래처 등록 실패.(corp_accounts 테이블 확인)" }); }
-        const irows = await ins.json().catch(() => []);
-        nonce = Array.isArray(irows) && irows[0] && irows[0].token_nonce;
-        await notifyChange(`🏢 거래처 계정 생성 — ${bn} (${regno})`);
-      }
-      if (!nonce) return res.status(502).json({ error: "토큰 생성 실패." });
-      const tok = crypto.createHmac("sha256", CSECRET).update(`corpacct:${regno}:${nonce}`).digest("hex").slice(0, 32);
+      const regno = String(body.regno || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호 10자리가 필요합니다." });
+      const tok = crypto.createHmac("sha256", CSECRET).update("corp:" + regno).digest("hex").slice(0, 24);
       return res.status(200).json({ ok: true, url: `${ORIGIN}/corp.html?corp=${regno}&t=${tok}` });
     }
-
     return res.status(400).json({ error: "알 수 없는 요청입니다." });
   }
 
