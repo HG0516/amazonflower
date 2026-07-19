@@ -3,6 +3,8 @@
 // 보안: ANTHROPIC_API_KEY는 이 서버 함수 안에서만 사용된다. 프론트에 절대 노출되지 않는다.
 
 import crypto from "node:crypto";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export const config = {
   runtime: "nodejs",
@@ -238,6 +240,33 @@ export default async function handler(req, res) {
         } catch { /* 알림 실패는 무시 */ }
       }
       return res.status(200).json({ ok: true });
+    }
+
+    // ── 거래처: 공급자 서류(사업자등록증) 다운로드 ──
+    // 공개 정적파일이 아니라 corp 토큰이 확인된 요청에만 파일 바이트를 내려준다(거래처 전용).
+    // 파일은 api/_corp 에 두고 함수 번들에 포함(vercel.json includeFiles). 공개 URL 아님.
+    if (early && early.action === "corpdoc") {
+      const regno = String(early.regno || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "설정이 필요합니다." });
+      const expect = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      const got = String(early.token || "");
+      const a = Buffer.from(got), b = Buffer.from(expect);
+      if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(401).json({ error: "링크가 유효하지 않습니다." });
+      const FILES = { "biz-reg": "amazon-biz-reg.pdf" };
+      const fname = FILES[String(early.doc || "biz-reg")];
+      if (!fname) return res.status(404).json({ error: "없는 서류입니다." });
+      try {
+        const buf = readFileSync(fileURLToPath(new URL("./_corp/" + fname, import.meta.url)));
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", 'inline; filename="' + fname + '"');
+        res.setHeader("Cache-Control", "private, no-store");
+        return res.status(200).send(buf);
+      } catch (e) {
+        console.error("corpdoc read fail:", e && e.message);
+        return res.status(502).json({ error: "서류를 불러오지 못했습니다." });
+      }
     }
 
     if (early && early.action === "bizcheck") {
