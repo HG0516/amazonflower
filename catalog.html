@@ -719,7 +719,57 @@ const FEATURE = {
   "태양금": "잎에 든 노란 무늬가 화사 · 잎을 보는 난 · 밝은 거실에",
   "황룡금": "이름처럼 황금빛 잎무늬 · 격조 있는 승진 축하",
   "호접란": "큰 꽃이 오래가고 · 품격 있어 · 개업 승진 선물",
+  // ── 준비 중 품종(사진 대기). 정식 등록되면 그대로 쓴다 ──
+  "산세베리아": "칼처럼 곧은 넓은 잎 · 공기정화 대표 · 물 조금",
+  "관음죽": "부챗살처럼 퍼지는 잎 · 동양적 격식 · 사무실에",
+  "테이블야자": "작고 부드러운 야자 · 책상 위 · 반음지도 OK",
+  "크루시아": "동글고 도톰한 잎 · 반질반질 · 관리 편함",
+  "콩고": "넓고 시원한 잎 · 공간을 채우는 · 사무실 개업",
+  "셀렘": "깊게 갈라진 큰 잎 · 시원한 멋 · 넓은 공간에",
+  "극락조": "새 부리 닮은 큰 잎 · 이국적인 멋 · 로비·넓은 곳",
+  "만천홍": "작고 도톰한 붉은 꽃 · 오래가고 단정 · 개업 승진",
+  "황금일향": "황금빛 잎무늬 · 동양란 최고급 · 승진 취임",
+  "심비디움": "큼직한 꽃대가 여러 대 · 겨울 대표 난 · 축하 자리",
+  "소국": "송이송이 동그란 소국 · 가을빛 · 근조에도",
+  "안개꽃": "뽀얗게 흐드러지는 · 사계절 기본 · 단독으로도",
+  "라넌큘러스": "겹겹이 말린 꽃잎 · 겨울~봄 대표 · 화사함",
 };
+
+// ── 준비 중 상품 (사진 대기) ──
+// 사진이 아직 없어 빌드 파이프라인엔 못 올린 신규 품종. 사장님이 사이트에서 자리를 보고
+// 사진을 주시면 정식 등록하고 여기서 지운다. 가격은 시장가 조사 기준(2026-07).
+// ⚠️ ?preview=1 일 때만 보인다 — 손님에겐 안 보임(못 사는 상품이 노출되면 안 되므로).
+// status:"준비중" 이라 주문 버튼은 자동으로 비활성이다.
+const UPCOMING = [
+  // 관엽
+  { pc:"UP-PL-01", cat:"plant", sub:"관엽", name:"산세베리아", price:63000,  band:"5만대",  size:{h:400,w:300} },
+  { pc:"UP-PL-02", cat:"plant", sub:"관엽", name:"산세베리아", price:98000,  band:"9만대",  size:{h:700,w:400} },
+  { pc:"UP-PL-03", cat:"plant", sub:"관엽", name:"산세베리아", price:128000, band:"10만↑", size:{h:900,w:500} },
+  { pc:"UP-PL-04", cat:"plant", sub:"관엽", name:"관음죽",     price:98000,  band:"9만대",  size:{h:800,w:500} },
+  { pc:"UP-PL-05", cat:"plant", sub:"관엽", name:"관음죽",     price:138000, band:"10만↑", size:{h:1200,w:600} },
+  { pc:"UP-PL-06", cat:"plant", sub:"관엽", name:"테이블야자", price:67000,  band:"5만대",  size:{h:400,w:350} },
+  { pc:"UP-PL-07", cat:"plant", sub:"관엽", name:"크루시아",   price:98000,  band:"9만대",  size:{h:800,w:500} },
+  { pc:"UP-PL-08", cat:"plant", sub:"관엽", name:"콩고",       price:88000,  band:"7만대",  size:{h:750,w:500} },
+  { pc:"UP-PL-09", cat:"plant", sub:"관엽", name:"셀렘",       price:108000, band:"10만↑", size:{h:900,w:600} },
+  { pc:"UP-PL-10", cat:"plant", sub:"관엽", name:"극락조",     price:118000, band:"10만↑", size:{h:1200,w:700} },
+  // 난
+  { pc:"UP-OR-01", cat:"orchid", sub:"서양란", name:"만천홍",   price:69000,  band:"5만대" },
+  { pc:"UP-OR-02", cat:"orchid", sub:"서양란", name:"만천홍",   price:98000,  band:"9만대" },
+  { pc:"UP-OR-03", cat:"orchid", sub:"서양란", name:"만천홍",   price:147000, band:"10만↑" },
+  { pc:"UP-OR-04", cat:"orchid", sub:"동양란", name:"황금일향", price:168000, band:"10만↑" },
+  { pc:"UP-OR-05", cat:"orchid", sub:"서양란", name:"심비디움", price:118000, band:"10만↑" },
+  // 꽃다발
+  { pc:"UP-BQ-01", cat:"bouquet", sub:"꽃다발", name:"소국",       subtitle:"노란 소국 다발",   price:55000, band:"5만대" },
+  { pc:"UP-BQ-02", cat:"bouquet", sub:"꽃다발", name:"안개꽃",     subtitle:"안개꽃 한아름",     price:58000, band:"5만대" },
+  { pc:"UP-BQ-03", cat:"bouquet", sub:"꽃다발", name:"라넌큘러스", subtitle:"라넌큘러스 다발",   price:68000, band:"5만대" },
+];
+try {
+  if (new URLSearchParams(location.search).get("preview") === "1") {
+    for (const u of UPCOMING) {
+      PRODUCTS.push({ subtitle:"", grade:null, size:null, photos:[], status:"준비중", ...u });
+    }
+  }
+} catch (_) { /* 미리보기 실패는 무시 — 정상 카탈로그엔 영향 없음 */ }
 
 // 개별상품 카드 한 장
 function productCard(p, sizeWord){
