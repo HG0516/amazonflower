@@ -231,24 +231,29 @@
   @media (max-width: 420px){ .ladder-row { grid-template-columns: 52px 1fr auto; } .lr-photo{width:52px;height:52px;} .lr-order{ grid-column: 1/-1; width:100%; } }
 
   /* ── 압축 필터: [종류·가격대 한 줄 가로스크롤] + [정렬 우측 고정 드롭다운] ── */
-  .filterbar { display: flex; align-items: center; gap: 10px; margin: 12px 0 2px; }
+  .filterbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 12px 0 2px; }
   /* 화환 탭 등 세 렌더타깃이 모두 비면 필터바 통째 숨김 (JS 분기 불필요) */
   .filterbar:not(:has(.subtabs:not(:empty), .bandchips:not(:empty), .sortbar:not(:empty))) { display: none; }
   /* 종류+가격대 = 하나의 가로스크롤 트랙(통째로 스크롤 → 5칩 안 잘림) */
-  .fb-scroll { display: flex; align-items: center; flex: 1 1 auto; min-width: 0; gap: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; overscroll-behavior-x: contain; }
-  .fb-scroll::-webkit-scrollbar { display: none; }
-  .fb-scroll .subtabs, .fb-scroll .bandchips { display: flex; align-items: center; flex: 0 0 auto; gap: 8px; margin: 0; overflow: visible; }
+  /* 가로스크롤 대신 줄바꿈 — 모바일에서 칩이 잘려 안 보이던 문제 해결(넘치면 다음 줄로) */
+  .fb-scroll { display: flex; align-items: center; flex-wrap: wrap; flex: 1 1 auto; min-width: 0; gap: 8px 14px; }
+  .fb-scroll .subtabs, .fb-scroll .bandchips { display: flex; align-items: center; flex-wrap: wrap; flex: 0 1 auto; gap: 8px; margin: 0; overflow: visible; }
   .fb-scroll .subtabs:empty, .fb-scroll .bandchips:empty { display: none; }   /* 종류 없는 탭·밴드 1개면 자동 숨김 */
-  .fb-scroll .subtabs:not(:empty) + .bandchips:not(:empty) { border-left: 1px solid var(--line-soft); padding-left: 12px; }
+  /* 줄바꿈되면 세로 구분선이 줄 첫머리에 어색하게 걸려서 뺌 — '종류/가격대' 라벨이 이미 구분해 줌 */
   .frow-label { flex: 0 0 auto; font-size: var(--fs-caption); color: var(--ink-faint); font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
-  .frow-pills { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; overflow: visible; }
+  .frow-pills { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; flex: 0 1 auto; overflow: visible; }
   .frow-pills .fpill { flex: 0 0 auto; }
   .fpill { font-size: var(--fs-caption); font-weight: 600; padding: 9px 15px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink-soft); cursor: pointer; font-family: var(--font-body); min-height: 48px; white-space: nowrap; }
   .fpill:hover { border-color: var(--ink); }
   .fpill.on { background: var(--ink); color: #fff; border-color: var(--ink); }
   /* 정렬 = 우측 고정 native select(스크롤에 안 밀림·항상 보임·현재값 노출) */
-  .sortbar { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; margin: 0; }
+  .sortbar { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; margin: 0 0 0 auto; }
   .sortbar:empty { display: none; }
+  /* 좁은 화면에선 칩 여백을 줄여 한 줄에 더 들어가게 (터치 높이 48px 는 유지) */
+  @media (max-width: 430px) {
+    .fpill { padding: 9px 11px; }
+    .frow-label { font-size: 11px; letter-spacing: 0; }
+  }
   .fsort-sel { font-family: var(--font-body); font-size: 16px; font-weight: 600; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0 12px; min-height: 48px; cursor: pointer; color-scheme: light dark; }
   .fsort-sel:hover { border-color: var(--ink); }
   .fsort-sel:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
