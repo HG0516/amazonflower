@@ -641,6 +641,23 @@ const catAxis = (cat)=> cat==="bouquet"||cat==="basket" ? "basket" : cat; // 상
 const BANDS = ["5만대","7만대","9만대","10만↑"];
 const BAND_ORDER = {"5만대":0,"7만대":1,"9만대":2,"10만↑":3};
 let currentCat = "basket", currentSub = "", currentBand = "", currentSort = "pop";
+let currentUse = "";  // 관엽 '쓰임' 필터(desk/mid/big) — 다른 탭에선 미사용
+const PLANT_USE_LABELS = [["desk","탁상"], ["mid","거실·사무실"], ["big","로비·큰 곳"]];
+// 쓰임 = 절대 크기(높이 cm, 없으면 가격)로 추정. 탁상 소형 / 거실·사무실 중형 / 로비 대형
+function plantUse(p){
+  const h = (p.size && p.size.h) ? (p.size.h > 300 ? Math.round(p.size.h/10) : p.size.h) : null;
+  if(h != null) return h <= 70 ? "desk" : h <= 130 ? "mid" : "big";
+  return p.price < 70000 ? "desk" : p.price < 110000 ? "mid" : "big";
+}
+// 관엽 크기어(소/중/대) — 필터에 흔들리지 않게 '전체 같은-이름' 기준으로 순위 매김
+function plantSizeWord(p){
+  if(p.cat !== "plant") return "";
+  const sibs = PRODUCTS.filter(x=> x.cat==="plant" && x.name===p.name)
+    .sort((a,b)=> a.price-b.price || a.pc.localeCompare(b.pc,"en",{numeric:true}));
+  if(sibs.length <= 1) return "";
+  const i = sibs.findIndex(x=> x.pc===p.pc);
+  return sizeWords(sibs.length)[i >= 0 ? i : 0];
+}
 
 // ── 상황(경조사) → 어울리는 상품종류(여러 개) ──────────────────────────
 // 상황을 고르면 여기 types의 종류들이 종류별로 묶여 한 화면에 나오고, 종류 토글칩으로 좁힐 수 있다.
@@ -673,6 +690,7 @@ function productsFor(key, sub, band){
   let list = PRODUCTS.filter(p=> ax.cats.includes(p.cat));
   if(sub) list = list.filter(p=> p.sub===sub);
   if(band) list = list.filter(p=> p.band===band);
+  if(key==="plant" && currentUse) list = list.filter(p=> plantUse(p)===currentUse);
   const sorters = {
     pop:  (a,b)=> (BAND_ORDER[a.band]-BAND_ORDER[b.band]) || (a.price-b.price) || a.pc.localeCompare(b.pc,"en",{numeric:true}),
     new:  (a,b)=> b.pc.localeCompare(a.pc,"en",{numeric:true}),
@@ -828,11 +846,12 @@ function renderList(list){
   // 난(호접란 12티어 등)·기타 같은-이름 묶음은 카드 폭증을 막기 위해 그대로 유지.
   const out = [];
   for(const g of groupByName(list)){
-    if(g.length === 1){ out.push(productCard(g[0])); continue; }
     if(g[0].cat === "plant"){
+      // 관엽은 개별 카드. 크기어(소/중/대)는 '전체 같은-이름' 기준이라 쓰임/가격 필터에 안 흔들림
       const s = g.slice().sort((a,b)=> a.price-b.price || a.pc.localeCompare(b.pc,"en",{numeric:true}));
-      const w = sizeWords(s.length);
-      s.forEach((p,i)=> out.push(productCard(p, w[i])));
+      s.forEach(p=> out.push(productCard(p, plantSizeWord(p))));
+    } else if(g.length === 1){
+      out.push(productCard(g[0]));
     } else {
       out.push(groupCard(g));
     }
@@ -998,14 +1017,20 @@ function showCat(key, keepFilter){
   const ax=AXES[key]; if(!ax) return;
   currentOccasion = ""; setActiveOccChip("");   // 종류 탭을 직접 누르면 상황 모드 해제
   currentCat = key;
-  if(!keepFilter){ currentSub=""; currentBand=""; }
+  if(!keepFilter){ currentSub=""; currentBand=""; currentUse=""; }
   const tabMap={condolence:"tabCondo",congrats:"tabCongrats",orchid:"tabOrchid",plant:"tabPlant",basket:"tabBasket"};
   for(const [k,id] of Object.entries(tabMap)){
     document.getElementById(id)?.classList.toggle("on", k===key);
   }
   // 서브탭(꽃다발/꽃바구니, 동양란/서양란) — 라벨 붙은 통일 알약
   const stEl=document.getElementById("subTabs");
-  if(ax.subs.length){
+  if(key==="plant"){
+    // 관엽은 종류가 하나뿐이라, 그 자리에 '쓰임'(탁상/거실·사무실/로비) 필터를 준다
+    stEl.innerHTML = `<span class="frow-label">쓰임</span><div class="frow-pills">`
+      + `<button class="fpill ${!currentUse?"on":""}" onclick="setUse('')">전체</button>`
+      + PLANT_USE_LABELS.map(([u,l])=>`<button class="fpill ${currentUse===u?"on":""}" onclick="setUse('${u}')">${esc(l)}</button>`).join("")
+      + `</div>`;
+  } else if(ax.subs.length){
     stEl.innerHTML = `<span class="frow-label">종류</span><div class="frow-pills">`
       + `<button class="fpill ${!currentSub?"on":""}" onclick="setSub('')">전체</button>`
       + ax.subs.map(s=>`<button class="fpill ${currentSub===s?"on":""}" onclick="setSub('${s}')">${esc(s)}</button>`).join("")
@@ -1153,6 +1178,7 @@ function wreathUrlGo(){
   location.href = "/?src=" + encodeURIComponent(v);
 }
 function setSub(s){ currentSub=s; showCat(currentCat, true); }
+function setUse(u){ currentUse=u; showCat(currentCat, true); }
 function setBand(b){ currentBand=b; renderBandChips(); renderProducts(); }
 function setSort(s){ currentSort=s; renderSortBar(); currentOccasion ? renderOccProducts() : renderProducts(); }
 
@@ -1179,7 +1205,18 @@ function renderSortBar(){
 function renderProducts(){
   const ax=AXES[currentCat];
   let html=`<div class="section-label">${ax.label}</div><div class="section-desc">${ax.desc}</div>`;
-  if(ax.subs.length && !currentSub){
+  if(currentCat==="plant" && !currentUse){
+    // 전체 볼 때는 쓰임별(탁상 / 거실·사무실 / 로비)로 구분해 순서대로 보여준다
+    let any=false;
+    for(const [u,l] of PLANT_USE_LABELS){
+      const list=productsFor("plant","",currentBand).filter(p=>plantUse(p)===u);
+      if(!list.length) continue;
+      any=true;
+      html+=`<div class="group-head">${esc(l)} <span class="group-count">${list.length}</span></div>`;
+      html+=`<div class="grid">`+renderList(list)+`</div>`;
+    }
+    if(!any) html+=`<div class="grid"><div class="cat-empty">해당 조건의 상품이 없어요. 필터를 바꿔보세요.</div></div>`;
+  } else if(ax.subs.length && !currentSub){
     // 전체 볼 때는 서브(꽃다발→꽃바구니, 동양란→서양란)별로 구분해 순서대로 보여준다
     let any=false;
     for(const s of ax.subs){
