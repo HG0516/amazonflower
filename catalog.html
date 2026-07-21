@@ -62,6 +62,8 @@
 
   /* 상품 카드 */
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  /* 반응형 사다리 — 폰 2 / 큰폰·태블릿 3 / 데스크톱 4(아래 1000px 블록). 화환(.wreath-grid)은 세로로 길어 2 유지 */
+  @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
   .item { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: border-color var(--dur-fast); }
   .item:hover { border-color: var(--ink); box-shadow: 0 4px 16px rgba(31,29,24,.08); }
   .item .photo { position: relative; aspect-ratio: 3/4; background: var(--photo-bg); display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: var(--fs-caption); overflow: hidden; }
@@ -369,7 +371,7 @@
       padding: 0 32px 30px;
       min-height: 100vh;
     }
-    .grid { grid-template-columns: 1fr 1fr 1fr; }
+    .grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
     .gallery-grid { grid-template-columns: repeat(4, 1fr); }
   }
 </style>
