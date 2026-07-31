@@ -12,7 +12,7 @@ import crypto from "node:crypto";
 
 export const config = { runtime: "nodejs" };
 
-const ORIGIN = "https://amazonflower.vercel.app";
+const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app").replace(/\/+$/, "");
 const CATEGORIES = ["plant", "orchid", "basket", "congrats", "condolence"];
 const SUB_CANON = { plant: "관엽", congrats: "축하", condolence: "근조" }; // 세부분류 없는 카테고리는 대표값 고정
 const SUB_ALLOWED = { orchid: ["동양란", "서양란"], basket: ["꽃다발", "꽃바구니"] };

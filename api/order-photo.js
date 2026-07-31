@@ -8,7 +8,7 @@ import crypto from "node:crypto";
 
 export const config = { runtime: "nodejs" };
 
-const ORIGIN = "https://amazonflower.vercel.app";
+const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app").replace(/\/+$/, "");
 const BUCKET = "order-photos";
 const MAX_B64 = 4_000_000;
 const MAX_BYTES = 3 * 1024 * 1024;

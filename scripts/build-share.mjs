@@ -17,7 +17,7 @@ import { PRODUCTS } from "../products.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "s");
-const BASE = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
+const BASE = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
 
 const CAT_KIND = {
   bouquet: "꽃다발", basket: "꽃바구니", plant: "관엽식물",

@@ -32,7 +32,7 @@ const won = (n) => `${Number(n || 0).toLocaleString()}원`;
 const CAT_LABEL = { congrats: "축하화환", condolence: "근조화환", orchid: "난", plant: "관엽", bouquet: "꽃다발", basket: "꽃바구니" };
 const catNames = (cats) => (Array.isArray(cats) && cats.length ? cats.map((c) => CAT_LABEL[c] || c).join("·") : "어디에도 안 보임");
 
-const ORIGIN = "https://amazonflower.vercel.app";
+const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app").replace(/\/+$/, "");
 const VALID_PC = new Set(PRODUCTS.map((p) => p.pc));
 const STATUS_ALLOWED = new Set(["판매중", "품절"]);
 const ORDER_STATUS = new Set(["new", "ordered", "delivered"]);
