@@ -6,6 +6,8 @@
 
 import crypto from "node:crypto";
 
+import { askClaude, extractJson } from "../lib/ai.mjs";
+
 export const config = { runtime: "nodejs" };
 
 const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app").replace(/\/+$/, "");
@@ -95,5 +97,52 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "주문에 사진을 연결하지 못했어요. (supabase-auth.sql 의 completed_photo 컬럼이 필요할 수 있어요)" });
   }
 
-  return res.status(200).json({ ok: true });
+  // 3) 배송완료 사진 자동 검수 — 올린 사람이 아직 현장에 있을 때 알려주는 게 핵심이다.
+  //    문제를 못 찾거나 AI가 죽어도 업로드는 이미 성공이다(warn 없이 반환).
+  const warn = await inspectPhoto(buf);
+  if (warn) {
+    // 사장님도 알아야 손님보다 먼저 대응할 수 있다. 실패해도 응답에는 영향 없음.
+    await sendTelegram(`⚠️ 배송사진 확인 필요 — 주문 ${oid}\n${warn}`).catch(() => {});
+  }
+  return res.status(200).json({ ok: true, warn: warn || null });
+}
+
+async function sendTelegram(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+  const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: tag + text, disable_web_page_preview: true }),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 배송완료 사진에서 '다시 찍어야 할' 문제만 찾는다. 문제 없으면 null.
+ * 취향(구도·배경)은 지적하지 않는다 — 기사님을 붙잡아 두는 비용이 크다.
+ */
+async function inspectPhoto(buf) {
+  const r = await askClaude({
+    maxTokens: 200,
+    timeoutMs: 8000,
+    system:
+      "너는 화환·꽃 배송완료 사진을 검수한다. 기사님이 현장에서 다시 찍어야 할 정도의 문제만 지적한다.\n" +
+      "지적할 것: (1) 화환이 넘어졌거나 크게 기울었다 (2) 너무 어둡거나 흔들려 무엇인지 알아볼 수 없다 (3) 리본 글자가 가려지거나 잘렸다 (4) 꽃이나 화환이 사진에 없다.\n" +
+      "지적하지 않을 것: 구도, 배경 정리 상태, 조명 취향, 사소한 각도.\n" +
+      '문제가 없으면 {"warn":null} 만 출력한다. 있으면 {"warn":"무엇이 문제인지와 어떻게 다시 찍을지 한 문장, 존댓말"} 형식의 JSON만 출력한다. 설명·마크다운 금지.',
+    content: [
+      { type: "image", source: { type: "base64", media_type: "image/jpeg", data: buf.toString("base64") } },
+      { type: "text", text: "이 배송완료 사진을 검수해 주세요." },
+    ],
+  });
+  if (!r.ok) return null;
+  const j = extractJson(r.text);
+  return j && typeof j.warn === "string" && j.warn.trim() ? j.warn.trim().slice(0, 200) : null;
 }

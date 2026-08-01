@@ -5,6 +5,8 @@
 
 import crypto from "node:crypto";
 
+import { askClaude } from "../lib/ai.mjs";
+
 export const config = { runtime: "nodejs" };
 
 const ALERT_WINDOW_HOURS = 3;  // 행사 N시간 전부터 경고
@@ -83,6 +85,39 @@ function briefLine(o) {
   const who = [o.recipient_name, o.venue].filter(Boolean).join(" / ") || "받는분 미상";
   return ` ${st} ${when} ${o.product_label || o.product_code || "주문"} — ${who}`;
 }
+
+/**
+ * 목록 위에 얹을 한 문단 요약. 같은 장소·인접 지역을 묶어 "오늘 이렇게 도시면 됩니다"로 정리한다.
+ * 실패하면 null — 브리핑 본문은 그대로 나가야 하므로 절대 막지 않는다.
+ * 보내는 건 배송 정보뿐(연락처는 애초에 조회 대상이 아니다).
+ */
+async function briefingDigest(todayRows) {
+  if (todayRows.length < 2) return null; // 1건이면 묶을 것이 없다
+  const lines = todayRows
+    .map((o) => {
+      const when = o.event_at ? kstDT(o.event_at) : (o.event_time || "시간미정");
+      return `${when} | ${o.product_label || o.product_code || "주문"} | ${o.venue || "장소미상"} | ${o.recipient_name || ""}`;
+    })
+    .join("\n");
+  const r = await askClaude({
+    maxTokens: 400,
+    timeoutMs: 8000,
+    system:
+      "너는 33년 된 꽃집의 배송 일정을 사장님께 정리해 드린다. 사장님은 연세가 있으시니 짧고 분명하게 쓴다.\n" +
+      "규칙:\n" +
+      "- 같은 장소이거나 가까운 지역이면 묶어서 한 번에 다녀오시라고 알린다.\n" +
+      "- 시간이 가장 급한 것을 먼저 말한다.\n" +
+      "- 전체 3줄 이내. 각 줄은 한 문장.\n" +
+      "- 존댓말. 인사말·머리말·맺음말은 쓰지 않는다.\n" +
+      "- 목록에 없는 내용은 절대 지어내지 않는다. 지역이 확실하지 않으면 묶지 않는다.\n" +
+      "- 묶을 것도 급한 것도 없으면 빈 문자열만 출력한다.",
+    content: `오늘 배송 목록입니다. 시간 | 상품 | 장소 | 받는분 순입니다.\n\n${lines}`,
+  });
+  if (!r.ok) return null;
+  const t = r.text.trim();
+  if (!t || t.length > 300) return null; // 길면 요약이 아니다 — 버린다
+  return t;
+}
 async function runBriefing(kind, SUPABASE_URL, sbHeaders) {
   const meta = BRIEF_META[kind];
   const [todayS, todayE] = kstDayRangeUtc(0);
@@ -122,6 +157,9 @@ async function runBriefing(kind, SUPABASE_URL, sbHeaders) {
   const kstNow = new Date(Date.now() + 9 * 3600000);
   const dateStr = `${kstNow.getUTCMonth() + 1}/${kstNow.getUTCDate()}(${"일월화수목금토"[kstNow.getUTCDay()]})`;
   const L = [`${meta.emoji} ${meta.label} — ${dateStr}`];
+  // 목록보다 먼저 읽히도록 요약을 맨 위에. AI가 실패하면 이 줄만 빠지고 나머지는 그대로 나간다.
+  const digest = await briefingDigest(today.rows);
+  if (digest) L.push(`\n${digest}`);
   if (pending.total) {
     L.push(`\n📋 미결 주문 ${pending.total}건 (아직 발주 전)`);
     for (const o of pending.rows.slice(0, 8)) L.push(briefLine(o));

@@ -6,12 +6,14 @@ import crypto from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { askClaude, extractJson, AI_MODEL } from "../lib/ai.mjs";
+
 export const config = {
   runtime: "nodejs",
 };
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-6";
+const MODEL = AI_MODEL;
 
 // 페이지 HTML에서 본문 텍스트만 대략 추출 (태그/스크립트 제거)
 function htmlToText(html) {
@@ -101,6 +103,92 @@ export default async function handler(req, res) {
   {
     let early = req.body;
     if (typeof early === "string") { try { early = JSON.parse(early || "{}"); } catch { early = {}; } }
+
+    // ── 리본 문구 도우미 ──
+    // body: {action:"ribbon", mode:"suggest", type:"condolence", desc:"직장 상사 어머님 상"}
+    //       → {ok, items:["삼가 고인의 명복을 빕니다", ...]}
+    // body: {action:"ribbon", mode:"check", type:"condolence", left:"...", right:"..."}
+    //       → {ok, warn:null|"장례용인데 축하 표현입니다"}
+    // 실패는 전부 조용히 빈 결과(fail-open) — 주문을 절대 막지 않는다.
+    if (early && early.action === "ribbon") {
+      // 프론트는 행사 성격(order.type: wedding/funeral/unknown)과 상품 분류(order.category)를 따로 들고 있다.
+      // 상품 분류가 근조·축하로 확정돼 있으면 그게 더 정확하다.
+      const t = String(early.type || "");
+      const c = String(early.cat || "");
+      const kindLabel =
+        c === "condolence" || t === "funeral" ? "장례(근조)"
+        : c === "congrats" ? "개업·승진 등 축하"
+        : t === "wedding" ? "결혼"
+        : "경조사";
+
+      if (early.mode === "check") {
+        const left = String(early.left || "").trim().slice(0, 120);
+        const right = String(early.right || "").trim().slice(0, 120);
+        if (!right) return res.status(200).json({ ok: true, warn: null });
+        const r = await askClaude({
+          maxTokens: 200, timeoutMs: 5000,
+          system:
+            "너는 화환 리본 문구를 검수한다. 잘못된 문구가 장례식장이나 개업식에 걸리면 되돌릴 수 없으므로 신중하되, 확실할 때만 지적한다.\n" +
+            "다음 경우에만 경고한다: (1) 행사 성격과 정반대인 표현(장례에 축하, 축하에 조의) (2) 명백한 오탈자 (3) 왼편·오른편이 뒤바뀐 경우.\n" +
+            '문제가 없으면 {"warn":null} 만 출력한다. 문제가 있으면 {"warn":"무엇이 왜 잘못됐는지 한 문장, 존댓말"} 형식의 JSON만 출력한다.\n' +
+            "표현 취향이나 격식 수준은 지적하지 않는다. 설명·마크다운 없이 JSON만.",
+          content: `행사: ${kindLabel}\n리본 왼편(보내는 분): ${left || "(비어 있음)"}\n리본 오른편(문구): ${right}`,
+        });
+        if (!r.ok) return res.status(200).json({ ok: true, warn: null });
+        const j = extractJson(r.text);
+        const warn = j && typeof j.warn === "string" && j.warn.trim() ? j.warn.trim().slice(0, 200) : null;
+        return res.status(200).json({ ok: true, warn });
+      }
+
+      const desc = String(early.desc || "").trim().slice(0, 200);
+      if (desc.length < 2) return res.status(200).json({ ok: true, items: [] });
+      const r = await askClaude({
+        maxTokens: 400, timeoutMs: 8000,
+        system:
+          "너는 한국 화환 리본의 오른편 문구를 추천한다. 관습을 지키는 것이 가장 중요하다.\n" +
+          "규칙: 문구는 8자 이상 20자 이하. 서로 다른 3개. 흔하고 안전한 표현을 우선한다.\n" +
+          "고인·수신인 이름이나 회사명은 넣지 않는다(그건 왼편에 들어간다).\n" +
+          '{"items":["문구1","문구2","문구3"]} 형식의 JSON만 출력한다. 설명·마크다운 금지.',
+        content: `행사: ${kindLabel}\n보내는 분이 설명한 관계·상황: ${desc}`,
+      });
+      if (!r.ok) return res.status(200).json({ ok: true, items: [] });
+      const j = extractJson(r.text);
+      const items = Array.isArray(j && j.items)
+        ? j.items.filter((s) => typeof s === "string" && s.trim()).map((s) => s.trim().slice(0, 40)).slice(0, 3)
+        : [];
+      return res.status(200).json({ ok: true, items });
+    }
+
+    // ── 자연어 상품 검색 ──
+    // body: {action:"search", q:"5만원대 개업 축하 난", cats:[...]}  → {ok, filter:{...}}
+    // 상품 목록은 프론트가 이미 들고 있으므로 여기서는 '조건'만 해석해 돌려준다(토큰 절약).
+    if (early && early.action === "search") {
+      const q = String(early.q || "").trim().slice(0, 120);
+      if (q.length < 2) return res.status(200).json({ ok: true, filter: null });
+      const r = await askClaude({
+        maxTokens: 300, timeoutMs: 7000,
+        system:
+          "너는 꽃집 검색어를 필터 조건으로 바꾼다. JSON만 출력한다.\n" +
+          '형식: {"cat":"","sub":"","minPrice":null,"maxPrice":null,"keyword":"","occasion":""}\n' +
+          "cat 은 bouquet(꽃다발)/basket(꽃바구니)/plant(관엽)/orchid(난)/congrats(축하화환)/condolence(근조화환) 중 하나 또는 빈 문자열.\n" +
+          "occasion 은 wedding/opening/promotion/birthday/visit/funeral 중 하나 또는 빈 문자열.\n" +
+          "가격은 원 단위 숫자. '5만원대'는 min 50000 max 59999, '10만원 이하'는 max 100000 처럼 해석한다.\n" +
+          "keyword 는 품종명이나 색처럼 이름으로 걸러낼 말만. 확실하지 않은 항목은 비워 둔다. 지어내지 않는다.",
+        content: q,
+      });
+      if (!r.ok) return res.status(200).json({ ok: true, filter: null });
+      const j = extractJson(r.text);
+      if (!j || typeof j !== "object") return res.status(200).json({ ok: true, filter: null });
+      const num = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Math.round(Number(v)) : null);
+      const str = (v, n) => (typeof v === "string" ? v.trim().slice(0, n) : "");
+      return res.status(200).json({
+        ok: true,
+        filter: {
+          cat: str(j.cat, 20), sub: str(j.sub, 20), keyword: str(j.keyword, 30),
+          occasion: str(j.occasion, 20), minPrice: num(j.minPrice), maxPrice: num(j.maxPrice),
+        },
+      });
+    }
     // ── 법인 상호 검색 (금융위 기업기본정보 프록시) ──
     // body: {action:"corpsearch", q:"회사명"} → {ok, items:[{name,bzno,addr}]}
     // 커버리지=법인(외감+비외감). 실패·미설정 시 빈 목록(fail-open) — 폼은 수기 입력 폴백 유지.

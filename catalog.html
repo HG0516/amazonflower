@@ -1102,7 +1102,7 @@ function renderOccProducts(){
     if(!list.length) continue;
     any = true;
     html += `<div class="group-head">${esc(CAT_TITLE[tk])} <span class="group-count">${list.length}</span></div>`;
-    html += `<div class="grid">` + list.map(productCard).join("") + `</div>`;
+    html += `<div class="grid">` + list.map(p=>productCard(p)).join("") + `</div>`;
   }
   if(!any) html += `<div class="grid"><div class="cat-empty">준비된 상품이 없어요. 전화(031-314-3003)로 문의해 주세요.</div></div>`;
   document.getElementById("catArea").innerHTML = html;
@@ -1266,7 +1266,7 @@ function doSearch(q){
   }
   let html=`<div class="gallery-wrap" style="border-top:none;margin-top:14px;padding-top:0;">
     <div class="gallery-head"><div class="gallery-title">검색 결과</div><div class="gallery-count">${pHits.length+gHits.length}건</div></div>`;
-  if(pHits.length){ html+=`<div class="gallery-sub">상품 ${pHits.length}건</div><div class="grid">`+pHits.map(productCard).join("")+`</div>`; }
+  if(pHits.length){ html+=`<div class="gallery-sub">상품 ${pHits.length}건</div><div class="grid">`+pHits.map(p=>productCard(p)).join("")+`</div>`; }
   if(gHits.length){ html+=`<div class="gallery-sub" style="margin-top:18px;">보유 종류 ${gHits.length}건</div><div class="gallery-grid">`
     + gHits.map(i=>`<div class="gcard" onclick="pickFromGallery('${i.key}','${esc(i.pc||"")}')" title="이 느낌으로 주문하기"><div class="gp"><img src="${esc(i.f)}" alt="${esc(i.nm)}" loading="lazy"></div><div class="gn">${esc(i.nm)}<br><span style="font-size: var(--fs-caption);color:var(--ink-faint);font-weight:400;">${CAT_TITLE[i.key]||""}</span></div></div>`).join("")+`</div>`; }
   if(!pHits.length && !gHits.length){ html+=`<div class="gempty">“${esc(q)}” 검색 결과가 없어요.<br>아래에서 골라보시거나 전화로 편하게 주문하세요.
@@ -1277,6 +1277,67 @@ function doSearch(q){
     </div>`; }
   html+=`</div>`;
   sa.innerHTML=html;
+  // 이름으로 못 찾았을 때만 AI에게 물어본다. "5만원대 개업 축하 난" 같은 말은 글자 매칭으로는 안 잡힌다.
+  if(!pHits.length && !gHits.length) aiSearchSoon(q);
+}
+
+// ── 자연어 검색 ────────────────────────────────────────────────
+// 글자 매칭이 실패한 검색어만 AI로 조건을 해석해 다시 걸러준다.
+// 실패하면 기존 "결과 없음" 화면 그대로 — 손님이 잃는 것은 없다.
+let _aiSearchTimer=null, _aiSearchSeq=0;
+function aiSearchSoon(q){
+  clearTimeout(_aiSearchTimer);
+  if(!q || q.length<2) return;
+  _aiSearchTimer=setTimeout(()=>aiSearch(q), 600); // 타자 멈추길 기다린다(호출 낭비 방지)
+}
+function aiFilterProducts(f){
+  const OCC2CAT={ funeral:"condolence", opening:"congrats", promotion:"congrats" };
+  const want=f.cat || OCC2CAT[f.occasion] || "";
+  let list=PRODUCTS.filter(p=>!p.status || p.status==="판매중");
+  if(want) list=list.filter(p=> p.cat===want || catAxis(p.cat)===want);
+  if(f.minPrice) list=list.filter(p=> Number(p.price)>=f.minPrice);
+  if(f.maxPrice) list=list.filter(p=> Number(p.price)<=f.maxPrice);
+  if(f.keyword){
+    const k=f.keyword.toLowerCase();
+    list=list.filter(p=> (p.name+" "+(p.subtitle||"")+" "+(p.sub||"")).toLowerCase().indexOf(k)>=0);
+  }
+  return list;
+}
+function aiFilterLabel(f){
+  const CAT_KO={ bouquet:"꽃다발", basket:"꽃바구니", plant:"관엽", orchid:"난", congrats:"축하화환", condolence:"근조화환" };
+  const OCC_KO={ wedding:"결혼", opening:"개업", promotion:"승진·취임", birthday:"생일", visit:"병문안", funeral:"장례" };
+  const bits=[];
+  if(f.occasion && OCC_KO[f.occasion]) bits.push(OCC_KO[f.occasion]);
+  if(f.cat && CAT_KO[f.cat]) bits.push(CAT_KO[f.cat]);
+  if(f.keyword) bits.push(f.keyword);
+  if(f.minPrice && f.maxPrice) bits.push(`${Math.round(f.minPrice/10000)}만~${Math.round(f.maxPrice/10000)}만원`);
+  else if(f.maxPrice) bits.push(`${Math.round(f.maxPrice/10000)}만원 이하`);
+  else if(f.minPrice) bits.push(`${Math.round(f.minPrice/10000)}만원 이상`);
+  return bits.join(" · ");
+}
+async function aiSearch(q){
+  const sa=document.getElementById("searchArea");
+  if(!sa || sa.classList.contains("hidden")) return;
+  const seq=++_aiSearchSeq;
+  const box=document.createElement("div");
+  box.className="gallery-wrap";
+  box.style.cssText="border-top:none;margin-top:4px;padding-top:0;";
+  box.innerHTML=`<div class="gallery-sub">뜻을 헤아려 다시 찾는 중…</div>`;
+  sa.appendChild(box);
+  try{
+    const res=await fetch("/api/parse-url",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ action:"search", q }) });
+    const d=await res.json().catch(()=>({}));
+    if(seq!==_aiSearchSeq) return;            // 그 사이 새 검색어가 들어왔다
+    const f=d && d.filter;
+    const hits=f ? aiFilterProducts(f) : [];
+    if(!hits.length){ box.remove(); return; }  // 여전히 없으면 조용히 사라진다
+    const label=aiFilterLabel(f);
+    box.innerHTML=`<div class="gallery-head">
+        <div class="gallery-title">이렇게 이해했어요${label?` — ${esc(label)}`:""}</div>
+        <div class="gallery-count">${hits.length}건</div>
+      </div><div class="grid">`+hits.slice(0,24).map(p=>productCard(p)).join("")+`</div>`;
+  }catch(_){ box.remove(); }
 }
 
 // 개별상품 주문 — 메인 주문 플로우로 pc 전달(index.html이 해당 상품으로 진입)
