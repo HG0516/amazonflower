@@ -28,7 +28,7 @@
     tel: '031-314-3003',
     email: '',                    // [필수] 고객문의 이메일 — 정해지면 채우기
     privacyOfficer: '권점숙',     // 개인정보 보호책임자(대표자)
-    insta: 'amazonflower3003'     // 인스타 계정(@ 없이) — 푸터 링크
+    insta: 'floweranbu_'          // 인스타 계정(@ 없이) — 푸터 링크
   };
 
   function row(label, val) { return val ? '<span class="af-ft-i"><b>' + label + '</b> ' + val + '</span>' : ''; }

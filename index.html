@@ -8,7 +8,7 @@
 <!-- 오픈그래프: 카톡·문자 등에 링크 공유 시 미리보기 카드로 뜸 -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="꽃안부 — 안부는, 꽃으로" />
-<meta property="og:description" content="부고도 청첩장도, 링크만 보내세요. 화환 · 난 · 관엽 · 꽃바구니 — 법인 계산서·후불 · 전국 당일배송." />
+<meta property="og:description" content="부고도 청첩장도, 링크만 보내세요. 화환 · 난 · 관엽 · 꽃바구니 — 법인 계산서·후불 · 전국 당일배송. 회원가입 없이 주문 · 카드·간편결제." />
 <meta property="og:image" content="https://floweranbu.co.kr/og_preview.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -63,6 +63,7 @@
   #buyBar .bb-total-wrap { flex: 1; min-width: 0; }
   #buyBar .bb-total-label { font-size: var(--fs-caption); color: var(--ink-faint); }
   #buyBar .bb-total { font-size: 22px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #buyBar .bb-pay { display: block; font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.4; margin-top: 1px; }
   #buyBar .bb-btn { flex: 0 0 auto; min-height: 52px; padding: 0 24px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
   #buyBar .bb-btn:active { transform: scale(.98); }
   body.buybar-pad { padding-bottom: 84px; }
@@ -115,6 +116,10 @@
   .trust-line b { color: var(--accent-deep); }
   .trust-line .tl-photo { display: block; font-size: 16px; font-weight: 700; color: var(--accent-deep); margin-bottom: 6px; line-height: 1.5; word-break: keep-all; }
   .trust-line .tl-facts { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
+  /* 결제수단은 결제 단계에서야 알게 되던 것을 첫 화면에서 알린다 */
+  .trust-line .tl-pay { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+  .pay-note { font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.6; word-break: keep-all; }
+  .pay-note b { color: var(--accent-deep); font-weight: 600; }
   /* 전화 주문 CTA — 텍스트 버튼(첫 화면 신뢰: 연락 가능성) */
   .phone-cta { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; margin-top: 14px; padding: 10px 16px; background: var(--paper); border: 1px solid var(--ink); border-radius: var(--radius); text-decoration: none; color: var(--ink); font-family: var(--font-body); line-height: 1.35; word-break: keep-all; text-align: center; }
   .phone-cta .pc-label { font-size: 16px; font-weight: 700; }
@@ -534,12 +539,13 @@
       <span style="font-size:var(--fs-caption);color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
     </div>
     <a href="tel:031-314-3003" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;padding:12px;min-height:48px;background:#fff;border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent-deep);font-weight:700;font-size:15px;text-decoration:none;">📞 전화로 주문 · 031-314-3003</a>
+    <div class="pay-note" style="text-align:center;margin-top:8px;">전화로 상품을 정하신 뒤 <b>문자로 받은 결제 링크</b>에서 카드·간편결제도 됩니다</div>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
   </section>
 
   <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
-  <div class="trust-line home-sect"><span class="tl-photo">배송 직후 도착 사진을 문자로 보내드립니다</span><span class="tl-facts">전국 당일배송 · 전 품목 정찰제 55,000원~ · 1993년부터 한 자리</span></div>
+  <div class="trust-line home-sect"><span class="tl-photo">배송 직후 도착 사진을 문자로 보내드립니다</span><span class="tl-pay">회원가입 없이 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b></span><span class="tl-facts">전국 당일배송 · 전 품목 정찰제 55,000원~ · 1993년부터 한 자리</span></div>
 
   <!-- 로그인 회원 원탭 재주문 진입(로그인 상태에서만 JS로 노출) -->
   <div id="reorderBanner" class="hidden home-sect" style="margin-top:var(--space-sect);"></div>
@@ -747,7 +753,7 @@
       <input type="email" id="corpEmail" autocomplete="email" enterkeyhint="done" placeholder="name@company.com" inputmode="email" oninput="clearErr(this)" />
     </div>
 
-    <div class="delivery-note" style="text-align:center;">아래 <b>결제하기</b>를 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다. 카드·간편결제로 진행해 주세요.</div>
+    <div class="delivery-note" style="text-align:center;">아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b> 중에서 고르실 수 있어요.</div>
 
     <div class="delivery-note">
       <b>안심 배송 · 보증</b><br>
@@ -761,7 +767,7 @@
       <input type="checkbox" id="privacyAgree" style="width:19px;height:19px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);">
       <span style="font-size:var(--fs-caption);color:var(--ink);line-height:1.6;"><b>[필수] 개인정보 수집·이용 동의</b> — 주문·배송 처리를 위해 주문자·받는 분 정보(성함·연락처·주소)를 수집·이용하며, 관련 법령에 따른 기간 동안 보관 후 파기됩니다. <a href="/privacy.html" target="_blank" rel="noopener" style="color:var(--ink);font-weight:600;text-decoration:underline;" onclick="event.stopPropagation();">자세히 보기</a></span>
     </label>
-    <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">결제하기</button>
+    <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">결제수단 고르고 결제하기</button>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제 완료 후 사장님이 주문을 확인하고 준비합니다. 안부가 닿으면 도착 사진을 입력하신 번호로 보내드립니다 — "잘 전했습니다" 보고까지 한 번에 끝나도록.</div>
     <div class="notice hidden" id="corpNotice">계산서는 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 발행됩니다.</div>
@@ -846,7 +852,7 @@
 
 <!-- 하단 고정 주문바: 상품 선택 후(주문 모드) 실시간 총액 + 결제 진행 CTA를 항상 노출(스크롤로 버튼 찾는 부담 제거) -->
 <div id="buyBar" aria-live="polite">
-  <div class="bb-total-wrap"><span class="bb-total-label">합계</span> <span class="bb-total">0원</span></div>
+  <div class="bb-total-wrap"><span class="bb-total-label">합계</span> <span class="bb-total">0원</span><span class="bb-pay">네이버페이 등 간편결제 가능</span></div>
   <button class="bb-btn" onclick="buyBarGo()">주문 계속하기</button>
 </div>
 
@@ -1589,7 +1595,7 @@ function updateBuyBar(){
   if(on){
     const payOpen = !document.getElementById("payCard").classList.contains("hidden");
     bar.querySelector(".bb-total").textContent = orderTotal().toLocaleString()+"원";
-    bar.querySelector(".bb-btn").textContent = payOpen ? "결제하기" : "주문 계속하기";
+    bar.querySelector(".bb-btn").textContent = payOpen ? "결제수단 고르기" : "주문 계속하기";
     bar.classList.add("show"); document.body.classList.add("buybar-pad");
   }else{
     bar.classList.remove("show"); document.body.classList.remove("buybar-pad");

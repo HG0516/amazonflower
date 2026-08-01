@@ -33,7 +33,7 @@ function pageHtml(p) {
   const kind = CAT_KIND[p.cat] || "꽃";
   const nm = [p.name, p.subtitle].filter(Boolean).join(" · ");
   const title = `${nm} ${p.price.toLocaleString()}원 — 꽃안부`;
-  const desc = `${kind} · 1993년부터 · 전국 당일배송. 부고·청첩장 링크만 붙여넣으면 받는 곳을 알아서 채워드려요.`;
+  const desc = `${kind} · 1993년부터 · 전국 당일배송. 회원가입 없이 주문 · 카드·간편결제. 부고·청첩장 링크만 붙여넣으면 받는 곳을 알아서 채워드려요.`;
   const img = BASE + (p.photos && p.photos[0] ? p.photos[0] : "/og_preview.png");
   const canonical = `${BASE}/catalog.html?item=${encodeURIComponent(p.pc)}`;
   const share = `${BASE}/s/${encodeURIComponent(p.pc)}`;
