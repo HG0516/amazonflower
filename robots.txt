@@ -6,4 +6,4 @@ Disallow: /admin-order
 Disallow: /admin-order.html
 Disallow: /api/
 
-Sitemap: https://amazonflower.vercel.app/sitemap.xml
+Sitemap: https://floweranbu.co.kr/sitemap.xml

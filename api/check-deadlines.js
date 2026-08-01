@@ -176,7 +176,8 @@ async function runBriefing(kind, SUPABASE_URL, sbHeaders) {
   }
   L.push(`\n💰 ${salesLabel} ${salesSum.toLocaleString()}원 (${sales.total}건)`);
   if (quiet) L.push("\n오늘은 조용해요. 좋은 하루 되세요 🌿");
-  L.push(`\n주문 관리 → https://amazonflower.vercel.app/admin-orders.html`);
+  const base = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
+  L.push(`\n주문 관리 → ${base}/admin-orders.html`);
   const ok = await sendTelegram(L.join("\n"));
   return { sent: ok };
 }
