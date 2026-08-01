@@ -122,8 +122,7 @@ const PRODUCTS = [
   "legacyTier": "basket_b2",
   "photos": [
    "/photos/products/BQ-007_1.jpg",
-   "/photos/products/BQ-007_2.jpg",
-   "/photos/products/BQ-007_3.jpg"
+   "/photos/products/BQ-007_2.jpg"
   ]
  },
  {
@@ -158,7 +157,6 @@ const PRODUCTS = [
   "legacyTier": "basket_b2",
   "photos": [
    "/photos/products/BQ-009_1.jpg",
-   "/photos/products/BQ-009_2.jpg",
    "/photos/products/BQ-009_3.jpg"
   ]
  },
@@ -210,8 +208,7 @@ const PRODUCTS = [
   "legacyTier": "basket_b2",
   "photos": [
    "/photos/products/BQ-012_1.jpg",
-   "/photos/products/BQ-012_2.jpg",
-   "/photos/products/BQ-012_3.jpg"
+   "/photos/products/BQ-012_2.jpg"
   ]
  },
  {
@@ -263,7 +260,6 @@ const PRODUCTS = [
   "status": "판매중",
   "legacyTier": "basket_b3",
   "photos": [
-   "/photos/products/BS-003_1.jpg",
    "/photos/products/BS-003_2.jpg",
    "/photos/products/BS-003_3.jpg"
   ]
