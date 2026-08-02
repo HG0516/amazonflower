@@ -68,17 +68,24 @@ const TOPPINGS = {
   top_card:    { nm: "손글씨 카드",          price: 5000,  d: "메시지를 카드에 정성껏 적어 동봉" }, // 구주문 호환(신규 미노출)
   top_cake:    { nm: "케이크 소형",          price: 39000, d: "작은 케이크를 함께 (생신·기념일)" },
   top_planting:{ nm: "추가 식재",            price: 40000, d: "화분에 식물을 더 심어 풍성하게" },
-  // 화환 배송 할증(원거리·도서산간) — 배타(하나만)
-  top_deliv1:  { nm: "추가 배송비 (원거리)",   price: 10000, d: "군 단위·외곽 등 원거리 지역", grp: "deliv" },
-  top_deliv2:  { nm: "추가 배송비 (도서·산간)", price: 30000, d: "도서·산간·제주 등 먼 지역", grp: "deliv" },
+  // 배송 할증(원거리·도서산간) — 배타(하나만).
+  // 금액은 regions.js 의 판정 등급과 짝이다: 1만 → deliv1, 2만 → deliv_far, 3만 → deliv2.
+  // 예전엔 1만/3만 두 개뿐이라 '2만원 추가' 지역에 맞는 항목이 없었다.
+  // ⚠️ 코드명은 바꾸지 말 것 — 지난 주문이 이 코드로 저장돼 있다.
+  top_deliv1:    { nm: "추가 배송비 (원거리)",     price: 10000, d: "군 단위·외곽 등 원거리 지역", grp: "deliv" },
+  top_deliv_far: { nm: "추가 배송비 (먼 지역)",    price: 20000, d: "강원 산간·경북 동해안 등 더 먼 지역", grp: "deliv" },
+  top_deliv2:    { nm: "추가 배송비 (도서·산간)",  price: 30000, d: "도서·산간·제주 등 먼 지역", grp: "deliv" },
 };
+// 배송 할증은 화환만의 일이 아니다(꽃다발도 정선으로 가면 원거리) → 전 품목에 둔다.
+// 다만 화면에는 주소가 원거리로 판정됐을 때만 뜬다(renderToppings 의 deliv 필터).
+const DELIV = ["top_deliv1", "top_deliv_far", "top_deliv2"];
 const TOPPINGS_BY_CAT = {
-  congrats: ["top_ribbon", "top_deliv1", "top_deliv2"],
-  condolence: ["top_ribbon", "top_deliv1", "top_deliv2"],
-  orchid: ["top_pot", "top_planting"],
-  plant: ["top_lush_p2", "top_wheel"],
-  bouquet: ["top_lush_b1", "top_lush_b2", "top_cake"],
-  basket: ["top_lush_b1", "top_lush_b2", "top_cake"],
+  congrats: ["top_ribbon", ...DELIV],
+  condolence: ["top_ribbon", ...DELIV],
+  orchid: ["top_pot", "top_planting", ...DELIV],
+  plant: ["top_lush_p2", "top_wheel", ...DELIV],
+  bouquet: ["top_lush_b1", "top_lush_b2", "top_cake", ...DELIV],
+  basket: ["top_lush_b1", "top_lush_b2", "top_cake", ...DELIV],
 };
 
 // 가격 → 금액대 밴드(칩 5만/7만/9만/10만↑, 기획 21-C)

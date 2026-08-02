@@ -2003,6 +2003,12 @@ const TOPPINGS = {
   "d": "군 단위·외곽 등 원거리 지역",
   "grp": "deliv"
  },
+ "top_deliv_far": {
+  "nm": "추가 배송비 (먼 지역)",
+  "price": 20000,
+  "d": "강원 산간·경북 동해안 등 더 먼 지역",
+  "grp": "deliv"
+ },
  "top_deliv2": {
   "nm": "추가 배송비 (도서·산간)",
   "price": 30000,
@@ -2015,30 +2021,44 @@ const TOPPINGS_BY_CAT = {
  "congrats": [
   "top_ribbon",
   "top_deliv1",
+  "top_deliv_far",
   "top_deliv2"
  ],
  "condolence": [
   "top_ribbon",
   "top_deliv1",
+  "top_deliv_far",
   "top_deliv2"
  ],
  "orchid": [
   "top_pot",
-  "top_planting"
+  "top_planting",
+  "top_deliv1",
+  "top_deliv_far",
+  "top_deliv2"
  ],
  "plant": [
   "top_lush_p2",
-  "top_wheel"
+  "top_wheel",
+  "top_deliv1",
+  "top_deliv_far",
+  "top_deliv2"
  ],
  "bouquet": [
   "top_lush_b1",
   "top_lush_b2",
-  "top_cake"
+  "top_cake",
+  "top_deliv1",
+  "top_deliv_far",
+  "top_deliv2"
  ],
  "basket": [
   "top_lush_b1",
   "top_lush_b2",
-  "top_cake"
+  "top_cake",
+  "top_deliv1",
+  "top_deliv_far",
+  "top_deliv2"
  ]
 };
 

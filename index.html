@@ -1479,14 +1479,20 @@ const TOPPINGS = {
   top_card:    {nm:"손글씨 카드",          price:5000,  d:"메시지를 카드에 정성껏 적어 동봉"}, // 구주문 호환(미노출)
   top_cake:    {nm:"케이크 소형",          price:39000, d:"작은 케이크를 함께 (생신·기념일)"},
   top_planting:{nm:"추가 식재",            price:40000, d:"화분에 식물을 더 심어 풍성하게"},
-  top_deliv1:  {nm:"추가 배송비 (원거리)",   price:10000, d:"군 단위·외곽 등 원거리 지역", grp:"deliv"},
-  top_deliv2:  {nm:"추가 배송비 (도서·산간)", price:30000, d:"도서·산간·제주 등 먼 지역", grp:"deliv"},
+  // 배송 할증 — regions.js 판정 등급과 짝: 1만→deliv1, 2만→deliv_far, 3만→deliv2.
+  // 예전엔 1만/3만뿐이라 '2만원 추가' 지역에 맞는 항목이 없었다. 가격은 products.mjs 와 반드시 같아야 한다.
+  top_deliv1:    {nm:"추가 배송비 (원거리)",    price:10000, d:"군 단위·외곽 등 원거리 지역", grp:"deliv"},
+  top_deliv_far: {nm:"추가 배송비 (먼 지역)",   price:20000, d:"강원 산간·경북 동해안 등 더 먼 지역", grp:"deliv"},
+  top_deliv2:    {nm:"추가 배송비 (도서·산간)", price:30000, d:"도서·산간·제주 등 먼 지역", grp:"deliv"},
 };
+// 배송 할증은 화환만의 일이 아니다(꽃다발도 정선으로 가면 원거리) → 전 품목에 둔다.
+// 화면에는 주소가 그 지역으로 판정됐을 때만 뜬다(renderToppings 의 deliv 필터).
+const TOP_DELIV = ["top_deliv1","top_deliv_far","top_deliv2"];
 const TOPPINGS_BY_CAT = {
-  wreath: ["top_ribbon","top_deliv1","top_deliv2"],
-  orchid: ["top_pot","top_planting"],
-  plant:  ["top_lush_p2","top_wheel"],
-  basket: ["top_lush_b1","top_lush_b2","top_cake"],
+  wreath: ["top_ribbon",...TOP_DELIV],
+  orchid: ["top_pot","top_planting",...TOP_DELIV],
+  plant:  ["top_lush_p2","top_wheel",...TOP_DELIV],
+  basket: ["top_lush_b1","top_lush_b2","top_cake",...TOP_DELIV],
 };
 
 // 신규상품(CU-)·옵션가격을 Supabase에서 읽어 window.PRODUCTS append + 로컬 TOPPINGS in-place 병합.
@@ -1583,7 +1589,14 @@ async function toggleTopping(code){
 function renderToppings(){
   const box=document.getElementById("toppingBox");
   if(!box) return;
-  const codes=TOPPINGS_BY_CAT[order.category]||[];
+  let codes=TOPPINGS_BY_CAT[order.category]||[];
+  // 배송 할증은 해당되는 주소일 때만 보여준다. 서울 손님에게 '도서·산간 배송비'를 보이는 건
+  // 고르라는 뜻이 아니라 겁주는 것에 가깝다. 이미 골라둔 항목은 항상 남긴다.
+  const want=afDelivTopping();
+  codes=codes.filter(c=>{
+    if((TOPPINGS[c]||{}).grp!=="deliv") return true;
+    return c===want || (order.toppings||[]).includes(c);
+  });
   if(!codes.length){ box.innerHTML=""; return; }
   box.innerHTML = `<div style="font-size:var(--fs-caption);font-weight:700;margin:16px 0 8px;color:var(--ink);">마음 얹기 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 만큼만, 정찰가로</span></div>`
     + codes.map(c=>{
@@ -2025,7 +2038,12 @@ let afNoteTimer=null;
 document.addEventListener("input",e=>{
   if(!/^af_(address|venue|venueDetail)$/.test(e.target.id||"")) return;
   clearTimeout(afNoteTimer);
-  afNoteTimer=setTimeout(()=>{ afSyncFormToOrder(); afRenderConfirmNote(); },600);
+  afNoteTimer=setTimeout(()=>{
+    afSyncFormToOrder();
+    afSyncDelivTopping();                                     // 주소가 바뀌면 담아둔 배송비도 따라간다
+    if(typeof renderToppings==="function") renderToppings();  // 원거리면 해당 배송비 항목이 나타난다
+    afRenderConfirmNote();
+  },600);
 });
 
 async function initPay(amount){
@@ -2070,6 +2088,33 @@ function afConfirmNeeds(){
   return out;
 }
 
+/** 지금 주소에 맞는 배송 할증 토핑 코드. 해당 없으면 "". */
+function afDelivTopping(){
+  const place=[order.address,order.venue,order.venueDetail].filter(Boolean).join(" ");
+  const rg=(typeof regionCheck==="function") ? regionCheck(place) : null;
+  if(!rg || rg.blocked) return "";           // 배송 불가는 금액을 물릴 일이 아니라 사장님이 확인할 일
+  return ({1:"top_deliv1",2:"top_deliv_far",3:"top_deliv_far",4:""})[rg.level] || "";
+}
+
+/**
+ * 주소를 고치면 담아둔 배송비도 따라가야 한다.
+ * 정선(2만원)으로 담아뒀다가 서울로 고쳤는데 2만원이 남아 있으면 안 받을 돈을 받는 것이고,
+ * 연천(1만원)으로 고쳤는데 2만원이 남아 있어도 마찬가지다.
+ * 안 맞는 건 빼기만 한다 — 새로 넣는 건 손님이 직접 눌러야 금액이 오른다.
+ */
+function afSyncDelivTopping(){
+  const want=afDelivTopping();
+  const cur=(order.toppings||[]).filter(c=>(TOPPINGS[c]||{}).grp==="deliv");
+  cur.forEach(c=>{ if(c!==want) toggleTopping(c); });
+}
+
+/** 안내에서 '담기'를 누르면 해당 배송비를 얹는다. 손님이 눌러야만 금액이 오른다. */
+function afAddDeliv(){
+  const c=afDelivTopping(); if(!c) return;
+  if(typeof toggleTopping==="function" && !(order.toppings||[]).includes(c)) toggleTopping(c);
+  afRenderConfirmNote();
+}
+
 /** 받는 곳과 상품이 어긋나는지 — 주소 글자만 본다(바뀌는 외부 목록에 기대지 않게). */
 const AF_FUNERAL_PLACE=/(장례식장|장례문화원|장례예식장|추모공원|추모관|승화원|화장장|장사시설|빈소|영안실|영결식장)/;
 const AF_WEDDING_PLACE=/(웨딩홀|예식장|컨벤션|웨딩컨벤션|결혼식장)/;
@@ -2091,10 +2136,17 @@ function afRenderConfirmNote(){
   const box=document.createElement("div");
   box.id="confirmNeed";
   box.style.cssText="border:1px solid var(--warn,#c8863c);background:#fdf7ee;border-radius:var(--radius);padding:12px 14px;margin-top:12px;";
+  // 해당 지역 배송비를 미리 얹어두면 사장님이 따로 받지 않아도 된다. 손님이 눌러야만 오른다.
+  const dc=afDelivTopping();
+  const already=dc && (order.toppings||[]).includes(dc);
+  const addBtn = (dc && !already && window.TOPPINGS && TOPPINGS[dc])
+    ? `<button type="button" onclick="afAddDeliv()" style="margin-top:10px;padding:10px 14px;border:1px solid #c8863c;background:#fff;color:#8a5a18;border-radius:var(--radius);font-family:var(--font-body);font-size:var(--fs-caption);font-weight:700;cursor:pointer;">추가 배송비 ${TOPPINGS[dc].price.toLocaleString()}원 미리 담기</button>`
+    : (already ? `<div style="margin-top:8px;font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">✓ 추가 배송비를 담았어요</div>` : "");
   box.innerHTML='<div style="font-weight:700;color:#8a5a18;margin-bottom:5px;">확인이 필요한 주문이에요</div>'
     +'<div style="font-size:var(--fs-caption);color:var(--ink-soft);line-height:1.75;">'
     + needs.map(n=>'· '+escapeHtml(n.msg)).join("<br>")
-    +'<br><br><b>주문은 그대로 받아드립니다.</b> 어려우면 사장님이 연락드린 뒤 전액 환불해 드려요.</div>';
+    +'<br><br><b>주문은 그대로 받아드립니다.</b> 어려우면 사장님이 연락드린 뒤 전액 환불해 드려요.</div>'
+    + addBtn;
   const card=document.getElementById("confirmCard");
   if(card) card.appendChild(box);
 }
