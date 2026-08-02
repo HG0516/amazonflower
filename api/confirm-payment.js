@@ -117,6 +117,8 @@ function buildOwnerMessage(order, payment) {
   }
   lines.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
   if (order.recipientName) lines.push(`받는분: ${order.recipientName}`);
+  if (order.recipientPhone) lines.push(`받는분 연락처: ${order.recipientPhone}`);
+  if (order.chiefMourner) lines.push(`상주: ${order.chiefMourner}`);
   const venueName = order.venue || order.venueName;
   if (venueName) {
     let place = venueName;
@@ -162,6 +164,59 @@ function buildOwnerMessage(order, payment) {
   return lines.join("\n");
 }
 
+// 손님이 받는 주문 확인 문자. 사장님용과 달리 원가·내부 메모는 절대 넣지 않는다.
+// 근조에는 판촉·축하 표현을 쓰지 않는다.
+function buildCustomerMessage(order, payment) {
+  const isFuneral = order.type === "funeral";
+  const L = [];
+  L.push("[꽃안부] 주문이 접수되었습니다.");
+  L.push("");
+  L.push(`상품: ${order.productLabel || "-"}${Number(order.quantity) > 1 ? ` ${order.quantity}개` : ""}`);
+  const place = [order.venue, order.venueDetail].filter(Boolean).join(" ") || order.address || "";
+  if (place) L.push(`받는 곳: ${place}`);
+  if (order.recipientName) L.push(`받는 분: ${order.recipientName}`);
+  if (order.date) L.push(`받는 날: ${order.date}${order.time ? ` ${order.time}` : ""}`);
+  L.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
+  L.push(`주문번호: ${payment.orderId}`);
+  L.push("");
+  L.push(isFuneral ? "정성껏 준비해 시간 맞춰 전해 드리겠습니다." : "배송 후 도착 사진을 이 번호로 보내드립니다.");
+  L.push("문의 031-314-3003");
+  return L.join("\n");
+}
+
+// ── 배송정보 검사 ────────────────────────────────────────────
+// 화면(index.html afValidateOrder)과 같은 기준. 한쪽만 고치면 갈라지므로 규칙이 바뀌면 둘 다 고칠 것.
+// 맞춤 결제(관리자 발급 링크)는 사장님이 이미 배송 정보를 아는 건이라 호출하지 않는다.
+function missingDelivery(order) {
+  const has = (v) => !!String(v == null ? "" : v).trim();
+  const o = order || {};
+  const isWreath = o.category === "wreath";
+  const isFuneral = o.type === "funeral";
+
+  if (!has(o.address) && !has(o.venue) && !has(o.venueAddress)) return "받는 곳 주소가 비어 있습니다.";
+
+  if (isWreath) {
+    // 화환은 빈소·홀이나 상주로도 찾아간다(장례식장 안내데스크가 확인해 준다).
+    if (!has(o.recipientName) && !has(o.venueDetail) && !has(o.chiefMourner))
+      return isFuneral ? "받는 분(고인 성함)이나 빈소·홀이 비어 있습니다." : "받는 분이나 홀이 비어 있습니다.";
+  } else {
+    // 사람에게 직접 가는 꽃다발·관엽·난은 이름이 없으면 건넬 수가 없다.
+    if (!has(o.recipientName)) return "받는 분 성함이 비어 있습니다.";
+  }
+
+  if (!has(o.date)) return "받는 날짜가 비어 있습니다.";
+  const d = String(o.date).trim().replace(/[.\/]/g, "-");
+  if (!/^\d{4}-\d{1,2}-\d{1,2}$/.test(d)) return "받는 날짜 형식이 올바르지 않습니다.";
+  // 한국시간 기준 오늘 (서버는 UTC로 도는 경우가 많아 +9시간 보정)
+  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const todayIso = kst.toISOString().slice(0, 10);
+  const iso = d.split("-").map((s, i) => (i ? s.padStart(2, "0") : s)).join("-");
+  if (iso < todayIso) return "지난 날짜로는 주문할 수 없습니다.";
+
+  if (!has(o.timeSlot) && !has(o.time)) return "도착 시간이 비어 있습니다.";
+  return null;
+}
+
 async function notifyOwners(order, payment) {
   const apiKey = process.env.SOLAPI_API_KEY;
   const apiSecret = process.env.SOLAPI_API_SECRET;
@@ -188,13 +243,26 @@ async function notifyOwners(order, payment) {
   const byteLen = Buffer.byteLength(textBody, "utf8");
   const msgType = byteLen > 90 ? "LMS" : "SMS";
 
-  const messages = recipients.map((to) => ({
-    to: String(to).replace(/[^0-9]/g, ""),
-    from: String(sender).replace(/[^0-9]/g, ""),
-    text: textBody,
-    type: msgType,
-    ...(msgType === "LMS" ? { subject: "꽃안부 새 주문" } : {}),
-  }));
+  const mk = (to, text, subject) => {
+    const len = Buffer.byteLength(text, "utf8");
+    const t = len > 90 ? "LMS" : "SMS";
+    return {
+      to: String(to).replace(/[^0-9]/g, ""),
+      from: String(sender).replace(/[^0-9]/g, ""),
+      text,
+      type: t,
+      ...(t === "LMS" ? { subject } : {}),
+    };
+  };
+
+  const messages = recipients.map((to) => mk(to, textBody, "꽃안부 새 주문"));
+
+  // 손님에게도 한 통 — 여태 사장님 두 분에게만 갔다. 손님은 토스 결제영수증만 받는데
+  // 거기엔 '어디로 언제 무엇을' 이 없어서, 주문 내용을 나중에 확인할 방법이 없었다.
+  const buyerPhone = String(order.senderPhone || order.ordererPhone || "").replace(/[^0-9]/g, "");
+  if (/^01[016789]\d{7,8}$/.test(buyerPhone) && !recipients.some((p) => String(p).replace(/[^0-9]/g, "") === buyerPhone)) {
+    messages.push(mk(buyerPhone, buildCustomerMessage(order, payment), "꽃안부 주문 확인"));
+  }
 
   try {
     const authHeader = buildSolapiAuthHeader(apiKey, apiSecret);
@@ -322,6 +390,11 @@ async function saveOrder(order, payment) {
     category: order.category || null,
     order_type: order.type || null,
     recipient_name: order.recipientName || null,
+    // ★ 컬럼은 supabase-phase2.sql 로 진작 만들어져 있었고 관리자 화면(admin-orders.html)도
+    //   읽고 있었는데, 정작 채우는 코드가 없어 늘 비어 있었다.
+    recipient_phone: order.recipientPhone || null,
+    room_info: order.venueDetail || null,          // 빈소 호실·홀 — venue 합본과 별개로 따로 남긴다
+    delivery_time_slot: order.timeSlot || null,
     venue: [order.venue, order.venueDetail].filter(Boolean).join(" ") || null,
     address: order.address || order.venueAddress || null,
     event_date: d || null,
@@ -474,6 +547,14 @@ export default async function handler(req, res) {
         return res.status(400).json({
           error: "결제 금액이 상품 가격과 일치하지 않습니다.",
         });
+      }
+      // 🔴 배송정보 검사 — 반드시 토스 승인 '전'이라 여기서 막으면 돈이 빠지지 않는다.
+      // 화면에서도 막지만, 옛 페이지가 캐시에 남아 있거나 API를 직접 부르면 새어들 수 있다.
+      // 어디로 언제 보낼지 모르는 주문이 저장되는 게 이 가게에서 제일 큰 사고다.
+      const missing = missingDelivery(order);
+      if (missing) {
+        console.error(`배송정보 누락으로 승인 거절: orderId=${orderId} — ${missing}`);
+        return res.status(400).json({ error: missing });
       }
     }
 

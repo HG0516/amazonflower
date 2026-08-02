@@ -288,6 +288,9 @@
   .entrance-pw { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .entrance-pw:focus { outline: none; border-color: var(--accent); }
   .entrance-pw:disabled { background: var(--line-soft); color: var(--ink-faint); }
+  /* 받는 분 연락처 — entrance-pw 는 flex 안에서만 폭이 나와서 단독 칸은 따로 준다 */
+  .rcp-input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
+  .rcp-input:focus { outline: none; border-color: var(--accent); }
   .entrance-none { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; cursor: pointer; }
   .entrance-none input { width: 18px; height: 18px; }
   .deliv-hint { margin-top: 8px; font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.5; }
@@ -631,9 +634,14 @@
     <div id="typePill"></div>
     <div id="afFields"></div>
 
-    <!-- 배송 요청 + 공동현관 출입 비밀번호 -->
+    <!-- 받는 분 연락처 + 배송 요청 + 공동현관 출입 비밀번호 -->
     <div class="deliv-box">
-      <label class="fl">배송 요청 <span class="fl-opt">(선택)</span></label>
+      <!-- 여태 이 칸이 없었다. 그러면서 배송 요청에는 '배송 전 받는 분께 연락해 주세요'가
+           들어 있어서, 손님이 그걸 고르면 연락할 번호가 없었다. -->
+      <label class="fl" id="rpLabel">받는 분 연락처 <span class="fl-opt" id="rpOpt">— 못 만났을 때 연락드립니다</span></label>
+      <input type="text" id="recipientPhone" class="rcp-input" inputmode="numeric" autocomplete="off"
+             placeholder="010-0000-0000" oninput="formatPhone(this);order.recipientPhone=this.value" />
+      <label class="fl" style="margin-top:14px;">배송 요청 <span class="fl-opt">(선택)</span></label>
       <select id="delivReq" class="deliv-sel" onchange="onDelivReq(this.value)">
         <option value="">특별한 요청 없음</option>
         <option value="배송 전 받는 분께 연락해 주세요">배송 전 받는 분께 연락해 주세요</option>
@@ -642,12 +650,15 @@
         <option value="__custom">직접 입력</option>
       </select>
       <input type="text" id="delivReqCustom" class="deliv-custom hidden" placeholder="배송 요청을 직접 적어주세요" oninput="order.delivReq=this.value" />
-      <label class="fl" style="margin-top:14px;">공동현관 출입 비밀번호 <span class="fl-opt">— 아파트·오피스텔이면 알려주세요</span></label>
-      <div class="entrance-row">
-        <input type="text" id="entrancePw" class="entrance-pw" placeholder="예) #1234 · 1234*" oninput="order.entrancePw=this.value" />
-        <label class="entrance-none"><input type="checkbox" id="entranceNone" onchange="onEntranceNone(this.checked)" /> 없음</label>
+      <!-- 화환은 빈소·예식장·매장으로 간다. 거기에 공동현관 비번은 없다 → 화환일 땐 숨긴다. -->
+      <div id="entranceBox">
+        <label class="fl" style="margin-top:14px;">공동현관 출입 비밀번호 <span class="fl-opt">— 아파트·오피스텔이면 알려주세요</span></label>
+        <div class="entrance-row">
+          <input type="text" id="entrancePw" class="entrance-pw" placeholder="예) #1234 · 1234*" oninput="order.entrancePw=this.value" />
+          <label class="entrance-none"><input type="checkbox" id="entranceNone" onchange="onEntranceNone(this.checked)" /> 없음</label>
+        </div>
+        <div class="deliv-hint">공동주택은 현관 비밀번호가 없으면 배송이 지연될 수 있어요. 없으면 <b>없음</b>을 체크해 주세요.</div>
       </div>
-      <div class="deliv-hint">공동주택은 현관 비밀번호가 없으면 배송이 지연될 수 있어요. 없으면 <b>없음</b>을 체크해 주세요.</div>
     </div>
   </section>
 
@@ -870,7 +881,7 @@ const TOSS_CLIENT_KEY = "live_ck_Poxy1XQL8Rw601W9mEAX37nO5Wml"; // 아마존(vam
 
 const order = {
   src:"", type:"unknown", side:"", category:"wreath", toppings:[],
-  recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"", timeSlot:"",
+  recipientName:"", venue:"", venueDetail:"", address:"", recipientPhone:"", date:"", time:"", timeSlot:"",
   groomName:"", brideName:"", chiefMourner:"",
   price:0, productCode:"", productLabel:"", quantity:1,
   senderName:"", senderPhone:"", ribbonLeft:"", ribbonRight:"", senderNote:"",
@@ -1865,7 +1876,14 @@ function syncOrderBannerItem(t){
   if(el) el.innerHTML=escapeHtml(t.nm)+" <b>"+t.price.toLocaleString()+"원</b>";
 }
 function confirmTier(){
-  // '이 구성으로 주문하기' 버튼 — 결제 카드를 명시적으로 열고 스크롤
+  // '이 구성으로 주문하기' 버튼.
+  // 이 버튼은 상품 카드 맨 아래, 즉 받는 곳 칸을 만나기도 '전'에 있다. 예전엔 조건 없이
+  // 결제 카드를 열고 스크롤해서 2~4단계를 통째로 건너뛰었고, 그 결과 주소도 날짜도 없이
+  // 결제까지 갈 수 있었다. 이제는 빠진 칸이 있으면 그 칸으로 데려간다.
+  afSyncFormToOrder();
+  const miss=afValidateOrder("delivery");
+  if(miss.length){ afShowErrors(miss); return; }
+  afShowErrors([]);
   document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
   document.getElementById("payCard").classList.remove("hidden");
   renderPayReview();
@@ -1896,6 +1914,7 @@ function pickDesign(el){
 
 let ribbonTone="formal";
 function buildRibbon(){
+  afTuneDelivBox();   // 진입 흐름마다 부르는 자리라 여기 한 번만 걸어두면 전부 반영된다
   // 꽃다발·꽃바구니는 리본(화환 띠)이 없다 → 리본 UI 숨기고 헤딩을 '보내는 분'으로
   const noRibbon = order.category==="basket";
   document.querySelectorAll(".ribbon-only").forEach(el=>{ el.style.display = noRibbon ? "none" : ""; });
@@ -2001,6 +2020,116 @@ async function initPay(amount){
   }catch(e){ console.error(e); showErr(document.getElementById("payErr"),"결제 모듈 로딩 오류가 발생했습니다."); }
 }
 
+// ── 주문 검증 ─────────────────────────────────────────────────────
+// 여태 배송정보를 검사하는 코드가 한 줄도 없어서, 주소도 날짜도 없이 실결제가 승인됐다.
+// 가게가 어디로 언제 보낼지 모르는 주문을 받는 게 이 사이트에서 가장 큰 사고라
+// 화면(여기)과 서버(confirm-payment.js) 양쪽에서 같은 기준으로 막는다.
+
+// 이용약관에 "평일 18시 / 주말 16시까지 주문 시 당일 배송"이라 적어놓고 코드는 몰랐다.
+const AF_CUTOFF_WEEKDAY=18, AF_CUTOFF_WEEKEND=16;
+function afIsoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function afCutoffHour(d){ const w=d.getDay(); return (w===0||w===6)?AF_CUTOFF_WEEKEND:AF_CUTOFF_WEEKDAY; }
+
+/** 자리 성격에 따라 배송 칸을 맞춘다 — 빈소에 공동현관 비번을 묻지 않게. */
+function afTuneDelivBox(){
+  const isWreath = order.category==="wreath";
+  const eb=document.getElementById("entranceBox");
+  if(eb) eb.style.display = isWreath ? "none" : "";
+  if(isWreath && order.entrancePw) order.entrancePw="";   // 숨긴 칸의 값이 따라가지 않게
+  const opt=document.getElementById("rpOpt");
+  if(opt) opt.textContent = isWreath
+    ? "(선택) — 빈소·행사장이면 안 적으셔도 됩니다"
+    : "— 못 만났을 때 연락드립니다";
+}
+
+/** 화면에 있는 값을 order 로 끌어온다. 검사 직전에 한 번 돌려 DOM과 order 가 어긋나지 않게. */
+function afSyncFormToOrder(){
+  const g=id=>{ const el=document.getElementById(id); return el?String(el.value||"").trim():""; };
+  ["recipientName","chiefMourner","venue","venueDetail","address","groomName","brideName"]
+    .forEach(k=>{ const el=document.getElementById("af_"+k); if(el) order[k]=String(el.value||"").trim(); });
+  if(document.getElementById("recipientPhone")) order.recipientPhone=g("recipientPhone");
+  if(document.getElementById("senderName")) order.senderName=g("senderName");
+  if(document.getElementById("senderPhone")) order.senderPhone=g("senderPhone");
+  if(document.getElementById("ribbonLeft")) order.ribbonLeft=g("ribbonLeft");
+  if(document.getElementById("ribbonRight")) order.ribbonRight=g("ribbonRight");
+  if(document.getElementById("senderNote")) order.senderNote=g("senderNote");
+}
+
+/**
+ * 빠진 것을 전부 모아 돌려준다. 한 건씩 돌려주면 손님이 네 번 왕복한다.
+ * scope:"delivery" 면 받는 곳까지만(결제 카드를 열기 전 라우팅용).
+ * 각 항목: {msg, id(포커스할 칸), card(스크롤 기준 카드)}
+ */
+function afValidateOrder(scope){
+  const errs=[], add=(msg,id,card)=>errs.push({msg,id,card:card||"confirmCard"});
+  const isWreath = order.category==="wreath";
+  const isFuneral = order.type==="funeral";
+  const has=v=>!!String(v||"").trim();
+
+  if(!order.price) add("상품을 먼저 골라주세요.",null,"prodCard");
+
+  // 받는 곳 — 주소가 없으면 배달 자체가 불가능하다.
+  if(!has(order.address) && !has(order.venue)) add("받는 곳 주소를 알려주세요.","af_address");
+
+  // 받는 분 — 화환은 빈소·홀이나 상주로도 찾아간다(장례식장 안내데스크가 확인해 준다).
+  // 사람에게 직접 가는 꽃다발·관엽·난은 이름이 없으면 건넬 수가 없다.
+  if(isWreath){
+    if(!has(order.recipientName) && !has(order.venueDetail) && !has(order.chiefMourner))
+      add(isFuneral?"받는 분(고인 성함)이나 빈소·홀 중 하나는 알려주세요.":"받는 분이나 홀 중 하나는 알려주세요.","af_recipientName");
+  }else{
+    if(!has(order.recipientName)) add("받는 분 성함을 알려주세요.","af_recipientName");
+    if(!has(order.recipientPhone)) add("받는 분 연락처를 알려주세요 — 못 만났을 때 연락드립니다.","recipientPhone");
+  }
+
+  // 받는 날짜 — 달력은 지난 날을 막지만 링크 자동입력·재주문은 order.date 에 직접 값을 넣는다.
+  if(!has(order.date)){
+    add("받는 날짜를 골라주세요.",null);
+  }else{
+    const todayIso=afIsoOf(new Date());
+    if(order.date < todayIso) add("지난 날짜로는 보낼 수 없어요. 날짜를 다시 골라주세요.",null);
+    else if(order.date === todayIso){
+      const now=new Date(), cut=afCutoffHour(now);
+      if(now.getHours() >= cut)
+        add(`오늘 배송은 ${cut}시까지 접수합니다. 다른 날짜를 고르시거나 전화(031-314-3003) 주세요.`,null);
+    }
+  }
+
+  // 도착 시간 — 기본값이 비어 있어 아무것도 안 고르고 넘어갈 수 있었다.
+  if(!has(order.timeSlot) && !has(order.time)) add("도착 시간을 골라주세요.",null);
+  // 축하 자리는 행사가 끝나고 도착하면 값어치가 없다(개업은 새벽·승진은 퇴근 후가 실제 사고 사례).
+  else if(isWreath && !isFuneral && order.timeSlot==="today")
+    add("축하 화환은 '당일중'으로 보내기 어려워요 — 행사 전에 닿아야 해서 시간대를 골라주세요.",null);
+
+  if(scope==="delivery") return errs;
+
+  // 보내는 분
+  if(!has(order.senderName)) add("보내는 분 성함을 입력해주세요.","senderName","senderCard");
+  if(!has(order.senderPhone)) add("연락처를 입력해주세요.","senderPhone","senderCard");
+  const pvA=document.getElementById("privacyAgree");
+  if(pvA && !pvA.checked) add("개인정보 수집·이용에 동의해주세요. (필수)","privacyAgree","payCard");
+  return errs;
+}
+
+/** 빠진 것을 한 번에 보여주고 첫 칸으로만 데려간다. */
+function afShowErrors(errs){
+  document.querySelectorAll(".input-error").forEach(el=>el.classList.remove("input-error"));
+  const old=document.getElementById("orderErr"); if(old) old.remove();
+  if(!errs.length) return;
+  errs.forEach(e=>{ const el=e.id&&document.getElementById(e.id); if(el&&el.tagName==="INPUT") el.classList.add("input-error"); });
+  const box=document.createElement("div");
+  box.id="orderErr"; box.className="err";
+  box.innerHTML = errs.length===1
+    ? escapeHtml(errs[0].msg)
+    : '<b>'+errs.length+'가지만 더 확인해 주세요</b><ul style="margin:6px 0 0;padding-left:18px;line-height:1.75;">'
+      + errs.map(e=>'<li>'+escapeHtml(e.msg)+'</li>').join('') + '</ul>';
+  const card=document.getElementById(errs[0].card);
+  if(card && card.parentNode){ card.parentNode.insertBefore(box,card); }
+  else { const pe=document.getElementById("payErr"); if(pe) return showErr(pe,errs.map(e=>e.msg).join(" ")); return; }
+  box.scrollIntoView({behavior:"smooth",block:"start"});
+  const first=errs[0].id&&document.getElementById(errs[0].id);
+  if(first) setTimeout(()=>first.focus({preventScroll:true}),400);
+}
+
 // 입력칸 에러 표시/해제 헬퍼
 function markErr(inputEl){
   inputEl.classList.add("input-error");
@@ -2013,19 +2142,11 @@ function clearErr(inputEl){
 
 async function requestPay(){
   const err=document.getElementById("payErr"); err.classList.add("hidden");
-  const senderNameEl=document.getElementById("senderName");
-  const senderPhoneEl=document.getElementById("senderPhone");
-  order.senderName=senderNameEl.value.trim();
-  order.senderPhone=senderPhoneEl.value.trim();
-  order.ribbonLeft=document.getElementById("ribbonLeft").value.trim();
-  order.ribbonRight=document.getElementById("ribbonRight").value.trim();
-  order.senderNote=document.getElementById("senderNote").value.trim();
-  if(!order.price) return showErr(err,"가격대를 선택해주세요.");
-  if(!order.senderName){ markErr(senderNameEl); return showErr(err,"보내는 분 성함을 입력해주세요."); }
-  if(!order.senderPhone){ markErr(senderPhoneEl); return showErr(err,"연락처를 입력해주세요."); }
-  // 개인정보 수집·이용 동의(필수) — 비회원 구매 요건
-  const pvA=document.getElementById("privacyAgree");
-  if(pvA && !pvA.checked){ pvA.closest("label").scrollIntoView({behavior:"smooth",block:"center"}); return showErr(err,"개인정보 수집·이용에 동의해주세요. (필수)"); }
+  // 🔴 결제창을 열기 전 마지막 관문. 여기를 통과해도 서버가 승인 직전에 한 번 더 본다.
+  afSyncFormToOrder();
+  const errs=afValidateOrder();
+  if(errs.length){ afShowErrors(errs); return; }
+  afShowErrors([]);   // 지난 표시 지우기
   // 리본 왼편이 비어있으면 보내는 분 성함으로 자동 채움
   if(!order.ribbonLeft){ order.ribbonLeft = order.senderName; document.getElementById("ribbonLeft").value = order.senderName; }
 
@@ -2637,9 +2758,14 @@ window.afReorder = function(o){
   const Pnew = (window.PRODUCTS||[]).find(x=>x.pc===pc);
   if(Pnew){
     Object.assign(order,{
-      type:o.order_type||"unknown", side:"",
+      // 상품코드로 성격을 다시 판정한다 — 예전에 order_type 이 "unknown" 으로 잘못 저장된
+      // 근조 주문을 그대로 다시 담으면 리본이 축하 문구로 뜬다.
+      type:orderTypeFromCode(pc, o.order_type), side:"",
       recipientName:o.recipient_name||"", venue:o.venue||"", venueDetail:"", address:o.address||"",
-      date:o.event_date||"", time:o.event_time||"", groomName:"", brideName:"", chiefMourner:"",
+      recipientPhone:"",
+      // 날짜·시간은 일부러 비운다. 지난 주문의 날짜라 이미 지나간 날이고,
+      // 그대로 두면 손님이 못 보고 넘겨 '어제 배송' 주문이 결제된다.
+      date:"", time:"", timeSlot:"", groomName:"", brideName:"", chiefMourner:"",
       category:productOrderCat(Pnew), toppings:[],
     });
     document.getElementById("afFields").innerHTML =
@@ -2672,7 +2798,8 @@ window.afReorder = function(o){
   Object.assign(order, {
     type:type, side:"",
     recipientName:o.recipient_name||"", venue:o.venue||"", venueDetail:"", address:o.address||"",
-    date:o.event_date||"", time:o.event_time||"",
+    recipientPhone:"",
+    date:"", time:"", timeSlot:"",   // 지난 주문의 날짜를 그대로 들고 오면 '어제 배송' 주문이 된다
     groomName:"", brideName:"", chiefMourner:"",
     category:cat, toppings:[],
   });
@@ -2715,6 +2842,16 @@ function productOrderCat(p){
   if(p.cat==="orchid") return "orchid";
   if(p.cat==="congrats"||p.cat==="condolence") return "wreath";
   return "basket";
+}
+// 🔴 근조 상품은 반드시 '장례'로 못박는다.
+// 이걸 안 했더니 buildRibbon() 이 RIBBON.general 을 집어, 카탈로그에서 근조화환을 고른
+// 손님에게 리본 기본값이 "축하합니다" 로 떴다. 장례식장에 축하 리본이 나가던 실제 사고다.
+function productOrderType(p){ return p.cat==="condolence" ? "funeral" : "unknown"; }
+// 상품코드만 있을 때(재주문 등)도 같은 판정이 되게 — DB에 잘못 저장된 order_type 을 덮는다.
+function orderTypeFromCode(pc,fallback){
+  if(/^WC-/.test(String(pc||""))) return "funeral";
+  if(/^WG-/.test(String(pc||""))) return fallback==="wedding"?"wedding":"unknown";
+  return fallback||"unknown";
 }
 // 선택된 개별상품으로 주문 구성(selTier의 개별상품 버전). 결제검증은 서버가 priceOf(pc)로 재확인.
 function selProduct(p){
@@ -2798,7 +2935,7 @@ function afApplyPendingRestore(){
     // 보내는 분·리본·요청사항 — 고정 id 칸들
     [["senderName","senderName"],["senderPhone","senderPhone"],["ribbonLeft","ribbonLeft"],
      ["ribbonRight","ribbonRight"],["senderNote","senderNote"],["delivReq","delivReq"],
-     ["delivReqCustom","delivReqCustom"],["entrancePw","entrancePw"]]
+     ["delivReqCustom","delivReqCustom"],["entrancePw","entrancePw"],["recipientPhone","recipientPhone"]]
       .forEach(([k,id])=>{ const v=s[k]; if(v==null||v==="") return; order[k]=v; const el=document.getElementById(id); if(el) el.value=v; });
     // 법인 정보
     if(s.buyerType==="corp"){
@@ -2827,13 +2964,19 @@ function handleProductParam(){
   const P=(window.PRODUCTS||[]).find(x=>x.pc===pc);
   if(!P) return; // 알 수 없는 상품코드면 무시 → 일반 첫 화면
   Object.assign(order,{
-    type:"unknown", side:"",
-    recipientName:"", venue:"", venueDetail:"", address:"",
-    date:"", time:"", groomName:"", brideName:"", chiefMourner:"",
+    type:productOrderType(P), side:"",
+    recipientName:"", venue:"", venueDetail:"", address:"", recipientPhone:"",
+    date:"", time:"", timeSlot:"", groomName:"", brideName:"", chiefMourner:"",
     category:productOrderCat(P), toppings:[],
   });
+  // 화환은 빈소·홀까지 받아야 배달이 된다. 여태 카탈로그로 들어오면 이 칸이 없어
+  // 손님이 주소 칸에 호실을 우겨넣거나 요청사항에 적어야 했다(원장·링크 흐름에는 있던 칸).
+  const isWreathProd = (P.cat==="condolence"||P.cat==="congrats");
   document.getElementById("afFields").innerHTML =
     afField("recipientName","받는 분")
+    + (P.cat==="condolence" ? afField("chiefMourner","상주") : "")
+    + (isWreathProd ? afField("venue","장소") : "")
+    + (isWreathProd ? afField("venueDetail", P.cat==="condolence"?"빈소 · 홀":"홀") : "")
     + afField("address","받는 곳 주소")
     + afField("date","받는 날짜")
     + afField("time","받는 시간");
