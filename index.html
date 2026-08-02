@@ -2069,7 +2069,24 @@ async function requestPay(){
 async function handleRedirect(){
   const q=new URLSearchParams(location.search);
   const r=q.get("payresult"); if(!r) return;
-  if(r==="fail"){ alert("결제가 취소되었거나 실패했습니다.\n"+(q.get("message")||"")); cleanUrl(); return; }
+  if(r==="fail"){
+    // 카드 한도 초과·앱 전환 실패처럼 '다시 하면 되는' 경우가 대부분인데, 지금까지는
+    // 알림창 하나 띄우고 입력을 통째로 버렸다. 결제 직전에 이미 order 를 저장해 두므로(af_<주문번호>)
+    // 그걸 되살린다. 결제 승인 코드는 건드리지 않는다 — 복귀 화면만 손본다.
+    const oid=q.get("orderId");
+    let saved=null;
+    try{ saved=JSON.parse(sessionStorage.getItem("af_"+oid)||"null"); }catch(_){}
+    if(saved && saved.productCode){
+      // URL 을 상품 진입 형태로 바꿔 기존 handleProductParam 경로를 그대로 태운다.
+      // 폼 재구성 로직을 새로 짜지 않아도 되고, 이미 검증된 경로라 안전하다.
+      afPendingRestore=saved;
+      const qty=(Number(saved.quantity)>1)?"&qty="+Number(saved.quantity):"";
+      try{ history.replaceState({},"","/?pc="+encodeURIComponent(saved.productCode)+qty); }catch(_){}
+      afPayFailNote(q.get("message"));
+      return; // 이어서 handleProductParam() → afApplyPendingRestore() 가 돈다
+    }
+    alert("결제가 취소되었거나 실패했습니다.\n"+(q.get("message")||"")); cleanUrl(); return;
+  }
   if(r==="success"){
     const paymentKey=q.get("paymentKey"), orderId=q.get("orderId"), amount=q.get("amount");
     // 새로고침/뒤로가기 재진입 시 승인 재호출 방지 — 이미 완료된 주문이면 저장된 결과로 바로 렌더(중복 결제확인·중복 알림 차단)
@@ -2743,6 +2760,67 @@ function enterOrderMode(labelHtml){
   }
   if(typeof updateBuyBar==="function") updateBuyBar();
 }
+// ── 결제 실패 후 입력 되살리기 ───────────────────────────────
+// handleProductParam() 이 상품·카드 골격을 세운 뒤에 값만 얹는다. 순서가 뒤집히면 칸이 아직 없어 못 채운다.
+let afPendingRestore=null;
+
+/** 알림창 대신 화면 위에 남는 안내. 손님이 읽고 바로 '다시 결제'를 누를 수 있어야 한다.
+ *  받는 곳 카드 바로 위에 넣는다 — 페이지 맨 위에 두면 복원 후 스크롤이 내려가 버려 손님이 못 본다. */
+function afPayFailNote(msg){
+  document.addEventListener("DOMContentLoaded",function(){
+    const w=document.querySelector(".wrap"); if(!w) return;
+    const d=document.createElement("div");
+    d.id="payFailNote";
+    d.className="card";
+    d.style.cssText="border:1px solid var(--accent);background:var(--accent-soft);margin-bottom:12px;";
+    d.innerHTML='<div style="font-weight:700;color:var(--accent-deep);margin-bottom:4px;">결제가 완료되지 않았어요</div>'
+      +'<div style="font-size:var(--fs-caption);color:var(--ink-soft);line-height:1.7;">'
+      +'적어주신 내용은 그대로 두었습니다. 아래에서 확인하시고 다시 결제해 주세요.'
+      +(msg?'<br><span style="color:var(--ink-faint);">'+escapeHtml(String(msg).slice(0,120))+'</span>':'')
+      +'</div>';
+    const anchor=document.getElementById("confirmCard");
+    if(anchor && anchor.parentNode===w) w.insertBefore(d,anchor);
+    else w.insertBefore(d,w.firstChild);
+  });
+}
+
+/** 저장해 둔 order 를 폼에 되돌린다. 값이 없는 칸은 건너뛴다(빈 값으로 덮어쓰지 않는다). */
+function afApplyPendingRestore(){
+  const s=afPendingRestore; if(!s) return;
+  afPendingRestore=null;
+  try{
+    // 받는 곳 — afField 가 만든 칸들(af_<key>)
+    ["recipientName","venue","venueDetail","address","date","time","groomName","brideName","chiefMourner"]
+      .forEach(k=>{ const v=s[k]; if(v==null||v==="") return; order[k]=v; const el=document.getElementById("af_"+k); if(el) el.value=v; });
+    if(s.timeSlot) order.timeSlot=s.timeSlot;
+    if(s.side) order.side=s.side;
+    if(s.type) order.type=s.type;
+    // 보내는 분·리본·요청사항 — 고정 id 칸들
+    [["senderName","senderName"],["senderPhone","senderPhone"],["ribbonLeft","ribbonLeft"],
+     ["ribbonRight","ribbonRight"],["senderNote","senderNote"],["delivReq","delivReq"],
+     ["delivReqCustom","delivReqCustom"],["entrancePw","entrancePw"]]
+      .forEach(([k,id])=>{ const v=s[k]; if(v==null||v==="") return; order[k]=v; const el=document.getElementById(id); if(el) el.value=v; });
+    // 법인 정보
+    if(s.buyerType==="corp"){
+      order.buyerType="corp";
+      [["corpName","corpName"],["corpRegNo","corpRegNo"],["corpCeo","corpCeo"],["corpAddr","corpAddr"],["corpEmail","corpEmail"]]
+        .forEach(([k,id])=>{ const v=s[k]; if(v==null||v==="") return; order[k]=v; const el=document.getElementById(id); if(el) el.value=v; });
+      if(typeof selBuyer==="function") try{ selBuyer("corp"); }catch(_){}
+    }
+    if(Array.isArray(s.toppings) && s.toppings.length){
+      order.toppings=s.toppings.slice();
+      if(typeof renderToppings==="function") try{ renderToppings(); }catch(_){}
+    }
+    if(typeof updateDesignTotal==="function") try{ updateDesignTotal(); }catch(_){}
+    if(typeof updateBuyBar==="function") try{ updateBuyBar(); }catch(_){}
+    // 안내문부터 보이게 — 안내문이 받는 곳 카드 바로 위라 한 화면에 '왜 실패했는지 + 어디부터 확인할지'가 같이 들어온다
+    setTimeout(()=>{
+      const t=document.getElementById("payFailNote")||document.getElementById("confirmCard");
+      t?.scrollIntoView({behavior:"smooth",block:"start"});
+    },250);
+  }catch(e){ console.error("restore fail",e); }  // 복원 실패가 주문을 막으면 안 된다
+}
+
 function handleProductParam(){
   const q=new URLSearchParams(location.search);
   const pc=q.get("pc"); if(!pc) return;
@@ -2878,6 +2956,7 @@ handleRedirect();
 renderBest();
 handleProductParam();
 handleWorderParam();
+afApplyPendingRestore();   // 상품·카드 골격이 세워진 뒤에 저장해 둔 값을 얹는다
 handleCorpParam();
 handleCatalogParam();
 loadLiveCatalog();  // 신규상품·옵션가격 라이브 병합(정적 먼저 렌더 후 비동기 보강)

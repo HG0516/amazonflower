@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(pay.html)",
+      "Write(pay.html)",
+      "Edit(api/confirm-payment.js)",
+      "Write(api/confirm-payment.js)",
+      "Edit(api/order-confirm.js)",
+      "Write(api/order-confirm.js)",
+      "Write(api/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // \"\"'); case \"$f\" in *service-worker.js) ;; *photos/*|*icons/*|*.png|*.jpg|*.jpeg|*.webp|*.css|*products.js|*gallery-data.js) printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"꽃안부 캐시 규칙: 정적 자산(사진·아이콘·CSS·products.js·gallery-data.js)을 바꿨으면 service-worker.js 의 VERSION 을 올려야 사용자 화면에 반영된다. 이번 변경이 해당되면 VERSION 을 올릴 것.\"}}' ;; esac",
+            "timeout": 10,
+            "statusMessage": "캐시 버전 체크"
+          }
+        ]
+      }
+    ]
+  }
+}
