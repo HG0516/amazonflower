@@ -9,6 +9,14 @@ import KoreanLunarCalendar from "korean-lunar-calendar";
 
 export const config = { runtime: "nodejs" };
 
+// 기념일 라벨이 자유 입력이라 추도일이 섞여 들어온다. 컬럼을 새로 만들지 않고 라벨로 판별하는 이유:
+// (1) 마이그레이션 없이 이미 저장된 행까지 즉시 보호된다 (2) 지금 나가고 있는 알림이 문제이므로 소급이 핵심.
+// 애매하면 '아니다' 쪽으로 판정하지 않는다 — 놓쳐서 결례하느니 담백한 문구가 낫다.
+const MEMORIAL_RE = /(기일|忌日|제사|제삿|차례|추도|추모|소상|대상|탈상|49재|사십구재|기제)/;
+function isMemorial(label) {
+  return MEMORIAL_RE.test(String(label || ""));
+}
+
 // VAPID public 은 공개값(코드/클라 공유). private 은 반드시 Vercel env(VAPID_PRIVATE_KEY).
 const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY || "BK4frAB9SMwq4pDiMapQf0uPlZG2nbfPbMR1qxiKs9JT5w5SVvre6dzkrW2NRJT9SWnVs1JE-UtEZ_24usKxFBE";
 
@@ -72,9 +80,14 @@ export default async function handler(req, res) {
     } catch (e) { /* skip */ }
 
     const who = a.recipient ? `${a.recipient}님 ` : "";
+    const memorial = isMemorial(a.label);
     const payload = JSON.stringify({
-      title: "🌸 꽃안부 기념일 알림",
-      body: `${a.label} 7일 전이에요. ${who}올해도 꽃으로 안부 전해보세요.`,
+      // 기일·제사에는 판촉 문구를 붙이지 않는다. 라벨이 자유 입력이라 '아버지 기일'을 적어둔
+      // 사람에게 '올해도 꽃으로 안부 전해보세요'가 그대로 나가면 되돌릴 수 없는 결례가 된다.
+      title: memorial ? "🌿 꽃안부 알림" : "🌸 꽃안부 기념일 알림",
+      body: memorial
+        ? `${a.label} 7일 전입니다.`
+        : `${a.label} 7일 전이에요. ${who}올해도 꽃으로 안부 전해보세요.`,
       url: "/",
       tag: "anniv-" + a.id,
     });

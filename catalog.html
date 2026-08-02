@@ -31,6 +31,8 @@
 <script src="/footer.js" defer></script>
 <script src="/bottom-nav.js" defer></script>
 <script src="/season.js" defer></script>
+<script src="/promotions.js" defer></script>
+<script src="/meanings.js" defer></script>
 <link rel="stylesheet" href="/tokens.css" />
 <link rel="stylesheet" href="/a11y.css" />
 <link rel="canonical" href="https://floweranbu.co.kr/catalog.html" />
@@ -326,6 +328,15 @@
   .pm-pay { margin: 14px 0 10px; padding: 10px 12px; border: 1px solid var(--accent-line, var(--line)); border-radius: var(--radius-sm); background: var(--paper); font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.6; text-align: center; word-break: keep-all; }
   .pm-pay b { color: var(--accent-deep); font-weight: 600; }
   .pm-pay span { color: var(--ink-faint); }
+  /* 화환 등급 설명 — 가격 바로 아래, 주문 버튼 위 */
+  .wnote { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.55; margin: 4px 0 10px; word-break: keep-all; }
+  /* 계절 배송 주의 — 해당 달에만 나타난다 */
+  .season-care { margin: 10px 0 4px; padding: 10px 12px; border-left: 3px solid var(--gold, #8a6a32); background: var(--paper); font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
+  /* 꽃말 — 단정하지 않는 전언 어투. 출처를 반드시 함께 보인다 */
+  .pm-mean { margin-top: 10px; padding: 11px 13px; border-radius: var(--radius-sm); background: var(--accent-soft, #e8f1ea); font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.7; word-break: keep-all; }
+  .pm-mean b { display: block; font-size: var(--fs-caption); color: var(--accent-deep); margin-bottom: 3px; font-weight: 700; }
+  .pm-mean.etiq { background: var(--paper); border: 1px solid var(--line); }
+  .pm-mean .mean-src { display: block; margin-top: 5px; font-size: var(--fs-caption); color: var(--ink-faint); }
   .pay-sub { margin-top: 8px; padding-top: 0; border-top: none; }
   .pay-sub b { color: var(--accent-deep); font-weight: 600; }
   .pm-cart { padding: 14px; border: 1.5px solid var(--ink); border-radius: var(--radius); background: var(--paper); color: var(--ink); font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 50px; }
@@ -704,7 +715,19 @@ function productsFor(key, sub, band){
     price:(a,b)=> a.price-b.price,
     priceHigh:(a,b)=> b.price-a.price,
   };
-  return list.sort(sorters[currentSort]||sorters.pop);
+  list = list.sort(sorters[currentSort]||sorters.pop);
+  // 제철 가산 — '인기순'일 때만. 사장님이 5월마다 진열을 바꾸는 건 지속되지 않으니 날짜가 대신 바꾼다.
+  // 근조는 계절을 타는 상품이 아니고 부스트가 붙으면 부적절하므로 대상에서 뺀다.
+  if(currentSort==="pop" && key!=="condolence"){
+    const s = window.FlowerPromo && window.FlowerPromo.pick && window.FlowerPromo.pick();
+    // promotions.js 의 cat 표기가 상품 분류와 한 군데 어긋난다 — oriental 은 상품에선 orchid/동양란.
+    const hit = !s || !s.cat ? null
+      : s.cat === "oriental" ? (p => p.cat === "orchid" && p.sub === "동양란")
+      : s.cat === "condolence" ? null
+      : (p => p.cat === s.cat);
+    if(hit) list = [...list.filter(hit), ...list.filter(p=>!hit(p))];
+  }
+  return list;
 }
 
 // 주문 버튼 문구 — 전 카테고리 공용(근조 포함 안전). 카드에 사진·상품명이 보여 '무엇을'은 이미 분명.
@@ -1142,6 +1165,54 @@ function renderLinkOrder(key){
     </div>`;
 }
 
+// 화환 12종은 이름 아래가 통째로 비어 있었다(subtitle·FEATURE 둘 다 없음).
+// 손님이 실제로 막히는 건 "이 금액을 보내면 실례인가"인데 가격 비교로는 안 풀린다.
+// 관계나 직급 서열로 쓰지 않는다 — 그건 집집마다 달라서 틀린다. 눈에 보이는 기준(보내는 사람 수, 자리 규모)으로만.
+const WREATH_NOTE = {
+  "근조 보통":     "개인이 조문 갈 때 가장 많이 나가는 등급입니다",
+  "근조 일반1호":  "부서나 팀 이름으로 보낼 때",
+  "근조 일반2호":  "거래처·협력사 이름으로 보낼 때",
+  "근조 오브제":   "화환 대신 단정한 형태를 찾으실 때",
+  "근조 스페셜":   "회사 대표 명의로 보낼 때",
+  "근조 특대":     "빈소가 크거나 상주와 각별한 사이일 때",
+  "축하 보통":     "개인이 축하할 때 가장 많이 나가는 등급입니다",
+  "축하 일반":     "부서나 팀 이름으로 보낼 때",
+  "축하 특일반":   "거래처·협력사 이름으로 보낼 때",
+  "축하 스페셜1호":"회사 대표 명의로 보낼 때",
+  "축하 특상":     "개업식 정면에 놓이는 큰 자리에",
+  "축하 쌀화환10KG":"행사 뒤 쌀로 남아 기부·나눔까지 되는 화환",
+};
+
+// 여름 생화와 겨울 관엽은 배송 중 상하는 게 실제 클레임 원인인데 화면에 한 줄도 없었다.
+// 사장님이 매년 전화로 반복하던 설명을 달만 보고 자동으로 대신한다. 서버·DB 안 씀.
+function seasonCareNote(key){
+  const m = new Date().getMonth() + 1;
+  if ((key === "condolence" || key === "congrats") && (m === 7 || m === 8))
+    return "한여름에는 생화가 빨리 지칩니다. 도착 시간을 행사에 최대한 가깝게 잡아드릴게요.";
+  if (key === "plant" && (m === 12 || m === 1 || m === 2))
+    return "한겨울에는 배송 중 냉해를 입을 수 있어 보온해서 보냅니다. 받으시면 바로 실내에 들여주세요.";
+  if (key === "bouquet" && (m === 7 || m === 8))
+    return "한여름 꽃다발은 아침 배송을 권해드립니다.";
+  return "";
+}
+
+// 꽃말은 "이런 뜻이래요" 어투로만 전한다(meanings.js 규칙 1). 근조·축하화환은 meaningFor 가 원천 차단한다.
+// 근조 자리에는 뜻 대신 예법 한 줄. 출처 없는 항목은 meanings.js 가 알아서 걸러 빈 문자열을 준다.
+function meaningBlock(p){
+  if(!p) return "";
+  if(p.cat==="condolence"){
+    const E = (window.ETIQUETTE && window.ETIQUETTE.condolence) || [];
+    if(!E.length) return "";
+    const e = E[0];
+    if(!e.note || !e.src) return "";
+    return `<div class="pm-mean etiq"><b>알아두시면 좋아요</b> ${esc(e.note)}<span class="mean-src">${esc(e.src)}</span></div>`;
+  }
+  const say = (window.meaningLine ? window.meaningLine(p) : "");
+  if(!say) return "";
+  const m = window.meaningFor(p);
+  return `<div class="pm-mean"><b>이런 뜻이 있대요</b> ${esc(say)}<span class="mean-src">${esc(m.src)}</span></div>`;
+}
+
 function renderWreath(key){
   const kindName = key==="congrats" ? "축하화환" : "근조화환";
   const worder = key==="condolence" ? "funeral" : "congrats";
@@ -1151,12 +1222,15 @@ function renderWreath(key){
     ? "근조화환 · 장례식장 전국 당일배송. 아래에서 등급을 고르고 주문하시거나, 위에 부고 링크를 붙여넣으면 자동으로 채워드립니다."
     : "축하화환 · 결혼식·개업·승진 전국 당일배송. 아래에서 등급을 고르고 주문하시거나, 위에 청첩장 링크를 붙여넣으면 자동으로 채워드립니다.";
   let html = `<div class="section-label">${kindName}</div><div class="section-desc">${seo}</div>`;
+  const care = seasonCareNote(key);
+  if (care) html += `<div class="season-care">${esc(care)}</div>`;
   html += `<div class="wreath-grid">` + products.map((p,i)=>`
       <div class="wcard">
         <div class="wphoto"><img src="${esc(p.photos[0]||"")}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'"></div>
         <div class="wbody">
           <div class="wtier">${esc(p.name)}</div>
           <div class="wprice">${p.price.toLocaleString()}원</div>
+          ${WREATH_NOTE[p.name] ? `<div class="wnote">${esc(WREATH_NOTE[p.name])}</div>` : ""}
           <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">${ORDER_VERB[key]||ORDER_LABEL}</button>
         </div>
       </div>`).join("")
@@ -1212,6 +1286,8 @@ function renderSortBar(){
 function renderProducts(){
   const ax=AXES[currentCat];
   let html=`<div class="section-label">${ax.label}</div><div class="section-desc">${ax.desc}</div>`;
+  const care0=seasonCareNote(currentCat);
+  if(care0) html+=`<div class="season-care">${esc(care0)}</div>`;
   if(currentCat==="plant" && !currentUse){
     // 전체 볼 때는 쓰임별(탁상 / 거실·사무실 / 로비)로 구분해 순서대로 보여준다
     let any=false;
@@ -1248,7 +1324,12 @@ const SEARCH_SYN = {
   "국화":"근조","흰국화":"근조","부고":"근조","장례":"근조","조문":"근조","빈소":"근조","발인":"근조",
   "결혼":"축하 꽃다발","청첩":"축하","개업":"축하 관엽","이전":"관엽 난","취임":"난","승진":"난",
   "병문안":"꽃바구니","생일":"꽃다발","기념일":"꽃다발","프러포즈":"꽃다발","축하":"축하",
-  "어머니":"카네이션","어버이":"카네이션","카네이션":"카네이션","칠순":"축하","환갑":"축하","화분":"관엽"
+  "어머니":"카네이션","어버이":"카네이션","카네이션":"카네이션","칠순":"축하","환갑":"축하","화분":"관엽",
+  // 계절말 — 고령 손님과 급한 경조사 손님은 품종명을 모르고 "요즘 뭐가 좋아요"로 말한다.
+  // 여기서 잡아주면 AI 폴백(글자 매칭 0건일 때만 호출)이 오히려 덜 불린다.
+  "봄":"튤립 프리지아 라넌큘러스","여름":"해바라기 수국","가을":"국화 소국","겨울":"포인세티아 시클라멘",
+  "제철":"","요즘":"","이맘때":"","시즌":"",
+  "오래가는":"난 관엽","오래 가는":"난 관엽","시들지":"난 관엽","관리 쉬운":"관엽","키우기 쉬운":"관엽"
 };
 // 검색 — 가격대 상품 + 보유 종류 전체에서 이름/종류/색 매칭 (+ 상황 동의어 확장)
 function doSearch(q){
@@ -1381,6 +1462,7 @@ function renderDetail(){
       ${(p.subtitle||FEATURE[p.name])?`<div class="pm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
       <div class="pm-meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}<span class="size-tag">${esc(kind)}</span></div>
       <div class="pm-price">${p.price.toLocaleString()}원</div>
+      ${meaningBlock(p)}
       <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
       ${sold ? "" : `<div class="pm-pay">회원가입 없이 바로 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 카드</b><br><span>결제 단계에서 원하시는 방법을 고르실 수 있어요</span></div>`}
       <div class="pm-actions">
@@ -1449,6 +1531,7 @@ function renderGroupDetail(){
       <div class="gtiers">${tierTabs}</div>
       ${colorOpts?`<div class="glbl">색·구성 고르기</div><div class="gcolors">${colorOpts}</div>`:""}
       <div class="pm-price">${p.price.toLocaleString()}원</div>
+      ${meaningBlock(p)}
       <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
       ${sold ? "" : `<div class="pm-pay">회원가입 없이 바로 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 카드</b><br><span>결제 단계에서 원하시는 방법을 고르실 수 있어요</span></div>`}
       <div class="pm-actions">

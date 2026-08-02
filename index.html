@@ -38,6 +38,8 @@
 <script src="/footer.js" defer></script>
 <script src="/bottom-nav.js" defer></script>
 <script src="/season.js" defer></script>
+<script src="/promotions.js" defer></script>
+<script src="/meanings.js" defer></script>
 <script src="/products.js"></script><!-- 상품 단일 소스(window.PRODUCTS 등). 본문 스크립트가 참조하므로 defer 없이 먼저 로드 -->
 
 <!-- LCP 최적화: 히어로 대표사진 우선 로드 -->
@@ -2098,12 +2100,16 @@ async function handleRedirect(){
 function upsellHtml(o){
   const pc=o.productCode||"";
   const isWreath = o.category==="wreath" || /^congrats|^condolence|^WG-|^WC-/.test(pc);
-  if(!isWreath || !window.PRODUCTS) return "";
+  // 🔴 근조는 업셀 대상에서 제외한다. 상을 당한 분에게 결제 직후 꽃다발을 권하는 건
+  //    매출 이전에 결례이고, 그 한 번으로 이 가게를 다시 찾지 않게 된다.
+  //    (기존 정규식이 ^condolence|^WC- 까지 isWreath 로 묶어 근조에도 노출되고 있었다.)
+  const isFuneralUp = o.type==="funeral" || /^condolence|^WC-/.test(pc);
+  if(isFuneralUp || !isWreath || !window.PRODUCTS) return "";
   const picks=window.PRODUCTS.filter(p=>p.cat==="bouquet" && p.price>=57000 && p.price<=78000).slice(0,2);
   if(picks.length<2) return "";
   return `<div style="background:#fff;border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
       <div style="font-weight:700;color:var(--accent-deep);margin-bottom:2px;">마음을 더 전하고 싶다면</div>
-      <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">위로·축하의 꽃다발도 함께 보내는 분이 많아요. 눌러서 바로 주문.</div>
+      <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">축하 꽃다발도 함께 보내는 분이 많아요. 눌러서 바로 주문.</div>
       <div style="display:flex;gap:8px;">
         ${picks.map(p=>`<div onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'" style="flex:1;cursor:pointer;border:1px solid var(--line);border-radius: var(--radius);overflow:hidden;">
           <div style="height:92px;background:var(--photo-bg);overflow:hidden;"><img src="${p.photos[0]||''}" alt="${escapeAttr(p.name)}" style="width:100%;height:100%;object-fit:cover;object-position:center 40%;" onerror="this.style.display='none'"></div>
@@ -2120,6 +2126,101 @@ window.afSurvey=function(v,oid){
     body:JSON.stringify({order_id:oid,referral_source:v})}).catch(()=>{});
 };
 // 결제완료 기념일 원탭 저장(로그인 상태 전용) — 내년 D-7 푸시 알림의 재료
+// ── 캘린더 저장 ───────────────────────────────────────────────
+// 화환 주문의 대다수가 비회원이라 결제 후 연결이 끊긴다. 웹푸시는 로그인·등록·구독에
+// iOS는 홈화면 설치까지 통과해야 하지만, 캘린더는 조건이 0개다.
+// 기억 장치를 우리 서버가 아니라 손님 폰에 두는 것이 핵심.
+function afPad(n){ return String(n).padStart(2,"0"); }
+window.afAddIcs=function(o){
+  const q=new URLSearchParams({ics:"1",y:o.y,m:o.m,d:o.d,tm:o.time||"",t:o.title||"일정",d2:o.desc||"",r:o.yearly?"1":"0"});
+  location.href="/api/order-meta?"+q.toString();
+};
+/** 구글은 링크만으로 되는 대신 시각을 UTC로 넘겨야 한다(한국은 -9시간). */
+window.afAddGcal=function(o){
+  const hasTime=/^\d{1,2}:\d{2}/.test(o.time||"");
+  let dates;
+  if(hasTime){
+    const [hh,mm]=o.time.split(":").map(Number);
+    const s=new Date(Date.UTC(o.y,o.m-1,o.d,hh-9,mm)), e=new Date(s.getTime()+3600000);
+    const f=x=>x.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+    dates=`${f(s)}/${f(e)}`;
+  }else{
+    const s=`${o.y}${afPad(o.m)}${afPad(o.d)}`;
+    const nx=new Date(Date.UTC(o.y,o.m-1,o.d+1));
+    dates=`${s}/${nx.getUTCFullYear()}${afPad(nx.getUTCMonth()+1)}${afPad(nx.getUTCDate())}`;
+  }
+  const q=new URLSearchParams({action:"TEMPLATE",text:o.title,dates,details:o.desc||""});
+  // 구글 템플릿 URL은 반복 일정을 지원하지 않는다 — 매년 반복은 .ics 로만 안내한다.
+  if(o.yearly) q.set("recur","RRULE:FREQ=YEARLY;COUNT=5");
+  window.open("https://calendar.google.com/calendar/render?"+q.toString(),"_blank","noopener");
+};
+// 리본 문구는 한국 경조사에서 가장 정확한 행사 분류표다. AI도 서버도 필요 없이 상수 하나면 된다.
+// 이걸 안 하면 1년 뒤 알림이 '김철수 기념일'로 와서 손님이 무슨 날인지 기억하지 못한다.
+const RIBBON_KIND = [
+  [/開業|개업|창립|오픈|개원|이전|移轉/, "개업"],
+  [/結婚|華婚|결혼|화혼|혼인/,          "결혼식"],
+  [/昇進|榮轉|영전|취임|승진|就任|영진/, "승진·취임"],
+  [/生辰|생신|壽宴|수연|생일|回甲|회갑|칠순|팔순|고희/, "생신"],
+  [/謹弔|근조|삼가|弔/,                 "조문"],
+];
+/** 리본 → 행사 이름. 못 읽으면 주문 유형으로 폴백하고, 그것도 없으면 빈 문자열. */
+function afEventKind(o){
+  const t = [o.ribbonRight, o.ribbonLeft, o.ribbon].filter(Boolean).join(" ");
+  for(const [re,label] of RIBBON_KIND) if(re.test(t)) return label;
+  if(o.type==="funeral" || /^condolence|^WC-/.test(o.productCode||"")) return "조문";
+  if(o.type==="wedding") return "결혼식";
+  return "";
+}
+
+/** 버튼 두 개 한 세트. 40~60대 기준으로 이름을 기기로 부른다(포맷 이름 아님). */
+function afCalBtns(o,label){
+  const j=escapeAttr(JSON.stringify(o));
+  return `<div style="margin-top:10px;">
+      <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:6px;">${escapeHtml(label)}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-mini" style="flex:1;min-width:130px;min-height:48px;" onclick='afAddGcal(${j})'>구글 캘린더</button>
+        <button class="btn-mini" style="flex:1;min-width:130px;min-height:48px;" onclick='afAddIcs(${j})'>아이폰·기타 캘린더</button>
+      </div>
+    </div>`;
+}
+
+/**
+ * 행사 당일 일정을 손님 캘린더에 넣는 버튼.
+ * 근조에도 넣는다 — 조문은 손님이 실제로 가야 하는 약속이고, 여기엔 판촉 요소가 없다.
+ * (금지되는 건 근조에 '매년 반복'을 붙이는 쪽이다.)
+ */
+function afEtaCal(o,dm){
+  if(!dm) return "";
+  const kind = afEventKind(o);
+  const who  = o.recipientName ? o.recipientName+" " : "";
+  const where= [o.venue,o.venueDetail].filter(Boolean).join(" ");
+  const title= (who + (kind||"행사") ).trim() + (where? " · "+where : "");
+  return afCalBtns({
+    y:Number(dm[1]), m:Number(dm[2]), d:Number(dm[3]), time:o.time||"",
+    title, desc:"꽃안부에서 보낸 꽃이 이 날 도착합니다.", yearly:false,
+  }, "이 날 일정을 캘린더에 넣어두시겠어요?");
+}
+
+/** 기념일 이름. '○○ 기념일'로는 1년 뒤에 무슨 날인지 알 수 없다. 리본에서 행사를 읽어 붙인다. */
+function afAnnivLabel(o){
+  const who = o.recipientName ? o.recipientName+" " : "";
+  const kind = afEventKind(o);
+  if(kind === "개업")   return who+"개업기념일";
+  if(kind === "결혼식") return who+"결혼기념일";
+  if(kind === "생신")   return who+"생신";
+  if(kind === "승진·취임") return who+"취임 기념일";
+  return who+"기념일";
+}
+/** 매년 반복 .ics. 근조에는 절대 붙이지 않는다 — 조문 직후 '매년 알림'은 그 자체로 무례다. */
+function afYearlyCal(o,dm){
+  if(!dm) return "";
+  if(o.type==="funeral" || /^condolence|^WC-/.test(o.productCode||"")) return "";
+  return afCalBtns({
+    y:Number(dm[1])+1, m:Number(dm[2]), d:Number(dm[3]), time:"",
+    title:afAnnivLabel(o), desc:"꽃안부에서 만든 알림입니다. 필요 없으시면 이 일정을 지우세요.", yearly:true,
+  }, "매년 알림으로 넣기 (5년치, 일주일 전 알림)");
+}
+
 window.afSaveAnnivDone=function(label,month,day,recipient){
   const a=window.afAuth||{}; const sb=a.client, u=a.user;
   const card=document.getElementById("annivDoneCard");
@@ -2151,14 +2252,23 @@ function renderDone(data,o){
       <div id="annivDoneCard" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">이 날을 기념일로 저장할까요?</div>
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일, 일주일 전에 미리 알려드려요.</div>
-        <button class="btn" style="width:100%;" onclick="afSaveAnnivDone('${escapeAttr((o.recipientName?o.recipientName+" ":"")+"기념일")}',${Number(dm[2])},${Number(dm[3])},'${escapeAttr(o.recipientName||"")}')">저장하기 (한 번이면 끝)</button>
+        <button class="btn" style="width:100%;" onclick="afSaveAnnivDone('${escapeAttr(afAnnivLabel(o))}',${Number(dm[2])},${Number(dm[3])},'${escapeAttr(o.recipientName||"")}')">저장하기 (한 번이면 끝)</button>
+        ${afYearlyCal(o,dm)}
       </div>` : "";
-  const memberCard = user ? annivCard : `
+  // 비회원에게도 '해마다 그날'을 준다. 화환 주문의 대다수가 비회원이고,
+  // 캘린더는 가입·로그인·구독 어느 것도 요구하지 않는 유일한 재방문 장치다.
+  const guestAnniv = (!user && dm && !isFuneral) ? `
+      <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
+        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">내년 이맘때, 잊지 않으시게</div>
+        <div style="font-size:var(--fs-caption);color:var(--ink-soft);">가입 없이 손님 폰 캘린더에 넣어드려요. 매년 ${Number(dm[2])}월 ${Number(dm[3])}일 일주일 전에 알려줍니다.</div>
+        ${afYearlyCal(o,dm)}
+      </div>` : "";
+  const memberCard = user ? annivCard : (guestAnniv + `
       <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">다음에 더 편하게</div>
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;"><b>가입하면 1,000원 적립</b> · 로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지.</div>
         <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">가입하고 1,000원 받기</button>
-      </div>`;
+      </div>`);
   const surveyCard = `
       <div id="surveyCard" style="border:1px dashed var(--line);border-radius: var(--radius);padding:12px 14px;margin-top:12px;text-align:left;">
         <div style="font-size:var(--fs-caption);font-weight:700;color:var(--ink);margin-bottom:8px;">꽃안부를 어떻게 알고 오셨어요? <span style="font-weight:400;color:var(--ink-faint);">(한 번만 눌러주세요)</span></div>
@@ -2171,7 +2281,7 @@ function renderDone(data,o){
   const orderId = escapeHtml(p.orderId||"");
   // 진행 타임라인 + 도착 예정일(급행 경조사 손님의 최대 불안 '언제 도착'을 명확히)
   const _edm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>` : "";
+  const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>${afEtaCal(o,_edm)}` : "";
   const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
       ${[["1","주문 접수",1],["2","사장님 제작",0],["3","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
     </div>`;

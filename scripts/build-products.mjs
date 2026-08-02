@@ -242,6 +242,28 @@ const banner = (f, other) => `// ${f} — 꽃안부 상품 단일 소스 (자동
 // 생성: scripts/build-products.mjs  |  원장: 3.완성 사진 파일명(이름+가격)  |  짝: ${other}
 // 프론트(catalog.html·index.html)는 products.js, 결제검증 서버(api/confirm-payment.js)는 products.mjs 를 읽는다.
 // ⚠️ public 레포이므로 원가·마진 등 내부 정보 필드 금지. 판매가·공개 스펙만.\n`;
+// ── 사이드카 병합 ────────────────────────────────────────────
+// products.js/.mjs 는 윈도우 사진 파일명만 입력으로 받는 자동 생성물이라, 사람이 붙인 메모는
+// 다음 빌드에서 통째로 지워진다. 사진 파일명 규칙을 늘리는 대신(사장님이 파일명에 메모를 쳐야 함)
+// 별도 JSON 을 여기서 얕게 병합한다. 파일이 없으면 조용히 건너뛴다 — 윈도우 빌드를 절대 깨지 않는다.
+const NOTES_PATH = path.join(ROOT, "product-notes.json");
+try {
+  if (fs.existsSync(NOTES_PATH)) {
+    const notes = JSON.parse(fs.readFileSync(NOTES_PATH, "utf8"));
+    let merged = 0;
+    for (const p of products) {
+      const n = notes[p.pc] || notes[p.name];
+      if (!n || typeof n !== "object") continue;
+      for (const k of ["meaning", "bloomMonths", "wreathNote", "careNote"]) {
+        if (n[k] !== undefined && p[k] === undefined) { p[k] = n[k]; merged++; }
+      }
+    }
+    console.log(`사이드카 병합: product-notes.json → ${merged}개 필드`);
+  }
+} catch (e) {
+  console.warn("product-notes.json 을 읽지 못해 건너뜁니다:", e.message);
+}
+
 const dataDefs =
   `const PRODUCTS = ${JSON.stringify(products, null, 1)};\n\n` +
   `const LEGACY_TIERS = ${JSON.stringify(LEGACY_TIERS, null, 1)};\n\n` +
