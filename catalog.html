@@ -295,6 +295,8 @@
   .pmodal-x { position: absolute; top: 10px; right: 10px; z-index: 2; width: 44px; height: 44px; border-radius: var(--radius-pill); border: none; background: rgba(255,255,255,.92); color: var(--ink); font-size: 17px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
   .pm-photo { position: relative; aspect-ratio: 3/4; background: var(--line-soft); overflow: hidden; }
   .pm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* 사진이 안 열릴 때 img 자리에만 들어간다. 부모를 통째로 지우면 넘김 버튼·점까지 날아간다. */
+  .pm-noimg { display: flex; align-items: center; justify-content: center; height: 100%; color: #9e9a8f; font-size: var(--fs-caption); }
   .pm-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: var(--radius-pill); border: none; background: rgba(255,255,255,.85); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; }
   .pm-nav.prev { left: 10px; } .pm-nav.next { right: 10px; }
   .pm-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; gap: 6px; justify-content: center; }
@@ -1043,6 +1045,21 @@ async function loadLiveProducts(){
   }catch(e){ /* 라이브 상품정보 못 불러와도 기본 상품 그대로 */ }
 }
 
+/**
+ * 목록을 다시 그린 뒤 첫 줄이 보이게 한다.
+ * 종류 탭(.seg)이 sticky 라 목록 한참 아래에서도 눌린다. 예전엔 스크롤을 그대로 둬서
+ * 관엽(49개)을 보다가 난(19개)으로 바꾸면 새 목록 끝을 지나친 자리에 남았다.
+ * 이미 목록 시작이 화면 안이면 건드리지 않는다 — 위에 있는 사람을 굳이 움직이면 멀미난다.
+ */
+function scrollListIntoView(){
+  const el=document.getElementById("catArea"); if(!el) return;
+  const seg=document.getElementById("segTabs");
+  const pad=(seg?seg.getBoundingClientRect().height:0)+8;
+  const top=el.getBoundingClientRect().top;
+  if(top>=pad) return;
+  window.scrollTo({ top: Math.max(0, window.scrollY + top - pad), behavior:"smooth" });
+}
+
 function showCat(key, keepFilter){
   const ax=AXES[key]; if(!ax) return;
   currentOccasion = ""; setActiveOccChip("");   // 종류 탭을 직접 누르면 상황 모드 해제
@@ -1084,6 +1101,7 @@ function showCat(key, keepFilter){
   document.getElementById("galleryArea").innerHTML = crossCatHTML(key);
   showSpecial(key);
   showWedding(key);
+  scrollListIntoView();
 }
 
 // ── 상황(경조사) 모드 ────────────────────────────────────────────────
@@ -1121,6 +1139,7 @@ function toggleOccType(tk){
   else occSel.push(tk);
   renderOccTypeChips();
   renderOccProducts();
+  scrollListIntoView();
 }
 function renderOccProducts(){
   const oc = OCCASIONS[currentOccasion]; if(!oc) return;
@@ -1261,8 +1280,8 @@ function wreathUrlGo(){
 }
 function setSub(s){ currentSub=s; showCat(currentCat, true); }
 function setUse(u){ currentUse=u; showCat(currentCat, true); }
-function setBand(b){ currentBand=b; renderBandChips(); renderProducts(); }
-function setSort(s){ currentSort=s; renderSortBar(); currentOccasion ? renderOccProducts() : renderProducts(); }
+function setBand(b){ currentBand=b; renderBandChips(); renderProducts(); scrollListIntoView(); }
+function setSort(s){ currentSort=s; renderSortBar(); currentOccasion ? renderOccProducts() : renderProducts(); scrollListIntoView(); }
 
 function renderBandChips(){
   const el=document.getElementById("bandChips");
@@ -1439,12 +1458,24 @@ function openDetail(pc){
   detailPc=pc; detailIdx=0; renderDetail();
   document.getElementById("pmodal").classList.remove("hidden");
   document.body.style.overflow="hidden";
+  // 새로 여는 창은 맨 위에서 시작해야 한다(앞서 본 상품의 스크롤이 남아 있으면 안 됨)
+  const card=document.querySelector("#pmodal .pmodal-card"); if(card) card.scrollTop=0;
 }
 function closeDetail(){ document.getElementById("pmodal").classList.add("hidden"); document.body.style.overflow=""; detailPc=null; }
 function detailNav(d){
   const p=PRODUCTS.find(x=>x.pc===detailPc); if(!p) return;
-  const n=(p.photos&&p.photos.length)||1; detailIdx=(detailIdx+d+n)%n; renderDetail();
+  const n=(p.photos&&p.photos.length)||1; detailIdx=(detailIdx+d+n)%n;
+  keepModalScroll(renderDetail);
 }
+/** 상세창의 스크롤 위치를 지켜준다 — innerHTML 을 통째로 갈아끼우면 맨 위로 튄다.
+ *  사진 넘김·장바구니 담기처럼 '읽던 자리에서' 누르는 동작이라 튀면 매번 다시 내려와야 한다. */
+function keepModalScroll(fn){
+  const card=document.querySelector("#pmodal .pmodal-card");
+  const keep=card?card.scrollTop:0;
+  fn();
+  if(card) card.scrollTop=keep;
+}
+
 function renderDetail(){
   const p=PRODUCTS.find(x=>x.pc===detailPc); if(!p) return;
   const photos=(p.photos&&p.photos.length)?p.photos:[""];
@@ -1457,7 +1488,7 @@ function renderDetail(){
     ? `<button class="pm-nav prev" onclick="detailNav(-1)" aria-label="이전 사진">‹</button><button class="pm-nav next" onclick="detailNav(1)" aria-label="다음 사진">›</button><div class="pm-dots">${photos.map((_,i)=>`<span class="pm-dot ${i===detailIdx?'on':''}"></span>`).join("")}</div>`
     : "";
   document.getElementById("pmodalBody").innerHTML=`
-    <div class="pm-photo"><img src="${esc(img)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'">${nav}</div>
+    <div class="pm-photo"><img src="${esc(img)}" alt="${esc(p.name)}" onerror="this.outerHTML='<div class=&quot;pm-noimg&quot;>사진 준비 중</div>'">${nav}</div>
     <div class="pm-body">
       <div class="pm-nm">${esc(p.name)}</div>
       ${(p.subtitle||FEATURE[p.name])?`<div class="pm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
@@ -1477,7 +1508,7 @@ function renderDetail(){
       </div>
     </div>`;
 }
-function addToCartDetail(pc){ addToCart(pc,1); renderDetail(); }
+function addToCartDetail(pc){ addToCart(pc,1); keepModalScroll(renderDetail); }
 
 /* ───────── 묶인 상품 상세(가격대·색 선택) ───────── */
 // 같은 이름 상품을 상세에서 가격대→색(사진)으로 고른다. 고르면 detailPc에 단일 상품코드가 잡혀
@@ -1494,6 +1525,7 @@ function openGroup(name){
   renderGroupDetail();
   document.getElementById("pmodal").classList.remove("hidden");
   document.body.style.overflow="hidden";
+  const card=document.querySelector("#pmodal .pmodal-card"); if(card) card.scrollTop=0;
 }
 function pickGroupPrice(price){
   if(!groupSel) return;
@@ -1501,9 +1533,9 @@ function pickGroupPrice(price){
   const at = groupSel.list.filter(p=>p.price===price);
   groupSel.pc = at.length ? at[0].pc : groupSel.pc;
   detailPc = groupSel.pc; detailIdx = 0;
-  renderGroupDetail();
+  keepModalScroll(renderGroupDetail);   // 가격대·색을 고르는 자리에서 위로 튀면 다시 내려와야 한다
 }
-function pickGroupPc(pc){ if(!groupSel) return; groupSel.pc = pc; detailPc = pc; detailIdx = 0; renderGroupDetail(); }
+function pickGroupPc(pc){ if(!groupSel) return; groupSel.pc = pc; detailPc = pc; detailIdx = 0; keepModalScroll(renderGroupDetail); }
 function renderGroupDetail(){
   if(!groupSel) return;
   const { list } = groupSel;
@@ -1523,7 +1555,7 @@ function renderGroupDetail(){
     ? atPrice.map(x=>`<button class="gcolor ${x.pc===groupSel.pc?'on':''}" onclick="pickGroupPc('${esc(x.pc)}')"><img src="${esc((x.photos&&x.photos[0])||'')}" alt="${esc(x.name)}" loading="lazy" onerror="this.style.display='none'"></button>`).join("")
     : "";
   document.getElementById("pmodalBody").innerHTML=`
-    <div class="pm-photo"><img src="${esc(photo)}" alt="${esc(p.name)}" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'"></div>
+    <div class="pm-photo"><img src="${esc(photo)}" alt="${esc(p.name)}" onerror="this.outerHTML='<div class=&quot;pm-noimg&quot;>사진 준비 중</div>'"></div>
     <div class="pm-body">
       <div class="pm-nm">${esc(p.name)}</div>
       ${FEATURE[p.name]?`<div class="pm-sub">${esc(FEATURE[p.name])}</div>`:""}
