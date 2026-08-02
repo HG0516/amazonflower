@@ -108,6 +108,10 @@ function buildSolapiAuthHeader(apiKey, apiSecret) {
 function buildOwnerMessage(order, payment) {
   const lines = [];
   lines.push("[새 주문] 꽃안부");
+  // 확인이 필요한 건은 맨 위에 세운다 — 놓치면 손님이 기다리다 사고가 난다.
+  // 안 되는 건이면 아래 '💸 결제취소(환불)' 버튼으로 바로 전액 환불하시면 됩니다.
+  const tags = Array.isArray(order.confirmTags) ? order.confirmTags.filter(Boolean).slice(0, 4) : [];
+  if (tags.length) lines.push(`⚠️ 확인 필요 — ${tags.map((t) => String(t).slice(0, 10)).join(" · ")}`);
   lines.push("");
   lines.push(`상품: ${order.productLabel || "-"}`);
   if (order.quantity && Number(order.quantity) > 1) lines.push(`수량: ${order.quantity}개`);
@@ -179,6 +183,12 @@ function buildCustomerMessage(order, payment) {
   L.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
   L.push(`주문번호: ${payment.orderId}`);
   L.push("");
+  // 확인이 필요한 건은 손님도 미리 알아야 기다리지 않는다.
+  const tags = Array.isArray(order.confirmTags) ? order.confirmTags.filter(Boolean) : [];
+  if (tags.length) {
+    L.push("※ 배송 시간·지역 확인이 필요한 주문이에요. 사장님이 확인 후 연락드리며, 어려우면 전액 환불해 드립니다.");
+    L.push("");
+  }
   L.push(isFuneral ? "정성껏 준비해 시간 맞춰 전해 드리겠습니다." : "배송 후 도착 사진을 이 번호로 보내드립니다.");
   L.push("문의 031-314-3003");
   return L.join("\n");
