@@ -314,9 +314,22 @@
   .reco-opt-price { font-size: 18px; font-weight: 700; padding: 2px 12px 12px; color: var(--ink); font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .reco-opt-badge { display: inline-block; font-size: var(--fs-caption); color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 1px 6px; margin: 9px 0 0 12px; letter-spacing: 0.3px; font-weight: 600; }
 
+  /* 꽃다발·꽃바구니는 가격 4단계를 한 줄에 섞지 않고 형태 → 구성 순서로 고른다. */
+  .basket-choice-label { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; color: var(--ink); font-size: var(--fs-caption); font-weight: 700; }
+  .basket-choice-label span { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-deep); font-size: var(--fs-label); }
+  .basket-kind-tabs, .basket-tier-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .basket-kind-btn { min-width: 0; min-height: 66px; padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--paper); color: var(--ink); font-family: var(--font-body); text-align: left; cursor: pointer; }
+  .basket-kind-btn b { display: block; font-family: var(--font-display); font-size: 16px; }
+  .basket-kind-btn small { display: block; margin-top: 3px; color: var(--ink-faint); font-size: var(--fs-label); line-height: 1.35; }
+  .basket-kind-btn.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .basket-kind-btn.on b { color: var(--accent-deep); }
+  .price-tabs.is-basket { display: block; }
+  .price-tabs.is-basket .price-tab { width: 100%; min-width: 0; min-height: 62px; }
+  .basket-selection-label { margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line-soft); color: var(--ink-faint); font-size: var(--fs-label); font-weight: 700; letter-spacing: .4px; }
+
   /* ── 가격 탭 ── */
   .price-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-  .price-tab { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-weight: 500; background: transparent; color: var(--ink); font-size: var(--fs-caption); line-height: 1.5; transition: all var(--dur-fast); }
+  .price-tab { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 4px; flex: 1; min-width: 70px; text-align: center; cursor: pointer; font-family: var(--font-body); font-weight: 500; background: transparent; color: var(--ink); font-size: var(--fs-caption); line-height: 1.5; transition: all var(--dur-fast); }
   .price-tab b { font-size: 15px; font-weight: 700; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .price-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .tier-dots { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; margin-bottom: 6px; line-height: 1; }
@@ -337,6 +350,15 @@
   .qty-btn:hover { background: var(--accent-soft); }
   .qty-num { min-width: 44px; text-align: center; font-size: 17px; font-weight: 700; }
   .qty-hint { font-size: var(--fs-caption); color: var(--ink-faint); }
+
+  @media (max-width: 420px) {
+    .design-detail { gap: 12px; }
+    .design-photo { flex-basis: 92px; }
+    .design-info { min-width: 0; }
+    .design-name { font-size: 18px; }
+    .design-desc { line-height: 1.55; }
+    .design-price { font-size: 21px; }
+  }
 
   /* ── 법인 안내 — 가로선 위 한 줄 ── */
   .corp-line { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line-soft); font-size: var(--fs-caption); color: var(--ink-soft); text-align: center; line-height: 1.7; cursor: pointer; }
@@ -572,7 +594,7 @@
   </section>
 
   <section class="card hidden" id="prodCard">
-    <div class="step-head"><span class="step-num" id="n-prod">1.</span><span class="step-title">상품 · 가격대 선택</span></div>
+    <div class="step-head"><span class="step-num" id="n-prod">1.</span><span class="step-title">상품 고르기</span></div>
     <div class="step-sub" id="prodSub">친구·지인은 보통 일반형·중급형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요.</div>
     <div class="chips" id="catChips" style="margin-bottom:14px;"></div>
     <div id="recoBox" style="margin-bottom:16px;"></div>
@@ -1099,12 +1121,13 @@ function applyOccasion(reco, text){
   Object.assign(order,{ type:"unknown", side:"",
     recipientName:"", venue:"", venueDetail:"", address:"", date:"", time:"",
     groomName:"", brideName:"", chiefMourner:"" });
+  order.category = reco.cat;
   document.getElementById("typePill").innerHTML =
     `<span class="type-pill">${escapeHtml(reco.label)}</span>
      <div class="reco" style="margin-top:12px;">
        <div class="rh">추천 상품</div>
        <div class="rp">${CATALOG[reco.cat].label}</div>
-       <div class="rw">‘${escapeHtml(text)}’에 어울리는 상품이에요. 아래에서 가격대를 고르거나 다른 상품으로 바꿀 수 있어요.</div>
+       <div class="rw">‘${escapeHtml(text)}’에 어울리는 상품이에요. 아래에서 형태와 구성을 고르거나 다른 상품으로 바꿀 수 있어요.</div>
      </div>`;
   document.getElementById("afFields").innerHTML =
     afField("recipientName","받는 분")
@@ -1117,12 +1140,14 @@ function applyOccasion(reco, text){
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
-  order.category = reco.cat;
+  const occasionTier=reco.tier!=null?reco.tier:defaultTierForCategory(order.category);
+  if(order.category==="basket") basketKind=basketKindFromTier(occasionTier);
   renderCatChips();
   renderPriceTabs();
-  renderRecoOptions(reco.tier);
-  selTier(reco.tier!=null?reco.tier:1, false);
+  renderRecoOptions(occasionTier);
+  selTier(occasionTier, false);
   enterOrderMode(escapeHtml(reco.label));
+  syncOrderBannerItem(getItems(order.category)[occasionTier]);
   scrollTo("prodCard");
 }
 
@@ -1158,13 +1183,15 @@ function applyParsed(r){
     date:r.date||"", time:r.time||"",
     groomName:r.groomName||"", brideName:r.brideName||"", chiefMourner:r.chiefMourner||"",
   });
+  // 상품 카테고리를 먼저 확정해야 꽃바구니에서 화환용 제목·리본이 남지 않는다.
+  order.category = window.__presetCat || "wreath";
   // 자동입력 날짜/시간 → 커스텀 달력·시간대에 반영
   order.date = afToIsoDate(order.date) || order.date;
   order.timeSlot=""; if(afToHm(order.time)){ order.time=afToHm(order.time); order.timeSlot="custom"; }
   dtCalYear=null;   // 파싱된 날짜의 달로 달력이 열리게
   const isWed=order.type==="wedding", isFun=order.type==="funeral";
   document.getElementById("typePill").innerHTML =
-    `<span class="type-pill ${isWed?'t-wed':isFun?'t-fun':''}">${isWed?'결혼식 · 축하화환':isFun?'장례식 · 근조화환':'구분 미확인'}</span>`;
+    `<span class="type-pill ${isWed?'t-wed':isFun?'t-fun':''}">${isWed?'결혼식':isFun?'장례식':'행사 정보 확인'}</span>`;
 
   const field=(key,label,val)=>`
     <div class="af-field"><label>${label}</label>
@@ -1189,33 +1216,36 @@ function applyParsed(r){
   if(_cs) _cs.innerHTML = gotAny
     ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.'
     : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;">전화 주문(031-314-3003)</a>도 편하게 이용하세요.';
-  enterOrderMode((isFun?'근조화환':isWed?'축하화환':'꽃')+' 주문');
+  const parsedOrderLabel = order.category==="wreath"
+    ? (isFun?'근조화환':isWed?'축하화환':'화환')
+    : CATALOG[order.category].label;
+  enterOrderMode(escapeHtml(parsedOrderLabel)+' 주문');
 
-  const hasSide=isWed;
+  const hasSide=isWed && order.category==="wreath";
   document.getElementById("sideCard").classList.toggle("hidden",!hasSide);
   renumber(hasSide);
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
   // 카테고리·가격대 렌더링 (카탈로그에서 넘어온 경우 그 상품 자동 선택)
-  order.category = window.__presetCat || "wreath";
-  renderCatChips();
-  renderPriceTabs();
-  let __baseTier=1;
+  let __baseTier=defaultTierForCategory(order.category);
   if(window.__presetPrice){
     const items=getItems(order.category);
     const idx=items.findIndex(t=>t.price===Number(window.__presetPrice));
     if(idx>=0) __baseTier=idx;
   }
+  if(order.category==="basket") basketKind=basketKindFromTier(__baseTier);
+  renderCatChips();
+  renderPriceTabs();
   renderRecoOptions(__baseTier);
   if(window.__presetPrice){
     const items=getItems(order.category);
     const idx=items.findIndex(t=>t.price===Number(window.__presetPrice));
     if(idx>=0) selTier(idx, true);  // autoOpen=true: 결제 카드까지 열기
-    else selTier(1, false);
+    else selTier(__baseTier, false);
   } else {
-    // 일반 진입: 두 번째 항목을 미리 선택해서 사진·설명 노출, 결제 카드는 안 열림
-    selTier(1, false);
+    // 일반 진입: 카테고리에 맞는 대표 항목을 미리 선택하되 결제 카드는 열지 않음
+    selTier(__baseTier, false);
   }
   scrollTo("prodCard");
 }
@@ -1223,7 +1253,7 @@ function applyParsed(r){
 // 진입 경로와 무관하게 '받는 곳'을 1단계로. 보이는 카드만 1..N 순번 + 진행 스텝바 갱신.
 var STEP_SEQ = null;
 function renumber(hasSide){
-  var seq=[{id:"n-prod",card:"prodCard",label:"상품·가격"},
+  var seq=[{id:"n-prod",card:"prodCard",label:"상품 선택"},
            {id:"n-confirm",card:"confirmCard",label:"받는 곳"}];
   if(hasSide) seq.push({id:"n-side",card:"sideCard",label:"보내는 쪽"});
   seq.push({id:"n-send",card:"senderCard",label:"보내는 분"});
@@ -1381,10 +1411,10 @@ const CATALOG = {
     ]},
   basket: { label:"꽃바구니 · 꽃다발", sub:"생일·기념일·승진 축하, 병문안 등 마음을 전하는 자리에 사장님이 직접 만들어 보냅니다.",
     items:[
-      {tab:"꽃다발 기본", nm:"꽃다발 기본", price:49000, pc:"basket_b1", cl:"AF-B01", photo:"꽃바구니/꽃다발_기본.jpg", desc:"계절 꽃으로 단정하게 묶은 꽃다발입니다."},
-      {tab:"꽃다발 고급", nm:"꽃다발 고급", price:69000, pc:"basket_b2", cl:"AF-B02", photo:"꽃바구니/꽃다발_고급.jpg", desc:"꽃 물량을 늘린 풍성한 꽃다발. 기념일·프러포즈에."},
-      {tab:"꽃바구니 기본", nm:"꽃바구니 기본", price:59000, pc:"basket_b3", cl:"AF-B03", photo:"꽃바구니/꽃바구니_기본.jpg", desc:"그대로 두고 보는 꽃바구니. 병문안·축하 인사에."},
-      {tab:"꽃바구니 고급", nm:"꽃바구니 고급", price:89000, pc:"basket_b4", cl:"AF-B04", photo:"꽃바구니/꽃바구니_고급.jpg", desc:"풍성한 고급 꽃바구니. 회사 명의 축하에 적합합니다."},
+      {tab:"꽃다발 기본", nm:"꽃다발 기본", price:49000, pc:"basket_b1", cl:"AF-B01", photo:"products/BQ-004_1.jpg", desc:"계절 꽃을 단정하게 묶은 기본 꽃다발입니다."},
+      {tab:"꽃다발 고급", nm:"꽃다발 고급", price:69000, pc:"basket_b2", cl:"AF-B02", photo:"products/BQ-009_1.jpg", desc:"꽃과 포장 볼륨을 높인 풍성한 꽃다발입니다."},
+      {tab:"꽃바구니 기본", nm:"꽃바구니 기본", price:59000, pc:"basket_b3", cl:"AF-B03", photo:"products/BS-003_2.jpg", desc:"받는 곳에 그대로 둘 수 있는 기본 꽃바구니입니다."},
+      {tab:"꽃바구니 고급", nm:"꽃바구니 고급", price:89000, pc:"basket_b4", cl:"AF-B04", photo:"products/BS-015_1.jpg", desc:"꽃 수와 폭을 넉넉하게 구성한 풍성한 꽃바구니입니다."},
     ]},
 };
 
@@ -1654,6 +1684,12 @@ function getItems(cat){
   return (CATALOG[cat].items||[]).slice();
 }
 
+// 꽃다발·꽃바구니 통합 카테고리는 꽃바구니 기본(인덱스 2)을 대표로 연다.
+function defaultTierForCategory(cat){ return cat==="basket" ? 2 : 1; }
+let basketKind="basket";
+function basketKindFromTier(i){ return Number(i)<2 ? "bouquet" : "basket"; }
+function basketTierIndexes(){ return basketKind==="bouquet" ? [0,1] : [2,3]; }
+
 function renderCatChips(){
   document.getElementById("catChips").innerHTML = Object.keys(CATALOG).map(k=>
     `<div class="chip ${k===order.category?'on':''}" onclick="selCat('${k}')">${CATALOG[k].label}</div>`).join("");
@@ -1663,25 +1699,72 @@ function renderCatChips(){
 function selCat(cat, keepIdx){
   order.category=cat;
   order.toppings=[];
+  const defaultTier=defaultTierForCategory(cat);
+  if(cat==="basket") basketKind=basketKindFromTier(defaultTier);
   renderCatChips();
   renderPriceTabs();
-  renderRecoOptions(1);
-  // 카테고리를 바꾸면 기본 선택(두 번째 항목)으로 미리보기 — 결제 카드는 열지 않음
-  if(!keepIdx) selTier(1, false);
+  renderRecoOptions(defaultTier);
+  // 카테고리 변경 시 리본·결혼측 선택·단계 수도 실제 상품 종류에 맞춘다.
+  buildRibbon();
+  const sideCard=document.getElementById("sideCard");
+  if(cat!=="wreath" || order.type==="funeral"){
+    if(sideCard) sideCard.classList.add("hidden");
+    renumber(false);
+  }else{
+    showCongratsOccasion();
+  }
+  // 꽃바구니는 기본형부터, 다른 카테고리는 기존 대표 항목부터 미리보기.
+  if(!keepIdx) selTier(defaultTier, false);
 }
 
 function renderPriceTabs(){
   const items=getItems(order.category);
-  document.getElementById("priceTabs").innerHTML = items.map((it,i)=>
-    `<div class="price-tab" onclick="selTier(${i})"><div class="tier-dots">${"● ".repeat(i+1).trim()}</div><b>${it.tab}</b><br>${it.price.toLocaleString()}원</div>`).join("");
+  const box=document.getElementById("priceTabs");
+  if(order.category==="basket"){
+    const idxs=basketTierIndexes();
+    box.className="price-tabs is-basket";
+    box.innerHTML=`<div class="basket-choice-label"><span>2</span>구성을 골라주세요</div>
+      <div class="basket-tier-tabs">${idxs.map((i,n)=>{
+        const it=items[i];
+        return `<button type="button" class="price-tab" data-tier="${i}" onclick="selTier(${i})">
+          <div class="tier-dots">${"● ".repeat(n+1).trim()}</div><b>${n===0?'기본':'고급'}</b><br>${it.price.toLocaleString()}원
+        </button>`;
+      }).join("")}</div>`;
+    return;
+  }
+  box.className="price-tabs";
+  box.innerHTML = items.map((it,i)=>
+    `<button type="button" class="price-tab" data-tier="${i}" onclick="selTier(${i})"><div class="tier-dots">${"● ".repeat(i+1).trim()}</div><b>${it.tab}</b><br>${it.price.toLocaleString()}원</button>`).join("");
 }
 
-// 추천 상품 2개 카드 — baseTier 기준 인접 2개 가격대를 보여준다
+function selBasketKind(kind){
+  if(kind!=="bouquet" && kind!=="basket") return;
+  basketKind=kind;
+  const tier=kind==="bouquet" ? 0 : 2;
+  renderRecoOptions(tier);
+  renderPriceTabs();
+  selTier(tier, false);
+}
+
+// 꽃다발·꽃바구니는 형태 선택을, 다른 카테고리는 인접 가격대 추천을 보여준다.
 function renderRecoOptions(baseTier){
   const box=document.getElementById("recoBox");
   if(!box) return;
   const items=getItems(order.category);
   if(items.length<2){ box.innerHTML=""; return; }
+  if(order.category==="basket"){
+    if(baseTier!=null) basketKind=basketKindFromTier(baseTier);
+    box.innerHTML=`<div class="basket-choice-label"><span>1</span>형태를 골라주세요</div>
+      <div class="basket-kind-tabs">
+        <button type="button" class="basket-kind-btn ${basketKind==='bouquet'?'on':''}" aria-pressed="${basketKind==='bouquet'}" onclick="selBasketKind('bouquet')">
+          <b>꽃다발</b><small>손에 들고 전해요</small>
+        </button>
+        <button type="button" class="basket-kind-btn ${basketKind==='basket'?'on':''}" aria-pressed="${basketKind==='basket'}" onclick="selBasketKind('basket')">
+          <b>꽃바구니</b><small>그대로 두고 봐요</small>
+        </button>
+      </div>`;
+    return;
+  }
   let a = (baseTier==null) ? 1 : baseTier;
   if(a>items.length-1) a=items.length-1;
   if(a<0) a=0;
@@ -1707,19 +1790,28 @@ function renderRecoOptions(baseTier){
 function selTier(i, autoOpen){
   const items=getItems(order.category);
   const t=items[i]; if(!t) return;
+  if(order.category==="basket"){
+    const nextKind=basketKindFromTier(i);
+    if(nextKind!==basketKind){
+      basketKind=nextKind;
+      renderRecoOptions(i);
+      renderPriceTabs();
+    }
+  }
   order.price=t.price;
   order.quantity=1;
   order.productCode=t.pc;
   order.productLabel=t.nm+" ("+t.cl+")";
   const tabs=document.querySelectorAll("#priceTabs .price-tab");
-  tabs.forEach((el,idx)=>el.classList.toggle("on",idx===i));
+  tabs.forEach(el=>el.classList.toggle("on",Number(el.dataset.tier)===i));
   // 추천 카드 강조 동기화
   document.querySelectorAll(".reco-opt").forEach(el=>el.classList.remove("on"));
   document.getElementById("recoOpt_"+i)?.classList.add("on");
+  syncOrderBannerItem(t);
   // 사진 있으면 표시, 없으면 placeholder.
   const photoPath = `/photos/${t.photo}`;
   const area=document.getElementById("designArea");
-  area.innerHTML=`<div class="design-detail">
+  area.innerHTML=`${order.category==="basket"?'<div class="basket-selection-label">선택한 구성 · 제작 예시</div>':''}<div class="design-detail">
       <div class="design-photo">
         <img id="designPhotoImg" data-base="${photoPath}" src="${photoPath}" alt="${t.nm}" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:var(--fs-caption);color:#9e9a8f;\\'>사진 준비 중</span>';">
       </div>
@@ -1742,6 +1834,13 @@ function selTier(i, autoOpen){
     initPay(orderTotal());
     scrollTo("payCard");
   }
+}
+
+// 상단 '선택한 상품'은 행사명이 아니라 현재 고른 상품·가격을 보여준다.
+function syncOrderBannerItem(t){
+  if(!t || !document.body.classList.contains("ordering")) return;
+  const el=document.querySelector("#catalogBanner .pick-name");
+  if(el) el.innerHTML=escapeHtml(t.nm)+" <b>"+t.price.toLocaleString()+"원</b>";
 }
 function confirmTier(){
   // '이 구성으로 주문하기' 버튼 — 결제 카드를 명시적으로 열고 스크롤
@@ -2398,11 +2497,13 @@ window.afReorder = function(o){
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
   enterOrderMode('지난 주문 다시 담기 — 확인 후 결제');
-  renderCatChips();
-  renderPriceTabs();
-  renderRecoOptions(1);
   const items=getItems(cat);
   let idx=items.findIndex(it=>it.pc===pc);
+  const reorderTier=idx>=0?idx:defaultTierForCategory(cat);
+  if(cat==="basket") basketKind=basketKindFromTier(reorderTier);
+  renderCatChips();
+  renderPriceTabs();
+  renderRecoOptions(reorderTier);
   if(idx<0){
     // 단종/구성변경된 상품은 무음 대체 금지 — 엉뚱한 금액 결제를 막고 직접 고르게 한다.
     order.productCode=""; order.price=0;
