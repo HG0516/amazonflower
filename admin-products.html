@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-admin-role="owner">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -107,15 +107,10 @@
     <div class="sub">손님이 보는 화면 그대로예요. 상품을 눌러 설명·사진·품절을 바꿉니다. (가격은 여기서 안 바뀝니다)</div>
   </header>
 
-  <div class="pwbar">
-    <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password" />
-    <div class="hint">갤러리·배송사진과 같은 비밀번호예요. 기기에 저장됩니다.</div>
-  </div>
-
   <div class="tools"><input type="text" id="search" placeholder="상품 이름 검색" /></div>
   <div style="display:flex;gap:8px;margin-top:10px;">
-    <button onclick="openNew()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;">＋ 새 상품 추가</button>
-    <button onclick="openToppings()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;">⚙️ 옵션 가격</button>
+    <button data-owner-only onclick="openNew()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;">＋ 새 상품 추가</button>
+    <button data-owner-only onclick="openToppings()" style="flex:1;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;">⚙️ 옵션 가격</button>
   </div>
   <div class="pills" id="pills"></div>
   <div id="list"></div>
@@ -212,6 +207,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
 <script src="/products.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -232,9 +229,6 @@ let PRODUCTS = (window.PRODUCTS || []).map(p => ({...p, photos:(p.photos||[]).sl
 let overrides = {};
 let curAxis = "";
 let cur = null, pvIdx = 0;
-
-$("pw").value = localStorage.getItem("af_admin_pw") || "";
-$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
 
 async function loadOverrides(){
   if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
@@ -430,20 +424,17 @@ async function confirmCrop(){
 
 // ── 저장 ──
 async function doSave(newPhotoBase64){
-  const pw=$("pw").value.trim();
-  if(!pw) return toast("비밀번호를 입력해주세요.","err");
   if(!cur) return;
   cur.name=$("fName").value.trim();
   cur.subtitle=$("fSubtitle").value.trim();
   cur.description=$("fDesc").value.trim();
-  const payload={ password:pw, pc:cur.pc, name:cur.name, subtitle:cur.subtitle, description:cur.description, status:cur.status, photos:cur.photos };
+  const payload={ pc:cur.pc, name:cur.name, subtitle:cur.subtitle, description:cur.description, status:cur.status, photos:cur.photos };
   if(newPhotoBase64) payload.newPhotoBase64=newPhotoBase64;
   $("saveBtn").disabled=true; $("saveBtn").textContent="저장 중…";
   try{
-    const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     const data=await r.json().catch(()=>({}));
     if(!r.ok) throw new Error(data.error||"저장 실패");
-    localStorage.setItem("af_admin_pw",pw);
     const item=data.item||{};
     if(Array.isArray(item.photos)) cur.photos=item.photos.slice();
     overrides[cur.pc]=item;
@@ -475,15 +466,14 @@ $("nFile").addEventListener("change", e=>{
   rd.readAsDataURL(f); e.target.value="";
 });
 async function createProduct(){
-  const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
   const name=$("nName").value.trim(); const price=parseInt(($("nPrice").value||"").replace(/[^0-9]/g,""),10);
   if(!name) return toast("상품 이름을 입력해주세요.","err");
   if(!(price>0)) return toast("가격을 입력해주세요.","err");
   $("nBtn").disabled=true; $("nBtn").textContent="만드는 중…";
   try{
-    const payload={password:pw, resource:"product", action:"create", cat:$("nCat").value, name, price, subtitle:$("nSub").value.trim()};
+    const payload={resource:"product", action:"create", cat:$("nCat").value, name, price, subtitle:$("nSub").value.trim()};
     if(nPhoto) payload.newPhotoBase64=nPhoto;
-    const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
     if(d.item){ PRODUCTS.push({...d.item, desc:d.item.description, photos:d.item.photos||[]}); overrides[d.item.pc]=d.item; }
     closeNew(); render(); toast("새 상품을 올렸어요 ✓ "+(d.pc||""));
@@ -518,9 +508,8 @@ async function openToppings(){
   $("tCats").innerHTML=TCATS.map(([k,l])=>`<label style="font-size:14px;"><input type="checkbox" class="tcat" value="${k}"> ${l}</label>`).join("");
   $("tNm").value=""; $("tPrice").value="";
   $("topSheet").classList.add("open"); document.body.style.overflow="hidden";
-  const pw=$("pw").value.trim(); if(!pw) toast("비밀번호를 입력해주세요.","err");
   DBTOP={};
-  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",action:"list"})});
+  try{ const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:"topping",action:"list"})});
     const d=await r.json().catch(()=>({})); if(r.ok&&Array.isArray(d.toppings)) for(const t of d.toppings) DBTOP[t.code]=t; }catch(e){}
   renderTopList();
 }
@@ -543,19 +532,17 @@ function renderTopList(){
   }).join("");
 }
 async function saveTop(code, nm){
-  const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
   const price=parseInt(($("tp_"+code).value||"").replace(/[^0-9]/g,""),10);
   if(!(price>=0)) return toast("가격을 확인해주세요.","err");
   // 이미 DB에 있으면 그 값(옛 키는 교정), 없으면 손님 화면에 실제로 붙어 있는 자리를 그대로 유지.
   // 여기가 틀리면 저장하는 순간 손님 화면에서 그 옵션이 사라진다.
   const cats = normCats(DBTOP[code]&&DBTOP[code].cats) || catsOf(code);
-  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,price,nm,cats})});
+  try{ const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:"topping",code,price,nm,cats})});
     const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
     DBTOP[code]=d.item||{code,price,nm,cats}; renderTopList(); toast("옵션 가격 저장 ✓");
   }catch(e){ toast("❌ "+(e.message||"실패"),"err"); }
 }
 async function saveNewTopping(){
-  const pw=$("pw").value.trim(); if(!pw) return toast("비밀번호를 입력해주세요.","err");
   const nm=$("tNm").value.trim(); const price=parseInt(($("tPrice").value||"").replace(/[^0-9]/g,""),10);
   const cats=[...document.querySelectorAll(".tcat:checked")].map(c=>c.value);
   if(!nm) return toast("옵션 이름을 입력해주세요.","err");
@@ -565,7 +552,7 @@ async function saveNewTopping(){
   // sort를 안 보내면 서버가 0으로 저장해서 새 옵션이 손님 화면 맨 앞에 끼어든다 → 기존 뒤로.
   const sort = Math.max(0, ...Object.values(DBTOP).map(t=>+t.sort||0)) + 1;
   $("tBtn").disabled=true; $("tBtn").textContent="추가 중…";
-  try{ const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,resource:"topping",code,nm,price,cats,sort})});
+  try{ const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:"topping",code,nm,price,cats,sort})});
     const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error||"실패");
     DBTOP[code]=d.item||{code,nm,price,cats}; $("tNm").value=""; $("tPrice").value=""; document.querySelectorAll(".tcat:checked").forEach(c=>c.checked=false); renderTopList(); toast("새 옵션 추가 ✓");
   }catch(e){ toast("❌ "+(e.message||"실패"),"err"); }

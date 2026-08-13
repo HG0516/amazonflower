@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const base = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
+  const base = process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr";
   if (!CLIENT_ID || !CLIENT_SECRET || !SUPABASE_URL || !SERVICE_KEY) {
     return page(res, 503, "네이버 로그인 미설정", "관리자에게 문의해주세요.");
   }

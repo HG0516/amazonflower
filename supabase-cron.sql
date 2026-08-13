@@ -12,7 +12,7 @@ select cron.schedule(
   '0 0 * * *',
   $$
   select net.http_post(
-    url     := 'https://amazonflower.vercel.app/api/check-anniversaries',
+    url     := 'https://floweranbu.co.kr/api/check-anniversaries',
     headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>')
   );
   $$
@@ -24,6 +24,6 @@ select cron.schedule(
 -- ── 사장님 브리핑 3회/일 (2026-07-17 등록됨 — 기록용) ──
 -- orders.canceled_at 컬럼도 같은 날 추가됨: alter table orders add column if not exists canceled_at timestamptz;
 -- KST 08:00 / 12:30 / 18:00 = UTC 23:00(전날) / 03:30 / 09:00
--- select cron.schedule('briefing-morning', '0 23 * * *', $$ select net.http_post(url := 'https://amazonflower.vercel.app/api/check-deadlines?briefing=morning', headers := jsonb_build_object('Authorization','Bearer <CRON_SECRET>')) $$);
--- select cron.schedule('briefing-noon',    '30 3 * * *', $$ select net.http_post(url := 'https://amazonflower.vercel.app/api/check-deadlines?briefing=noon',    headers := jsonb_build_object('Authorization','Bearer <CRON_SECRET>')) $$);
--- select cron.schedule('briefing-evening', '0 9 * * *',  $$ select net.http_post(url := 'https://amazonflower.vercel.app/api/check-deadlines?briefing=evening', headers := jsonb_build_object('Authorization','Bearer <CRON_SECRET>')) $$);
+-- select cron.schedule('briefing-morning', '0 23 * * *', $$ select net.http_post(url := 'https://floweranbu.co.kr/api/check-deadlines?briefing=morning', headers := jsonb_build_object('Authorization','Bearer <CRON_SECRET>')) $$);
+-- select cron.schedule('briefing-noon',    '30 3 * * *', $$ select net.http_post(url := 'https://floweranbu.co.kr/api/check-deadlines?briefing=noon',    headers := jsonb_build_object('Authorization','Bearer <CRON_SECRET>')) $$);
+-- select cron.schedule('briefing-evening', '0 9 * * *',  $$ select net.http_post(url := 'https://floweranbu.co.kr/api/check-deadlines?briefing=evening', headers := jsonb_build_object('Authorization','Bearer <CRON_SECRET>')) $$);

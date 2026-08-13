@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
 <title>배송 도착 사진 올리기 — 꽃안부</title>
 <link rel="stylesheet" href="/tokens.css" />
 <style>
@@ -55,12 +56,17 @@ let img = null, rotation = 0;
 const q = new URLSearchParams(location.search);
 const orderId = (q.get("order") || "").trim();
 const token = (q.get("t") || "").trim();
+const expiresAt = (q.get("e") || "").trim();
 
-if (!orderId || !token) {
+const isCurrentLink = /^\d{10}$/.test(expiresAt) && /^[A-Za-z0-9_-]{43}$/.test(token);
+const isLegacyLink = !expiresAt && /^[a-f0-9]{24}$/i.test(token);
+if (!orderId || (!isCurrentLink && !isLegacyLink)) {
   $("oidLabel").textContent = "잘못된 링크예요";
   $("mainCard").innerHTML = '<div class="msg err" style="display:block;">링크가 올바르지 않습니다. 꽃안부에서 받은 링크를 다시 눌러주세요.</div>';
 } else {
-  $("oidLabel").textContent = "주문번호 " + orderId;
+  $("oidLabel").textContent = "주문번호 끝 " + orderId.slice(-6);
+  // 토큰이 주소창·화면공유에 계속 남지 않게 메모리에 읽은 뒤 URL에서 지운다.
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
 }
 
 $("file").addEventListener("change", e => {
@@ -87,7 +93,7 @@ function showMsg(type, text){ const m = $("msg"); m.className = "msg " + type; m
 
 async function upload(){
   $("msg").style.display = "none";
-  if (!orderId || !token) return showMsg("err", "링크가 올바르지 않습니다.");
+  if (!orderId || (!isCurrentLink && !isLegacyLink)) return showMsg("err", "링크가 올바르지 않습니다.");
   if (!img) return showMsg("err", "사진을 선택해주세요.");
   let imageBase64 = $("canvas").toDataURL("image/jpeg", 0.85);
   if (imageBase64.length > 3500000) imageBase64 = $("canvas").toDataURL("image/jpeg", 0.6);
@@ -95,11 +101,14 @@ async function upload(){
   try {
     const r = await fetch("/api/order-photo", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId, token, imageBase64 }),
+      body: JSON.stringify({ orderId, token, ...(expiresAt?{expiresAt}:{}), imageBase64 }),
     });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(data.error || "업로드 실패");
-    $("mainCard").innerHTML = '<div class="msg ok" style="display:block;text-align:center;font-size:16px;">✅ 도착 사진을 보냈어요!<br>주문하신 분께 잘 전달됩니다. 감사합니다 🌸</div>';
+    const sent = data.notice && data.notice.status === "sent";
+    $("mainCard").innerHTML = '<div class="msg ok" style="display:block;text-align:center;font-size:16px;">✅ 도착 사진을 저장했어요!<br>'
+      + (sent ? '주문하신 분께 사진 링크도 전했습니다.' : '사진 전달 상태는 꽃안부에서 확인하겠습니다.')
+      + '<br>감사합니다 🌸</div>';
   } catch (e) {
     showMsg("err", "❌ " + (e.message || "업로드 실패"));
     $("submit").disabled = false; $("submit").textContent = "도착 사진 보내기";

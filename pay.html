@@ -121,10 +121,19 @@ function renderForm(oid, amt, token, label){
       venue: $("rvenue").value.trim() || null,
       senderNote: $("snote").value.trim() || null,
     };
-    try{ sessionStorage.setItem("afc_"+oid, JSON.stringify(order)); }catch(_){}
-
     this.disabled = true; this.textContent = "결제창 여는 중…";
     try{
+      // 맞춤결제도 결제창 전에 서버에 주문 원본을 남긴다. 브라우저 저장소가 사라져도
+      // 승인 후 주문을 복구할 수 있고, 서명·금액도 출금 전에 한 번 더 검증된다.
+      this.textContent = "주문을 안전하게 저장하는 중…";
+      const prepRes = await fetch("/api/confirm-payment", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ action:"prepare", orderId:oid, amount:Number(amt), order })
+      });
+      const prep = await prepRes.json().catch(()=>({}));
+      if(!prepRes.ok) throw new Error(prep.error || "주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+      try{ sessionStorage.setItem("afc_"+oid, JSON.stringify(order)); }catch(_){}
+      this.textContent = "결제창 여는 중…";
       await payment.requestPayment({
         method:"CARD",
         amount:{ currency:"KRW", value: Number(amt) },
@@ -179,15 +188,16 @@ async function handleRedirect(q){
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || "결제 승인에 실패했습니다.");
-    sessionStorage.removeItem("afc_"+orderId);
-    const info = { orderId, amount:Number(amount), label:order.productLabel||"맞춤 주문", receipt:(data.payment&&data.payment.receiptUrl)||null };
-    try{ sessionStorage.setItem("afc_done_"+orderId, JSON.stringify(info)); }catch(_){}
+    if(!data.manualRecovery) sessionStorage.removeItem("afc_"+orderId);
+    const info = { orderId, amount:Number(amount), label:order.productLabel||"맞춤 주문", receipt:(data.payment&&data.payment.receiptUrl)||null, needsReconciliation:!!data.needsReconciliation, manualRecovery:!!data.manualRecovery };
+    if(!data.manualRecovery){ try{ sessionStorage.setItem("afc_done_"+orderId, JSON.stringify(info)); }catch(_){} }
     renderDone(info);
   }catch(e){
     view.innerHTML = `<div class="card center"><div class="big">⚠️</div>
       <h2>결제 확인 오류</h2>
       <p class="note">${esc(e.message)}</p>
-      <p class="note">결제가 출금됐는데 이 화면이 보이면 꽃안부(031-314-3003)로<br>주문번호 <b>${esc(orderId||"")}</b>를 알려주세요.</p></div>`;
+      <p class="note">결제가 출금됐는데 이 화면이 보이면 꽃안부(031-314-3003)로<br>주문번호 <b>${esc(orderId||"")}</b>를 알려주세요.</p>
+      <button class="btn" onclick="location.reload()">결제 다시 확인</button></div>`;
   }
   return true;
 }
@@ -199,6 +209,9 @@ function renderDone(info){
     <div class="amt" style="font-size:26px;font-weight:800;margin-top:6px;">${won(info.amount)}</div>
     <p class="note" style="margin-top:6px;">${esc(info.label)}</p>
     <p class="note">주문번호 ${esc(info.orderId)}</p>
+    ${info.manualRecovery
+      ? `<p class="note" style="background:#fff0ef;border:1px solid #c84b45;border-radius:8px;padding:10px;color:#7d211d;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 031-314-3003으로 알려주세요.</p>`
+      : (info.needsReconciliation ? `<p class="note" style="background:#fff7e5;border:1px solid #d29b31;border-radius:8px;padding:10px;color:#6f4a08;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요.</p>` : "")}
     ${info.receipt ? `<a class="receipt" href="${esc(info.receipt)}" target="_blank" rel="noopener">영수증 보기</a>` : ""}
     <p class="note" style="margin-top:16px;">꽃안부에서 확인 후 준비해 드립니다. 감사합니다 🌸</p>
   </div>`;

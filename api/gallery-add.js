@@ -1,18 +1,19 @@
 // api/gallery-add.js
-// 부모님(사장님) 전용 갤러리 업로드 — 관리자 비번 확인 후 Supabase Storage에 사진 저장 +
+// 부모님(사장님) 전용 갤러리 업로드 — 관리자 로그인 확인 후 Supabase Storage에 사진 저장 +
 // gallery_items 테이블에 한 줄 추가. 결제(confirm-payment)와 완전히 분리돼 있다.
 //
 // 보안:
-//  - SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD 는 이 서버 함수 안에서만 사용(프론트 노출 금지).
-//  - 비번은 상수시간 비교, 입력(name/sub/color)은 서버에서 정화(저장형 XSS 2차 방어).
+//  - SUPABASE_SERVICE_ROLE_KEY는 서버 함수 안에서만 사용(프론트 노출 금지).
+//  - Supabase JWT + 서버 allowlist/역할을 확인하고 입력(name/sub/color)은 서버에서 정화한다.
 //  - JPEG 매직바이트 검증, 용량·하루 업로드 한도(남용/스토리지 고갈 방지), CORS 자기 도메인 고정.
 //  - 클라이언트(catalog)는 anon 키로 visible=true 만 읽고, 출력 시에도 HTML 이스케이프(1차 방어).
 
 import crypto from "node:crypto";
+import { authenticateAdmin, requireRole, requestId, setAdminHeaders, writeAdminAudit } from "../lib/admin-auth.mjs";
 
 export const config = { runtime: "nodejs" };
 
-const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app").replace(/\/+$/, "");
+const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
 const CATEGORIES = ["plant", "orchid", "basket", "congrats", "condolence"];
 const SUB_CANON = { plant: "관엽", congrats: "축하", condolence: "근조" }; // 세부분류 없는 카테고리는 대표값 고정
 const SUB_ALLOWED = { orchid: ["동양란", "서양란"], basket: ["꽃다발", "꽃바구니"] };
@@ -23,32 +24,32 @@ const DAILY_LIMIT = 100;            // 하루 업로드 상한(남용/스토리�
 function clean(s, n) {
   return String(s == null ? "" : s).replace(/[<>"'`&\\]/g, "").replace(/\s+/g, " ").trim().slice(0, n);
 }
-function safeEqual(a, b) {
-  const ba = Buffer.from(String(a || "")), bb = Buffer.from(String(b || ""));
-  if (ba.length !== bb.length) return false;
-  try { return crypto.timingSafeEqual(ba, bb); } catch { return false; }
-}
-
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  setAdminHeaders(res, ORIGIN);
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "POST 요청만 지원합니다." });
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const ADMIN_PW = process.env.ADMIN_PASSWORD;
-  if (!SUPABASE_URL || !SERVICE_KEY || !ADMIN_PW) {
-    return res.status(503).json({ error: "업로드 기능이 아직 설정되지 않았습니다. (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / ADMIN_PASSWORD 필요)" });
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return res.status(503).json({ error: "업로드 기능이 아직 설정되지 않았습니다." });
   }
 
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
-  const { password, category, name, sub, color, imageBase64 } = body;
+  const { category, name, sub, color, imageBase64 } = body;
 
-  if (!safeEqual(password, ADMIN_PW)) return res.status(401).json({ error: "비밀번호가 맞지 않습니다." });
+  const auth = await authenticateAdmin(req, body, { supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY });
+  if (!auth.ok) {
+    await writeAdminAudit({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth, resource: "gallery", action: "upload", outcome: "denied", requestId: requestId(req) });
+    return res.status(auth.status || 401).json({ error: auth.error || "관리자 로그인이 필요합니다." });
+  }
+  const roleCheck = requireRole(auth, ["owner"]);
+  if (!roleCheck.ok) {
+    await writeAdminAudit({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth, resource: "gallery", action: "upload", outcome: "denied", requestId: requestId(req) });
+    return res.status(roleCheck.status).json({ error: roleCheck.error });
+  }
   if (!CATEGORIES.includes(category)) return res.status(400).json({ error: "카테고리가 올바르지 않습니다." });
   const cleanName = clean(name, 40);
   if (!cleanName) return res.status(400).json({ error: "꽃 이름을 입력해주세요." });
@@ -102,5 +103,11 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "목록 저장에 실패했습니다. 다시 시도해주세요." });
   }
   const rows = await ins.json().catch(() => []);
+  const saved = Array.isArray(rows) ? rows[0] : rows;
+  await writeAdminAudit({
+    supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth, action: "upload", resource: "gallery",
+    targetId: saved && saved.id, outcome: "success", detail: `category=${category}`,
+    requestId: requestId(req),
+  });
   return res.status(200).json({ ok: true, item: Array.isArray(rows) ? rows[0] : rows });
 }

@@ -2295,19 +2295,38 @@ async function requestPay(){
   // 확정이 필요한 건이면 사장님 문자·텔레그램에 실려 가게 태그를 붙인다.
   // (서버가 신뢰하는 값이 아니라 '알림용 메모'다 — 금액·상품 검증은 서버가 따로 한다)
   try{ order.confirmTags=afConfirmNeeds().map(n=>n.tag); }catch(_){ order.confirmTags=[]; }
-  const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,8).toUpperCase();
-  try{ sessionStorage.setItem("af_"+orderId, JSON.stringify(order)); }catch(_){}
+  const _rnd=(window.crypto&&crypto.randomUUID)
+    ? crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase()
+    : (Date.now().toString(36)+Math.random().toString(36).slice(2,10)).toUpperCase();
+  const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+_rnd;
+  const payAmount=orderTotal();
+  const payBtn=document.getElementById("payBtn");
+  if(payBtn){ payBtn.disabled=true; payBtn.textContent="주문을 안전하게 저장하는 중…"; }
   try{
+    // 결제창을 열기 전에 서버가 금액·배송정보를 검증하고 주문 원본을 보관한다.
+    // 승인 직후 브라우저가 닫혀도 이 원본으로 결제와 주문을 다시 맞출 수 있다.
+    let prepH={"Content-Type":"application/json"};
+    try{ if(window.afAuth&&window.afAuth.client){ const _s=await window.afAuth.client.auth.getSession(); const _t=_s&&_s.data&&_s.data.session&&_s.data.session.access_token; if(_t) prepH.Authorization="Bearer "+_t; } }catch(_){}
+    const prepRes=await fetch("/api/confirm-payment",{method:"POST",headers:prepH,
+      body:JSON.stringify({action:"prepare",orderId,amount:payAmount,order})});
+    const prep=await prepRes.json().catch(()=>({}));
+    if(!prepRes.ok) throw new Error(prep.error||"주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+    try{ sessionStorage.setItem("af_"+orderId, JSON.stringify(order)); }catch(_){}
+    if(payBtn) payBtn.textContent="결제창 여는 중…";
     await payment.requestPayment({
       method:"CARD",
-      amount:{currency:"KRW",value:orderTotal()},
+      amount:{currency:"KRW",value:payAmount},
       orderId, orderName:order.productLabel||"꽃 주문",
       successUrl:location.origin+"/?payresult=success",
       failUrl:location.origin+"/?payresult=fail",
       customerName:order.senderName,
       customerMobilePhone:order.senderPhone.replace(/[^0-9]/g,""),
     });
-  }catch(e){ console.error(e); showErr(err,e.message||"결제 요청 중 오류가 발생했습니다."); }
+  }catch(e){
+    console.error(e);
+    if(payBtn){ payBtn.disabled=false; payBtn.textContent="결제수단 고르고 결제하기"; }
+    showErr(err,e.message||"결제 요청 중 오류가 발생했습니다.");
+  }
 }
 
 async function handleRedirect(){
@@ -2345,14 +2364,19 @@ async function handleRedirect(){
         body:JSON.stringify({paymentKey,orderId,amount:Number(amount),order:saved})});
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||"결제 승인에 실패했습니다.");
-      sessionStorage.removeItem("af_"+orderId);
-      try{ sessionStorage.setItem("af_done_"+orderId, JSON.stringify({data:data, saved:saved})); }catch(_){}
+      // SQL 적용 전 legacy 경로에서 주문 저장까지 실패한 건은 서버 자동복구 자료가 없다.
+      // 원본을 지우거나 완료 캐시로 막지 않아 고객이 재확인/문의할 때 복구할 수 있게 둔다.
+      if(!data.manualRecovery){
+        sessionStorage.removeItem("af_"+orderId);
+        try{ sessionStorage.setItem("af_done_"+orderId, JSON.stringify({data:data, saved:saved})); }catch(_){}
+      }
       renderDone(data,saved);
     }catch(e){
       document.querySelector(".wrap").innerHTML=`<section class="card"><div class="step-head"><span class="step-title">결제 확인 오류</span></div>
         <p class="err">${escapeHtml(e.message)}</p>
         <p class="hint">결제가 출금됐는데 이 화면이 보이면 꽃안부(031-314-3003)로 주문번호 <b>${escapeHtml(orderId||"")}</b>를 알려주세요.</p>
-        <button class="btn btn-ghost" onclick="location.href='/'" style="margin-top:14px;">처음으로</button></section>`;
+        <button class="btn" onclick="location.reload()" style="margin-top:14px;">결제 다시 확인</button>
+        <button class="btn btn-ghost" onclick="location.href='/'" style="margin-top:8px;">처음으로</button></section>`;
     }
   }
 }
@@ -2503,6 +2527,11 @@ function renderDone(data,o){
     event_date:o.date||"", event_time:o.time||""
   })); }catch(_e){}
   const p=data.payment||{};
+  const reconciliationNote = data.manualRecovery
+    ? `<div style="background:#fff0ef;border:1px solid #c84b45;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#7d211d;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 031-314-3003으로 알려주세요. 입력하신 주문 정보는 이 기기에 보관했습니다.</div>`
+    : (data.needsReconciliation
+      ? `<div style="background:#fff7e5;border:1px solid #d29b31;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#6f4a08;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요. 필요하면 031-314-3003으로 알려주세요.</div>`
+      : "");
   const place=[o.venue,o.venueDetail].filter(Boolean).join(" ");
   const isCorp = o.buyerType==="corp";
   const user = window.afAuth && window.afAuth.user;
@@ -2551,6 +2580,7 @@ function renderDone(data,o){
       <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
       <div class="step-title" style="margin:6px 0;">주문이 완료되었습니다</div>
       <p style="color:var(--ink-soft);margin-bottom:4px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
+      ${reconciliationNote}
       ${timelineHtml}
       ${etaLine}
       <div style="background:#f7f7f3;border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-admin-role="owner">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,10 +48,6 @@
   </div>
 
   <div class="card">
-    <label>관리자 비밀번호</label>
-    <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" />
-    <div class="hint">한 번 입력하면 이 기기에 저장돼요.</div>
-
     <label>어떤 종류예요?</label>
     <div class="row">
       <select id="category">
@@ -87,6 +83,9 @@
   </div>
 </div>
 
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
 <script>
 const SUBS = {
   orchid: ["", "동양란", "서양란"],
@@ -94,10 +93,6 @@ const SUBS = {
 };
 const $ = id => document.getElementById(id);
 let img = null, rotation = 0;
-
-// 비번 기억
-$("pw").value = localStorage.getItem("af_admin_pw") || "";
-$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
 
 // 세부 분류 옵션 갱신
 $("category").addEventListener("change", syncSub);
@@ -148,22 +143,19 @@ function rotate(){ rotation += 90; draw(); }
 
 async function upload(){
   const msg = $("msg"); msg.className = "msg"; msg.style.display = "none";
-  const pw = $("pw").value.trim();
   const name = $("name").value.trim();
-  if (!pw) return showMsg("err", "비밀번호를 입력해주세요.");
   if (!img) return showMsg("err", "사진을 선택해주세요.");
   if (!name) return showMsg("err", "꽃 이름을 입력해주세요.");
-  localStorage.setItem("af_admin_pw", pw);
 
   let imageBase64 = $("canvas").toDataURL("image/jpeg", 0.85);
   if (imageBase64.length > 3500000) imageBase64 = $("canvas").toDataURL("image/jpeg", 0.6); // 너무 크면 품질 낮춰 재인코딩(413 방지)
   $("submit").disabled = true; $("submit").textContent = "올리는 중…";
   try {
-    const r = await fetch("/api/gallery-add", {
+    const r = await afAdmin.fetch("/api/gallery-add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        password: pw, category: $("category").value, sub: $("sub").value,
+        category: $("category").value, sub: $("sub").value,
         name, imageBase64,
       }),
     });
@@ -185,8 +177,7 @@ function showMsg(type, text){ const m = $("msg"); m.className = "msg " + type; m
 
 // ── 올린 사진 관리 (삭제/숨김/순서) ──
 async function galApi(payload){
-  const pw = $("pw").value.trim(); if(!pw) return null;
-  const r = await fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:pw, resource:"gallery", ...payload}) });
+  const r = await afAdmin.fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({resource:"gallery", ...payload}) });
   const d = await r.json().catch(()=>({})); return r.ok ? d : null;
 }
 let GAL = [];
@@ -207,8 +198,7 @@ function renderGallery(){
 async function galVis(id,vis){ await galApi({action:"save",id,visible:vis}); const g=GAL.find(x=>x.id===id); if(g) g.visible=vis; renderGallery(); }
 async function galDel(id){ if(!confirm("이 사진을 삭제할까요?")) return; await galApi({action:"delete",id}); GAL=GAL.filter(x=>x.id!==id); renderGallery(); }
 async function galMove(i,dir){ const j=i+dir; if(j<0||j>=GAL.length) return; const a=GAL[i],b=GAL[j]; const as=a.sort||0,bs=b.sort||0; [GAL[i],GAL[j]]=[GAL[j],GAL[i]]; a.sort=bs; b.sort=as; renderGallery(); await galApi({action:"save",id:a.id,sort:a.sort}); await galApi({action:"save",id:b.id,sort:b.sort}); }
-$("pw").addEventListener("change", loadGallery);
-if($("pw").value) loadGallery();
+afAdmin.ready.then(a=>{ if(a) loadGallery(); });
 </script>
 </body>
 </html>

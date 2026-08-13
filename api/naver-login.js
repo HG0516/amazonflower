@@ -1,7 +1,7 @@
 // api/naver-login.js
 // 네이버 로그인 시작 — 네이버 인증 페이지로 보낸다. (Supabase는 네이버 미지원이라 백엔드로 직접 처리)
 // 필요한 env: NAVER_CLIENT_ID. 콜백은 /api/naver-callback.
-// 네이버 개발자센터에 Callback URL 로 https://amazonflower.vercel.app/api/naver-callback 등록 필요.
+// 네이버 개발자센터 Callback URL: https://floweranbu.co.kr/api/naver-callback
 
 import crypto from "node:crypto";
 
@@ -9,7 +9,7 @@ export const config = { runtime: "nodejs" };
 
 export default async function handler(req, res) {
   const CLIENT_ID = process.env.NAVER_CLIENT_ID;
-  const base = process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app";
+  const base = process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr";
   // 프런트가 '네이버 버튼을 보여줄지' 판단하려고 부르는 상태 확인(리다이렉트 없이 JSON만).
   let checkOnly = false;
   try { checkOnly = !!new URL(req.url, "http://localhost").searchParams.get("check"); } catch (e) {}

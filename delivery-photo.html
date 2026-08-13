@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
+<title>배송 도착 사진 — 꽃안부</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg,#f6f3ed);color:var(--ink,#1f1d18);line-height:1.6;min-height:100vh;padding:0 0 48px;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 18px;}
+  header{text-align:center;padding:30px 0 10px;}
+  .brand{font-size:15px;font-weight:800;color:var(--accent-deep,#1f4733);letter-spacing:-.02em;}
+  h1{font-size:23px;margin-top:5px;letter-spacing:-.035em;}
+  .sub{font-size:14px;color:var(--ink-soft,#5a564d);margin-top:7px;}
+  .card{background:var(--paper,#fff);border:1px solid var(--line,#dedbd2);border-radius:14px;padding:16px;margin-top:18px;box-shadow:0 5px 22px rgba(31,29,24,.05);}
+  #loading{text-align:center;color:var(--ink-soft,#5a564d);padding:46px 14px;font-size:16px;}
+  #photo{width:100%;height:auto;max-height:72vh;object-fit:contain;border-radius:9px;display:none;background:#f2f0ea;}
+  #error{display:none;text-align:center;padding:38px 12px;color:#8b3d32;font-size:15px;}
+  #save{display:none;width:100%;margin-top:12px;padding:13px 16px;border:1px solid var(--accent,#28563d);border-radius:9px;background:#fff;color:var(--accent-deep,#1f4733);font:700 15px inherit;text-align:center;text-decoration:none;}
+  .privacy{font-size:12.5px;color:var(--ink-faint,#817c72);text-align:center;margin-top:14px;line-height:1.55;}
+  .call{display:inline-block;color:var(--accent-deep,#1f4733);font-weight:700;text-decoration:none;margin-top:5px;}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="brand">꽃안부</div>
+    <h1>잘 전해드렸습니다</h1>
+    <div class="sub">배송지에 도착한 꽃의 실제 사진입니다.</div>
+  </header>
+
+  <section class="card" aria-live="polite">
+    <div id="loading">도착 사진을 안전하게 불러오는 중…</div>
+    <img id="photo" alt="배송지에 도착한 꽃 사진" />
+    <div id="error">
+      사진 링크가 만료되었거나 사용할 수 없습니다.<br>
+      <a class="call" href="tel:0313143003">꽃안부 031-314-3003</a>
+    </div>
+    <a id="save" download="꽃안부-도착사진.jpg">사진 저장하기</a>
+  </section>
+  <p class="privacy">이 링크는 주문하신 분께만 전해지는 보안 링크이며 30일 후 만료됩니다.<br>다른 사람에게 링크를 전달하지 말아 주세요.</p>
+</main>
+
+<script>
+(function(){
+  var loading=document.getElementById("loading");
+  var photo=document.getElementById("photo");
+  var error=document.getElementById("error");
+  var save=document.getElementById("save");
+  var params=new URLSearchParams(location.hash.slice(1));
+  var token=(params.get("t")||"").trim();
+  if(token){
+    try{history.replaceState(null,"",location.pathname);}catch(_e){}
+  }
+
+  function fail(){
+    loading.style.display="none";
+    photo.style.display="none";
+    save.style.display="none";
+    error.style.display="block";
+  }
+  if(!/^[A-Za-z0-9_-]{43}$/.test(token)){fail();return;}
+
+  fetch("/api/order-photo-view",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({token:token}),
+    cache:"no-store",
+    credentials:"same-origin"
+  }).then(function(r){
+    if(!r.ok||!(r.headers.get("content-type")||"").toLowerCase().startsWith("image/jpeg")) throw new Error("not available");
+    return r.blob();
+  }).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    photo.onload=function(){loading.style.display="none";photo.style.display="block";save.style.display="block";};
+    photo.onerror=fail;
+    photo.src=url;
+    save.href=url;
+    window.addEventListener("pagehide",function(){URL.revokeObjectURL(url);},{once:true});
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>

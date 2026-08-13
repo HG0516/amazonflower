@@ -124,7 +124,8 @@ export default async function handler(req, res) {
       + `try{var r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},`
       + `body:JSON.stringify({resource:"order",action:"cancel",orderId:${JSON.stringify(id)},token:${JSON.stringify(t)}})});`
       + `var d=await r.json();`
-      + `if(d.ok){this.style.background="#1f4733";this.textContent="✅ 취소 완료";`
+      + `if(d.ok&&d.pending){this.style.background="#8a5312";this.textContent="⏳ 환불 확인 중";out.textContent=d.message||"결과를 확인 중입니다. 발주·배송은 잠겨 있어요.";}`
+      + `else if(d.ok){this.style.background="#1f4733";this.textContent="✅ 취소 완료";`
       + `out.textContent=d.alreadyCanceled?"이미 취소된 결제였어요.":((d.amount?d.amount.toLocaleString()+"원 ":"")+"환불 처리됐어요. 손님 앱에 취소 알림이 갑니다."+(d.dbSynced===false?" (주문목록 갱신은 실패 — 관리 화면에서 확인해주세요)":""));}`
       + `else{this.disabled=false;this.textContent="결제취소 실행";out.style.color="#b3261e";out.textContent=d.error||"실패했어요. 다시 시도해주세요.";}`
       + `}catch(e){this.disabled=false;this.textContent="결제취소 실행";out.style.color="#b3261e";out.textContent="네트워크 오류 — 다시 시도해주세요.";}`
@@ -143,7 +144,7 @@ export default async function handler(req, res) {
   try {
     // 아직 발주 전(new)인 주문만 갱신한다 — 취소된 주문을 되살리지 않고,
     // 이미 처리된 주문을 다시 눌러도 단톡방에 회신이 두 번 가지 않는다(사장님 두 분이 같은 방에서 누른다).
-    const guard = `order_id=eq.${encodeURIComponent(id)}&status=eq.new`;
+    const guard = `order_id=eq.${encodeURIComponent(id)}&status=eq.new&cancel_requested_at=is.null`;
     const hdrs = {
       apikey: SERVICE_KEY,
       Authorization: `Bearer ${SERVICE_KEY}`,
@@ -169,12 +170,15 @@ export default async function handler(req, res) {
       let cur = null;
       try {
         const q = await fetch(
-          `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(id)}&select=status,ordered_at&limit=1`,
+          `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(id)}&select=status,ordered_at,cancel_requested_at&limit=1`,
           { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
         );
         if (q.ok) cur = ((await q.json().catch(() => [])) || [])[0] || null;
       } catch {}
       const st = cur && cur.status;
+      if (cur && cur.cancel_requested_at) {
+        return page(res, false, "환불 처리 중인 주문이에요.", "발주하지 마세요. 환불 결과는 주문 관리 화면에서 확인해주세요.");
+      }
       if (st === "ordered") {
         const at = cur.ordered_at ? new Date(new Date(cur.ordered_at).getTime() + 9 * 3600000) : null;
         const atStr = at ? `${String(at.getUTCHours()).padStart(2, "0")}:${String(at.getUTCMinutes()).padStart(2, "0")}에 ` : "";

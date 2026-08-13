@@ -4,11 +4,25 @@
 //  body.resource === 'order'  → 주문 관리: action 'list'(기본) | 'status'(new→ordered→delivered)
 //  그 외(기본)                → 상품 편집: product_overrides upsert (이름·설명·사진·품절)
 //
-// 보안(gallery-add.js 원칙): SERVICE_ROLE_KEY·ADMIN_PASSWORD 서버 전용, 비번 상수시간 비교,
-//   입력 정화, JPEG 매직바이트, CORS 자기 도메인. orders 는 개인정보라 service_role 로만 조회.
+// 보안: Supabase access token 검증 + 서버 allowlist/역할(owner·staff). 전환기 dual 모드에서만
+//   기존 ADMIN_PASSWORD를 허용한다. 입력 정화, JPEG 매직바이트, 자기 도메인 CORS,
+//   no-store를 적용하며 orders는 service_role로만 조회한다.
 
 import crypto from "node:crypto";
 import { PRODUCTS, TOPPINGS } from "../products.mjs";
+import { authenticateAdmin, requireRole, requestId, setAdminHeaders, writeAdminAudit } from "../lib/admin-auth.mjs";
+import {
+  cancelManualReviewReason,
+  fetchJsonWithTimeout,
+  getPaymentIntent,
+  isRetryableTossHttpStatus,
+  orderHash,
+  patchPaymentIntent,
+  serviceHeaders,
+  verifyCanceledPayment,
+} from "../lib/payment-integrity.mjs";
+import { beginOrderCancellation } from "../lib/order-coordination.mjs";
+import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -18,21 +32,26 @@ export const config = { runtime: "nodejs" };
 // 실패해도 작업 자체는 성공으로 둔다(알림 때문에 저장이 막히면 안 된다). env 없으면 생략.
 async function notifyChange(text) {
   const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
-  if (!tg || !tgc) return;
+  if (!tg || !tgc) return false;
   const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 3500);
   try {
-    await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+    const response = await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: tgc, text: tag + text, disable_web_page_preview: true }),
+      signal: ac.signal,
     });
-  } catch { /* 알림 실패는 무시 */ }
+    return response.ok;
+  } catch { return false; /* 알림 실패는 작업 결과를 바꾸지 않음 */ }
+  finally { clearTimeout(timer); }
 }
 const won = (n) => `${Number(n || 0).toLocaleString()}원`;
 const CAT_LABEL = { congrats: "축하화환", condolence: "근조화환", orchid: "난", plant: "관엽", bouquet: "꽃다발", basket: "꽃바구니" };
 const catNames = (cats) => (Array.isArray(cats) && cats.length ? cats.map((c) => CAT_LABEL[c] || c).join("·") : "어디에도 안 보임");
 
-const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://amazonflower.vercel.app").replace(/\/+$/, "");
+const ORIGIN = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
 const VALID_PC = new Set(PRODUCTS.map((p) => p.pc));
 const STATUS_ALLOWED = new Set(["판매중", "품절"]);
 const ORDER_STATUS = new Set(["new", "ordered", "delivered"]);
@@ -61,7 +80,8 @@ const ORDER_COLS = [
   "event_date","event_time","event_at","delivery_date","delivery_time_slot",
   "sender_name","sender_phone","orderer_name","orderer_phone","orderer_email",
   "ribbon","ribbon_text","ribbon_sender","note","request_note",
-  "completed_photo","delivered_photo_url","completed_at","ordered_at","alerted_at","canceled_at",
+  "completed_photo","delivered_photo_url","completed_at","ordered_at","alerted_at","canceled_at","cancel_requested_at",
+  "photo_notice_status","photo_notified_at","photo_notify_error","photo_access_expires_at",
   "corp_name","corp_regno","corp_email",
   "utm_source","utm_medium","referral_source"
 ].join(",");
@@ -73,6 +93,64 @@ function safeEqual(a, b) {
   const ba = Buffer.from(String(a || "")), bb = Buffer.from(String(b || ""));
   if (ba.length !== bb.length) return false;
   try { return crypto.timingSafeEqual(ba, bb); } catch { return false; }
+}
+
+// 토스 환불 전에 원장 outbox와 주문 hold를 하나의 DB 잠금 안에서 만든다.
+// 배송사진 문자 claim도 같은 주문 잠금을 쓰므로, 둘 중 하나만 먼저 시작할 수 있다.
+async function beginCancellationOutbox({ supabaseUrl, serviceKey, order, payment, canceled = false, allowDelivered = false }) {
+  const oid = String(payment && payment.orderId || "");
+  const amount = Number(payment && payment.totalAmount);
+  const paymentKey = String(payment && payment.paymentKey || "");
+  if (!/^[A-Za-z0-9_-]{6,64}$/.test(oid) || !Number.isInteger(amount) || amount <= 0 || !paymentKey) {
+    return { ok: false, reason: "payment_integrity_error" };
+  }
+  const found = await getPaymentIntent(supabaseUrl, serviceKey, oid);
+  if (!found.available || found.error) {
+    return { ok: false, reason: found.reason || found.error || "intent_read_failed" };
+  }
+
+  let intentRow = found.row || null;
+  let orderData;
+  let hash;
+  if (intentRow) {
+    const row = intentRow;
+    if (Number(row.expected_amount) !== amount || (row.payment_key && row.payment_key !== paymentKey)) {
+      return { ok: false, reason: "intent_payment_mismatch" };
+    }
+    if (!new Set(["confirming", "paid", "finalized", "canceling", "canceled"]).has(row.state)) {
+      return { ok: false, reason: "intent_state_not_cancelable" };
+    }
+    if (!row.order_data || row.order_hash !== orderHash(row.order_data)) {
+      return { ok: false, reason: "intent_integrity_error" };
+    }
+    orderData = row.order_data;
+    hash = row.order_hash;
+  } else {
+    // 1차 배포 전 결제된 기존 주문은 intent가 없다. 주소·전화는 복제하지 않고
+    // 복구에 필요한 상품 식별자만 원자 RPC가 새 원장에 기록한다.
+    orderData = {
+      productLabel: String(order && order.product_label || "기존 주문").slice(0, 120),
+      ...(order && order.product_code ? { productCode: String(order.product_code).slice(0, 64) } : {}),
+    };
+    hash = orderHash(orderData);
+  }
+
+  const coordinated = await beginOrderCancellation({
+    supabaseUrl,
+    serviceKey,
+    orderId: oid,
+    paymentKey,
+    expectedAmount: amount,
+    orderData,
+    orderHash: hash,
+    tossStatus: canceled ? "CANCELED" : String(payment.status || ""),
+    paymentMethod: payment.method || null,
+    approvedAt: payment.approvedAt || null,
+    receiptUrl: payment.receipt && payment.receipt.url || null,
+    alreadyCanceled: canceled,
+    allowDelivered,
+  });
+  return { ...coordinated, intentRow };
 }
 function allowedPhoto(url, supabaseUrl) {
   const u = String(url || "");
@@ -99,16 +177,13 @@ async function uploadPhotoToGallery(base64, subdir, SUPABASE_URL, SERVICE_KEY) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  setAdminHeaders(res, ORIGIN);
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "POST 요청만 지원합니다." });
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const ADMIN_PW = process.env.ADMIN_PASSWORD;
-  if (!SUPABASE_URL || !SERVICE_KEY || !ADMIN_PW) {
+  if (!SUPABASE_URL || !SERVICE_KEY) {
     return res.status(503).json({ error: "관리자 기능이 아직 설정되지 않았습니다." });
   }
 
@@ -116,13 +191,44 @@ export default async function handler(req, res) {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
 
-  // 결제취소만 예외적으로 HMAC 토큰 인증 허용(텔레그램 취소 버튼 → order-confirm 확인페이지 경유).
-  // 그 외 모든 요청은 비밀번호 필수.
-  const passOk = safeEqual(body.password, ADMIN_PW);
+  // 결제취소만 텔레그램 HMAC 링크를 유지한다. 그 외는 Supabase 관리자
+  // 세션(전환기 dual 모드에서는 구형 비밀번호)을 서버 allowlist로 확인한다.
   const isCancel = body.resource === "order" && body.action === "cancel";
-  if (!passOk && !isCancel) return res.status(401).json({ error: "비밀번호가 맞지 않습니다." });
+  const auth = await authenticateAdmin(req, body, { supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY });
+  const passOk = auth.ok; // 아래 환불 링크 분기의 기존 의미를 유지
+  if (!auth.ok && !isCancel) {
+    // 고객 로그인 화면도 이 check를 호출하므로 일반 회원을 보안 사건처럼 쌓지 않는다.
+    if (!(body.resource === "session" && body.action === "check")) {
+      await writeAdminAudit({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth, resource: body.resource || "unknown", action: body.action || "request", outcome: "denied", requestId: requestId(req) });
+    }
+    return res.status(auth.status || 401).json({ error: auth.error || "관리자 로그인이 필요합니다." });
+  }
+
+  if (body.resource === "session" && body.action === "check") {
+    if (!auth.ok) return res.status(auth.status || 401).json({ error: auth.error || "관리자 로그인이 필요합니다." });
+    return res.status(200).json({ ok: true, role: auth.role, authMethod: auth.authMethod });
+  }
+
+  // staff는 주문 조회·상태·배송사진 업무만 맡는다. 상품 가격/품절/사진, 갤러리,
+  // 리뷰, 법인/환불은 모두 owner 전용이다. resource가 빠진 구형 상품편집 요청도 owner다.
+  const staffOrderActions = new Set(["list", "status", "photo", "link"]);
+  const ownerOnly = !(
+    body.resource === "order"
+    && staffOrderActions.has(body.action || "list")
+  );
+  const roleCheck = requireRole(auth, ownerOnly ? ["owner"] : ["owner", "staff"]);
+  if (!roleCheck.ok && !(isCancel && !auth.ok)) {
+    await writeAdminAudit({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth, resource: body.resource || "unknown", action: body.action || "request", outcome: "denied", requestId: requestId(req) });
+    return res.status(roleCheck.status).json({ error: roleCheck.error });
+  }
 
   const sb = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+  const auditId = requestId(req);
+  let auditActor = auth;
+  const audit = (action, resource, targetId, detail) => writeAdminAudit({
+    supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth: auditActor, action, resource, targetId, detail,
+    outcome: "success", requestId: auditId,
+  });
 
   // ─────────────────────── 신규상품 (#1) ───────────────────────
   if (body.resource === "product") {
@@ -139,6 +245,7 @@ export default async function handler(req, res) {
       if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
       const gone = ((await r.json().catch(() => [])) || [])[0];
       await notifyChange(`🗑 상품 내림 — ${gone?.name || body.pc} (${body.pc})\n손님 화면에서 사라집니다`);
+      await audit("delete", "product", body.pc, "soft_delete");
       return res.status(200).json({ ok: true });
     }
     if (!CAT_PRODUCT.has(body.cat)) return res.status(400).json({ error: "카테고리가 올바르지 않습니다." });
@@ -164,6 +271,7 @@ export default async function handler(req, res) {
         method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
       if (!r.ok) return res.status(502).json({ error: "수정에 실패했습니다." });
       await notifyChange(`📦 상품 수정 — ${nm} (${body.pc})\n${won(price)} · ${CAT_LABEL[body.cat] || body.cat} · ${row.status}`);
+      await audit("update", "product", body.pc, `status=${row.status}`);
       return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
     }
     for (let i = 0; i < 5; i++) {                              // 채번 경쟁 → PK 409 재시도
@@ -172,6 +280,7 @@ export default async function handler(req, res) {
         method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
       if (r.ok) {
         await notifyChange(`🆕 새 상품 — ${nm} (${row.pc})\n${won(price)} · ${CAT_LABEL[body.cat] || body.cat} · ${row.status}\n손님 화면에 바로 올라갑니다`);
+        await audit("create", "product", row.pc, `status=${row.status}`);
         return res.status(200).json({ ok: true, pc: row.pc, item: (await r.json().catch(() => []))[0] });
       }
       if (r.status !== 409) { console.error("product create", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상품 생성에 실패했습니다." }); }
@@ -212,14 +321,16 @@ export default async function handler(req, res) {
       + `\n${catNames(cats)}에 표시`
       + (row.active === false ? "\n⛔ 숨김 상태" : "")
     );
+    await audit("save", "topping", code, `active=${row.active !== false}`);
     return res.status(200).json({ ok: true, item: (await r.json().catch(() => []))[0] });
   }
 
   // ─────────────────────── 맞춤 결제 링크 (지인·전화 주문) ───────────────────────
   // 관리자가 금액을 정해 링크를 발급 → 손님에게 카톡/문자로 보냄 → 손님이 그 금액만 결제.
   // 정가 카탈로그를 안 건드리고(가격은 코드로만 관리 유지), LIVE_PRICING·DB 없이 동작한다.
-  // 보안: 금액을 HMAC 으로 봉인해 orderId 에 결박. confirm-payment.js 가 같은 식으로 검증한다.
-  //  ⚠️ 서명 문자열 `pay:${orderId}:${amount}` 는 confirm-payment.js 와 반드시 동일해야 한다.
+  // 보안: 주문번호·금액·상품명을 함께 HMAC으로 봉인한다. 금액만 봉인하면
+  // 링크 수신자가 label 파라미터만 바꿔 발주명을 변조할 수 있다.
+  //  ⚠️ 서명 문자열 `pay:v2:${orderId}:${amount}:${label}`은 confirm-payment.js와 동일해야 한다.
   if (body.resource === "paylink") {
     const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
     if (!SECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요(CRON_SECRET)." });
@@ -227,15 +338,16 @@ export default async function handler(req, res) {
     if (!(Number.isInteger(amount) && amount >= 1000 && amount <= 3000000)) {
       return res.status(400).json({ error: "금액은 1,000원 ~ 3,000,000원 사이로 넣어주세요." });
     }
-    const label = clean(body.label, 40) || "맞춤 주문";
+    const label = (clean(body.label, 40) || "맞춤 주문").normalize("NFC").trim();
     // orderId: 정가 주문(AF…)과 구분되게 AFC(=커스텀). 토스는 orderId 유일성만 요구.
     // Date/랜덤 불가 제약이 없는 서버리스 런타임이라 여기선 Date/랜덤 사용 가능(워크플로 스크립트 아님).
     const rnd = crypto.randomBytes(4).toString("hex").toUpperCase();
     const ymd = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
     const orderId = `AFC${ymd}-${rnd}`;
-    const token = crypto.createHmac("sha256", SECRET).update(`pay:${orderId}:${amount}`).digest("hex").slice(0, 32);
+    const token = crypto.createHmac("sha256", SECRET).update(`pay:v2:${orderId}:${amount}:${label}`).digest("hex").slice(0, 32);
     const url = `${ORIGIN}/pay.html?oid=${orderId}&amt=${amount}&t=${token}&label=${encodeURIComponent(label)}`;
     await notifyChange(`🔗 맞춤 결제 링크 발급 — ${label}\n${won(amount)}\n손님이 결제하면 새 주문으로 알려드려요`);
+    await audit("create", "paylink", orderId, `amount=${amount}`);
     return res.status(200).json({ ok: true, url, orderId, amount, label });
   }
 
@@ -253,60 +365,234 @@ export default async function handler(req, res) {
       const kstYm = (off) => { const d = new Date(Date.now() + 9 * 3600000); d.setUTCMonth(d.getUTCMonth() + off); return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
       const mkTok = (ym) => crypto.createHmac("sha256", RSECRET).update(`cancel:${oid}:${ym}`).digest("hex").slice(0, 24);
       const tokOk = RSECRET && (safeEqual(String(body.token || ""), mkTok(kstYm(0))) || safeEqual(String(body.token || ""), mkTok(kstYm(-1))));
-      if (!passOk && !tokOk) return res.status(401).json({ error: "인증에 실패했습니다." });
+      if (!passOk && !tokOk) {
+        await writeAdminAudit({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth, resource: "order", action: "cancel", targetId: oid, outcome: "denied", requestId: auditId });
+        return res.status(401).json({ error: "인증에 실패했습니다." });
+      }
+      if (!passOk && tokOk) auditActor = { role: "refund_link", userId: null, authMethod: "refund_link" };
 
-      // DB 상태 확인 — 토큰 경로는 접수/준비중 주문만 취소 가능
-      let dbRow = null;
+      // DB 상태 확인. 서명 링크에서 조회 장애/빈 결과를 허용하면 배송완료
+      // 차단을 우회할 수 있으므로, 관리자 경로까지 항상 한 행을 확정해야 한다.
+      let dbRow = null, dbReadFailed = false;
       try {
-        const lr = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=status,product_label,paid_amount,amount&limit=1`, { headers: sb });
-        if (lr.ok) dbRow = ((await lr.json().catch(() => [])) || [])[0] || null;
-      } catch {}
-      if (!passOk && dbRow && dbRow.status === "delivered") {
-        return res.status(403).json({ error: "배송완료된 주문은 이 링크로 환불할 수 없어요. 주문 관리 화면(비밀번호)에서 처리해주세요." });
+        const lr = await fetchJsonWithTimeout(
+          `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}`
+            + `&select=status,product_label,product_code,paid_amount,amount,cancel_requested_at&limit=1`,
+          { headers: sb }, 2500,
+        );
+        dbReadFailed = !lr.response.ok;
+        if (lr.response.ok) dbRow = (Array.isArray(lr.data) ? lr.data : [])[0] || null;
+      } catch { dbReadFailed = true; }
+      if (dbReadFailed) return res.status(503).json({ error: "주문 상태를 확인하지 못해 환불을 중단했습니다. 잠시 후 다시 시도해주세요." });
+      if (!dbRow) return res.status(404).json({ error: "주문 원장에서 해당 주문을 찾지 못해 환불을 중단했습니다." });
+      if (!passOk && dbRow.status === "delivered") {
+        return res.status(403).json({ error: "배송완료된 주문은 이 링크로 환불할 수 없어요. 주문 관리 화면에서 사장님 계정으로 처리해주세요." });
       }
 
       const TOSS = process.env.TOSS_SECRET_KEY;
       if (!TOSS) return res.status(503).json({ error: "결제 설정이 없습니다." });
       const tossAuth = "Basic " + Buffer.from(TOSS + ":").toString("base64");
 
-      const pr = await fetch(`https://api.tosspayments.com/v1/payments/orders/${encodeURIComponent(oid)}`, { headers: { Authorization: tossAuth } });
-      const pay = await pr.json().catch(() => ({}));
-      if (!pr.ok) return res.status(404).json({ error: pay.message || "이 주문의 결제 정보를 찾을 수 없어요." });
-
-      let refunded = 0, alreadyCanceled = false;
-      if (pay.status === "CANCELED") {
-        alreadyCanceled = true;
-      } else {
-        if (pay.status !== "DONE" && pay.status !== "PARTIAL_CANCELED") {
-          return res.status(400).json({ error: `지금은 취소할 수 없는 결제 상태예요. (${pay.status})` });
-        }
-        const cr = await fetch(`https://api.tosspayments.com/v1/payments/${encodeURIComponent(pay.paymentKey)}/cancel`, {
-          method: "POST",
-          headers: { Authorization: tossAuth, "Content-Type": "application/json", "Idempotency-Key": "cancel-" + oid },
-          body: JSON.stringify({ cancelReason: clean(body.reason, 80) || "가게 취소(환불)" }),
-        });
-        const cd = await cr.json().catch(() => ({}));
-        if (!cr.ok) { console.error("toss cancel fail", cr.status, cd); return res.status(502).json({ error: cd.message || "결제취소에 실패했습니다. 상점관리자에서 확인해주세요." }); }
-        const cs = Array.isArray(cd.cancels) ? cd.cancels : [];
-        refunded = cs.length ? Number(cs[cs.length - 1].cancelAmount) || 0 : Number(pay.balanceAmount) || 0;
+      let pr;
+      try {
+        pr = await fetchJsonWithTimeout(
+          `https://api.tosspayments.com/v1/payments/orders/${encodeURIComponent(oid)}`,
+          { headers: { Authorization: tossAuth } }, 3500,
+        );
+      } catch {
+        return res.status(503).json({ error: "결제 원장을 확인하지 못해 환불을 중단했습니다. 잠시 후 다시 시도해주세요." });
+      }
+      let pay = pr.data || {};
+      if (!pr.response.ok) return res.status(404).json({ error: pay.message || "이 주문의 결제 정보를 찾을 수 없어요." });
+      if (pay.orderId !== oid || !Number.isInteger(Number(pay.totalAmount)) || Number(pay.totalAmount) <= 0 || !pay.paymentKey) {
+        return res.status(409).json({ error: "결제 원장과 주문 정보가 일치하지 않아 자동 환불을 중단했습니다." });
       }
 
-      // DB 반영 (토스 취소가 원장이므로 DB 실패해도 취소 자체는 완료 — dbSynced로 알림)
-      const dr = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}`, {
-        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" },
-        body: JSON.stringify({ status: "canceled", canceled_at: new Date().toISOString() }),
+      let cancelVerified = verifyCanceledPayment(pay, {
+        orderId: oid, amount: Number(pay.totalAmount), paymentKey: pay.paymentKey,
       });
-      if (!dr.ok) console.error("cancel db sync fail", dr.status, await dr.text().catch(() => ""));
+      let alreadyCanceled = cancelVerified.ok;
+      if (!alreadyCanceled && !["DONE", "PARTIAL_CANCELED", "CANCELED"].includes(pay.status)) {
+        return res.status(400).json({ error: `지금은 취소할 수 없는 결제 상태예요. (${pay.status})` });
+      }
+
+      // 실제 돈을 돌려주기 전 outbox 기록이 성공해야 한다. 이 점 이후 함수가
+      // 중단되면 5분 대사가 같은 Idempotency-Key로 취소를 재개한다.
+      const outbox = await beginCancellationOutbox({
+        supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, order: dbRow, payment: pay,
+        canceled: alreadyCanceled,
+        allowDelivered: !!(auth.ok && auth.role === "owner"),
+      });
+      if (!outbox.ok) {
+        await writeAdminAudit({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth: auditActor, resource: "order", action: "cancel", targetId: oid, outcome: "failed", detail: outbox.reason, requestId: auditId });
+        return res.status(503).json({ error: "환불 복구 기록을 안전하게 남기지 못해 취소를 시작하지 않았습니다. 잠시 후 다시 시도해주세요." });
+      }
+
+      if (["photo_notice_busy", "payment_notice_busy"].includes(outbox.result)) {
+        const isPhotoNotice = outbox.result === "photo_notice_busy";
+        await writeAdminAudit({
+          supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth: auditActor,
+          resource: "order", action: "cancel", targetId: oid, outcome: "failed",
+          detail: outbox.result, requestId: auditId,
+        });
+        return res.status(409).json({
+          error: isPhotoNotice
+            ? "배송사진 문자를 보내는 중이에요. 잠시 뒤 환불을 다시 눌러주세요."
+            : "결제완료 알림을 보내는 중이에요. 잠시 뒤 환불을 다시 눌러주세요.",
+        });
+      }
+      if (outbox.result === "delivered_requires_owner") {
+        return res.status(403).json({ error: "배송완료된 주문은 사장님 계정으로만 환불할 수 있어요." });
+      }
+      if (outbox.result === "order_missing") {
+        return res.status(404).json({ error: "주문 원장에서 해당 주문을 찾지 못해 환불을 중단했습니다." });
+      }
+      if (!["started", "already_started", "already_canceled"].includes(outbox.result)) {
+        const statusCode = ["intent_payment_mismatch", "invalid_request"].includes(outbox.result) ? 409 : 503;
+        await writeAdminAudit({
+          supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth: auditActor,
+          resource: "order", action: "cancel", targetId: oid, outcome: "failed",
+          detail: outbox.result || "cancel_coordination_failed", requestId: auditId,
+        });
+        return res.status(statusCode).json({ error: "결제 원장과 주문 정보가 일치하지 않아 환불을 시작하지 않았습니다." });
+      }
+
+      // 결제 취소보다 먼저 운영 채널에 hold를 남긴다. 마감경고/브리핑을
+      // 보고 다른 운영자가 발주하는 사고를 막고, started에서만 보내 재시도
+      // 요청의 중복 메시지는 피한다.
+      if (outbox.result === "started") {
+        await notifyChange(
+          `⛔ 환불 확인 중 · 발주/배송 중지\n주문번호: ${oid}\n상품: ${dbRow.product_label || dbRow.product_code || "주문"}`
+        );
+      }
+
+      let refunded = 0;
+      if (alreadyCanceled) {
+        refunded = cancelVerified.canceledAmount;
+      } else if (pay.status === "CANCELED") {
+        // CANCELED 문자열만으로 돈이 전액 반환됐다고 확정하지 않는다. 깨진/빈
+        // 원장 응답은 canceling+주문 hold를 유지하고 대사가 다시 검증한다.
+        return res.status(202).json({ ok: true, pending: true, message: "환불 결과를 자동으로 다시 확인하고 있습니다." });
+      } else {
+        let cr;
+        try {
+          cr = await fetchJsonWithTimeout(
+            `https://api.tosspayments.com/v1/payments/${encodeURIComponent(pay.paymentKey)}/cancel`,
+            {
+              method: "POST",
+              headers: { Authorization: tossAuth, "Content-Type": "application/json", "Idempotency-Key": "cancel-" + oid },
+              body: JSON.stringify({ cancelReason: clean(body.reason, 80) || "가게 취소(환불)" }),
+            }, 4500,
+          );
+        } catch {
+          // 타임아웃은 토스 처리 여부가 불분명하다. canceling을 유지하면 대사가 재조회한다.
+          return res.status(202).json({ ok: true, pending: true, message: "환불 결과를 자동으로 다시 확인하고 있습니다." });
+        }
+        let cd = cr.data || {};
+        if (!cr.response.ok) {
+          console.error("toss cancel fail", cr.response.status);
+          // 재시도 가능한 공급자/네트워크 오류는 canceling을 유지해 크론이 다시 확인한다.
+          if (isRetryableTossHttpStatus(cr.response.status)) {
+            return res.status(202).json({ ok: true, pending: true, message: "환불 결과를 자동으로 다시 확인하고 있습니다." });
+          }
+          // 재시도해도 바뀌지 않는 4xx를 canceling으로 남기면 5분 대사가
+          // 무한 취소 호출한다. 자동 취소 호출만 멈추되 주문 hold는 유지한다.
+          // 관리자가 토스에서 취소를 마치면 대사가 CANCELED를 확인해 주문도 종결한다.
+          const manualReason = cancelManualReviewReason(cr.response.status);
+          const nowIso = new Date().toISOString();
+          const closed = await patchPaymentIntent(SUPABASE_URL, SERVICE_KEY, oid, {
+            state: "finalized", toss_status: String(pay.status || "DONE"),
+            finalized_at: (outbox.intentRow && outbox.intentRow.finalized_at) || nowIso,
+            finalization_error: manualReason, last_checked_at: nowIso,
+            alert_sent_at: null, sms_alerted_at: null, telegram_alerted_at: null,
+            sms_alert_lease_until: null, telegram_alert_lease_until: null,
+          }, "state=eq.canceling", 2200);
+          const telegramWarned = await notifyChange(
+            `🚨 환불 수동 확인 필요 — ${dbRow?.product_label || "주문"}\n`
+            + `토스 취소가 종료 응답(${cr.response.status})으로 거절됐습니다. 자동 재시도를 멈췄습니다.\n`
+            + `주문번호 ${oid}\n발주·배송은 잠가 두었습니다. 토스 상점관리자에서 취소를 완료해주세요.`
+          );
+          if (telegramWarned && closed.ok && closed.matched) {
+            await patchPaymentIntent(SUPABASE_URL, SERVICE_KEY, oid, {
+              telegram_alerted_at: nowIso,
+            }, `state=eq.finalized&finalization_error=eq.${encodeURIComponent(manualReason)}&telegram_alerted_at=is.null`, 1600);
+          }
+          await writeAdminAudit({
+            supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth: auditActor,
+            resource: "order", action: "cancel", targetId: oid, outcome: "failed",
+            detail: `${manualReason};intentClosed=${!!(closed.ok && closed.matched)};holdRetained=true;telegram=${telegramWarned}`,
+            requestId: auditId,
+          });
+          return res.status(502).json({ error: "결제취소가 거절되어 발주를 잠갔습니다. 토스 상점관리자에서 취소를 완료해주세요." });
+        }
+        cancelVerified = verifyCanceledPayment(cd, {
+          orderId: oid, amount: Number(pay.totalAmount), paymentKey: pay.paymentKey,
+        });
+        if (!cancelVerified.ok) {
+          // HTTP 2xx라도 빈/깨진 JSON이나 DONE 응답이면 성공으로 기록하지 않는다.
+          // 같은 orderId 원장을 한 번 즉시 다시 읽고, 여전히 불명확하면 대사에 넘긴다.
+          try {
+            const verify = await fetchJsonWithTimeout(
+              `https://api.tosspayments.com/v1/payments/orders/${encodeURIComponent(oid)}`,
+              { headers: { Authorization: tossAuth } }, 3000,
+            );
+            if (verify.response.ok) {
+              const checked = verifyCanceledPayment(verify.data, {
+                orderId: oid, amount: Number(pay.totalAmount), paymentKey: pay.paymentKey,
+              });
+              if (checked.ok) {
+                cd = verify.data;
+                cancelVerified = checked;
+              }
+            }
+          } catch { /* canceling을 유지하고 cron이 다시 조회 */ }
+        }
+        if (!cancelVerified.ok) {
+          return res.status(202).json({ ok: true, pending: true, message: "환불 결과를 자동으로 다시 확인하고 있습니다." });
+        }
+        pay = cd;
+        refunded = cancelVerified.canceledAmount;
+      }
+
+      // 토스 취소 성공 직후 원장을 canceled로 먼저 바꿘 사진 접근을 즉시 차단한다.
+      // orders 반영이 실패하면 pending 표식을 남겨 대사가 완료한다.
+      const canceledMark = await patchPaymentIntent(SUPABASE_URL, SERVICE_KEY, oid, {
+        state: "canceled", toss_status: "CANCELED", payment_key: pay.paymentKey,
+        last_checked_at: new Date().toISOString(), finalization_error: "cancel_order_sync_pending",
+      }, "state=in.(canceling,canceled)", 2200);
+
+      let dr = null;
+      try {
+        dr = await fetchJsonWithTimeout(
+          `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=order_id`,
+          {
+            method: "PATCH",
+            headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
+            body: JSON.stringify({ status: "canceled", canceled_at: new Date().toISOString(), cancel_requested_at: null, payment_status: "CANCELED" }),
+          }, 2500,
+        );
+      } catch { dr = null; }
+      const dbSynced = !!(dr && dr.response.ok && Array.isArray(dr.data) && dr.data.length === 1);
+      if (!dbSynced) console.error("cancel db sync fail");
+      let intentSynced = !!(canceledMark.ok && canceledMark.matched);
+      if (dbSynced) {
+        const cleared = await patchPaymentIntent(SUPABASE_URL, SERVICE_KEY, oid, {
+          state: "canceled", toss_status: "CANCELED", last_checked_at: new Date().toISOString(),
+          finalization_error: null,
+        }, "state=eq.canceled&finalization_error=eq.cancel_order_sync_pending", 1800);
+        intentSynced = intentSynced && !!cleared.ok;
+      }
 
       // 감사 흔적: 취소 결과를 사장님 텔레그램에도 남김 (실패해도 무시)
       if (!alreadyCanceled) {
         const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
         if (tg && tgc) fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: tgc, text: `💸 결제취소 완료 — ${dbRow?.product_label || "주문"} ${refunded.toLocaleString()}원 환불\n주문번호 ${oid}${dr.ok ? "" : "\n⚠️ 주문목록 상태 갱신 실패 — 관리 화면에서 확인 필요"}` }),
+          body: JSON.stringify({ chat_id: tgc, text: `💸 결제취소 완료 — ${dbRow?.product_label || "주문"} ${refunded.toLocaleString()}원 환불\n주문번호 ${oid}${dbSynced ? "" : "\n⚠️ 주문목록 상태 갱신 실패 — 자동 재시도 중"}` }),
         }).catch(() => {});
       }
-      return res.status(200).json({ ok: true, amount: refunded, alreadyCanceled, dbSynced: dr.ok });
+      await audit("cancel", "order", oid, `amount=${refunded};dbSynced=${dbSynced};intentSynced=${intentSynced};alreadyCanceled=${alreadyCanceled}`);
+      return res.status(200).json({ ok: true, amount: refunded, alreadyCanceled, dbSynced, intentSynced });
     }
 
     if (action === "status") {
@@ -314,17 +600,18 @@ export default async function handler(req, res) {
       if (!ORDER_STATUS.has(status)) return res.status(400).json({ error: "상태 값이 올바르지 않습니다." });
       const patch = { status };
       const nowIso = new Date().toISOString();
+      if (status === "new") patch.alerted_at = null;
       if (status === "ordered") patch.ordered_at = nowIso;
       if (status === "delivered" && !body.keepCompletedAt) patch.completed_at = nowIso;
       // 취소(환불)된 주문은 상태 변경 불가 — 환불 주문이 활성 주문으로 부활하는 사고 방지
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}&status=neq.canceled`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}&status=neq.canceled&cancel_requested_at=is.null`, {
         method: "PATCH",
         headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
         body: JSON.stringify(patch),
       });
       if (!r.ok) { console.error("order status fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상태 변경에 실패했습니다." }); }
       const updated = await r.json().catch(() => []);
-      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소(환불)된 주문이라 상태를 바꿀 수 없어요." });
+      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문이라 상태를 바꿀 수 없어요." });
       // 텔레그램 버튼(order-confirm.js)으로 처리하면 방에 회신이 가는데, 관리 화면에서 바꾸면
       // 아무 흔적이 없어 나머지 두 분은 모른다 → 같은 문구로 맞춰준다(중복 발주 방지).
       const o = updated[0] || {};
@@ -335,6 +622,7 @@ export default async function handler(req, res) {
         + `\n${o.product_label || o.product_code || "주문"}${o.recipient_name ? ` · 받는분 ${o.recipient_name}` : ""}`
         + `\n${orderId}`
       );
+      await audit("status", "order", orderId, `status=${status}`);
       return res.status(200).json({ ok: true });
     }
 
@@ -342,9 +630,15 @@ export default async function handler(req, res) {
     if (action === "photo") {
       const oid = String(orderId || "").trim();
       if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
-      const lr = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=completed_photo&limit=1`, { headers: sb });
+      const lr = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=completed_photo,status,canceled_at,cancel_requested_at&limit=1`, { headers: sb });
+      if (!lr.ok) return res.status(502).json({ error: "주문 상태를 확인하지 못해 사진을 열지 않았어요." });
       const rows = await lr.json().catch(() => []);
-      const path = Array.isArray(rows) && rows[0] && rows[0].completed_photo;
+      const photoOrder = Array.isArray(rows) && rows[0];
+      if (!photoOrder) return res.status(404).json({ error: "해당 주문을 찾을 수 없어요." });
+      if (photoOrder.status === "canceled" || photoOrder.canceled_at || photoOrder.cancel_requested_at) {
+        return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문은 사진 작업을 할 수 없어요." });
+      }
+      const path = photoOrder.completed_photo;
       if (!path) return res.status(404).json({ error: "이 주문엔 배송완료 사진이 없어요." });
       const sr = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/order-photos/${encodeURI(path)}`, {
         method: "POST", headers: { ...sb, "Content-Type": "application/json" }, body: JSON.stringify({ expiresIn: 600 }) });
@@ -360,17 +654,40 @@ export default async function handler(req, res) {
       const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
       if (!SECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요." });
       const tok = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      await audit("create_order_link", "corp", "corporate_order_link");
       return res.status(200).json({ ok: true, url: `${ORIGIN}/?corp=${regno}&t=${tok}&utm_source=biz` });
     }
 
     // 배송사진 업로드 링크 발급 — 배달 기사/파트너 화원에게 전달(그 사람이 직접 도착사진 업로드)
     if (action === "link") {
       const oid = String(orderId || "").trim();
-      if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
-      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
-      if (!SECRET) return res.status(503).json({ error: "링크 발급 설정이 필요해요." });
-      const tok = crypto.createHmac("sha256", SECRET).update("photo:" + oid).digest("hex").slice(0, 24);
-      return res.status(200).json({ ok: true, url: `${ORIGIN}/deliver.html?order=${encodeURIComponent(oid)}&t=${tok}` });
+      if (!/^[A-Za-z0-9._-]{4,64}$/.test(oid)) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+      let linkOrder = null;
+      try {
+        const lr = await fetchJsonWithTimeout(
+          `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=status,canceled_at,cancel_requested_at&limit=1`,
+          { headers: sb }, 2200,
+        );
+        if (!lr.response.ok) return res.status(502).json({ error: "주문 상태를 확인하지 못해 기사 링크를 만들지 않았어요." });
+        linkOrder = Array.isArray(lr.data) && lr.data[0];
+      } catch {
+        return res.status(502).json({ error: "주문 상태를 확인하지 못해 기사 링크를 만들지 않았어요." });
+      }
+      if (!linkOrder) return res.status(404).json({ error: "해당 주문을 찾을 수 없어요." });
+      if (linkOrder.status === "canceled" || linkOrder.canceled_at || linkOrder.cancel_requested_at) {
+        return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문에는 기사 링크를 만들 수 없어요." });
+      }
+      const secret = getPhotoUploadSecret();
+      if (!secret) return res.status(503).json({ error: "배송사진 링크 설정이 필요해요(PHOTO_UPLOAD_SECRET)." });
+      const expiresAt = Math.floor(Date.now() / 1000) + PHOTO_UPLOAD_TTL_SECONDS;
+      const token = signUploadToken(oid, expiresAt, secret);
+      if (!token) return res.status(503).json({ error: "배송사진 링크를 만들지 못했어요." });
+      await audit("create_delivery_link", "order", oid, `expires=${new Date(expiresAt * 1000).toISOString()}`);
+      return res.status(200).json({
+        ok: true,
+        expiresAt,
+        url: `${ORIGIN}/deliver.html?order=${encodeURIComponent(oid)}&e=${expiresAt}&t=${encodeURIComponent(token)}`,
+      });
     }
 
     // 목록 (기본)
@@ -391,6 +708,7 @@ export default async function handler(req, res) {
       const regno = String(body.regno || "").replace(/\D/g, "");
       if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호 10자리가 필요합니다." });
       const tok = crypto.createHmac("sha256", CSECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      await audit("create_account_link", "corp", "corporate_account_link");
       return res.status(200).json({ ok: true, url: `${ORIGIN}/corp.html?corp=${regno}&t=${tok}` });
     }
     // 세금계산서 발행완료 표시 → 거래처 대시보드에 '발행완료/대기'로 보임 (invoice_issued 컬럼)
@@ -398,12 +716,15 @@ export default async function handler(req, res) {
       const oid = String(body.order_id || "").trim();
       if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
       const issued = body.issued !== false;
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}`, {
-        method: "PATCH", headers: { ...sb, "Content-Type": "application/json" },
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&status=neq.canceled&cancel_requested_at=is.null&select=order_id`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
         body: JSON.stringify({ invoice_issued: issued }),
       });
       if (!r.ok) { console.error("corp invoice fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "계산서 상태 변경 실패.(invoice_issued 컬럼 확인 — supabase-corp.sql 실행)" }); }
+      const updated = await r.json().catch(() => []);
+      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문은 계산서 상태를 바꿀 수 없어요." });
       await notifyChange(`🧾 계산서 ${issued ? "발행완료" : "대기"} — 주문 ${oid}`);
+      await audit("invoice", "corp", oid, `issued=${issued}`);
       return res.status(200).json({ ok: true });
     }
     return res.status(400).json({ error: "알 수 없는 요청입니다." });
@@ -423,6 +744,7 @@ export default async function handler(req, res) {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?id=eq.${body.id}`, { method: "DELETE", headers: sb });
       if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
       await notifyChange(`🗑 갤러리 사진 삭제 — ${gnm || "이름 없음"}\n되돌릴 수 없어요`);
+      await audit("delete", "gallery", body.id);
       return res.status(200).json({ ok: true });
     }
     if (action === "save") {
@@ -438,6 +760,7 @@ export default async function handler(req, res) {
         const g = ((await r.json().catch(() => [])) || [])[0];
         await notifyChange(`🖼 갤러리 사진 ${body.visible ? "다시 보임" : "숨김"} — ${g?.name || "이름 없음"}`);
       }
+      await audit("save", "gallery", body.id, typeof body.visible === "boolean" ? `visible=${body.visible}` : "sort_changed");
       return res.status(200).json({ ok: true });
     }
     const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?select=id,category,name,sub,photo_url,visible,sort&order=sort.asc,created_at.desc`, { headers: sb });
@@ -461,6 +784,8 @@ export default async function handler(req, res) {
       if (!r.ok) { console.error("review insert fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "저장에 실패했습니다." }); }
       const rows = await r.json().catch(() => []);
       await notifyChange(`🏠 홈 사진 추가${cap ? ` — ${cap}` : ""}${cat ? ` (${CAT_LABEL[cat] || cat})` : ""}`);
+      const added = Array.isArray(rows) ? rows[0] : rows;
+      await audit("add", "review", added && added.id);
       return res.status(200).json({ ok: true, item: Array.isArray(rows) ? rows[0] : rows });
     }
     if (action === "save" || action === "delete") {
@@ -476,6 +801,7 @@ export default async function handler(req, res) {
         const r = await fetch(`${SUPABASE_URL}/rest/v1/home_reviews?id=eq.${id}`, { method: "DELETE", headers: sb });
         if (!r.ok) return res.status(502).json({ error: "삭제에 실패했습니다." });
         await notifyChange(`🗑 홈 사진 삭제${rcap ? ` — ${rcap}` : ""}\n되돌릴 수 없어요`);
+        await audit("delete", "review", id);
         return res.status(200).json({ ok: true });
       }
       const patch = {};
@@ -489,6 +815,7 @@ export default async function handler(req, res) {
       if (!r.ok) return res.status(502).json({ error: "저장에 실패했습니다." });
       // 순서는 알리지 않는다(▲▼ 연타 = 알림 폭탄). 보임/숨김만.
       if (typeof body.visible === "boolean") await notifyChange(`🏠 홈 사진 ${body.visible ? "다시 보임" : "숨김"}`);
+      await audit("save", "review", id, typeof body.visible === "boolean" ? `visible=${body.visible}` : "content_or_sort_changed");
       return res.status(200).json({ ok: true });
     }
     // 목록 (기본): 숨김 포함 전체 (관리자용)
@@ -557,5 +884,6 @@ export default async function handler(req, res) {
     `✏️ 상품 정보 수정 — ${row.name || staticName || pc} (${pc})`
     + (bits.length ? `\n${bits.join(" · ")}` : "")
   );
+  await audit("update", "product_override", pc, bits.join(",") || "metadata");
   return res.status(200).json({ ok: true, item: saved });
 }

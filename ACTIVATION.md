@@ -1,7 +1,26 @@
 # 꽃안부 앱 — 활성화 체크리스트
 
-코드는 전부 배포돼 있습니다. **아래만 하면 모든 기능이 동작합니다.**
+기능별 코드와 SQL을 같은 단계 순서로 반영해야 합니다. **운영 결제 중에는 순서를 바꾸지 마세요.**
 (키·비밀값은 절대 이 레포(공개)에 넣지 말고 Supabase/Vercel 대시보드에만 넣으세요.)
+
+---
+
+## 0. 1차 안전 묶음 (운영 결제·환불·배송사진)
+
+1. Supabase SQL Editor에서 **`supabase-first-bundle.sql`** 전체 실행
+2. Vercel Production 환경변수에 `.env.example`의 1차 묶음 항목 설정
+   - 첫 배포는 `PAYMENT_INTENTS_REQUIRED=0`, `ADMIN_AUTH_MODE=dual`
+   - 문자 계정 준비 전에는 `PHOTO_NOTICE_MODE=manual`
+3. 새 코드 배포 후 보호된 결제 대사 endpoint를 1회 실행하고 성공 heartbeat 확인
+4. **`supabase-first-bundle-activate.sql`** 실행 → 5~10분 후
+   `first_bundle_readiness()`의 `active_ready=true` 확인
+5. 배포 전에 열려 있던 결제창의 최대 유효시간(2시간)이 지난 뒤
+   `PAYMENT_INTENTS_REQUIRED=1`로 전환
+6. 사장님 Supabase 로그인과 UID allowlist를 확인한 뒤 `ADMIN_AUTH_MODE=jwt`로 전환
+7. `node scripts/audit-first-bundle.mjs`가 exit 0인지 최종 확인
+
+> 환불은 꽃안부 관리자 화면에서 시작해야 outbox·발주중지·자동복구가 함께 기록됩니다.
+> 토스 상점관리자에서 바로 취소하는 것은 관리 화면이 **수동 취소 확인**을 안내한 건에만 사용하세요.
 
 ---
 
@@ -19,8 +38,8 @@
       비공개 버킷 order-photos, anniversaries, push_subscriptions 까지 한 번에.
 
 ## 3. URL Configuration — Supabase → Authentication → URL Configuration
-- [ ] **Site URL**: `https://amazonflower.vercel.app`
-- [ ] **Redirect URLs** 추가: `https://amazonflower.vercel.app`, `https://amazonflower.vercel.app/**`
+- [ ] **Site URL**: `https://floweranbu.co.kr`
+- [ ] **Redirect URLs** 추가: `https://floweranbu.co.kr`, `https://floweranbu.co.kr/**`
 
 ## 4. Vercel 환경변수 — Settings → Environment Variables
 - [ ] `VAPID_PRIVATE_KEY` = (별도 전달한 private 키 — 기념일 푸시 서명용)
@@ -30,7 +49,7 @@
 
 ## 5. 네이버 로그인 (선택) — developers.naver.com
 - [ ] 애플리케이션 등록 → 사용 API: **네이버 로그인** (이메일·이름 동의)
-- [ ] **Callback URL**: `https://amazonflower.vercel.app/api/naver-callback`
+- [ ] **Callback URL**: `https://floweranbu.co.kr/api/naver-callback`
 - [ ] Client ID/Secret → 위 4번 Vercel 환경변수에
 
 ## 6. 기념일 푸시 자동 발송 — Supabase → SQL Editor

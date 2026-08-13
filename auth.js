@@ -5,6 +5,9 @@
 (function () {
   'use strict';
 
+  // 구형 관리자 화면이 저장했던 평문 비밀번호를 사이트 방문 즉시 폐기한다.
+  try { localStorage.removeItem('af_admin_pw'); } catch (e) {}
+
   if (!window.SUPA || !window.SUPA.url || !window.SUPA.anon) {
     console.warn('[auth] SUPA 설정 없음 → 로그인 비활성');
     return;
@@ -107,11 +110,36 @@
     return m.name || m.full_name || m.nickname || (user.email ? user.email.split('@')[0] : '회원');
   }
 
-  // ── 관리자 판별 ── 이 이메일로 로그인하면 계정 시트에 '관리자 모드'가 뜬다.
-  // (관리자 페이지 자체는 서버에서 ADMIN_PASSWORD로 한 번 더 보호됨 = 이중 게이트)
-  var ADMIN_EMAILS = ['hggod0516@naver.com'];
+  // ── 관리자 판별 ── 이메일을 브라우저 코드에 하드코딩하지 않는다.
+  // 로그인 토큰을 서버가 검증하고 UID 우선 allowlist/역할로 판정한다. 이 값은 메뉴 표시용일
+  // 뿐이며 실제 관리자 API도 매 요청 같은 서버 검증을 다시 한다.
+  var ADMIN_ACCESS = null;
   function isAdmin(user) {
-    return !!(user && user.email && ADMIN_EMAILS.indexOf(String(user.email).toLowerCase()) >= 0);
+    return !!(user && ADMIN_ACCESS && ADMIN_ACCESS.ok);
+  }
+  function refreshAdminAccess(session) {
+    ADMIN_ACCESS = null;
+    if (!session || !session.access_token) { renderChip(null); return Promise.resolve(null); }
+    return fetch('/api/admin', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ resource: 'session', action: 'check' })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        ADMIN_ACCESS = r.ok ? { ok: true, role: d.role } : null;
+        renderChip(session.user);
+        if (ADMIN_ACCESS) {
+          try {
+            var next = sessionStorage.getItem('af_admin_return') || '';
+            if (/^\/admin(?:-[a-z]+)?(?:\.html)?(?:\?.*)?$/.test(next)) {
+              sessionStorage.removeItem('af_admin_return');
+              location.replace(next);
+            }
+          } catch (_e) {}
+        }
+        return ADMIN_ACCESS;
+      });
+    }).catch(function () { ADMIN_ACCESS = null; renderChip(session.user); return null; });
   }
   function adminBlockHtml(user) {
     if (!isAdmin(user)) return '';
@@ -125,7 +153,7 @@
       + link('/admin-home.html', '🏠 홈 화면 (첫 화면 리뷰사진)')
       + link('/admin.html', '🖼️ 갤러리 사진 올리기')
       + link('/admin-order.html', '📷 배송완료 사진 보내기')
-      + '<div style="font-size:11px;color:#b9b4a8;margin-top:2px;text-align:center;">관리자 비밀번호로 한 번 더 확인해요.</div>'
+      + '<div style="font-size:11px;color:#b9b4a8;margin-top:2px;text-align:center;">로그인 계정의 관리자 권한으로 안전하게 열어요.</div>'
       + '</div>';
   }
 
@@ -189,7 +217,8 @@
     var M = {
       new: { t: '접수됨', c: '#9e9a8f', bg: '#f0eee8' },
       ordered: { t: '준비 중', c: '#1f4733', bg: '#e8f0ea' },
-      delivered: { t: '배송완료', c: '#355d8a', bg: '#eaf0f6' }
+      delivered: { t: '배송완료', c: '#355d8a', bg: '#eaf0f6' },
+      canceled: { t: '취소됨', c: '#9a3b2e', bg: '#fbecea' }
     };
     var x = M[s] || M.new;
     return '<span style="font-size:11px;font-weight:700;color:' + x.c + ';background:' + x.bg + ';padding:3px 8px;border-radius:999px;white-space:nowrap;">' + x.t + '</span>';
@@ -424,14 +453,17 @@
 
   // 초기 세션 + 변화 감지
   sb.auth.getSession().then(function (res) {
-    var user = res.data.session ? res.data.session.user : null;
+    var session = res.data.session;
+    var user = session ? session.user : null;
     window.afAuth.user = user;
     renderChip(user);
+    refreshAdminAccess(session);
   });
   sb.auth.onAuthStateChange(function (_event, session) {
     var user = session ? session.user : null;
     window.afAuth.user = user;
     renderChip(user);
+    refreshAdminAccess(session);
   });
 
   // 안전: DOM 준비 전이면 칩만 미리

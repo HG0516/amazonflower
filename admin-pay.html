@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-admin-role="owner">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -57,11 +57,6 @@
     <div class="sub">지인·전화 주문 등, 금액을 정해서 손님에게 결제 링크를 보냅니다.<br>정가 상품과 별개예요.</div>
   </header>
 
-  <div class="pwbar">
-    <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password" />
-    <div class="hint">주문·상품 관리와 같은 비밀번호예요. 기기에 저장됩니다.</div>
-  </div>
-
   <div class="card" id="form">
     <label class="f">결제 금액
       <input id="amt" type="text" inputmode="numeric" placeholder="예: 150000" />
@@ -93,12 +88,12 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 let lastUrl = "", lastLabel = "", lastAmt = 0;
-
-$("pw").value = localStorage.getItem("af_admin_pw") || "";
-$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
 
 let toastT = null;
 function toast(msg, err){
@@ -113,8 +108,6 @@ $("amt").addEventListener("input", () => {
 });
 
 $("make").addEventListener("click", async function(){
-  const pw = $("pw").value.trim();
-  if(!pw) return toast("비밀번호를 입력해주세요.", true);
   const amount = parseInt($("amt").value.replace(/\D/g, ""), 10);
   const label = $("label").value.trim();
   if(!(Number.isInteger(amount) && amount >= 1000)) return toast("금액을 1,000원 이상 넣어주세요.", true);
@@ -125,13 +118,12 @@ $("make").addEventListener("click", async function(){
 
   this.disabled = true; this.textContent = "만드는 중…";
   try{
-    const r = await fetch("/api/admin", {
+    const r = await afAdmin.fetch("/api/admin", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ password:pw, resource:"paylink", amount, label })
+      body: JSON.stringify({ resource:"paylink", amount, label })
     });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || "링크를 만들지 못했어요.");
-    localStorage.setItem("af_admin_pw", pw);
     lastUrl = d.url; lastLabel = d.label; lastAmt = d.amount;
     $("rlabel").textContent = d.label;
     $("ramt").textContent = Number(d.amount).toLocaleString() + "원";

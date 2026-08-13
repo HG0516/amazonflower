@@ -32,10 +32,10 @@
 ## 0. Supabase 공통 설정 (1번만)
 
 1. [supabase.com](https://supabase.com) → 프로젝트 `ivlfwlbwiijhmwsfljzz` → **Authentication → URL Configuration**
-2. **Site URL**: `https://amazonflower.vercel.app`
+2. **Site URL**: `https://floweranbu.co.kr`
 3. **Redirect URLs**에 추가(Add URL):
-   - `https://amazonflower.vercel.app`
-   - `https://amazonflower.vercel.app/**`
+   - `https://floweranbu.co.kr`
+   - `https://floweranbu.co.kr/**`
    - (로컬 테스트 시) `http://localhost:*`
 
 ---
@@ -65,8 +65,8 @@
 1. [developers.naver.com](https://developers.naver.com) 로그인 → **Application → 애플리케이션 등록**
 2. 애플리케이션 이름: 꽃안부, 사용 API: **네이버 로그인**
 3. **제공 정보 선택**: **회원이름·이메일 주소**를 필수/추가로 체크 (이메일이 있어야 계정 생성됨)
-4. **서비스 URL**: `https://amazonflower.vercel.app`
-5. **Callback URL**: `https://amazonflower.vercel.app/api/naver-callback`
+4. **서비스 URL**: `https://floweranbu.co.kr`
+5. **Callback URL**: `https://floweranbu.co.kr/api/naver-callback`
 6. 등록 후 **Client ID**, **Client Secret** 복사
 
 ### Vercel 환경변수 (Settings → Environment Variables, Production)
@@ -120,10 +120,10 @@ SUPABASE_SERVICE_ROLE_KEY=(Supabase Project Settings → API 의 service_role �
 ---
 
 ## 5. 확인 방법
-- `amazonflower.vercel.app` 접속 → 좌상단 **로그인** 칩 → 모달에 **연결된 provider 버튼만** 보임.
+- `floweranbu.co.kr` 접속 → 좌상단 **로그인** 칩 → 모달에 **연결된 provider 버튼만** 보임.
 - 로그인 → 좌상단이 `🌸 이름` 으로 바뀌면 성공.
 - provider 활성 상태 직접 확인:
   - 카카오/구글/애플: `https://ivlfwlbwiijhmwsfljzz.supabase.co/auth/v1/settings` (external 항목)
-  - 네이버: `https://amazonflower.vercel.app/api/naver-login?check=1`
+  - 네이버: `https://floweranbu.co.kr/api/naver-login?check=1`
 
 > ⚠️ 이 레포는 **public**입니다. 실제 키는 **코드에 넣지 말고** Supabase 대시보드/ Vercel 환경변수에만 넣으세요. `auth.js`가 쓰는 anon 키는 공개돼도 안전(RLS 보호)합니다.

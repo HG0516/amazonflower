@@ -37,7 +37,9 @@
   .b-ordered{background:#e8f0ea;color:#1f4733;}
   .b-delivered{background:#eaf0f6;color:#355d8a;}
   .b-canceled{background:#fbecea;color:#9a3b2e;}
+  .b-refund{background:#fff0d8;color:#8a5312;}
   .order.canceled{opacity:.62;}
+  .order.refund-pending{border-color:#d49a45;background:#fffbf3;box-shadow:0 0 0 1px #f0d8b2;}
   .b-urgent{background:#fbecea;color:#9a3b2e;margin-left:5px;}
   .o-prod{font-size:15px;font-weight:700;margin-top:8px;}
   .o-amt{color:var(--accent-deep,#1f4733);font-weight:800;}
@@ -52,6 +54,7 @@
   .o-meta{font-size:11px;color:var(--ink-faint);margin-top:9px;}
   .o-photo{margin-top:8px;}
   .o-photo img{max-width:120px;border-radius:8px;}
+  .o-lock{flex:1;text-align:center;padding:11px;border-radius:8px;background:#fff0d8;color:#75450d;font-size:13px;font-weight:800;}
   .empty{text-align:center;color:var(--ink-faint);padding:40px 10px;font-size:14px;}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
   .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
@@ -65,12 +68,7 @@
     <div class="sub">들어온 주문을 보고, 준비중·배송완료로 표시해요.</div>
   </header>
 
-  <div class="pwbar">
-    <input type="password" id="pw" placeholder="관리자 비밀번호" autocomplete="current-password" />
-    <div class="hint">갤러리·상품과 같은 비밀번호예요. 넣으면 주문이 바로 떠요.</div>
-  </div>
-
-  <a href="/admin-pay.html" style="display:block;text-align:center;margin-top:12px;padding:14px;background:var(--paper);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-weight:800;font-size:16px;text-decoration:none;">💳 맞춤 결제 링크 만들기</a>
+  <a data-owner-only href="/admin-pay.html" style="display:block;text-align:center;margin-top:12px;padding:14px;background:var(--paper);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-weight:800;font-size:16px;text-decoration:none;">💳 맞춤 결제 링크 만들기</a>
 
   <div class="summary" id="summary" style="display:none;"></div>
   <div class="bar" id="bar" style="display:none;"></div>
@@ -80,6 +78,9 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -88,12 +89,10 @@ const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료"
 let ORDERS = [];
 let curFilter = "all";
 
-$("pw").value = localStorage.getItem("af_admin_pw") || "";
-$("pw").addEventListener("change", () => { localStorage.setItem("af_admin_pw", $("pw").value); load(); });
-
 function nowMs(){ return new Date().getTime(); }
+function isRefundPending(o){ return !!(o && o.cancel_requested_at && o.status!=="canceled"); }
 function isUrgent(o){
-  if(o.status==="delivered" || o.status==="canceled") return false;
+  if(isRefundPending(o) || o.status==="delivered" || o.status==="canceled") return false;
   if(!o.event_at) return false;
   const t = new Date(o.event_at).getTime();
   if(isNaN(t)) return false;
@@ -112,12 +111,9 @@ function fmtAddr(o){
 }
 
 async function api(payload){
-  const pw = $("pw").value.trim();
-  if(!pw){ toast("비밀번호를 입력해주세요.","err"); return null; }
-  const r = await fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password:pw, resource:"order", ...payload}) });
+  const r = await afAdmin.fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({resource:"order", ...payload}) });
   const data = await r.json().catch(()=>({}));
   if(!r.ok){ toast("❌ "+(data.error||"오류"),"err"); return null; }
-  localStorage.setItem("af_admin_pw", pw);
   return data;
 }
 
@@ -129,7 +125,7 @@ async function load(){
 }
 
 function render(){
-  const undel = ORDERS.filter(o=>o.status!=="delivered" && o.status!=="canceled").length;
+  const undel = ORDERS.filter(o=>!isRefundPending(o) && o.status!=="delivered" && o.status!=="canceled").length;
   const urg = ORDERS.filter(isUrgent).length;
   $("summary").style.display = "flex";
   $("summary").innerHTML =
@@ -137,7 +133,7 @@ function render(){
     + `<div class="sumcard"><div class="n">${undel}</div><div class="l">미배송</div></div>`
     + `<div class="sumcard urgent"><div class="n">${urg}</div><div class="l">🔴 임박·지남</div></div>`;
   $("bar").style.display = "flex";
-  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["corp","🏢 법인"],["stats","📊 통계"]];
+  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["refund","💸 환불중"],["corp","🏢 법인"],["stats","📊 통계"]];
   $("bar").innerHTML = F.map(([k,l])=>`<button class="pill ${curFilter===k?"on":""}" onclick="setFilter('${k}')">${l}</button>`).join("")
     + `<button class="refresh" onclick="load()">↻ 새로고침</button>`;
 
@@ -146,12 +142,14 @@ function render(){
 
   let list = ORDERS.slice();
   if(curFilter==="urgent") list = list.filter(isUrgent);
-  else if(curFilter!=="all") list = list.filter(o=>(o.status||"new")===curFilter);
+  else if(curFilter==="refund") list = list.filter(isRefundPending);
+  else if(curFilter!=="all") list = list.filter(o=>!isRefundPending(o) && (o.status||"new")===curFilter);
 
   if(!list.length){ $("list").innerHTML = `<div class="empty">${ORDERS.length?"해당 주문이 없어요.":"아직 들어온 주문이 없어요. 🌸<br>주문이 결제되면 여기에 바로 떠요."}</div>`; return; }
 
   $("list").innerHTML = list.map(o=>{
     const st = o.status || "new";
+    const refundPending = isRefundPending(o);
     const urgent = isUrgent(o);
     const dt = fmtDateTime(o), addr = fmtAddr(o);
     const sender = o.ribbon_sender || o.sender_name || o.orderer_name || "";
@@ -160,10 +158,14 @@ function render(){
     const ribbon = o.ribbon_text || o.ribbon || "";
     const req = o.request_note || o.note || "";
     const oid = esc(o.order_id||"");
-    return `<div class="order ${urgent?'urgent':''} ${st==='canceled'?'canceled':''}">
+    const photoNotice = o.photo_notice_status === "sent" ? "고객 문자 전송됨"
+      : o.photo_notice_status === "failed" ? "고객 문자 실패"
+      : o.photo_notice_status === "skipped" ? "주문자 번호 없음"
+      : o.photo_notice_status === "pending" ? "고객 문자 전송 중" : "";
+    return `<div class="order ${urgent?'urgent':''} ${st==='canceled'?'canceled':''} ${refundPending?'refund-pending':''}">
       <div class="o-top">
         <div class="o-name">${esc(o.recipient_name||"(받는분 미상)")} <span class="to">받는 분</span></div>
-        <div><span class="badge b-${st}">${STLABEL[st]||st}</span>${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
+        <div><span class="badge b-${st}">${STLABEL[st]||st}</span>${refundPending?'<span class="badge b-refund" style="margin-left:5px;">환불 처리 중</span>':''}${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
       </div>
       <div class="o-prod">${esc(o.product_label||o.product_code||"주문")} · <span class="o-amt">${won(o.amount)}</span></div>
       <div class="o-rows">
@@ -174,14 +176,14 @@ function render(){
         ${req?`<div><span class="lbl">요청</span>${esc(req)}</div>`:''}
       </div>
       ${ribbon?`<div class="o-ribbon">🎀 <b>리본</b> · ${esc(ribbon)}</div>`:''}
-      ${o.completed_photo?`<div class="o-photo"><button onclick="viewPhoto('${oid}',this)" style="font-size:12px;color:#1f4733;font-weight:700;background:#e8f0ea;border:1px solid #1f4733;border-radius:7px;padding:6px 11px;cursor:pointer;font-family:inherit;">📷 올린 사진 보기</button></div>`:''}
-      ${st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:`<div class="o-actions">
+      ${o.completed_photo&&!refundPending?`<div class="o-photo"><button onclick="viewPhoto('${oid}',this)" style="font-size:12px;color:#1f4733;font-weight:700;background:#e8f0ea;border:1px solid #1f4733;border-radius:7px;padding:6px 11px;cursor:pointer;font-family:inherit;">📷 올린 사진 보기</button>${photoNotice?` <span style="font-size:12px;color:${o.photo_notice_status==='sent'?'#1f4733':'#9a3b2e'};font-weight:700;">${esc(photoNotice)}</span>`:''}${o.photo_notice_status!=='sent'?` <button onclick="resendPhoto('${oid}',this)" style="font-size:12px;border:1px solid var(--line);border-radius:7px;padding:6px 10px;background:#fff;cursor:pointer;">문자 다시 보내기</button>`:''}</div>`:''}
+      ${st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:refundPending?`<div class="o-actions"><div class="o-lock">🔒 환불 결과 확인 전까지 발주·배송·사진 작업을 잠갔어요.</div><button onclick="load()">↻ 환불 상태 확인</button></div>`:`<div class="o-actions">
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
         <button onclick="copyLink('${oid}',this)">🔗 기사 링크</button>
-        <button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>
-        ${o.corp_name?`<button onclick="markInvoice('${oid}',this)">🧾 계산서 발행</button>`:''}
+        ${afAdmin.role==="owner"?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}
+        ${afAdmin.role==="owner"&&o.corp_name?`<button onclick="markInvoice('${oid}',this)">🧾 계산서 발행</button>`:''}
       </div>`}
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
     </div>`;
@@ -192,7 +194,7 @@ function setFilter(k){ curFilter=k; render(); }
 // ── 법인 거래처 ──
 // 사업자번호 기준으로 묶는다(상호는 '(주)' 유무 등 표기가 흔들려 같은 회사가 갈린다).
 function corpHtml(){
-  const os=ORDERS.filter(o=>o.corp_name && o.status!=="canceled");
+  const os=ORDERS.filter(o=>o.corp_name && o.status!=="canceled" && !isRefundPending(o));
   if(!os.length) return `<div class="empty">아직 법인(계산서) 주문이 없어요.<br><span style="font-size:12px;">계산서로 주문이 들어오면 거래처별로 여기 모입니다.</span></div>`;
   const g={};
   for(const o of os){
@@ -250,6 +252,7 @@ async function copyAcctLink(regno, btn){
 }
 // 세금계산서 발행완료 표시 — 거래처 대시보드에 '발행완료'로 보임(invoice_issued 컬럼 필요).
 async function markInvoice(oid, btn){
+  if(isRefundPending(ORDERS.find(x=>x.order_id===oid))){ toast("환불 처리 중이라 계산서 상태를 바꿀 수 없어요.","err"); return; }
   const old=btn.textContent; btn.textContent="처리 중…"; btn.disabled=true;
   const data = await api({ resource:"corp", action:"invoice", order_id:oid, issued:true });
   btn.disabled=false;
@@ -259,8 +262,8 @@ async function markInvoice(oid, btn){
 
 // ── 통계 ──
 function statsHtml(){
-  const os=ORDERS.filter(o=>o.status!=="canceled");
-  const canceledCnt=ORDERS.length-os.length;
+  const os=ORDERS.filter(o=>o.status!=="canceled" && !isRefundPending(o));
+  const canceledCnt=ORDERS.filter(o=>o.status==="canceled").length;
   const paid=os.reduce((s,o)=>s+(Number(o.paid_amount||o.amount)||0),0);
   const cnt=os.length, avg=cnt?Math.round(paid/cnt):0;
   const delivered=os.filter(o=>o.status==="delivered").length;
@@ -278,6 +281,8 @@ function statsHtml(){
 }
 
 async function setStatus(orderId, status){
+  const current=ORDERS.find(x=>x.order_id===orderId);
+  if(isRefundPending(current)){ toast("환불 처리 중이라 상태를 바꿀 수 없어요.","err"); return; }
   const data = await api({ action:"status", orderId, status });
   if(!data) return;
   const o = ORDERS.find(x=>x.order_id===orderId);
@@ -296,7 +301,8 @@ async function cancelOrder(orderId, btn){
   try{ data = await api({ action:"cancel", orderId }); }
   catch(e){ toast("네트워크 오류 — 환불이 됐는지 새로고침으로 확인해주세요","err"); }
   btn.disabled=false; btn.textContent=old;
-  if(!data) return;
+  if(!data){ await load(); return; }
+  if(data.pending){ if(o) o.cancel_requested_at=new Date().toISOString(); render(); toast("환불을 확인 중이에요. 결과 전까지 주문 작업을 잠갔어요."); return; }
   if(o){ o.status="canceled"; o.canceled_at=new Date().toISOString(); }
   render();
   if(data.alreadyCanceled) toast("이미 취소된 결제였어요 — 목록만 정리했어요");
@@ -304,6 +310,7 @@ async function cancelOrder(orderId, btn){
 }
 
 async function copyLink(orderId, btn){
+  if(isRefundPending(ORDERS.find(x=>x.order_id===orderId))){ toast("환불 처리 중이라 기사 링크를 만들 수 없어요.","err"); return; }
   const old=btn.textContent; btn.textContent="링크 만드는 중…"; btn.disabled=true;
   const data = await api({ action:"link", orderId });
   btn.disabled=false;
@@ -312,16 +319,35 @@ async function copyLink(orderId, btn){
   catch(e){ prompt("이 링크를 복사해 기사에게 보내세요:", data.url); btn.textContent=old; }
 }
 async function viewPhoto(orderId, btn){
+  if(isRefundPending(ORDERS.find(x=>x.order_id===orderId))){ toast("환불 처리 중인 주문은 사진 작업을 잠갔어요.","err"); return; }
   btn.textContent="여는 중…"; btn.disabled=true;
   const data = await api({ action:"photo", orderId });
   if(!data || !data.url){ btn.textContent="📷 올린 사진 보기"; btn.disabled=false; return; }
   btn.parentElement.innerHTML = `<img src="${data.url}" alt="배송완료 사진" style="max-width:170px;border-radius:8px;">`;
 }
+async function resendPhoto(orderId, btn){
+  if(isRefundPending(ORDERS.find(x=>x.order_id===orderId))){ toast("환불 처리 중이라 고객 문자를 보낼 수 없어요.","err"); return; }
+  const old=btn.textContent; btn.textContent="보내는 중…"; btn.disabled=true;
+  try{
+    const r=await afAdmin.fetch("/api/order-photo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"notify",orderId})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||"문자를 보내지 못했어요.");
+    const o=ORDERS.find(x=>x.order_id===orderId); if(o) o.photo_notice_status=d.notice&&d.notice.status||"failed";
+    if(d.notice&&d.notice.status==="sent"){
+      render(); toast("고객에게 사진 링크를 다시 보냈어요 ✓");
+    }else if(d.manualLink){
+      try{ await navigator.clipboard.writeText(d.manualLink); render(); toast("문자 설정 전이라 고객용 링크를 복사했어요. 주문자에게 카카오톡으로 보내주세요.","err"); }
+      catch(_e){ prompt("이 고객용 링크를 복사해 주문자에게 보내세요:",d.manualLink); render(); }
+    }else{
+      render(); toast("사진은 유지됐지만 문자를 보내지 못했어요.","err");
+    }
+  }catch(e){ toast("❌ "+(e.message||"문자 재전송 실패"),"err"); btn.disabled=false; btn.textContent=old; }
+}
 
 let toastT=null;
 function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2200); }
 
-if($("pw").value) load();
+afAdmin.ready.then(a=>{ if(a) load(); });
 </script>
 </body>
 </html>

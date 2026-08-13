@@ -21,6 +21,7 @@
   input:focus{outline:none;border-color:var(--ink);}
   .photo-pick{display:flex;flex-direction:column;align-items:center;gap:10px;border:2px dashed var(--line);border-radius:10px;padding:18px;text-align:center;color:var(--ink-faint);font-size:14px;cursor:pointer;}
   .photo-pick.has{border-style:solid;border-color:var(--accent);padding:10px;}
+  .photo-pick.locked{pointer-events:none;opacity:.5;background:#f4f1ea;}
   #preview{max-width:100%;max-height:300px;border-radius:8px;display:none;}
   .rotate-btn{margin-top:8px;display:none;padding:9px 16px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
   .btn{width:100%;margin-top:18px;padding:16px;font-size:17px;font-weight:700;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
@@ -41,10 +42,6 @@
   </header>
 
   <div class="card">
-    <label>관리자 비밀번호</label>
-    <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" />
-    <div class="hint">갤러리 올리기와 같은 비밀번호예요. 기기에 저장됩니다.</div>
-
     <label>주문번호</label>
     <input type="text" id="orderId" placeholder="예) AF20260628-ABC123" />
     <div class="hint">텔레그램 주문 알림의 '주문번호'를 붙여넣으세요. (알림 버튼으로 들어오면 자동 입력)</div>
@@ -64,16 +61,34 @@
   </div>
 </div>
 
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-let img = null, rotation = 0;
-
-// 비번 기억(갤러리와 공유)
-$("pw").value = localStorage.getItem("af_admin_pw") || "";
-$("pw").addEventListener("change", () => localStorage.setItem("af_admin_pw", $("pw").value));
+let img = null, rotation = 0, orderLocked = false;
 
 // 주문번호 자동 입력 (알림 버튼 ?order=AF... 로 들어온 경우)
 try { const o = new URLSearchParams(location.search).get("order"); if (o) $("orderId").value = o; } catch (e) {}
+
+function setOrderLocked(locked){
+  orderLocked=!!locked;
+  $("file").disabled=orderLocked;
+  $("submit").disabled=orderLocked;
+  $("pickBox").classList.toggle("locked",orderLocked);
+  if(orderLocked) showMsg("err","🔒 환불 처리 중인 주문이라 배송·사진 작업을 잠갔어요. 주문 관리에서 환불 상태만 확인해주세요.");
+}
+async function checkOrderLock(){
+  const orderId=$("orderId").value.trim();
+  if(!orderId){ setOrderLocked(false); return; }
+  try{
+    const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:"order",action:"list",limit:200})});
+    const d=await r.json().catch(()=>({}));
+    const o=Array.isArray(d.orders)?d.orders.find(x=>x.order_id===orderId):null;
+    setOrderLocked(!!(o&&o.cancel_requested_at&&o.status!=="canceled"));
+  }catch(_e){ /* 서버 업로드 CAS가 최종 차단한다. */ }
+}
+$("orderId").addEventListener("change",checkOrderLock);
 
 $("file").addEventListener("change", e => {
   const f = e.target.files[0];
@@ -111,35 +126,48 @@ function rotate(){ rotation += 90; draw(); }
 
 async function upload(){
   const msg = $("msg"); msg.className = "msg"; msg.style.display = "none";
-  const pw = $("pw").value.trim();
+  if(orderLocked) return showMsg("err", "환불 처리 중인 주문이라 사진을 보낼 수 없어요.");
   const orderId = $("orderId").value.trim();
-  if (!pw) return showMsg("err", "비밀번호를 입력해주세요.");
   if (!orderId) return showMsg("err", "주문번호를 입력해주세요.");
   if (!img) return showMsg("err", "사진을 선택해주세요.");
-  localStorage.setItem("af_admin_pw", pw);
 
   let imageBase64 = $("canvas").toDataURL("image/jpeg", 0.85);
   if (imageBase64.length > 3500000) imageBase64 = $("canvas").toDataURL("image/jpeg", 0.6);
   $("submit").disabled = true; $("submit").textContent = "보내는 중…";
   try {
-    const r = await fetch("/api/order-photo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: pw, orderId, imageBase64 }),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(data.error || "업로드 실패");
-    showMsg("ok", "✅ 완료 사진을 보냈어요! 고객 '내 주문'에 바로 떠요.");
+    async function send(extra){
+      const r = await afAdmin.fetch("/api/order-photo", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, imageBase64, ...(extra||{}) }),
+      });
+      return { r, data: await r.json().catch(() => ({})) };
+    }
+    let out = await send();
+    if(!out.r.ok && out.data.code === "REPLACE_CONFIRM_REQUIRED" && confirm("기존 배송사진이 있습니다. 새 사진으로 교체하고 고객에게 새 링크를 보낼까요?")){
+      out = await send({replace:true});
+    }
+    if(!out.r.ok && out.data.code === "PHOTO_RETAKE" && confirm((out.data.warn||"사진을 다시 확인해주세요.")+"\n\n그래도 이 사진을 사용할까요?")){
+      out = await send({replace:true,force:true});
+    }
+    if (!out.r.ok) throw new Error(out.data.error || "업로드 실패");
+    const data = out.data;
+    if(data.notice&&data.notice.status!=="sent"&&data.manualLink){
+      try{ await navigator.clipboard.writeText(data.manualLink); showMsg("ok", "✅ 사진을 저장했고 고객용 링크를 복사했어요. 주문자에게 카카오톡으로 보내주세요."); }
+      catch(_e){ prompt("이 고객용 링크를 복사해 주문자에게 보내세요:",data.manualLink); showMsg("ok", "✅ 사진을 저장했어요. 열린 링크를 주문자에게 보내주세요."); }
+    }else{
+      showMsg("ok", "✅ 완료 사진을 보냈어요! 고객 '내 주문'에 바로 떠요.");
+    }
     img = null; rotation = 0;
     $("preview").style.display = "none"; $("pickText").style.display = "block";
     $("pickBox").classList.remove("has"); $("rotateBtn").style.display = "none"; $("file").value = "";
   } catch (e) {
     showMsg("err", "❌ " + (e.message || "업로드 실패"));
   } finally {
-    $("submit").disabled = false; $("submit").textContent = "완료 사진 보내기";
+    $("submit").disabled = orderLocked; $("submit").textContent = "완료 사진 보내기";
   }
 }
 function showMsg(type, text){ const m = $("msg"); m.className = "msg " + type; m.textContent = text; m.style.display = "block"; }
+afAdmin.ready.then(a=>{ if(a) checkOrderLock(); });
 </script>
 </body>
 </html>
