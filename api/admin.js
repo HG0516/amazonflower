@@ -74,7 +74,7 @@ const MAX_B64 = 4_000_000;
 const MAX_BYTES = 3 * 1024 * 1024;
 const ORDER_COLS = [
   "order_id","created_at","status","product_label","product_code","category","order_type",
-  "amount","paid_amount","discount_points",
+  "amount","paid_amount","discount_points","payment_method",
   "recipient_name","recipient_phone",
   "venue","address","road_address","detail_address","building_name","room_info","zip_code",
   "event_date","event_time","event_at","delivery_date","delivery_time_slot",
@@ -593,6 +593,60 @@ export default async function handler(req, res) {
       }
       await audit("cancel", "order", oid, `amount=${refunded};dbSynced=${dbSynced};intentSynced=${intentSynced};alreadyCanceled=${alreadyCanceled}`);
       return res.status(200).json({ ok: true, amount: refunded, alreadyCanceled, dbSynced, intentSynced });
+    }
+
+    // 전화·무통장 주문 등록(owner) — 홈피 보고 전화한 손님이 계좌로 입금한 건을 원장에 올린다.
+    // 토스를 거치지 않으므로 payment_method='MANUAL_BANK' 로 표시하고, 결제취소(토스 환불) 버튼은
+    // 관리 화면에서 숨긴다. 배송사진·마감알림·브리핑은 status=new 인 다른 주문과 똑같이 돈다.
+    if (action === "manual") {
+      const amount = parseInt(body.amount, 10);
+      if (!(Number.isInteger(amount) && amount >= 1000 && amount <= 3000000)) return res.status(400).json({ error: "금액은 1,000원 ~ 3,000,000원 사이로 넣어주세요." });
+      const productLabel = clean(body.productLabel, 60);
+      if (!productLabel) return res.status(400).json({ error: "상품 이름을 적어주세요." });
+      const senderName = clean(body.senderName, 40);
+      const senderPhone = String(body.senderPhone || "").replace(/[^0-9-]/g, "").slice(0, 20);
+      if (!senderName) return res.status(400).json({ error: "보내는 분(입금자) 성함을 적어주세요." });
+      const venue = clean(body.venue, 200);
+      if (!venue) return res.status(400).json({ error: "받는 곳을 적어주세요." });
+      let eventDate = String(body.eventDate || "").trim().replace(/[.\/]/g, "-");
+      const dm = eventDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      let eventAt = null;
+      if (dm) {
+        eventDate = `${dm[1]}-${dm[2].padStart(2, "0")}-${dm[3].padStart(2, "0")}`;
+        const et = String(body.eventTime || "").trim();
+        const dt = new Date(`${eventDate}T${/^\d{1,2}:\d{2}$/.test(et) ? et.padStart(5, "0") : "00:00"}:00+09:00`);
+        if (!Number.isNaN(dt.getTime())) eventAt = dt.toISOString();
+      } else eventDate = "";
+      const rnd = crypto.randomBytes(3).toString("hex").toUpperCase();
+      const ymd = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
+      const oid = `AFB${ymd}-${rnd}`; // AFB = bank(무통장). AF(정가)·AFC(맞춤링크)와 구분
+      const paidNow = body.paid !== false;
+      const row = {
+        order_id: oid, status: "new",
+        product_label: productLabel, amount, paid_amount: amount,
+        recipient_name: clean(body.recipientName, 40) || null,
+        recipient_phone: String(body.recipientPhone || "").replace(/[^0-9-]/g, "").slice(0, 20) || null,
+        venue, event_date: eventDate || null, event_time: clean(body.eventTime, 10) || null, event_at: eventAt,
+        sender_name: senderName, sender_phone: senderPhone || null,
+        ribbon: clean(body.ribbon, 120) || null,
+        note: [paidNow ? "무통장 입금 확인됨" : "⚠️ 입금 대기", clean(body.note, 300)].filter(Boolean).join(" · "),
+        payment_method: "MANUAL_BANK", payment_status: paidNow ? "DONE" : "WAITING",
+        approved_at: paidNow ? new Date().toISOString() : null,
+        referral_source: "phone",
+        ...(clean(body.corpName, 60) ? { corp_name: clean(body.corpName, 60), corp_regno: String(body.corpRegNo || "").replace(/\D/g, "").slice(0, 10) || null, corp_email: clean(body.corpEmail, 120) || null } : {}),
+      };
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(row),
+      });
+      if (!r.ok) { console.error("manual order fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "주문을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }); }
+      await notifyChange(
+        `📞 전화·무통장 주문 등록 — ${productLabel} ${won(amount)}${paidNow ? "" : " (입금 대기)"}`
+        + `\n받는 곳 ${venue}${row.recipient_name ? ` · ${row.recipient_name}` : ""}${eventDate ? `\n행사 ${eventDate}${row.event_time ? " " + row.event_time : ""}` : ""}`
+        + `\n보내는 분 ${senderName}${senderPhone ? " " + senderPhone : ""}${row.ribbon ? `\n🎀 ${row.ribbon}` : ""}`
+        + `\n${oid}`
+      );
+      await audit("manual", "order", oid, `amount=${amount} paid=${paidNow}`);
+      return res.status(200).json({ ok: true, orderId: oid });
     }
 
     if (action === "status") {

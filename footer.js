@@ -26,6 +26,7 @@
     mailOrderNo: '제2026-경기시흥-1357호',   // 통신판매업 신고번호
     addr: '경기 시흥시 신천3길 23, 103호',
     tel: '031-314-3003',
+    bank: '기업은행 169-165982-04-018 (예금주 (주)아마존)',   // 입금계좌 — 전화·무통장 주문용
     email: '',                    // [필수] 고객문의 이메일 — 정해지면 채우기
     privacyOfficer: '권점숙',     // 개인정보 보호책임자(대표자)
     insta: 'floweranbu_'          // 인스타 계정(@ 없이) — 푸터 링크
@@ -69,6 +70,7 @@
       row('통신판매업신고', BIZ.mailOrderNo),
       row('주소', BIZ.addr),
       row('전화', BIZ.tel),
+      row('입금계좌', BIZ.bank),
       row('이메일', BIZ.email),
       row('개인정보 보호책임자', BIZ.privacyOfficer)
     ].filter(Boolean).join('');

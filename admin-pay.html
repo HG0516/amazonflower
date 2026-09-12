@@ -48,14 +48,63 @@
   .kakao{background:#fee500;color:#3c1e1e;}
   .again{background:var(--paper);border:1px solid var(--line)!important;color:var(--ink-soft);}
   .backlink{display:inline-block;margin-top:20px;font-size:14px;color:var(--ink-soft);}
+  .modes{display:flex;gap:8px;margin-top:14px;}
+  .mode{flex:1;padding:13px 8px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:15px;font-weight:800;font-family:inherit;color:var(--ink-soft);cursor:pointer;}
+  .mode.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  input[type=date],input[type=time]{min-width:0;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>💳 맞춤 결제 링크</h1>
-    <div class="sub">지인·전화 주문 등, 금액을 정해서 손님에게 결제 링크를 보냅니다.<br>정가 상품과 별개예요.</div>
+    <h1>📞 전화 주문</h1>
+    <div class="sub">전화로 받은 주문을 처리해요. 카드로 결제하실 분은 <b>결제 링크</b>, 계좌로 입금하신 분은 <b>무통장 주문 등록</b>.</div>
   </header>
+  <div class="modes">
+    <button type="button" class="mode on" id="modeLink" onclick="setMode('link')">💳 결제 링크 만들기</button>
+    <button type="button" class="mode" id="modeBank" onclick="setMode('bank')">💵 무통장 주문 등록</button>
+  </div>
+
+  <!-- 무통장(계좌이체) 주문 등록 — 손님이 홈피 계좌로 입금한 뒤 전화로 알려준 내용을 원장에 올린다 -->
+  <div class="card" id="bankForm" style="display:none;">
+    <div class="hint" style="margin-top:0;margin-bottom:6px;">입금계좌 <b>기업은행 169-165982-04-018 (주)아마존</b> · 입금 확인 후 등록하면 주문 관리·배송사진·마감알림에 똑같이 잡혀요.</div>
+    <label class="f">상품 이름
+      <input id="bProduct" type="text" maxlength="60" placeholder="예: 근조화환 3단 고급형" />
+    </label>
+    <label class="f">금액
+      <input id="bAmt" type="text" inputmode="numeric" placeholder="예: 110000" />
+    </label>
+    <div class="amtprev" id="bAmtprev"></div>
+    <label class="f">받는 곳 (장례식장·주소)
+      <input id="bVenue" type="text" maxlength="200" placeholder="예: 시흥 ○○병원 장례식장 3호실" />
+    </label>
+    <label class="f">받는 분 <span class="opt">(선택)</span>
+      <input id="bRecipient" type="text" maxlength="40" placeholder="예: 고 김○○ / ○○회사 대표" />
+    </label>
+    <label class="f">행사·배송일 <span class="opt">(선택)</span>
+      <div style="display:flex;gap:8px;">
+        <input id="bDate" type="date" style="flex:1.4;" />
+        <input id="bTime" type="time" style="flex:1;" />
+      </div>
+    </label>
+    <label class="f">보내는 분 (입금자명)
+      <input id="bSender" type="text" maxlength="40" placeholder="예: 홍길동" />
+    </label>
+    <label class="f">보내는 분 연락처 <span class="opt">(도착 사진 문자용)</span>
+      <input id="bSenderPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" />
+    </label>
+    <label class="f">리본 문구 <span class="opt">(선택)</span>
+      <input id="bRibbon" type="text" maxlength="120" placeholder="예: 삼가 고인의 명복을 빕니다 / (주)○○ 대표 홍길동" />
+    </label>
+    <label class="f">메모 <span class="opt">(선택)</span>
+      <input id="bNote" type="text" maxlength="300" placeholder="예: 현금영수증 요청 010-…, 세금계산서 이메일 …" />
+    </label>
+    <label class="f" style="display:flex;align-items:center;gap:10px;font-size:16px;">
+      <input id="bPaid" type="checkbox" checked style="width:22px;height:22px;margin:0;" /> 입금 확인했어요
+    </label>
+    <button class="btn" id="bMake">주문 등록</button>
+    <div class="hint" style="margin-top:14px;">등록하면 단톡방에 알림이 가고, 주문 관리에 <b>💵 무통장</b> 표시로 올라와요. 토스 결제가 아니라 '결제취소' 버튼은 안 뜹니다(환불은 계좌로 직접).</div>
+  </div>
 
   <div class="card" id="form">
     <label class="f">결제 금액
@@ -158,6 +207,50 @@ $("share").addEventListener("click", async function(){
   }
 });
 
+// ── 모드 전환(결제 링크 / 무통장 등록) ──
+function setMode(m){
+  const bank = m === "bank";
+  $("modeLink").classList.toggle("on", !bank); $("modeBank").classList.toggle("on", bank);
+  $("bankForm").style.display = bank ? "" : "none";
+  $("form").style.display = bank ? "none" : ($("result").classList.contains("show") ? "none" : "");
+  $("result").style.display = bank ? "none" : "";
+}
+$("bAmt").addEventListener("input", () => {
+  const n = parseInt($("bAmt").value.replace(/\D/g, ""), 10);
+  $("bAmtprev").textContent = Number.isInteger(n) && n > 0 ? n.toLocaleString() + "원" : "";
+});
+$("bMake").addEventListener("click", async function(){
+  const amount = parseInt($("bAmt").value.replace(/\D/g, ""), 10);
+  const productLabel = $("bProduct").value.trim();
+  const venue = $("bVenue").value.trim();
+  const senderName = $("bSender").value.trim();
+  if(!productLabel) return toast("상품 이름을 적어주세요.", true);
+  if(!(Number.isInteger(amount) && amount >= 1000)) return toast("금액을 1,000원 이상 넣어주세요.", true);
+  if(!venue) return toast("받는 곳을 적어주세요.", true);
+  if(!senderName) return toast("보내는 분(입금자) 성함을 적어주세요.", true);
+  const paid = $("bPaid").checked;
+  if(!confirm(`${productLabel} ${amount.toLocaleString()}원\n받는 곳: ${venue}\n보내는 분: ${senderName}\n${paid ? "입금 확인됨" : "⚠️ 입금 대기"}\n\n이대로 등록할까요?`)) return;
+  this.disabled = true; this.textContent = "등록 중…";
+  try{
+    const r = await afAdmin.fetch("/api/admin", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ resource:"order", action:"manual", amount, productLabel, venue, senderName, paid,
+        recipientName: $("bRecipient").value.trim(), eventDate: $("bDate").value, eventTime: $("bTime").value,
+        senderPhone: $("bSenderPhone").value.trim(), ribbon: $("bRibbon").value.trim(), note: $("bNote").value.trim() })
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || "등록하지 못했어요.");
+    toast("✅ 등록했어요 — 주문번호 " + d.orderId);
+    ["bProduct","bAmt","bVenue","bRecipient","bDate","bTime","bSender","bSenderPhone","bRibbon","bNote"].forEach(id => { $(id).value = ""; });
+    $("bAmtprev").textContent = ""; $("bPaid").checked = true;
+    setTimeout(() => { location.href = "/admin-orders.html"; }, 1400);
+  }catch(e){
+    toast("❌ " + (e.message || "실패"), true);
+  }finally{
+    this.disabled = false; this.textContent = "주문 등록";
+  }
+});
+if(location.hash === "#bank") setMode("bank");
 $("again").addEventListener("click", function(){
   $("amt").value = ""; $("label").value = ""; $("amtprev").textContent = "";
   $("result").classList.remove("show"); $("form").style.display = "";

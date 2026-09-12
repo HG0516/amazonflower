@@ -121,6 +121,20 @@
   .trust-line .tl-facts { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
   /* 결제수단은 결제 단계에서야 알게 되던 것을 첫 화면에서 알린다 */
   .trust-line .tl-pay { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
+  /* 결제 안내 — 홈피 보고 전화 주문하는 손님이 결제수단·계좌·영수증을 첫 화면에서 보게(2026-09-12, 아버지 피드백) */
+  .payguide { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pg { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px 13px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); min-height: 96px; }
+  .pg .pg-n { font-size: var(--fs-caption); font-weight: 700; color: var(--ink-faint); letter-spacing: .5px; }
+  .pg .pg-t { font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.3; word-break: keep-all; }
+  .pg .pg-d { font-size: 14px; color: var(--ink-soft); line-height: 1.55; word-break: keep-all; }
+  .pg .pg-d b { color: var(--accent-deep); font-weight: 700; }
+  .pg.bank { grid-column: 1 / -1; background: var(--accent-soft); border-color: var(--accent); }
+  .pg.bank .pg-acct { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 12px 14px; background: #fff; border: 1px solid var(--accent); border-radius: var(--radius); }
+  .pg.bank .pg-acct .no { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: .3px; line-height: 1.3; }
+  .pg.bank .pg-acct .no small { display: block; font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 600; color: var(--ink-soft); letter-spacing: 0; }
+  .pg.bank .pg-acct button { flex: 0 0 auto; min-height: 44px; padding: 8px 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; font-family: var(--font-body); cursor: pointer; white-space: nowrap; }
+  .pg.bank .pg-acct button:active { transform: scale(.97); }
+  .pg .pg-tel { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: var(--accent-deep); font-weight: 800; text-decoration: none; font-size: 15px; white-space: nowrap; }
   .pay-note { font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.6; word-break: keep-all; }
   .pay-note b { color: var(--accent-deep); font-weight: 600; }
   /* 전화 주문 CTA — 텍스트 버튼(첫 화면 신뢰: 연락 가능성) */
@@ -547,13 +561,51 @@
       <span style="font-size:var(--fs-caption);color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
     </div>
     <a href="tel:031-314-3003" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;padding:12px;min-height:48px;background:#fff;border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent-deep);font-weight:700;font-size:15px;text-decoration:none;">📞 전화로 주문 · 031-314-3003</a>
-    <div class="pay-note" style="text-align:center;margin-top:8px;">전화로 상품을 정하신 뒤 <b>문자로 받은 결제 링크</b>에서 카드·간편결제도 됩니다</div>
+    <div class="pay-note" style="text-align:center;margin-top:8px;">전화로 상품을 정하신 뒤 <b>계좌이체(무통장)</b> 또는 <b>문자로 받은 결제 링크</b>(카드·간편결제)로 결제하시면 됩니다</div>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
   </section>
 
   <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
-  <div class="trust-line home-sect"><span class="tl-photo">배송 직후 도착 사진을 문자로 보내드립니다</span><span class="tl-pay">회원가입 없이 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b></span><span class="tl-facts">전국 당일배송 · 전 품목 정찰제 55,000원~ · 1993년부터 한 자리</span></div>
+  <div class="trust-line home-sect"><span class="tl-photo">배송 직후 도착 사진을 문자로 보내드립니다</span><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> — <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전국 당일배송 · 전 품목 정찰제 55,000원~ · 1993년부터 한 자리</span></div>
+
+  <!-- 결제 안내 4칸 — 카드·간편결제 / 계좌이체(무통장, 계좌 명시) / 영수증·계산서 / 전화주문 절차.
+       결제수단이 6단계 결제 직전에야 보여 "홈피 보고 전화하는 손님"이 계좌를 못 찾던 문제(2026-09-12). -->
+  <section class="home-sect" id="payguide" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
+    <div class="occ-title">결제는 이렇게</div>
+    <div class="payguide">
+      <div class="pg">
+        <div class="pg-n">1</div>
+        <div class="pg-t">카드 · 간편결제</div>
+        <div class="pg-d">주문 마지막 단계에서 <b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중 골라 결제</div>
+      </div>
+      <div class="pg">
+        <div class="pg-n">2</div>
+        <div class="pg-t">전화 주문</div>
+        <div class="pg-d">상품·받는 곳을 전화로 정하고, 계좌이체 또는 문자로 받은 결제 링크로</div>
+        <a class="pg-tel" href="tel:031-314-3003">📞 031-314-3003</a>
+      </div>
+      <div class="pg bank">
+        <div class="pg-n">3</div>
+        <div class="pg-t">계좌이체 · 무통장입금</div>
+        <div class="pg-d">입금 후 전화나 문자로 <b>입금자명·받는 곳</b>을 알려주시면 바로 준비합니다</div>
+        <div class="pg-acct">
+          <div class="no" id="bankAcct">기업은행 169-165982-04-018<small>예금주 (주)아마존</small></div>
+          <button type="button" onclick="copyBankAcct(this)">계좌 복사</button>
+        </div>
+      </div>
+      <div class="pg">
+        <div class="pg-n">4</div>
+        <div class="pg-t">영수증 · 계산서</div>
+        <div class="pg-d">카드 매출전표는 결제 완료 화면에서, <b>세금계산서</b>는 주문 시 '법인·계산서'를 고르면 이메일로 발행</div>
+      </div>
+      <div class="pg">
+        <div class="pg-n">5</div>
+        <div class="pg-t">현금영수증</div>
+        <div class="pg-d">계좌이체·무통장 입금은 요청하시면 발급해 드립니다(전화·문자로 번호 알려주세요)</div>
+      </div>
+    </div>
+  </section>
 
   <!-- 로그인 회원 원탭 재주문 진입(로그인 상태에서만 JS로 노출) -->
   <div id="reorderBanner" class="hidden home-sect" style="margin-top:var(--space-sect);"></div>
@@ -2617,6 +2669,16 @@ function renderDone(data,o){
         문의 · 031-314-3003 · 사장님께 직접 연락하실 수 있습니다.
       </div>
     </section>`;
+}
+
+// 홈 '결제는 이렇게' 계좌 복사 — 고령 손님이 숫자를 옮겨 적다 틀리지 않게
+function copyBankAcct(btn){
+  const txt="기업은행 169-165982-04-018 (주)아마존";
+  const done=()=>{ const o=btn.textContent; btn.textContent="복사됨 ✓"; setTimeout(()=>{ btn.textContent=o; },1800); };
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ prompt("계좌번호를 길게 눌러 복사하세요", txt); }); }
+    else prompt("계좌번호를 길게 눌러 복사하세요", txt);
+  }catch(_){ prompt("계좌번호를 길게 눌러 복사하세요", txt); }
 }
 
 function selBuyer(type){

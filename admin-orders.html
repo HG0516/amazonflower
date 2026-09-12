@@ -38,6 +38,7 @@
   .b-delivered{background:#eaf0f6;color:#355d8a;}
   .b-canceled{background:#fbecea;color:#9a3b2e;}
   .b-refund{background:#fff0d8;color:#8a5312;}
+  .b-bank{background:#fff7e0;color:#7a5a12;margin-right:5px;}
   .order.canceled{opacity:.62;}
   .order.refund-pending{border-color:#d49a45;background:#fffbf3;box-shadow:0 0 0 1px #f0d8b2;}
   .b-urgent{background:#fbecea;color:#9a3b2e;margin-left:5px;}
@@ -68,7 +69,7 @@
     <div class="sub">들어온 주문을 보고, 준비중·배송완료로 표시해요.</div>
   </header>
 
-  <a data-owner-only href="/admin-pay.html" style="display:block;text-align:center;margin-top:12px;padding:14px;background:var(--paper);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-weight:800;font-size:16px;text-decoration:none;">💳 맞춤 결제 링크 만들기</a>
+  <a data-owner-only href="/admin-pay.html" style="display:block;text-align:center;margin-top:12px;padding:14px;background:var(--paper);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-weight:800;font-size:16px;text-decoration:none;">💳 맞춤 결제 링크 · 📞 전화·무통장 주문 등록</a>
 
   <div class="summary" id="summary" style="display:none;"></div>
   <div class="bar" id="bar" style="display:none;"></div>
@@ -165,7 +166,7 @@ function render(){
     return `<div class="order ${urgent?'urgent':''} ${st==='canceled'?'canceled':''} ${refundPending?'refund-pending':''}">
       <div class="o-top">
         <div class="o-name">${esc(o.recipient_name||"(받는분 미상)")} <span class="to">받는 분</span></div>
-        <div><span class="badge b-${st}">${STLABEL[st]||st}</span>${refundPending?'<span class="badge b-refund" style="margin-left:5px;">환불 처리 중</span>':''}${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
+        <div>${o.payment_method==='MANUAL_BANK'?'<span class="badge b-bank">💵 무통장</span>':''}<span class="badge b-${st}">${STLABEL[st]||st}</span>${refundPending?'<span class="badge b-refund" style="margin-left:5px;">환불 처리 중</span>':''}${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
       </div>
       <div class="o-prod">${esc(o.product_label||o.product_code||"주문")} · <span class="o-amt">${won(o.amount)}</span></div>
       <div class="o-rows">
@@ -182,7 +183,7 @@ function render(){
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
         <button onclick="copyLink('${oid}',this)">🔗 기사 링크</button>
-        ${afAdmin.role==="owner"?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}
+        ${afAdmin.role==="owner"&&o.payment_method!=='MANUAL_BANK'?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}
         ${afAdmin.role==="owner"&&o.corp_name?`<button onclick="markInvoice('${oid}',this)">🧾 계산서 발행</button>`:''}
       </div>`}
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
