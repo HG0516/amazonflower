@@ -2711,12 +2711,14 @@ function renderDone(data,o){
       ${memberCard}
       ${surveyCard}
       <div class="share-row">
+        <a class="btn btn-ghost" href="/order-lookup.html?o=${orderId}">주문 조회</a>
         <button class="btn btn-ghost" onclick="shareSite()">친구에게 알리기</button>
       </div>
       ${sameFlowerBtn}
       <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft);font-size:var(--fs-caption);color:var(--ink-faint);line-height:1.7;">
-        문의 · 031-314-3003 · 사장님께 직접 연락하실 수 있습니다.
+        문의 · 031-314-3003 · 사장님께 직접 연락하실 수 있습니다.<br>
+        나중에 다시 보시려면 하단 <b>내 주문</b>에서 주문번호와 연락처 뒷 4자리를 넣으시면 됩니다.
       </div>
     </section>`;
 }

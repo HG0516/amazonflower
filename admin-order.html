@@ -152,8 +152,8 @@ async function upload(){
     if (!out.r.ok) throw new Error(out.data.error || "업로드 실패");
     const data = out.data;
     if(data.notice&&data.notice.status!=="sent"&&data.manualLink){
-      try{ await navigator.clipboard.writeText(data.manualLink); showMsg("ok", "✅ 사진을 저장했고 고객용 링크를 복사했어요. 주문자에게 카카오톡으로 보내주세요."); }
-      catch(_e){ prompt("이 고객용 링크를 복사해 주문자에게 보내세요:",data.manualLink); showMsg("ok", "✅ 사진을 저장했어요. 열린 링크를 주문자에게 보내주세요."); }
+      try{ await navigator.clipboard.writeText(data.manualLink); showMsg("ok", "✅ 사진을 저장했고 고객용 링크를 복사했어요. 주문자에게 문자나 카카오톡으로 보내주세요."); }
+      catch(_e){ prompt("이 링크를 복사해 주문자에게 문자나 카카오톡으로 보내세요:",data.manualLink); showMsg("ok", "✅ 사진을 저장했어요. 열린 링크를 주문자에게 보내주세요."); }
     }else{
       showMsg("ok", "✅ 완료 사진을 보냈어요! 고객 '내 주문'에 바로 떠요.");
     }

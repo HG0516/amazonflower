@@ -164,7 +164,7 @@ async function sendCustomerNotice({ order, guestToken, oid, path, supabaseUrl, s
   if (!stateSaved) await sendTelegram(`⚠️ 배송사진 알림 상태 저장 실패 — 주문 ${oid}`).catch(() => {});
   if (result.reason === "manual_mode" && link) {
     await sendTelegram(
-      `📷 배송완료 사진 고객 전달 필요 — 주문 ${oid}\n고객에게 아래 링크를 카카오톡으로 보내주세요.\n${link}`,
+      `📷 배송완료 사진 고객 전달 필요 — 주문 ${oid}\n고객에게 아래 링크를 문자나 카카오톡으로 보내주세요.\n${link}`,
     ).catch(() => {});
   }
   if (!result.sent && result.noticeStatus !== "skipped") {

@@ -5,5 +5,7 @@ Disallow: /admin.html
 Disallow: /admin-order
 Disallow: /admin-order.html
 Disallow: /api/
+Disallow: /order-lookup.html
+Disallow: /delivery-photo.html
 
 Sitemap: https://floweranbu.co.kr/sitemap.xml

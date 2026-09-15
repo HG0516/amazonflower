@@ -40,11 +40,15 @@
   }
   function isCatalog() { return location.pathname === '/catalog.html'; }
 
-  // '내 주문' — 로그인 여부는 afOpenAuth가 판단(회원=계정시트, 비회원=로그인시트).
-  // auth.js 없는 페이지(웨딩 등)는 홈으로 보내 주문 시트를 열게 한다.
+  // '내 주문' — 로그인한 회원은 계정 시트(주문 목록), 비회원은 주문 조회 페이지로.
+  // 예전엔 비회원에게도 로그인 시트를 띄웠는데, 화환 주문의 대다수가 비회원이라
+  // 가입을 요구받고 막히는 자리였다(주문번호+연락처 뒷4자리면 볼 수 있다).
   function goMyOrders() {
-    if (typeof window.afOpenAuth === 'function') window.afOpenAuth();
-    else location.href = '/?reorder=1';
+    if (window.afAuth && window.afAuth.user && typeof window.afOpenAuth === 'function') {
+      window.afOpenAuth();
+      return;
+    }
+    location.href = '/order-lookup.html';
   }
 
   function tab(active, href, ico, label) {

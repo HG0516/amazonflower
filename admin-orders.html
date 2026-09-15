@@ -337,8 +337,8 @@ async function resendPhoto(orderId, btn){
     if(d.notice&&d.notice.status==="sent"){
       render(); toast("고객에게 사진 링크를 다시 보냈어요 ✓");
     }else if(d.manualLink){
-      try{ await navigator.clipboard.writeText(d.manualLink); render(); toast("문자 설정 전이라 고객용 링크를 복사했어요. 주문자에게 카카오톡으로 보내주세요.","err"); }
-      catch(_e){ prompt("이 고객용 링크를 복사해 주문자에게 보내세요:",d.manualLink); render(); }
+      try{ await navigator.clipboard.writeText(d.manualLink); render(); toast("고객용 링크를 복사했어요. 주문자에게 문자나 카카오톡으로 보내주세요.","err"); }
+      catch(_e){ prompt("이 링크를 복사해 주문자에게 문자나 카카오톡으로 보내세요:",d.manualLink); render(); }
     }else{
       render(); toast("사진은 유지됐지만 문자를 보내지 못했어요.","err");
     }
