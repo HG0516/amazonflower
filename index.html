@@ -74,9 +74,42 @@
   .version-badge { position: fixed; top: 12px; right: 12px; z-index: 999; background: rgba(31,29,24,0.88); color: #fff; font-size: var(--fs-label); font-weight: 700; text-transform: uppercase; padding: 6px 10px; border-radius: var(--radius-pill); letter-spacing: 0.4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 
   /* ── 헤더: 미니멀 ── */
-  header { text-align: center; padding: 14px 18px 4px; }
-  .brand { font-family: var(--font-display); font-size: 25px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
-  .brand-sub { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; margin-top: 2px; text-transform: uppercase; }
+  header { text-align: center; padding: 14px 0 4px; }
+  .brand { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
+  .brand-sub { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 1.2px; margin-top: 2px; text-transform: uppercase; white-space: nowrap; }
+  /* 헤더 — 브랜드 왼쪽, 대표번호 오른쪽. 스크롤해도 따라온다(전화 주문이 다수인 손님층). */
+  header { position: sticky; top: 0; z-index: 30; background: var(--bg); border-bottom: 1px solid var(--line-soft); text-align: left;
+           margin: 0 -20px; padding-left: 20px; padding-right: 20px; }
+  .hdr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hdr-brand { text-align: left; }
+  .hdr-tel { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; min-height: 48px; justify-content: center; padding: 4px 10px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--paper); text-decoration: none; }
+  .hdr-tel .ht-num { font-family: var(--font-display); font-size: var(--fs-price); font-weight: 800; color: var(--accent-deep); letter-spacing: 0.3px; white-space: nowrap; }
+  .hdr-tel .ht-sub { font-size: var(--fs-label); color: var(--ink-faint); white-space: nowrap; }
+  .hdr-tel:active { transform: scale(.99); }
+  body.ordering header { padding-top: 8px; padding-bottom: 2px; }
+  body.ordering .brand-sub { display: none; }
+  body.ordering .hdr-tel .ht-sub { display: none; }
+  body.ordering .brand { font-size: 18px; }
+  @media (max-width: 380px) {
+    .brand-sub { display: none; }
+    .hdr-tel .ht-num { font-size: 17px; }
+  }
+  /* 첫 화면 약속 3줄 */
+  .promise { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+  .promise li { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); }
+  .promise li b { font-size: var(--fs-body); font-weight: 700; color: var(--accent-deep); word-break: keep-all; }
+  .promise li span { font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; }
+  /* 주문 세 갈래 진입 */
+  .way { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 14px 16px; border-radius: var(--radius); text-decoration: none; border: 1px solid var(--line); background: var(--paper); }
+  .way + .way { margin-top: 10px; }
+  .way .way-ic { font-size: 22px; flex: 0 0 auto; line-height: 1; }
+  .way .way-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .way .way-txt b { font-size: var(--fs-body); font-weight: 800; color: var(--ink); }
+  .way .way-txt span { font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; line-height: 1.5; }
+  .way-tel { border-color: var(--accent); background: var(--accent-soft); }
+  .way-tel .way-txt b { color: var(--accent-deep); font-family: var(--font-display); font-size: var(--fs-h2); }
+  .way-pick { border-color: var(--ink); }
+  .way:active { transform: scale(.995); }
 
   /* ── 가는 구분선 ── */
   .divider { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
@@ -105,13 +138,13 @@
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   /* 상황(용도) 아이콘 행 — "무슨 일로 보내세요?" */
   .occ-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--ink); margin: 4px 0 8px; }
-  .occ-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .occ { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 92px; padding: 10px 2px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); cursor: pointer; user-select: none; transition: border-color var(--dur-fast), transform var(--dur-fast); }
+  .occ-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .occ { display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 108px; padding: 12px 4px 11px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); cursor: pointer; user-select: none; transition: border-color var(--dur-fast), transform var(--dur-fast); }
   .occ:hover { border-color: var(--ink); box-shadow: 0 4px 16px rgba(31,29,24,.08); }
   .occ:active { transform: scale(.96); }
-  .occ .ic { width: 46px; height: 46px; border-radius: var(--radius-pill); overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line); }
+  .occ .ic { width: min(56px, 42%); aspect-ratio: 1; border-radius: var(--radius-pill); overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line); flex: 0 0 auto; }
   .occ .ic img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
-  .occ .ol { font-size: var(--fs-caption); font-weight: 700; color: var(--ink); word-break: keep-all; text-align: center; line-height: 1.2; }
+  .occ .ol { font-size: var(--fs-sub); font-weight: 700; color: var(--ink); word-break: keep-all; text-align: center; line-height: 1.2; }
   /* 주문 모드: 상품을 직접 고른 사람에겐 홈 둘러보기 섹션을 숨겨 집중시킨다(새로고침 시 복원) */
   body.ordering .home-sect { display: none; }
   /* 신뢰 한 줄(marks 축소) */
@@ -152,17 +185,10 @@
   .af-fold-corp { background: var(--accent-soft); border-color: var(--accent); }
   .af-fold-corp > summary { color: var(--accent-deep); }
   /* 이번 주 베스트 — 가로로 자연스럽게 흐르는 슬라이드(마퀴) */
-  .best-slider { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .best-slider::-webkit-scrollbar { display: none; }
-  .best-slider .cat-tile { flex: 0 0 46%; }
-  @media (min-width: 1000px) { .best-slider .cat-tile { flex-basis: 30%; } }
+  /* 가로 자동 흐름(마퀴)을 세로 2열 그리드로 — 스크롤 없이 한눈에 보이게. */
+  .best-slider { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 1000px) { .best-slider { grid-template-columns: repeat(3, 1fr); } }
   /* 좌우 화살표 */
-  .best-wrap { position: relative; }
-  .best-arrow { position: absolute; top: 76px; transform: translateY(-50%); z-index: 3; width: 48px; height: 48px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: rgba(255,255,255,.94); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(31,29,24,.14); display: flex; align-items: center; justify-content: center; padding: 0; }
-  .best-arrow.left { left: -2px; } .best-arrow.right { right: -2px; }
-  .best-arrow:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .best-arrow:active { transform: translateY(-50%) scale(0.94); }
-  @media (min-width: 1000px) { .best-arrow.left { left: -14px; } .best-arrow.right { right: -14px; } }
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color var(--dur-fast), transform var(--dur-fast); user-select: none; }
   .cat-tile:hover { border-color: var(--ink); box-shadow: 0 4px 16px rgba(31,29,24,.08); }
   .cat-tile:active { transform: scale(0.98); }
@@ -452,9 +478,6 @@
   .story { margin-top: 36px; padding: 32px 4px 28px; border-top: 1px solid var(--line); text-align: center; }
   .reviews-sect { margin-top: 36px; padding: 32px 4px 28px; border-top: 1px solid var(--line); text-align: center; }
   /* 자동 넘김 중에는 스냅을 끈다 — 스냅이 걸리면 부드러운 자동 스크롤이 튄다. 손으로 만지면 다시 켬 */
-  .reviews-grid.auto { scroll-snap-type: none; }
-  .reviews-grid::-webkit-scrollbar { display: none; }
-  .reviews-grid { scrollbar-width: none; }
   .story-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
   .story-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 18px; }
   .story-body { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.9; max-width: 460px; margin: 0 auto; text-align: left; padding: 0 4px; }
@@ -464,8 +487,10 @@
   .reviews-label { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
   .reviews-title { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; color: var(--ink); margin-bottom: 8px; }
   .reviews-sub { font-size: var(--fs-caption); color: var(--ink-soft); margin-bottom: 22px; }
-  .reviews-grid { display: flex; gap: 14px; padding: 0 4px 8px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-  .review-card { text-align: left; flex: 0 0 72%; max-width: 280px; scroll-snap-align: start; }
+  /* 세로 나열 — 자동 넘김(마퀴)은 제거했다. 움직이는 요소·숨은 스와이프는 고령 손님에게
+     불리하고(NN/g), 50대 관찰에서도 스와이프 표시를 못 알아본다. */
+  .reviews-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 0 4px 8px; }
+  .review-card { text-align: left; }
   .review-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: center 42%; display: block; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
   .review-cap { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.5; margin-top: 8px; }
 
@@ -507,12 +532,13 @@
       padding: 0 28px 30px;
       min-height: 100vh;
     }
-    header { padding-top: 24px; }
+    header { padding-top: 24px; margin: 0 -28px; padding-left: 28px; padding-right: 28px; }
     .hero .lede { line-height: 1.6; }
     .hero-photo { height: 400px; }
     /* 데스크톱에서 height 고정을 주면 aspect-ratio(3/4)와 충돌해 너비가 좁아지고 카드 오른쪽에
        흰 공백이 생긴다 → aspect-ratio 그대로 두어 모바일·데스크톱 동일하게 꽉 차게. */
     .cat-grid .cat-photo { height: auto; }
+    .reviews-grid { grid-template-columns: repeat(3, 1fr); }
   }
 </style>
 </head>
@@ -520,38 +546,69 @@
 <div class="wrap">
 
   <header>
-    <div class="brand">꽃안부</div>
-    <div class="brand-sub">안부는, 꽃으로 · SINCE 1993</div>
+    <div class="hdr-row">
+      <div class="hdr-brand">
+        <div class="brand">꽃안부</div>
+        <div class="brand-sub">안부는, 꽃으로 · SINCE 1993</div>
+      </div>
+      <!-- 전화 주문이 다수인 손님층 — 대표번호를 첫 화면 고정 위치에 둔다(벤치마크 9곳 중 8곳).
+           예전엔 자동주문 박스 안·푸터·하단네비로 흩어져 있어 고령 손님이 찾기 어려웠다. -->
+      <a class="hdr-tel" href="tel:031-314-3003">
+        <span class="ht-num">031-314-3003</span>
+        <span class="ht-sub" id="hdrTelHours">전화 주문 · 상담</span>
+      </a>
+    </div>
   </header>
 
   <!-- 히어로: 대형 실사진 1장(첫 화면 LCP). 오버레이 금지 · 카피는 사진 아래 -->
   <section class="hero home-sect">
     <h1>안부는, 꽃으로</h1>
     <p class="lede">근조도 축하도, 마음을 담아 정성껏 보내드립니다.</p>
+    <!-- 첫 화면 약속 한 줄 — 전화 응대 멘트와 같은 문구를 쓰면 "홈페이지 봤는데요" 통화가 쉬워진다. -->
+    <ul class="promise">
+      <li><b>시흥 한 자리 33년</b><span>1993년부터 같은 사장님</span></li>
+      <li><b>전국 당일 배송</b><span>평일 18시 · 주말 16시까지 주문</span></li>
+      <li><b>도착 사진 문자로</b><span>배송 직후 확인시켜 드립니다</span></li>
+    </ul>
   </section>
 
-  <section class="card hidden" id="catalogBanner" style="position:sticky;top:8px;z-index:10;">
+  <section class="card hidden" id="catalogBanner" style="position:sticky;top:calc(var(--hdr-h, 56px) + 6px);z-index:10;">
     <div class="pick-label">SELECTED</div>
     <div class="pick-name"><span id="catalogPick"></span></div>
   </section>
 
-  <!-- 상황(용도) 진입 — "무슨 일로 보내세요?" 5아이콘 → 해당 카테고리 탭 -->
+  <!-- 상황(용도) 진입 — 사건명 6개. 감정어("멋진 도약" 등)는 고령 손님에게 모호해 쓰지 않는다.
+       예전엔 아래 카테고리 2×2와 같은 곳으로 가는 문이 두 벌이었다 → 카테고리는 전체상품 탭으로 일원화. -->
   <section class="home-sect" style="margin-top:var(--space-sect);">
     <div class="occ-title">무슨 일로 보내세요?</div>
     <div class="occ-row">
       <div class="occ" onclick="goCatalog('condolence')"><div class="ic"><img src="/photos/products/WC-02_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">부고</div></div>
-      <div class="occ" onclick="goCatalog('congrats')"><div class="ic"><img src="/photos/products/WG-04_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">결혼</div></div>
       <div class="occ" onclick="goCatalog('plant')"><div class="ic"><img src="/photos/products/PL-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">개업</div></div>
-      <div class="occ" onclick="goCatalog('orchid')"><div class="ic"><img src="/photos/products/OR-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">승진</div></div>
-      <div class="occ" onclick="goCatalog('basket')"><div class="ic"><img src="/photos/products/BQ-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">생신</div></div>
+      <div class="occ" onclick="goCatalog('orchid')"><div class="ic"><img src="/photos/products/OR-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">승진·취임</div></div>
+      <div class="occ" onclick="goCatalog('congrats')"><div class="ic"><img src="/photos/products/WG-04_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">결혼</div></div>
+      <div class="occ" onclick="goCatalog('basket')"><div class="ic"><img src="/photos/products/BQ-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">생신·회갑</div></div>
+      <div class="occ" onclick="goCatalog('bouquet')"><div class="ic"><img src="/photos/products/BQ-009_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">병문안</div></div>
     </div>
   </section>
 
   <!-- 전화 주문 CTA는 아래 '자동주문' 박스 안내문(전화가 편하시면…)과 하단 네비 전화 버튼으로
        충분 → 독립 박스 제거(첫 화면 전화번호 중복 정리, 2026-07-18). -->
 
-  <section class="card home-sect" id="quickStart" style="margin-top:var(--space-sect);padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
-    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">청첩장·부고 링크로 자동주문</div>
+  <!-- 주문 세 갈래 — 손님 비중 순서(전화 → 골라서 → 링크). 예전엔 '링크 붙여넣기'가 첫 화면
+       주인공이라 고령 손님에겐 낯선 동작이 맨 앞에 있었다. 링크 입력은 접어서 세 번째로 내린다. -->
+  <section class="home-sect" id="startWays" style="margin-top:var(--space-sect);">
+    <a class="way way-tel" href="tel:031-314-3003">
+      <span class="way-ic" aria-hidden="true">📞</span>
+      <span class="way-txt"><b>전화로 주문</b><span>031-314-3003 · 상품부터 리본 문구까지 같이 정해드려요</span></span>
+    </a>
+    <a class="way way-pick" href="/catalog.html">
+      <span class="way-ic" aria-hidden="true">🌷</span>
+      <span class="way-txt"><b>사진 보고 골라서 주문</b><span>전 품목 정찰제 · 회원가입 없이 주문</span></span>
+    </a>
+  </section>
+
+  <section class="card home-sect" id="quickStart" style="margin-top:12px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
+    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">청첩장·부고 링크가 있으면 붙여넣기</div>
     <div style="display:flex;gap:8px;">
       <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;color:var(--ink);">
       <button class="btn" id="parseBtn" onclick="runParse()" style="width:auto;flex:0 0 auto;padding:12px 18px;min-height:48px;">시작</button>
@@ -560,14 +617,12 @@
       <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">붙여넣기</button>
       <span style="font-size:var(--fs-caption);color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
     </div>
-    <a href="tel:031-314-3003" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;padding:12px;min-height:48px;background:#fff;border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent-deep);font-weight:700;font-size:15px;text-decoration:none;">📞 전화로 주문 · 031-314-3003</a>
-    <div class="pay-note" style="text-align:center;margin-top:8px;">전화로 상품을 정하신 뒤 <b>계좌이체(무통장)</b> 또는 <b>문자로 받은 결제 링크</b>(카드·간편결제)로 결제하시면 됩니다</div>
     <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
     <div class="err hidden" id="parseErr"></div>
   </section>
 
   <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
-  <div class="trust-line home-sect"><span class="tl-photo">배송 직후 도착 사진을 문자로 보내드립니다</span><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> — <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전국 당일배송 · 전 품목 정찰제 55,000원~ · 1993년부터 한 자리</span></div>
+  <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> — <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 55,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
 
   <!-- 결제 안내 4칸 — 카드·간편결제 / 계좌이체(무통장, 계좌 명시) / 영수증·계산서 / 전화주문 절차.
        결제수단이 6단계 결제 직전에야 보여 "홈피 보고 전화하는 손님"이 계좌를 못 찾던 문제(2026-09-12). -->
@@ -613,35 +668,13 @@
   <!-- 사장님 추천(1열 가로 슬라이드 유지) -->
   <section class="home-sect" style="margin-top:var(--space-sect);">
     <div class="occ-title">사장님 추천</div>
-    <div class="best-wrap">
-      <button type="button" class="best-arrow left" onclick="bestScroll(-1)" aria-label="이전 상품">‹</button>
-      <div id="bestArea" class="best-slider"></div>
-      <button type="button" class="best-arrow right" onclick="bestScroll(1)" aria-label="다음 상품">›</button>
-    </div>
+    <div id="bestArea" class="best-slider"></div>
   </section>
 
-  <!-- 카테고리 2×2 (5→4 압축, 관엽+난 → 난·식물 병합) -->
+  <!-- 카테고리 2×2 섹션은 제거(2026-09) — 위 '무슨 일로 보내세요?' 6칸과 같은 곳으로 가는
+       문이 두 벌이었다. 전체 둘러보기는 전체상품(catalog) 한 곳으로 일원화. -->
   <section class="home-sect" style="margin-top:var(--space-sect);">
-    <div class="occ-title">천천히 둘러보기</div>
-    <div class="cat-grid">
-      <div class="cat-tile" onclick="goCatalog('basket')">
-        <div class="cat-photo"><img src="/photos/products/BQ-001_1.jpg" alt="꽃다발·바구니" onerror="this.style.display='none'"></div>
-        <div class="cat-body"><div class="cat-name">꽃다발·바구니</div><div class="cat-desc">생일·기념일</div></div>
-      </div>
-      <div class="cat-tile" onclick="goCatalog('plant')">
-        <div class="cat-photo"><img src="/photos/products/PL-001_1.jpg" alt="난·식물" onerror="this.style.display='none'"></div>
-        <div class="cat-body"><div class="cat-name">난 · 식물</div><div class="cat-desc">개업·승진·취임</div></div>
-      </div>
-      <div class="cat-tile wreath" onclick="goCatalog('congrats')">
-        <div class="cat-photo"><img src="/photos/products/WG-04_1.jpg" alt="축하화환" onerror="this.style.display='none'"></div>
-        <div class="cat-body"><div class="cat-name">축하화환</div><div class="cat-desc">결혼·개업</div></div>
-      </div>
-      <div class="cat-tile wreath" onclick="goCatalog('condolence')">
-        <div class="cat-photo"><img src="/photos/products/WC-02_1.jpg" alt="근조화환" onerror="this.style.display='none'"></div>
-        <div class="cat-body"><div class="cat-name">근조화환</div><div class="cat-desc">장례식장 당일</div></div>
-      </div>
-    </div>
-    <a class="catalogue-link" href="/catalog.html" style="margin-top:14px;">전체 상품 · 가격 자세히 보기 →</a>
+    <a class="catalogue-link" href="/catalog.html">전체 상품 · 가격 자세히 보기 →</a>
   </section>
 
   <!-- 신부 부케(웨딩) 전용 섹션 — 축하화환(남에게 보내는 것)과 구분되는, 신부 본인이 쓰는 생화 수제 부케.
@@ -780,29 +813,35 @@
   <section class="card hidden" id="payCard">
     <div class="step-head"><span class="step-num" id="n-pay">6.</span><span class="step-title">결제</span></div>
 
-    <!-- 회원/비회원 선택 — 비회원이 기본, 로그인은 적립·재주문 혜택 -->
-    <div class="member-choice" id="memberChoice">
-      <div class="mc-label">주문 방식</div>
-      <div class="mc-btns">
-        <button type="button" class="mc-btn on" id="mcGuest" onclick="selMember('guest')">
-          <b>비회원으로 주문</b><span>로그인 없이 바로 · 연락처만 정확히</span>
-        </button>
-        <button type="button" class="mc-btn" id="mcMember" onclick="selMember('member')">
-          <b>로그인하고 주문</b><span>1,000원 적립 · 원탭 재주문</span>
-        </button>
+    <!-- 회원/비회원 — 비회원이 기본값이고, 로그인은 접어서 한 줄로 둔다.
+         결제 단계에서 가입을 물으면 이탈한다(Baymard: 포기 사유의 18%가 회원가입 강제). -->
+    <details class="af-fold" id="memberFold" style="margin-bottom:12px;">
+      <summary>비회원으로 주문 중 — 로그인하면 1,000원 적립</summary>
+      <div class="member-choice" id="memberChoice" style="margin-top:0;">
+        <div class="mc-btns">
+          <button type="button" class="mc-btn on" id="mcGuest" onclick="selMember('guest')">
+            <b>비회원으로 주문</b><span>로그인 없이 바로 · 연락처만 정확히</span>
+          </button>
+          <button type="button" class="mc-btn" id="mcMember" onclick="selMember('member')">
+            <b>로그인하고 주문</b><span>1,000원 적립 · 원탭 재주문</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </details>
 
     <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
 
     <!-- 결제 전 주문 확인(경조사 받는곳·날짜·시간 오배송 방지). order에서 읽기 전용 -->
     <div id="payReview"></div>
 
-    <label class="fl">주문 유형</label>
-    <div class="buyer-tabs">
-      <div class="buyer-tab on" id="buyerPersonal" onclick="selBuyer('personal')">개인</div>
-      <div class="buyer-tab" id="buyerCorp" onclick="selBuyer('corp')">법인 · 계산서</div>
-    </div>
+    <!-- 개인이 기본. 법인(계산서)은 필요한 사람만 펼치게 — 개인 손님이 고민할 선택지를 줄인다. -->
+    <details class="af-fold" id="buyerFold" style="margin-bottom:12px;" ontoggle="if(!this.open)selBuyer('personal')">
+      <summary>계산서가 필요하세요? — 법인·단체 주문</summary>
+      <div class="buyer-tabs" style="margin-top:0;">
+        <div class="buyer-tab on" id="buyerPersonal" onclick="selBuyer('personal')">개인</div>
+        <div class="buyer-tab" id="buyerCorp" onclick="selBuyer('corp')">법인 · 계산서</div>
+      </div>
+    </details>
 
     <div class="corp-box hidden" id="corpBox">
       <div class="corp-note">계산서 발행을 위해 사업자 정보를 입력해주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 031-314-3003).</div>
@@ -843,7 +882,7 @@
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">결제수단 고르고 결제하기</button>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제 완료 후 사장님이 주문을 확인하고 준비합니다. 안부가 닿으면 도착 사진을 입력하신 번호로 보내드립니다 — "잘 전했습니다" 보고까지 한 번에 끝나도록.</div>
-    <div class="notice hidden" id="corpNotice">계산서는 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 발행됩니다.</div>
+    <div class="notice hidden" id="corpNotice">생화는 면세 품목이라 <b>세금계산서가 아닌 계산서</b>로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내드려요.</div>
   </section>
 
   <!-- 법인(B2B): 개인 동선엔 접힘 한 줄, 총무팀은 탭 한 번. 주문 모드에선 home-sect로 숨김. 푸터 '법인·단체 주문'이 /#corporate 로 연결 -->
@@ -854,7 +893,8 @@
         거래처 경조사 화환부터 승진·취임 난, 개업 관엽, 명절 일괄 발송까지 —<br>
         회사의 안부를 한 곳에서 정리해드립니다.<br><br>
         · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
-        · 후불 결제 · 세금계산서 발행 — 품의·정산이 깔끔하게<br>
+        · 후불 결제 · <b>계산서 발행</b> — 품의·정산이 깔끔하게<br>
+        &nbsp;&nbsp;<span style="font-size:var(--fs-caption);color:var(--ink-faint);">생화는 면세 품목이라 세금계산서가 아닌 계산서로 발행됩니다(배송비 등 과세분은 별도).</span><br>
         · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
         · 도착 사진 회신 — 보고용 증빙까지 한 번에
       </div>
@@ -1722,47 +1762,15 @@ function renderBest(){
   // 꽃다발·바구니 번갈아 섞어 다양하게, 6개
   const bq=list.filter(p=>p.cat==="bouquet"), bs=list.filter(p=>p.cat==="basket"), mix=[];
   for(let i=0;i<Math.max(bq.length,bs.length) && mix.length<8;i++){ if(bq[i])mix.push(bq[i]); if(bs[i]&&mix.length<8)mix.push(bs[i]); }
-  el.innerHTML=mix.slice(0,8).map(p=>`
+  // 이름 → 가격 순으로 읽게(가격이 앞서면 이름이 묻힌다). 6개 세로 2열.
+  el.innerHTML=mix.slice(0,6).map(p=>`
     <div class="cat-tile" onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'">
       <div class="cat-photo"><img src="${p.photos[0]||''}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'"></div>
       <div class="cat-name">${escapeHtml(p.name)}</div>
-      <div class="cat-desc">${p.price.toLocaleString()}원 · ${escapeHtml(p.subtitle||p.sub)}</div>
+      <div class="cat-desc">${escapeHtml(p.subtitle||p.sub)} · ${p.price.toLocaleString()}원</div>
     </div>`).join("");
-  autoSlideBest(el);
 }
-// 베스트 슬라이드 — 가로로 자연스럽게 계속 흐름(마퀴). 손으로 만지면 잠깐 멈췄다 이어감.
-function autoSlideBest(el){
-  if(!el || el.children.length<2 || el._auto) return;
-  // 어지럼·저시력 배려: 모션 최소화를 선호하면 자동 흐름 없이 정지 표시
-  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  el._auto=true;
-  el.innerHTML += el.innerHTML;   // 끊김 없는 무한 순환 위해 카드 2배 복제
-  let paused=false, pauseTimer=null;
-  const pause=()=>{ paused=true; clearTimeout(pauseTimer); pauseTimer=setTimeout(()=>{paused=false;}, 3500); };
-  el._pauseAuto=pause;   // 화살표 클릭 시 자동 흐름 잠깐 멈추게
-  el.addEventListener("pointerdown", pause);
-  el.addEventListener("touchstart", pause, {passive:true});
-  el.addEventListener("wheel", pause, {passive:true});
-  const SPEED=0.4;               // 프레임당 px — 은은하게 흐르는 속도
-  function tick(){
-    if(!paused && !document.hidden && el.scrollWidth>el.clientWidth){
-      el.scrollLeft += SPEED;
-      const half=el.scrollWidth/2;
-      if(el.scrollLeft>=half) el.scrollLeft-=half;   // 원본 세트 지나면 되감아 순환
-    }
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-// 사장님 추천 좌우 화살표 — 한 카드씩 스크롤(자동 흐름은 잠깐 멈춤)
-function bestScroll(dir){
-  var el=document.getElementById("bestArea"); if(!el) return;
-  if(el._pauseAuto) el._pauseAuto();
-  var card=el.querySelector(".cat-tile");
-  var amt=card ? Math.round(card.getBoundingClientRect().width)+12 : Math.round(el.clientWidth*0.8);
-  el.scrollBy({left: dir*amt, behavior:"smooth"});
-}
+// 사장님 추천은 세로 2열 그리드(2026-09). 가로 자동 흐름(마퀴)과 좌우 화살표는 제거했다.
 
 function goCat(cat, label){
   window.__presetCat = cat;
@@ -2627,6 +2635,16 @@ function renderDone(data,o){
   const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
       ${[["1","주문 접수",1],["2","사장님 제작",0],["3","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
     </div>`;
+  // 영수증은 완료 화면에서 가장 찾기 쉬운 자리에 둔다(예전엔 맨 아래 버튼 하나였다).
+  // 카드 결제는 매출전표, 계좌이체는 현금영수증이 토스에서 함께 내려온다.
+  const cashUrl = p.cashReceipt && p.cashReceipt.receiptUrl;
+  const receiptRow = (p.receiptUrl || cashUrl) ? `<div style="display:flex;gap:8px;margin-top:10px;">
+        ${p.receiptUrl?`<a class="btn btn-ghost" style="flex:1;margin:0;" href="${p.receiptUrl}" target="_blank" rel="noopener">영수증 보기</a>`:""}
+        ${cashUrl?`<a class="btn btn-ghost" style="flex:1;margin:0;" href="${cashUrl}" target="_blank" rel="noopener">현금영수증</a>`:""}
+      </div>` : "";
+  // 문자를 보냈다는 사실 자체가 안심 장치다(완료 화면을 닫아도 남는 기록).
+  const _sphone = String(o.senderPhone||"").replace(/[^0-9]/g,"");
+  const smsNote = _sphone ? `<div style="margin-top:10px;font-size:var(--fs-caption);color:var(--ink-soft);text-align:left;line-height:1.7;">주문 내용을 <b style="color:var(--ink);">${escapeHtml(_sphone.slice(0,3))}-****-${escapeHtml(_sphone.slice(-4))}</b> 로 문자 보내드렸어요. 도착 사진도 이 번호로 갑니다.</div>` : "";
   document.querySelector(".wrap").innerHTML=`
     <section class="card" style="text-align:center;">
       <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
@@ -2643,9 +2661,11 @@ function renderDone(data,o){
         ${o.date?`<div>일시: ${escapeHtml(o.date)} ${escapeHtml(o.time||"")}</div>`:""}
       </div>
       <div style="margin-top:12px;background:#fff;border:1px dashed var(--accent);border-radius: var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
-        <div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">주문번호</div><div style="font-size:16px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
+        <div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">주문번호 — 문의하실 때 이 번호를 알려주세요</div><div style="font-size:19px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
         <button onclick="try{navigator.clipboard.writeText('${orderId}');this.textContent='복사됨 ✓';}catch(e){}" style="min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;font-size:14px;cursor:pointer;white-space:nowrap;">복사</button>
       </div>
+      ${smsNote}
+      ${receiptRow}
       ${o.senderNote?`
       <div style="background:transparent;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;color:var(--ink-soft);">
         <div style="font-size:var(--fs-caption);letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">사장님께 전달된 부탁</div>
@@ -2661,7 +2681,6 @@ function renderDone(data,o){
       ${surveyCard}
       <div class="share-row">
         <button class="btn btn-ghost" onclick="shareSite()">친구에게 알리기</button>
-        ${p.receiptUrl?`<a class="btn btn-ghost" href="${p.receiptUrl}" target="_blank">영수증</a>`:""}
       </div>
       ${sameFlowerBtn}
       <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
@@ -3387,57 +3406,25 @@ document.addEventListener("DOMContentLoaded", function(){
       grid.innerHTML = rows.map(function(v){
         return '<div class="review-card"><img src="'+esc(v.photo_url)+'" alt="'+esc(v.caption||"제작 실사진")+'" loading="lazy" onerror="this.closest(\'.review-card\').style.display=\'none\';"><div class="review-cap">'+esc(v.caption||"")+'</div></div>';
       }).join("");
-      // 사진을 통째로 갈아끼웠으니 복제 표시도 지워야 한다.
-      // (안 지우면 복제를 건너뛰어 루프 기준점이 어긋나고 목록 중간에서 되감긴다)
-      grid.removeAttribute("data-looped");
-      startReviewAuto();   // DB 사진으로 갈아끼운 뒤 다시 자동 넘김 시작
     }).catch(function(){});
 });
 
-// '잘 전했습니다' 사진 자동 넘김.
-// 손으로 넘기는 것도 그대로 되게 기존 가로 스크롤러를 쓰고, 카드를 한 벌 복제해 끝에서 처음으로 티 안 나게 되돌린다.
-// 만지는 동안엔 멈추고(6초 뒤 재개), 다른 탭이면 멈추고, 애니메이션 줄이기 설정이면 아예 안 돈다.
-var reviewRAF = null, reviewResume = null;
-function startReviewAuto(){
-  var grid = document.querySelector(".reviews-grid");
-  if(!grid) return;
-  cancelAnimationFrame(reviewRAF); clearTimeout(reviewResume);
-  grid.classList.remove("auto");
-  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-  var cards = grid.querySelectorAll(".review-card");
-  if(cards.length < 3) return;                      // 두 장 이하면 돌릴 게 없다
-
-  if(!grid.dataset.looped){                          // 무한 루프용 복제(한 번만)
-    grid.insertAdjacentHTML("beforeend", grid.innerHTML);
-    grid.dataset.looped = "1";
+// '잘 전했습니다' 사진은 세로 나열(2026-09). 자동 넘김(마퀴)은 제거 — 움직이는 요소와
+// 숨은 스와이프는 고령 손님에게 불리하다(NN/g 고령 사용자 가이드).
+</script>
+<script>
+// 스티키 헤더 높이를 재서 --hdr-h 로 넘긴다. 아래 sticky 요소(선택상품 배너)가 헤더에
+// 가려지지 않게 하기 위한 것. 주문 모드에선 헤더가 낮아지므로 클래스 변화도 감시한다.
+(function(){
+  function measure(){
+    var h = document.querySelector("header");
+    if(h) document.documentElement.style.setProperty("--hdr-h", Math.round(h.getBoundingClientRect().height) + "px");
   }
-  grid.classList.add("auto");
-  // 딸깍 점프(카드 단위 scrollBy) → 매 프레임 조금씩 흐르는 연속 슬라이드. 천천히(≈24px/초).
-  // scrollLeft가 정수로 반올림돼도 멈추지 않게 float(pos)에 누적해 매 프레임 반영.
-  var SPEED = 0.4;                                   // px/frame
-  var pos = grid.scrollLeft;
-  var half = function(){ return grid.scrollWidth / 2; };
-  var frame = function(){
-    if(!document.hidden){
-      pos += SPEED;
-      if(pos >= half()){ pos -= half(); }            // 복제 지점 → 티 안 나게 되감기
-      grid.scrollLeft = pos;
-    }
-    reviewRAF = requestAnimationFrame(frame);
-  };
-  reviewRAF = requestAnimationFrame(frame);
-
-  var pause = function(){
-    cancelAnimationFrame(reviewRAF); clearTimeout(reviewResume);
-    grid.classList.remove("auto");                   // 손으로 넘길 땐 스냅 복구
-    reviewResume = setTimeout(startReviewAuto, 6000);
-  };
-  ["pointerdown","touchstart","wheel"].forEach(function(ev){
-    grid.addEventListener(ev, pause, { passive: true });
-  });
-}
-document.addEventListener("DOMContentLoaded", startReviewAuto);
+  window.addEventListener("load", measure);
+  window.addEventListener("resize", measure);
+  document.addEventListener("DOMContentLoaded", measure);
+  try{ new MutationObserver(measure).observe(document.body, {attributes:true, attributeFilter:["class"]}); }catch(_e){}
+})();
 </script>
 </body>
 </html>
