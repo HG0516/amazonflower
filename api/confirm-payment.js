@@ -203,6 +203,10 @@ function buildCustomerMessage(order, payment) {
     L.push("");
   }
   L.push(isFuneral ? "정성껏 준비해 시간 맞춰 전해 드리겠습니다." : "배송 후 도착 사진을 이 번호로 보내드립니다.");
+  // 주문 상태·영수증을 손님이 스스로 다시 볼 수 있는 길. 완료 화면을 닫으면
+  // 전화로 물어야 했던 것을 이 링크 한 줄이 대신한다(연락처 뒷 4자리로 본인 확인).
+  const _base = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
+  L.push(`주문 조회: ${_base}/order-lookup.html?o=${encodeURIComponent(payment.orderId || "")}`);
   L.push("문의 031-314-3003");
   return L.join("\n");
 }

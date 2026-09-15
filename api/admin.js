@@ -646,7 +646,26 @@ export default async function handler(req, res) {
         + `\n${oid}`
       );
       await audit("manual", "order", oid, `amount=${amount} paid=${paidNow}`);
-      return res.status(200).json({ ok: true, orderId: oid });
+      // 손님에게 그대로 보낼 수 있는 안내문. 전화 주문은 접수 문자가 나가는 경로가 없어
+      // 손님 입장에선 '주문이 됐는지' 확인할 방법이 없었다. 관리자가 복사해 보내면 된다.
+      const customerNote = [
+        "[꽃안부] 주문이 접수되었습니다.",
+        "",
+        `상품: ${productLabel}`,
+        ...(venue ? [`받는 곳: ${venue}`] : []),
+        ...(eventDate ? [`받는 날: ${eventDate}${row.event_time ? " " + row.event_time : ""}`] : []),
+        `결제금액: ${won(amount)}`,
+        `주문번호: ${oid}`,
+        "",
+        ...(paidNow ? [] : [
+          "입금 계좌: 기업은행 169-165982-04-018 (주)아마존",
+          "입금 확인은 9시~19시에 합니다.",
+          "",
+        ]),
+        `주문 조회: ${ORIGIN}/order-lookup.html?o=${encodeURIComponent(oid)}`,
+        "문의 031-314-3003",
+      ].join("\n");
+      return res.status(200).json({ ok: true, orderId: oid, customerNote });
     }
 
     if (action === "status") {

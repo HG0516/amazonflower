@@ -103,7 +103,7 @@
       <input id="bPaid" type="checkbox" checked style="width:22px;height:22px;margin:0;" /> 입금 확인했어요
     </label>
     <button class="btn" id="bMake">주문 등록</button>
-    <div class="hint" style="margin-top:14px;">등록하면 단톡방에 알림이 가고, 주문 관리에 <b>💵 무통장</b> 표시로 올라와요. 토스 결제가 아니라 '결제취소' 버튼은 안 뜹니다(환불은 계좌로 직접).</div>
+    <div class="hint" style="margin-top:14px;">등록하면 단톡방에 알림이 가고, 주문 관리에 <b>💵 무통장</b> 표시로 올라와요. 토스 결제가 아니라 '결제취소' 버튼은 안 뜹니다(환불은 계좌로 직접).<br><b>등록 직후 손님께 보낼 안내문이 자동으로 복사됩니다</b> — 문자나 카톡에 붙여넣어 보내주세요.</div>
   </div>
 
   <div class="card" id="form">
@@ -240,10 +240,22 @@ $("bMake").addEventListener("click", async function(){
     });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || "등록하지 못했어요.");
-    toast("✅ 등록했어요 — 주문번호 " + d.orderId);
+    // 손님에게 보낼 안내문을 클립보드에 넣어준다. 전화 주문은 접수 문자가 자동으로
+    // 나가는 경로가 없어서, 이걸 문자나 카톡으로 붙여넣어 보내면 된다.
+    if(d.customerNote){
+      try{
+        await navigator.clipboard.writeText(d.customerNote);
+        toast("✅ 등록 완료 — 손님께 보낼 안내문을 복사했어요. 문자나 카톡에 붙여넣으세요.");
+      }catch(_e){
+        prompt("이 안내문을 복사해 손님께 문자나 카톡으로 보내세요:", d.customerNote);
+        toast("✅ 등록했어요 — 주문번호 " + d.orderId);
+      }
+    } else {
+      toast("✅ 등록했어요 — 주문번호 " + d.orderId);
+    }
     ["bProduct","bAmt","bVenue","bRecipient","bDate","bTime","bSender","bSenderPhone","bRibbon","bNote"].forEach(id => { $(id).value = ""; });
     $("bAmtprev").textContent = ""; $("bPaid").checked = true;
-    setTimeout(() => { location.href = "/admin-orders.html"; }, 1400);
+    setTimeout(() => { location.href = "/admin-orders.html"; }, 2600);
   }catch(e){
     toast("❌ " + (e.message || "실패"), true);
   }finally{
