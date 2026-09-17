@@ -169,7 +169,9 @@
   function render(o) {
     var canceled = !!o.canceled_at || o.status === "canceled";
     // 단계: 접수 → 준비중 → 배송·도착 → 도착사진
+    // 사진까지 보냈으면 4단계 모두 완료. completed_at 만 있으면 3단계가 현재.
     var step = canceled ? -1
+      : (o.completed_at && o.has_photo) ? 4
       : o.completed_at ? 3
       : o.ordered_at ? 2
       : 1;
@@ -179,10 +181,10 @@
       ["배송·도착", fmtStamp(o.completed_at)],
       ["도착 사진", o.has_photo ? "보내드렸어요" : ""]
     ];
+    var allDone = step >= 4;
     var tl = steps.map(function (s, i) {
       var n = i + 1;
-      var cls = canceled ? "" : (n < step ? "done" : n === step ? "now" : "");
-      if (!canceled && o.has_photo && n === 4) cls = "done";
+      var cls = canceled ? "" : (n < step || allDone) ? "done" : (n === step ? "now" : "");
       return '<li class="' + cls + '"' + (cls === "now" ? ' aria-current="step"' : "") + '>'
         + esc(s[0]) + (s[1] ? "<small>" + esc(s[1]) + "</small>" : "<small>&nbsp;</small>") + "</li>";
     }).join("");
@@ -196,6 +198,9 @@
     row("리본", esc(o.ribbon || ""));
     row("결제", esc(payLabel(o.payment_method)));
     row("주문자", esc(o.sender_phone_masked || ""));
+    if (!when && !o.venue && !o.recipient_name) {
+      row("안내", '배송 정보가 이 화면에 저장돼 있지 않아요. 자세한 내용은 031-314-3003 으로 확인해주세요.');
+    }
 
     var banner = canceled
       ? '<div class="banner off"><b>취소된 주문이에요.</b><br>환불은 결제하신 수단으로 처리됩니다. 궁금한 점은 031-314-3003 으로 연락 주세요.</div>'

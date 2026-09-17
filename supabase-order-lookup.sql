@@ -11,13 +11,16 @@
 --  · 조회 실패를 세지 않는다(로그인이 아니라 조회라 잠글 대상이 없음). 대신 뒷4자리가
 --    맞아야만 한 건이 나오므로 무차별 대입은 주문번호까지 함께 맞춰야 한다.
 
+-- 반환 타입이 바뀌면 create or replace 로는 못 고친다(42P13). 먼저 지우고 다시 만든다.
+drop function if exists public.lookup_order(text, text);
+
 create or replace function public.lookup_order(p_order_id text, p_phone_last4 text)
 returns table (
   order_id            text,
   status              text,
   product_label       text,
   amount              int,
-  event_date          date,
+  event_date          text,
   event_time          text,
   delivery_time_slot  text,
   recipient_name      text,
@@ -25,10 +28,10 @@ returns table (
   ribbon              text,
   payment_method      text,
   receipt_url         text,
-  created_at          timestamptz,
-  ordered_at          timestamptz,
-  completed_at        timestamptz,
-  canceled_at         timestamptz,
+  created_at          text,
+  ordered_at          text,
+  completed_at        text,
+  canceled_at         text,
   has_photo           boolean,
   sender_phone_masked text
 )
@@ -47,31 +50,34 @@ begin
 
   return query
   select
-    o.order_id,
-    o.status,
-    o.product_label,
+    -- 모든 값을 jsonb 경유로 읽어 text 로 낸다. 컬럼이 아직 없거나(payment_method 등)
+    -- 타입이 date/text 로 달라도(event_date) 이 함수가 깨지지 않게 하기 위한 것.
+    j ->> 'order_id'           as order_id,
+    j ->> 'status'             as status,
+    j ->> 'product_label'      as product_label,
     coalesce(o.paid_amount, o.amount) as amount,
-    o.event_date,
-    o.event_time,
-    o.delivery_time_slot,
-    o.recipient_name,
-    o.venue,
-    o.ribbon,
-    o.payment_method,
-    o.receipt_url,
-    o.created_at,
-    o.ordered_at,
-    o.completed_at,
-    o.canceled_at,
-    (o.completed_photo is not null) as has_photo,
+    nullif(j ->> 'event_date', '')         as event_date,
+    nullif(j ->> 'event_time', '')         as event_time,
+    nullif(j ->> 'delivery_time_slot', '') as delivery_time_slot,
+    nullif(j ->> 'recipient_name', '')     as recipient_name,
+    nullif(j ->> 'venue', '')              as venue,
+    nullif(j ->> 'ribbon', '')             as ribbon,
+    nullif(j ->> 'payment_method', '')     as payment_method,
+    nullif(j ->> 'receipt_url', '')        as receipt_url,
+    nullif(j ->> 'created_at', '')         as created_at,
+    nullif(j ->> 'ordered_at', '')         as ordered_at,
+    nullif(j ->> 'completed_at', '')       as completed_at,
+    nullif(j ->> 'canceled_at', '')        as canceled_at,
+    ((j ->> 'completed_photo') is not null) as has_photo,
     -- 본인 확인용으로만 쓰이는 표시값. 원문은 내보내지 않는다.
-    ('***-****-' || right(regexp_replace(coalesce(o.sender_phone, o.orderer_phone, ''), '[^0-9]', '', 'g'), 4)) as sender_phone_masked
+    ('***-****-' || right(regexp_replace(coalesce(j ->> 'sender_phone', j ->> 'orderer_phone', ''), '[^0-9]', '', 'g'), 4)) as sender_phone_masked
   from public.orders o
+  cross join lateral (select to_jsonb(o) as j) t
   where upper(o.order_id) = v_oid
     and (
-      right(regexp_replace(coalesce(o.sender_phone, ''), '[^0-9]', '', 'g'), 4) = v_last4
-      or right(regexp_replace(coalesce(o.orderer_phone, ''), '[^0-9]', '', 'g'), 4) = v_last4
-      or right(regexp_replace(coalesce(o.recipient_phone, ''), '[^0-9]', '', 'g'), 4) = v_last4
+      right(regexp_replace(coalesce(j ->> 'sender_phone', ''), '[^0-9]', '', 'g'), 4) = v_last4
+      or right(regexp_replace(coalesce(j ->> 'orderer_phone', ''), '[^0-9]', '', 'g'), 4) = v_last4
+      or right(regexp_replace(coalesce(j ->> 'recipient_phone', ''), '[^0-9]', '', 'g'), 4) = v_last4
     )
   limit 1;
 end;
