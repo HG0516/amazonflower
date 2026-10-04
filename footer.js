@@ -29,7 +29,20 @@
     bank: '기업은행 169-165982-04-025 예금주 (주)아마존',   // 입금계좌 — 전화·무통장 주문용
     email: '',                    // [필수] 고객문의 이메일 — 정해지면 채우기
     privacyOfficer: '권점숙',     // 개인정보 보호책임자(대표자)
-    insta: 'floweranbu_'          // 인스타 계정(@ 없이) — 푸터 링크
+    insta: 'floweranbu_',         // 인스타 계정(@ 없이) — 푸터 링크
+    // 구매안전서비스 — 토스가 직접 띄우는 가입 확인 화면(99플라워의 KCP 팝업과 같은 방식).
+    // 우리가 그린 그림이 아니라 토스 화면이라 위조할 수 없고, 갱신되면 저절로 바뀐다.
+    // 서비스 등록번호 A08-260928-0001 = 10/1 발급 확인증 PDF 와 같은 건.
+    escrowUrl: 'https://consumer.tosspayments.com/escrow/detail?businessNumber=2348600344&serviceId=A08-260928-0001'
+  };
+
+  // 구매안전서비스 확인 화면을 작은 창으로. 팝업이 막히면 false 를 안 돌려 링크가 새 탭으로 열린다.
+  window.afEscrowPop = function (url) {
+    try {
+      var w = window.open(url, 'af_escrow', 'width=480,height=760,scrollbars=yes,resizable=yes');
+      if (w) { w.focus(); return false; }
+    } catch (_e) {}
+    return true;
   };
 
   function row(label, val) { return val ? '<span class="af-ft-i"><b>' + label + '</b> ' + val + '</span>' : ''; }
@@ -50,7 +63,7 @@
       + '.af-footer .af-ft-insta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;flex-shrink:0;}'
       + '.af-footer .af-ft-insta:active{opacity:.7;}'
       + '.af-footer .af-ft-policy{margin-top:10px;font-size:var(--fs-caption);color:#9e9a8f;}'
-      + '.af-footer .af-ft-escrow{color:#1f4733;font-weight:700;text-decoration:underline;}'
+      + '.af-footer .af-ft-escrow{color:#1f4733;font-weight:700;text-decoration:underline;white-space:nowrap;}'
       + '.af-footer .af-ft-origin{margin-top:10px;font-size:var(--fs-caption);}'
       + '.af-footer .af-ft-origin>summary{color:#1f4733;font-weight:700;cursor:pointer;list-style:revert;}'
       + '.af-footer .af-ft-origin-body{margin-top:8px;overflow-x:auto;}'
@@ -75,8 +88,9 @@
       row('이메일', BIZ.email),
       row('개인정보 보호책임자', BIZ.privacyOfficer),
       // 구매안전서비스(에스크로) 가입 사실 표시 — 전자상거래법 필수.
-      '<span class="af-ft-i"><b>구매안전서비스</b> 토스페이먼츠 가입 '
-        + '<a class="af-ft-escrow" href="/escrow-certificate.pdf" target="_blank" rel="noopener">확인증 보기</a></span>'
+      '<span class="af-ft-i"><b>구매안전서비스</b> 토스페이먼츠 가입 · 계좌이체·가상계좌 '
+        + '<a class="af-ft-escrow" href="' + BIZ.escrowUrl + '" target="_blank" rel="noopener" onclick="return afEscrowPop(this.href)">가입 확인</a>'
+        + ' <a class="af-ft-escrow" href="/escrow-certificate.pdf" target="_blank" rel="noopener">확인증 원본</a></span>'
     ].filter(Boolean).join('');
     var f = document.createElement('footer');
     f.className = 'af-footer';

@@ -167,6 +167,8 @@
   .pg.bank .pg-acct .no small { display: block; font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 600; color: var(--ink-soft); letter-spacing: 0; }
   .pg.bank .pg-acct button { flex: 0 0 auto; min-height: 44px; padding: 8px 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; font-family: var(--font-body); cursor: pointer; white-space: nowrap; }
   .pg.bank .pg-acct button:active { transform: scale(.97); }
+  .pg .pg-escrow-sub { display: block; margin-top: 4px; font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.55; word-break: keep-all; }
+  .pg .pg-escrow-sub a { color: var(--ink-soft); text-decoration: underline; }
   .pg .pg-escrow { display: inline-block; margin-top: 6px; font-size: var(--fs-caption); color: var(--accent-deep); font-weight: 700; text-decoration: underline; word-break: keep-all; }
   .pg .pg-tel { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: var(--accent-deep); font-weight: 800; text-decoration: none; font-size: 15px; white-space: nowrap; }
   .pay-note { font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.6; word-break: keep-all; }
@@ -662,7 +664,8 @@
         <div class="pg-n">4</div>
         <div class="pg-t">영수증 · 계산서</div>
         <div class="pg-d">카드 매출전표는 결제 완료 화면에서, <b>계산서</b>는 주문 시 '법인·계산서'를 고르면 이메일로 발행</div>
-        <a class="pg-escrow" href="/escrow-certificate.pdf" target="_blank" rel="noopener">구매안전서비스 확인증 보기</a>
+        <a class="pg-escrow" href="https://consumer.tosspayments.com/escrow/detail?businessNumber=2348600344&serviceId=A08-260928-0001" target="_blank" rel="noopener" onclick="return window.afEscrowPop ? afEscrowPop(this.href) : true">구매안전서비스 가입 확인</a>
+        <span class="pg-escrow-sub">계좌이체·가상계좌 결제는 토스페이먼츠 구매안전서비스로 보호됩니다 · <a href="/escrow-certificate.pdf" target="_blank" rel="noopener">확인증 원본</a></span>
       </div>
       <div class="pg">
         <div class="pg-n">5</div>
