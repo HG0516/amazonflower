@@ -20,8 +20,24 @@ import {
   publicPayment,
   serviceHeaders,
   upsertPaidOrder,
-  verifyDonePayment,
+  buildOrderRow,
 } from "../lib/payment-integrity.mjs";
+import {
+  AWAITING,
+  BANK_TRANSFER,
+  DEPOSIT_HOURS,
+  SHOP_BANK,
+  VA_METHOD,
+  bankTransferEnabled,
+  customerWaitingText,
+  handleDepositWebhook,
+  isWaitingVirtualAccount,
+  ownerWaitingText,
+  sendCustomerText,
+  sendOwnerTelegram,
+  verifyAcceptedPayment,
+  virtualAccountEnabled,
+} from "../lib/deposit-orders.mjs";
 
 // ── 신규상품(CU-)·토핑 가격 DB 조회 (LIVE_PRICING 킬스위치 뒤) ──
 // static-first: 정적 priceOf/TOPPINGS가 값을 주면 DB를 절대 안 봄(정적 106·legacy 무조회 = 심사 무영향).
@@ -104,6 +120,7 @@ const PRODUCT_LABELS = {
 
 // ── 솔라피 HMAC-SHA256 서명 (Node crypto) ───────────────────────────────
 import crypto from "crypto";
+import { bankName as bankNameOf } from "../lib/banks.mjs";
 
 function buildSolapiAuthHeader(apiKey, apiSecret) {
   const dateTime = new Date().toISOString();
@@ -249,6 +266,22 @@ function missingDelivery(order) {
   return null;
 }
 
+// 가상계좌가 발급만 된(아직 입금 전) 주문의 문자·텔레그램 문구 재료.
+function vaWaitingFacts(order, payment) {
+  const va = payment.virtualAccount || {};
+  const place = [order.venue, order.venueDetail].filter(Boolean).join(" ") || order.address || "";
+  const kstToday = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+  return {
+    orderId: payment.orderId, productLabel: order.productLabel, amount: payment.totalAmount,
+    place, when: [order.date, order.time].filter(Boolean).join(" "),
+    sender: order.senderName || order.ordererName, senderPhone: order.senderPhone || order.ordererPhone,
+    account: [bankNameOf(va.bankCode), va.accountNumber].filter(Boolean).join(" "),
+    dueAt: va.dueDate, method: VA_METHOD,
+    cashReceipt: payment.cashReceipt && payment.cashReceipt.type || "",
+    sameDay: String(order.date || "").slice(0, 10) === kstToday,
+  };
+}
+
 export async function notifyOwners(order, payment, { includeCustomer = true, includeOwners = true } = {}) {
   const apiKey = process.env.SOLAPI_API_KEY;
   const apiSecret = process.env.SOLAPI_API_SECRET;
@@ -266,7 +299,8 @@ export async function notifyOwners(order, payment, { includeCustomer = true, inc
     .map((p) => String(p || "").replace(/[^0-9]/g, ""))
     .filter((p) => /^01[016789]\d{7,8}$/.test(p)))];
 
-  const textBody = buildOwnerMessage(order, payment);
+  const waitingVa = isWaitingVirtualAccount(payment);
+  const textBody = waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment);
 
   const mk = (to, text, subject) => {
     const len = Buffer.byteLength(text, "utf8");
@@ -286,7 +320,9 @@ export async function notifyOwners(order, payment, { includeCustomer = true, inc
   // 거기엔 '어디로 언제 무엇을' 이 없어서, 주문 내용을 나중에 확인할 방법이 없었다.
   const buyerPhone = String(order.senderPhone || order.ordererPhone || "").replace(/[^0-9]/g, "");
   if (includeCustomer && /^01[016789]\d{7,8}$/.test(buyerPhone) && !recipients.some((p) => String(p).replace(/[^0-9]/g, "") === buyerPhone)) {
-    messages.push(mk(buyerPhone, buildCustomerMessage(order, payment), "꽃안부 주문 확인"));
+    messages.push(mk(buyerPhone,
+      waitingVa ? customerWaitingText(vaWaitingFacts(order, payment)) : buildCustomerMessage(order, payment),
+      waitingVa ? "꽃안부 입금 안내" : "꽃안부 주문 확인"));
   }
   if (messages.length === 0) {
     console.warn("주문 알림 수신번호 미설정 → 문자 알림 생략");
@@ -355,10 +391,12 @@ export async function notifyTelegram(order, payment) {
     return { sent: false, reason: "telegram_env_missing" };
   }
   const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
-  const text = tag + buildOwnerMessage(order, payment);
+  const waitingVa = isWaitingVirtualAccount(payment);
+  const text = tag + (waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment));
   // 발주 누락방지: '발주 완료 처리' 버튼. 누르면 status=ordered 가 되어 마감 경고 대상에서 빠진다.
+  // 입금 전 가상계좌는 버튼을 달지 않는다 — 입금 확인 알림(lib/deposit-orders)에 따로 붙는다.
   let reply_markup;
-  const oid = payment.orderId || "";
+  const oid = waitingVa ? "" : (payment.orderId || "");
   const cs = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
   if (oid && cs) {
     const tk = crypto.createHmac("sha256", cs).update("confirm:" + oid).digest("hex").slice(0, 20);
@@ -402,6 +440,28 @@ export async function notifyTelegram(order, payment) {
     return { sent: false, reason: "telegram_exception", uncertain: true };
   } finally {
     clearTimeout(timer);
+  }
+}
+
+async function insertDepositOrderRow(row) {
+  const URL = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!URL || !KEY) return { ok: false };
+  const post = (body) => fetchJsonWithTimeout(`${URL}/rest/v1/orders`, {
+    method: "POST",
+    headers: serviceHeaders(KEY, { "Content-Type": "application/json", Prefer: "return=minimal" }),
+    body: JSON.stringify(body),
+  }, 3000);
+  try {
+    let out = await post(row);
+    if (!out.response.ok && /42703|PGRST204|does not exist|schema cache/i.test(out.text || "")) {
+      const OPTIONAL = ["payment_key", "payment_status", "payment_method", "approved_at", "receipt_url",
+        "va_bank", "va_account", "va_due", "va_secret_hash", "deposited_at"];
+      out = await post(Object.fromEntries(Object.entries(row).filter(([k]) => !OPTIONAL.includes(k))));
+    }
+    if (!out.response.ok) console.error("무통장 주문 저장 실패", out.response.status);
+    return { ok: out.response.ok };
+  } catch {
+    return { ok: false };
   }
 }
 
@@ -454,6 +514,7 @@ const ORDER_TEXT_LIMITS = Object.freeze({
   groomName: 80, brideName: 80,
   venue: 200, venueName: 200, venueDetail: 160, address: 300, venueAddress: 300,
   date: 24, time: 24, timeSlot: 60, eventTime: 24,
+  depositorName: 40, cashReceiptType: 10, cashReceiptNo: 20,
   senderName: 80, senderPhone: 32, ordererName: 80, ordererPhone: 32,
   ribbonLeft: 240, ribbonRight: 240, ribbonText: 480,
   senderNote: 1000, delivReq: 500, entrancePw: 100,
@@ -793,7 +854,7 @@ async function lookupVerifiedPayment(basicAuth, orderId, amount, paymentKey) {
       );
       last = out;
       if (out.response.ok) {
-        const verified = verifyDonePayment(out.data, { orderId, amount, paymentKey });
+        const verified = verifyAcceptedPayment(out.data, { orderId, amount, paymentKey });
         if (verified.ok) return { ok: true, payment: out.data, recovered: true };
         if (/^status_(CANCELED|PARTIAL_CANCELED|ABORTED|EXPIRED)$/.test(verified.reason)) {
           return { ok: false, status: 409, code: "PAYMENT_NOT_DONE", reason: verified.reason };
@@ -818,7 +879,7 @@ async function lookupExistingPayment(basicAuth, orderId, amount) {
     if (!payment || payment.orderId !== orderId || Number(payment.totalAmount) !== Number(amount)) {
       return { ok: false, conflict: true, status: 409 };
     }
-    if (payment.status === "DONE" && payment.paymentKey) {
+    if ((payment.status === "DONE" || (virtualAccountEnabled() && isWaitingVirtualAccount(payment))) && payment.paymentKey) {
       return { ok: true, found: true, payment };
     }
     return { ok: false, terminal: true, status: 409, tossStatus: payment.status || "UNKNOWN" };
@@ -847,7 +908,7 @@ async function confirmOrRecoverPayment(secretKey, paymentKey, orderId, amount) {
   }
 
   if (out.response.ok) {
-    const verified = verifyDonePayment(out.data, { orderId, amount, paymentKey });
+    const verified = verifyAcceptedPayment(out.data, { orderId, amount, paymentKey });
     if (verified.ok) return { ok: true, payment: out.data, recovered: false };
     console.error(`토스 승인 응답 검증 실패: orderId=${orderId} reason=${verified.reason}`);
     return lookupVerifiedPayment(basicAuth, orderId, amount, paymentKey);
@@ -1005,6 +1066,12 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") return res.status(200).end();
+  const query = req.query || {};
+  // 주문서가 결제수단 버튼을 그릴 때 묻는다. Vercel 설정값 하나로 켜고 끈다(코드 배포 없이).
+  if (req.method === "GET" && query.config) {
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled() });
+  }
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST 요청만 지원합니다." });
   }
@@ -1021,7 +1088,70 @@ export default async function handler(req, res) {
     if (typeof body === "string") body = JSON.parse(body || "{}");
     body = body || {};
 
+    // 토스 가상계좌 입금 웹훅(개발자센터에 이 주소 등록: /api/confirm-payment?hook=deposit).
+    // 기능 스위치와 무관하게 처리한다 — 스위치를 끈 뒤에도 이미 발급된 계좌의 입금은 받아야 한다.
+    if (query.hook === "deposit") {
+      const out = await handleDepositWebhook(body, {
+        supabaseUrl: process.env.SUPABASE_URL, serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY, secretKey,
+      });
+      return res.status(out.status).json(out.json);
+    }
+
     const { action, paymentKey, orderId, amount, order } = body;
+
+    // ── 무통장입금(가게 고정 계좌) 주문 ──────────────────────
+    // 토스를 거치지 않는다. 금액·배송정보는 카드 결제와 똑같이 서버가 다시 계산하고,
+    // 입금 대기로 저장한다(발주·마감경고에 안 걸림). 입금 확인은 관리자 화면에서 사람이 한다.
+    if (action === "bank_order") {
+      if (!bankTransferEnabled()) {
+        return res.status(403).json({ error: "무통장입금 주문은 준비 중이에요. 전화(1577-2286)로 주문해 주세요." });
+      }
+      if (amount == null || !order || typeof order !== "object") return res.status(400).json({ error: "주문 정보가 필요합니다." });
+      if (order.customPay) return res.status(400).json({ error: "맞춤 결제 링크는 카드·가상계좌로만 결제할 수 있어요." });
+      // 주문번호는 서버가 새로 만든다 — 손님 쪽 번호를 쓰지 않는다. AFB = 무통장.
+      const ymd = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
+      const oid = `AFB${ymd}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+      const checked = await validateOrderRequest(req, oid, amount, order);
+      if (!checked.ok) return res.status(checked.status || 400).json({ error: checked.error });
+      const info = checked.orderInfo;
+      const depositorName = String(info.depositorName || info.senderName || "").slice(0, 40);
+      const crType = ["소득공제", "지출증빙"].includes(info.cashReceiptType) ? info.cashReceiptType : "";
+      const crNo = String(info.cashReceiptNo || "").replace(/\D/g, "").slice(0, 20);
+      const cashReceipt = crType && crNo ? `${crType} ${crNo}` : "";
+      const dueAt = new Date(Date.now() + DEPOSIT_HOURS * 3600000).toISOString();
+      const fake = { orderId: oid, totalAmount: checked.amount, status: "WAITING_FOR_DEPOSIT", method: "무통장입금" };
+      const base = buildOrderRow(info, fake);
+      const row = Object.fromEntries(Object.entries({
+        ...base,
+        status: AWAITING,
+        payment_method: BANK_TRANSFER,
+        payment_status: "WAITING_FOR_DEPOSIT",
+        approved_at: null,
+        // 사장님이 통장과 맞춰볼 정보를 '요청' 줄에 붙인다(전용 칸 없이도 관리자 목록에 보이게).
+        note: [`[무통장 · 입금자 ${depositorName}${cashReceipt ? ` · 현금영수증 ${cashReceipt}` : ""}]`, base.note].filter(Boolean).join(" "),
+      }).filter(([, v]) => v !== null && v !== undefined));
+      const saved = await insertDepositOrderRow(row);
+      if (!saved.ok) return res.status(503).json({ error: "주문을 저장하지 못했어요. 잠시 후 다시 시도하시거나 전화(1577-2286) 주세요." });
+      const account = `${SHOP_BANK.name} ${SHOP_BANK.account} ${SHOP_BANK.holder}`;
+      const kstToday = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+      const facts = {
+        orderId: oid, productLabel: info.productLabel, amount: checked.amount,
+        place: [info.venue, info.venueDetail].filter(Boolean).join(" ") || info.address || "",
+        when: [info.date, info.time].filter(Boolean).join(" "),
+        sender: info.senderName, senderPhone: info.senderPhone,
+        account, dueAt, method: BANK_TRANSFER, depositorName, cashReceipt,
+        sameDay: String(info.date || "").slice(0, 10) === kstToday,
+      };
+      const [telegram, sms] = await Promise.all([
+        sendOwnerTelegram(ownerWaitingText(facts)),
+        info.senderPhone ? sendCustomerText(info.senderPhone, customerWaitingText(facts), "꽃안부 입금 안내") : Promise.resolve({ sent: false }),
+      ]);
+      return res.status(200).json({
+        ok: true, orderId: oid, amount: checked.amount, dueAt, depositorName,
+        bank: { name: SHOP_BANK.name, account: SHOP_BANK.account, holder: SHOP_BANK.holder },
+        notified: { telegram: !!telegram.sent, sms: !!sms.sent },
+      });
+    }
 
     // ── 0. 결제 전 주문 원본 저장 ─────────────────────────
     // 브라우저 sessionStorage가 사라지거나 승인 직후 함수가 죽어도 이 행으로 주문을 복구한다.

@@ -1211,6 +1211,11 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
     globalThis.fetch = async (input, options = {}) => {
       const url = new URL(String(input));
       const method = String(options.method || "GET").toUpperCase();
+      // 입금 대기 점검(lib/deposit-orders)은 마감 경고와 별개인 조회라 따로 센다.
+      if (url.pathname === "/rest/v1/orders" && method === "GET" && url.searchParams.get("status") === "eq.awaiting_deposit") {
+        assert.equal(url.searchParams.get("cancel_requested_at"), "is.null");
+        return Response.json([]);
+      }
       if (url.pathname === "/rest/v1/orders" && method === "GET") {
         warningQueries++;
         assert.equal(url.searchParams.get("cancel_requested_at"), "is.null");

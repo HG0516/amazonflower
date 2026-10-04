@@ -39,6 +39,12 @@
   .b-canceled{background:#fbecea;color:#9a3b2e;}
   .b-refund{background:#fff0d8;color:#8a5312;}
   .b-bank{background:#fff7e0;color:#7a5a12;margin-right:5px;}
+  .b-va{background:#eaf0f6;color:#355d8a;margin-right:5px;}
+  .b-awaiting_deposit{background:#fff0d8;color:#8a5312;}
+  .b-expired{background:#f0eee8;color:#7a766c;}
+  .o-wait{flex:1 1 100%;padding:10px 12px;border-radius:8px;background:#fff7e5;color:#6f4a08;font-size:13px;font-weight:700;line-height:1.5;}
+  .order.awaiting{border-color:#d29b31;}
+  .order.expired{opacity:.62;}
   .order.canceled{opacity:.62;}
   .order.refund-pending{border-color:#d49a45;background:#fffbf3;box-shadow:0 0 0 1px #f0d8b2;}
   .b-urgent{background:#fbecea;color:#9a3b2e;margin-left:5px;}
@@ -86,14 +92,19 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const won = n => (Number(n)||0).toLocaleString()+"원";
-const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료", canceled:"취소됨" };
+const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료", canceled:"취소됨", awaiting_deposit:"입금 대기", expired:"기한 만료" };
+// 무통장(손님이 주문서에서 고름 · 사장님이 전화로 등록) / 가상계좌
+const isBankOrder = (o) => o && (o.payment_method==="MANUAL_BANK" || o.payment_method==="BANK_TRANSFER" || /^AFB/.test(o.order_id||""));
+const isVaOrder = (o) => o && o.payment_method==="가상계좌";
+// 돈이 아직 안 들어온 주문 — 만들면 안 된다
+const notPaidYet = (o) => o && (o.status==="awaiting_deposit" || o.status==="expired");
 let ORDERS = [];
 let curFilter = "all";
 
 function nowMs(){ return new Date().getTime(); }
 function isRefundPending(o){ return !!(o && o.cancel_requested_at && o.status!=="canceled"); }
 function isUrgent(o){
-  if(isRefundPending(o) || o.status==="delivered" || o.status==="canceled") return false;
+  if(isRefundPending(o) || o.status==="delivered" || o.status==="canceled" || notPaidYet(o)) return false;
   if(!o.event_at) return false;
   const t = new Date(o.event_at).getTime();
   if(isNaN(t)) return false;
@@ -126,7 +137,7 @@ async function load(){
 }
 
 function render(){
-  const undel = ORDERS.filter(o=>!isRefundPending(o) && o.status!=="delivered" && o.status!=="canceled").length;
+  const undel = ORDERS.filter(o=>!isRefundPending(o) && o.status!=="delivered" && o.status!=="canceled" && !notPaidYet(o)).length;
   const urg = ORDERS.filter(isUrgent).length;
   $("summary").style.display = "flex";
   $("summary").innerHTML =
@@ -134,7 +145,8 @@ function render(){
     + `<div class="sumcard"><div class="n">${undel}</div><div class="l">미배송</div></div>`
     + `<div class="sumcard urgent"><div class="n">${urg}</div><div class="l">🔴 임박·지남</div></div>`;
   $("bar").style.display = "flex";
-  const F = [["all","전체"],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["refund","💸 환불중"],["corp","🏢 법인"],["stats","📊 통계"]];
+  const waitN = ORDERS.filter(o=>o.status==="awaiting_deposit").length;
+  const F = [["all","전체"],["awaiting_deposit",`💰 입금대기${waitN?` ${waitN}`:""}`],["new","접수"],["ordered","준비중"],["delivered","배송완료"],["urgent","🔴임박"],["refund","💸 환불중"],["corp","🏢 법인"],["stats","📊 통계"]];
   $("bar").innerHTML = F.map(([k,l])=>`<button class="pill ${curFilter===k?"on":""}" onclick="setFilter('${k}')">${l}</button>`).join("")
     + `<button class="refresh" onclick="load()">↻ 새로고침</button>`;
 
@@ -163,10 +175,10 @@ function render(){
       : o.photo_notice_status === "failed" ? "고객 문자 실패"
       : o.photo_notice_status === "skipped" ? "주문자 번호 없음"
       : o.photo_notice_status === "pending" ? "고객 문자 전송 중" : "";
-    return `<div class="order ${urgent?'urgent':''} ${st==='canceled'?'canceled':''} ${refundPending?'refund-pending':''}">
+    return `<div class="order ${urgent?'urgent':''} ${st==='awaiting_deposit'?'awaiting':''} ${st==='expired'?'expired':''} ${st==='canceled'?'canceled':''} ${refundPending?'refund-pending':''}">
       <div class="o-top">
         <div class="o-name">${esc(o.recipient_name||"(받는분 미상)")} <span class="to">받는 분</span></div>
-        <div>${o.payment_method==='MANUAL_BANK'?'<span class="badge b-bank">💵 무통장</span>':''}<span class="badge b-${st}">${STLABEL[st]||st}</span>${refundPending?'<span class="badge b-refund" style="margin-left:5px;">환불 처리 중</span>':''}${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
+        <div>${isBankOrder(o)?'<span class="badge b-bank">💵 무통장</span>':isVaOrder(o)?'<span class="badge b-va">🏦 가상계좌</span>':''}<span class="badge b-${st}">${STLABEL[st]||st}</span>${refundPending?'<span class="badge b-refund" style="margin-left:5px;">환불 처리 중</span>':''}${urgent?'<span class="badge b-urgent">임박</span>':''}</div>
       </div>
       <div class="o-prod">${esc(o.product_label||o.product_code||"주문")} · <span class="o-amt">${won(o.amount)}</span></div>
       <div class="o-rows">
@@ -178,12 +190,17 @@ function render(){
       </div>
       ${ribbon?`<div class="o-ribbon">🎀 <b>리본</b> · ${esc(ribbon)}</div>`:''}
       ${o.completed_photo&&!refundPending?`<div class="o-photo"><button onclick="viewPhoto('${oid}',this)" style="font-size:12px;color:#1f4733;font-weight:700;background:#e8f0ea;border:1px solid #1f4733;border-radius:7px;padding:6px 11px;cursor:pointer;font-family:inherit;">📷 올린 사진 보기</button>${photoNotice?` <span style="font-size:12px;color:${o.photo_notice_status==='sent'?'#1f4733':'#9a3b2e'};font-weight:700;">${esc(photoNotice)}</span>`:''}${o.photo_notice_status!=='sent'?` <button onclick="resendPhoto('${oid}',this)" style="font-size:12px;border:1px solid var(--line);border-radius:7px;padding:6px 10px;background:#fff;cursor:pointer;">문자 다시 보내기</button>`:''}</div>`:''}
-      ${st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:refundPending?`<div class="o-actions"><div class="o-lock">🔒 환불 결과 확인 전까지 발주·배송·사진 작업을 잠갔어요.</div><button onclick="load()">↻ 환불 상태 확인</button></div>`:`<div class="o-actions">
+      ${st==='awaiting_deposit'
+        ? (isVaOrder(o)
+          ? `<div class="o-actions"><div class="o-wait">🏦 가상계좌 입금 대기 — 아직 만들지 마세요. 입금되면 '입금 확인' 알림과 함께 자동으로 접수돼요.</div></div>`
+          : `<div class="o-actions"><div class="o-wait">💰 무통장 입금 대기 — 아직 만들지 마세요. 통장에 들어온 걸 확인하면 '입금 확인'을 눌러주세요.</div>${afAdmin.role==="owner"?`<button class="on" onclick="depositOrder('${oid}',this)">💰 입금 확인</button><button onclick="voidOrder('${oid}',this)">🗑 주문 취소(입금 전)</button>`:''}</div>`)
+        : st==='expired' ? `<div class="o-actions"><div class="o-wait" style="background:#f0eee8;color:#7a766c;">⌛ 입금 기한이 지나 닫힌 주문이에요. 만들지 않습니다.</div></div>`
+        : st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:refundPending?`<div class="o-actions"><div class="o-lock">🔒 환불 결과 확인 전까지 발주·배송·사진 작업을 잠갔어요.</div><button onclick="load()">↻ 환불 상태 확인</button></div>`:`<div class="o-actions">
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
         <button onclick="copyLink('${oid}',this)">🔗 기사 링크</button>
-        ${afAdmin.role==="owner"&&o.payment_method!=='MANUAL_BANK'?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}
+        ${afAdmin.role==="owner"&&!isBankOrder(o)&&!isVaOrder(o)?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}
         ${afAdmin.role==="owner"&&o.corp_name?`<button onclick="markInvoice('${oid}',this)">🧾 계산서 발행</button>`:''}
       </div>`}
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
@@ -290,6 +307,30 @@ async function setStatus(orderId, status){
   if(o){ o.status=status; if(status==="delivered") o.completed_at=o.completed_at||new Date().toISOString(); }
   render();
   toast(status==="delivered"?"배송완료로 표시했어요 ✓":"준비중으로 표시했어요 ✓");
+}
+
+// 무통장 '입금 확인' — 접수로 넘기고 사장님 단톡에 '발주하세요', 손님에게 입금 확인 문자.
+async function depositOrder(orderId, btn){
+  const o = ORDERS.find(x=>x.order_id===orderId);
+  if(!confirm(`통장에 ${o ? Number(o.paid_amount||o.amount||0).toLocaleString()+"원이" : "입금이"} 들어온 걸 확인하셨나요?\n\n확인하면 접수로 넘어가고 손님에게 입금 확인 문자가 갑니다.`)) return;
+  btn.disabled = true;
+  const data = await api({ action:"deposit", orderId });
+  btn.disabled = false;
+  if(!data) return;
+  if(o) o.status = "new";
+  render();
+  toast("입금 확인했어요 — 접수로 넘겼어요 ✓");
+}
+// 입금 전 주문 닫기 — 돈이 안 들어왔으니 환불할 것이 없다.
+async function voidOrder(orderId, btn){
+  if(!confirm("입금이 안 된 이 주문을 취소할까요?\n\n(입금이 이미 됐다면 취소하지 말고 '입금 확인'을 눌러주세요)")) return;
+  btn.disabled = true;
+  const data = await api({ action:"void", orderId });
+  btn.disabled = false;
+  if(!data) return;
+  const o = ORDERS.find(x=>x.order_id===orderId); if(o) o.status = "canceled";
+  render();
+  toast("주문을 취소했어요");
 }
 
 async function cancelOrder(orderId, btn){

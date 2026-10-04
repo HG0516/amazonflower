@@ -20,6 +20,7 @@ import {
   verifyDonePayment,
 } from "../lib/payment-integrity.mjs";
 import { beginOrderCancellation } from "../lib/order-coordination.mjs";
+import { reconcileDepositOrders } from "../lib/deposit-orders.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -808,6 +809,16 @@ export default async function handler(req, res) {
   if (!SUPABASE_URL || !SERVICE_KEY) return res.status(503).json({ error: "supabase env missing" });
   const sbHeaders = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
 
+  // 입금 대기 주문 점검(가상계좌 웹훅 유실 보정·기한 만료, 무통장 기한 알림).
+  // 마감 경고와 서로 막지 않게 따로 감싼다 — 한쪽 실패가 다른 쪽을 멈추면 안 된다.
+  let deposits = null;
+  try {
+    deposits = await reconcileDepositOrders({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, secretKey: process.env.TOSS_SECRET_KEY });
+  } catch (e) {
+    console.error("deposit reconcile:", e && e.message);
+    deposits = { error: "deposit_reconcile_failed" };
+  }
+
   const now = new Date();
   const until = new Date(now.getTime() + ALERT_WINDOW_HOURS * 3600000);
   const floor = new Date(now.getTime() - GRACE_PAST_HOURS * 3600000);
@@ -923,5 +934,5 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ ok: true, checked: rows.length, alerted });
+  return res.status(200).json({ ok: true, checked: rows.length, alerted, deposits });
 }

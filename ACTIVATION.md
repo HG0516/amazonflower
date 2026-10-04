@@ -24,6 +24,27 @@
 
 ---
 
+## 0-2. 무통장입금·가상계좌 (2026-10-04 코드 배포, 스위치는 꺼진 채)
+
+**0번(1차 안전 묶음 SQL)이 먼저다.** 그게 없으면 관리자 주문 목록부터 안 열린다.
+
+1. Supabase SQL Editor 에서 **`supabase-deposit-orders.sql`** 전체 실행 → 맨 아래 `deposit_ready=true`
+2. **무통장입금 켜기**: Vercel Production 환경변수 `BANK_TRANSFER_ENABLED=1` → Redeploy
+   - 주문서 결제 단계에 '무통장입금'이 나타난다. 주문은 '입금 대기'로 들어오고, 사장님이
+     통장 확인 후 주문 관리에서 **💰 입금 확인**을 누르면 접수로 넘어간다.
+   - 24시간 지나도 입금 확인이 안 되면 사장님 텔레그램에 한 번 알림(자동으로 닫지 않음).
+3. **가상계좌 켜기** — 순서 중요:
+   1. 토스 개발자센터 → 웹훅 → **라이브 상점(MID)** 선택 → 추가
+      URL `https://floweranbu.co.kr/api/confirm-payment?hook=deposit`, 이벤트 **DEPOSIT_CALLBACK** 만
+   2. (권장) 테스트 상점에서 먼저: Vercel Preview 에 테스트 키 + `VIRTUAL_ACCOUNT_ENABLED=1`,
+      개발자센터 테스트 거래내역의 **입금처리** 버튼으로 웹훅까지 확인
+   3. Vercel Production `VIRTUAL_ACCOUNT_ENABLED=1` → Redeploy
+   4. 라이브 1,000원 맞춤 결제 링크로 가상계좌 발급 → 실제 입금 → '입금 확인' 텔레그램 확인
+      → 환불은 **토스 상점관리자**에서(손님 환불 계좌 필요, 사이트 '결제취소'는 가상계좌를 막아둠)
+4. 끄기: 환경변수를 지우고 Redeploy. 이미 발급된 가상계좌의 입금은 스위치와 무관하게 계속 처리된다.
+
+---
+
 ## 1. 로그인 — Supabase → Authentication → Providers
 각 provider 키는 해당 개발자센터에서 발급 (자세한 절차는 [SETUP-AUTH.md](SETUP-AUTH.md)).
 공통 콜백: `https://ivlfwlbwiijhmwsfljzz.supabase.co/auth/v1/callback`

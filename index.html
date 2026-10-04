@@ -334,6 +334,31 @@
   .addrbook .ab-pick span { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.4; word-break: keep-all; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .addrbook .ab-pick:active { background: var(--accent-soft); border-color: var(--accent); }
   .addrbook .ab-del { flex: 0 0 44px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink-faint); font-size: 20px; cursor: pointer; }
+  /* 결제 방법 */
+  .pay-methods { margin: 4px 0 6px; }
+  .pay-methods .pm-label { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .pay-methods .pm-btns { display: grid; gap: 8px; }
+  .pay-methods .pm-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 60px; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; cursor: pointer; text-align: left; font-family: var(--font-body); }
+  .pay-methods .pm-btn b { font-size: var(--fs-body); color: var(--ink); }
+  .pay-methods .pm-btn span { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.45; word-break: keep-all; }
+  .pay-methods .pm-btn.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .pay-methods .pm-btn.on b { color: var(--accent-deep); }
+  .pay-methods .pm-extra { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fcfbf8; }
+  .pay-methods .pm-extra input[type=text] { width: 100%; font-size: 16px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-family: var(--font-body); color: var(--ink); margin-top: 4px; }
+  .pay-methods .cr-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 15px; margin: 4px 0 6px; }
+  .pay-methods .cr-row label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; min-height: 40px; }
+  .pay-methods .cr-row input { width: 19px; height: 19px; accent-color: var(--accent); }
+  .pay-methods .pm-hint { margin-top: 10px; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
+  /* 입금 안내(완료 화면) */
+  .dep-box { margin-top: 14px; padding: 16px; border: 2px solid var(--accent); border-radius: var(--radius-lg); background: var(--accent-soft); text-align: left; }
+  .dep-box .dep-k { font-size: var(--fs-caption); color: var(--accent-deep); font-weight: 700; }
+  .dep-box .dep-acct { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 12px 14px; background: #fff; border: 1px solid var(--accent); border-radius: var(--radius); }
+  .dep-box .dep-acct .no { font-family: var(--font-display); font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1.35; word-break: break-all; }
+  .dep-box .dep-acct .no small { display: block; font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 600; color: var(--ink-soft); }
+  .dep-box .dep-acct button { flex: 0 0 auto; min-height: 44px; padding: 8px 14px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  .dep-box .dep-rows { margin-top: 10px; display: grid; gap: 4px; font-size: 15px; }
+  .dep-box .dep-rows b { color: var(--ink); }
+  .dep-box .dep-note { margin-top: 10px; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.65; word-break: keep-all; }
   .dt-event { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
   .dt-event label { display: block; font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 7px; }
   .dt-event label span { font-weight: 400; font-size: var(--fs-caption); color: var(--ink-faint); }
@@ -894,7 +919,30 @@
       </div>
     </div>
 
-    <div class="delivery-note" style="text-align:center;">아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b> 중에서 고르실 수 있어요.</div>
+    <!-- 결제 방법 — /api/confirm-payment?config 가 켠 수단만 나타난다(Vercel 설정값 BANK_TRANSFER_ENABLED·VIRTUAL_ACCOUNT_ENABLED).
+         둘 다 꺼져 있으면 이 칸은 숨고 지금처럼 카드 결제창만 열린다. -->
+    <div id="payMethods" class="pay-methods hidden">
+      <div class="pm-label">결제 방법</div>
+      <div class="pm-btns">
+        <button type="button" class="pm-btn on" data-m="card" onclick="afPickMethod('card')"><b>카드 · 간편결제</b><span>신용카드 · 네이버페이 · 카카오페이 · 토스페이</span></button>
+        <button type="button" class="pm-btn hidden" data-m="va" onclick="afPickMethod('va')"><b>가상계좌</b><span>주문마다 입금 계좌가 나와요 · 입금되면 자동으로 확인</span></button>
+        <button type="button" class="pm-btn hidden" data-m="bank" onclick="afPickMethod('bank')"><b>무통장입금</b><span>기업은행 169-165982-04-025 (주)아마존</span></button>
+      </div>
+      <div id="bankExtra" class="pm-extra hidden">
+        <label class="fl" for="depositorName">입금자명 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 보내는 분과 다르면 적어주세요(회사명 등)</span></label>
+        <input type="text" id="depositorName" maxlength="40" placeholder="예) 홍길동 · (주)한빛물산" />
+        <label class="fl">현금영수증</label>
+        <div class="cr-row">
+          <label><input type="radio" name="crType" value="" checked onchange="afCrToggle()"> 안 받음</label>
+          <label><input type="radio" name="crType" value="소득공제" onchange="afCrToggle()"> 개인(휴대폰)</label>
+          <label><input type="radio" name="crType" value="지출증빙" onchange="afCrToggle()"> 사업자</label>
+        </div>
+        <input type="text" id="cashReceiptNo" class="hidden" inputmode="numeric" maxlength="13" placeholder="휴대폰 번호 또는 사업자등록번호" />
+        <div class="pm-hint">입금이 확인되면 문자로 알려드리고 그때부터 만들기 시작해요. 입금 기한은 주문 후 24시간이에요.</div>
+      </div>
+    </div>
+
+    <div class="delivery-note" id="payMethodNote" style="text-align:center;">아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b> 중에서 고르실 수 있어요.</div>
 
     <div class="delivery-note">
       <b>안심 배송 · 보증</b><br>
@@ -2242,6 +2290,39 @@ function afAddrDel(i){
 }
 document.addEventListener("DOMContentLoaded", afAddrRender);
 
+// ── 결제 방법(카드 / 가상계좌 / 무통장) ──
+var afPayMethod = "card";
+var AF_PM_NOTE = {
+  card: '아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b> 중에서 고르실 수 있어요.',
+  va: '아래 버튼을 누르면 <b>토스페이먼츠</b>에서 이 주문 전용 <b>입금 계좌</b>를 만들어 드려요.<br>24시간 안에 입금하시면 자동으로 확인돼요.',
+  bank: '아래 버튼을 누르면 주문이 접수되고 <b>입금하실 계좌</b>가 나와요.<br>입금 확인은 사장님이 통장을 보고 문자로 알려드려요.'
+};
+var AF_PM_BTN = { card: "동의하고 결제하기", va: "동의하고 입금 계좌 받기", bank: "동의하고 주문하기" };
+function afPickMethod(m){
+  afPayMethod = m;
+  document.querySelectorAll("#payMethods .pm-btn").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-m")===m); });
+  var bx=document.getElementById("bankExtra"); if(bx) bx.classList.toggle("hidden", m!=="bank");
+  var nt=document.getElementById("payMethodNote"); if(nt) nt.innerHTML = AF_PM_NOTE[m]||AF_PM_NOTE.card;
+  var pb=document.getElementById("payBtn"); if(pb && !pb.disabled) pb.textContent = AF_PM_BTN[m]||AF_PM_BTN.card;
+  var dn=document.getElementById("depositorName"); if(m==="bank" && dn && !dn.value) dn.value = (document.getElementById("senderName")||{}).value || "";
+}
+function afCrToggle(){
+  var v=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
+  var no=document.getElementById("cashReceiptNo"); if(no) no.classList.toggle("hidden", !v);
+}
+// 서버가 켠 결제수단만 버튼으로 보인다. 실패하면 조용히 카드만(지금과 동일).
+function afLoadPayConfig(){
+  if(afLoadPayConfig._done) return; afLoadPayConfig._done = true;
+  fetch("/api/confirm-payment?config=1",{cache:"no-store"}).then(function(r){ return r.ok?r.json():null; }).then(function(c){
+    if(!c || !(c.virtualAccount || c.bankTransfer)) return;
+    var box=document.getElementById("payMethods"); if(!box) return;
+    box.classList.remove("hidden");
+    if(c.virtualAccount){ var v=box.querySelector('[data-m="va"]'); if(v) v.classList.remove("hidden"); }
+    if(c.bankTransfer){ var b=box.querySelector('[data-m="bank"]'); if(b) b.classList.remove("hidden"); }
+  }).catch(function(){});
+}
+document.addEventListener("DOMContentLoaded", afLoadPayConfig);
+
 // '모두 동의' — 두 필수 체크를 한 번에. 개별로 풀면 '모두 동의'도 풀린다.
 function afAllAgree(on){
   ["privacyAgree","orderAgree"].forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=!!on; });
@@ -2505,6 +2586,28 @@ async function requestPay(){
   const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+_rnd;
   const payAmount=orderTotal();
   const payBtn=document.getElementById("payBtn");
+  const method=afPayMethod;
+  if(method==="bank"){
+    // 무통장입금 — 토스를 거치지 않는다. 서버가 금액·배송정보를 다시 계산하고 입금 대기로 저장한다.
+    const crType=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
+    const crNo=(document.getElementById("cashReceiptNo")||{}).value||"";
+    if(crType && crNo.replace(/\D/g,"").length<10){ return showErr(err,"현금영수증 번호(휴대폰 또는 사업자등록번호)를 적어주세요."); }
+    const bankOrder={...order, depositorName:((document.getElementById("depositorName")||{}).value||order.senderName||"").trim(),
+      cashReceiptType:crType, cashReceiptNo:crNo.replace(/\D/g,"")};
+    if(payBtn){ payBtn.disabled=true; payBtn.textContent="주문을 접수하는 중…"; }
+    try{
+      const r=await fetch("/api/confirm-payment",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({action:"bank_order",amount:payAmount,order:bankOrder})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(d.error||"주문을 접수하지 못했어요. 전화(1577-2286)로 주문해 주세요.");
+      renderDone({ payment:{ orderId:d.orderId, totalAmount:d.amount, status:"WAITING_FOR_DEPOSIT", method:"무통장입금" },
+        deposit:{ kind:"bank", bankName:d.bank.name, account:d.bank.account, holder:d.bank.holder, dueAt:d.dueAt, depositorName:d.depositorName } }, bankOrder);
+    }catch(e){
+      if(payBtn){ payBtn.disabled=false; payBtn.textContent=AF_PM_BTN.bank; }
+      showErr(err,e.message||"주문 접수 중 오류가 발생했습니다.");
+    }
+    return;
+  }
   if(payBtn){ payBtn.disabled=true; payBtn.textContent="주문을 안전하게 저장하는 중…"; }
   try{
     // 결제창을 열기 전에 서버가 금액·배송정보를 검증하고 주문 원본을 보관한다.
@@ -2517,18 +2620,25 @@ async function requestPay(){
     if(!prepRes.ok) throw new Error(prep.error||"주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
     try{ sessionStorage.setItem("af_"+orderId, JSON.stringify(order)); }catch(_){}
     if(payBtn) payBtn.textContent="결제창 여는 중…";
-    await payment.requestPayment({
-      method:"CARD",
+    const common={
       amount:{currency:"KRW",value:payAmount},
       orderId, orderName:order.productLabel||"꽃 주문",
       successUrl:location.origin+"/?payresult=success",
       failUrl:location.origin+"/?payresult=fail",
       customerName:order.senderName,
       customerMobilePhone:order.senderPhone.replace(/[^0-9]/g,""),
-    });
+    };
+    if(method==="va"){
+      // 가상계좌 — 24시간 기한(형구 결정 10/4). 에스크로는 지정하지 않아 손님이 결제창에서 고른다
+      // (전자상거래법은 '고를 수 있게' 요구). 현금영수증은 결제창에서 번호를 받는다.
+      await payment.requestPayment({ ...common, method:"VIRTUAL_ACCOUNT",
+        virtualAccount:{ cashReceipt:{ type: order.buyerType==="corp" ? "지출증빙" : "소득공제" }, validHours:24 } });
+    } else {
+      await payment.requestPayment({ ...common, method:"CARD" });
+    }
   }catch(e){
     console.error(e);
-    if(payBtn){ payBtn.disabled=false; payBtn.textContent="동의하고 결제하기"; }
+    if(payBtn){ payBtn.disabled=false; payBtn.textContent=AF_PM_BTN[method]||"동의하고 결제하기"; }
     showErr(err,e.message||"결제 요청 중 오류가 발생했습니다.");
   }
 }
@@ -2777,8 +2887,26 @@ function renderDone(data,o){
   // 진행 타임라인 + 도착 예정일(급행 경조사 손님의 최대 불안 '언제 도착'을 명확히)
   const _edm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   const etaLine = _edm ? `<div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:11px 14px;margin-top:12px;font-weight:700;color:var(--accent-deep);">${Number(_edm[2])}월 ${Number(_edm[3])}일 ${escapeHtml(o.time||"")} 도착 예정</div>${afEtaCal(o,_edm)}` : "";
+  // 입금 대기(가상계좌·무통장): 입금할 계좌를 맨 위에 크게. 영수증은 입금 뒤에 생긴다.
+  const _va = p.virtualAccount;
+  const dep = data.deposit || (p.status==="WAITING_FOR_DEPOSIT" && _va ? {
+    kind:"va", bankName:_va.bankName, account:_va.accountNumber, holder:"", dueAt:_va.dueDate, depositorName:"" } : null);
+  const _fmtDue = (iso)=>{ const t=Date.parse(iso||""); if(!isFinite(t)) return ""; const d=new Date(t);
+    return (d.getMonth()+1)+"월 "+d.getDate()+"일 "+(d.getHours()<12?"오전 ":"오후 ")+((d.getHours()%12)||12)+"시"+(d.getMinutes()?" "+d.getMinutes()+"분":"")+"까지"; };
+  const _today = (o.date||"").slice(0,10)===afIsoOf(new Date());
+  const depositBox = dep ? `<div class="dep-box">
+      <div class="dep-k">${dep.kind==="va"?"이 주문 전용 입금 계좌":"입금하실 계좌"}</div>
+      <div class="dep-acct"><div class="no">${escapeHtml(dep.bankName||"")} ${escapeHtml(dep.account||"")}${dep.holder?`<small>예금주 ${escapeHtml(dep.holder)}</small>`:""}</div>
+        <button type="button" onclick="try{navigator.clipboard.writeText('${escapeAttr((dep.bankName||"")+" "+(dep.account||""))}');this.textContent='복사됨 ✓';}catch(e){}">계좌 복사</button></div>
+      <div class="dep-rows">
+        <div>금액 <b>${Number(p.totalAmount||0).toLocaleString()}원</b></div>
+        ${dep.depositorName?`<div>입금자명 <b>${escapeHtml(dep.depositorName)}</b></div>`:""}
+        ${dep.dueAt?`<div>기한 <b>${escapeHtml(_fmtDue(dep.dueAt))}</b></div>`:""}
+      </div>
+      <div class="dep-note">${dep.kind==="va"?"이 계좌로 입금하시면 자동으로 확인돼요.":"입금하시면 사장님이 통장을 확인하고 문자로 알려드려요."} 입금이 확인되면 그때부터 만들기 시작합니다.${_today?" <b>오늘 배송은 입금이 늦어지면 어려울 수 있어 전화드릴게요.</b>":""}</div>
+    </div>` : "";
   const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
-      ${[["1","주문 접수",1],["2","사장님 제작",0],["3","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
+      ${[[ "1", dep ? "입금 대기" : "주문 접수",1],["2","사장님 제작",0],["3","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
     </div>`;
   // 영수증은 완료 화면에서 가장 찾기 쉬운 자리에 둔다(예전엔 맨 아래 버튼 하나였다).
   // 카드 결제는 매출전표, 계좌이체는 현금영수증이 토스에서 함께 내려온다.
@@ -2793,8 +2921,9 @@ function renderDone(data,o){
   document.querySelector(".wrap").innerHTML=`
     <section class="card" style="text-align:center;">
       <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
-      <div class="step-title" style="margin:6px 0;">주문이 완료되었습니다</div>
-      <p style="color:var(--ink-soft);margin-bottom:4px;">사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요.</p>
+      <div class="step-title" style="margin:6px 0;">${dep ? "주문이 접수됐어요 — 입금해 주세요" : "주문이 완료되었습니다"}</div>
+      <p style="color:var(--ink-soft);margin-bottom:4px;">${dep ? "아래 계좌로 입금이 확인되면 사장님이 직접 만들어 보냅니다." : "사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요."}</p>
+      ${depositBox}
       ${reconciliationNote}
       ${timelineHtml}
       ${etaLine}

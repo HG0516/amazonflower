@@ -161,13 +161,16 @@
   // 무통장(관리자 등록) 주문은 토스 결제가 아니라 표시를 달리한다.
   function payLabel(m) {
     if (!m) return "";
-    if (m === "MANUAL_BANK") return "계좌이체 · 무통장";
+    if (m === "MANUAL_BANK" || m === "BANK_TRANSFER") return "계좌이체 · 무통장";
     return ({ CARD: "카드", TRANSFER: "계좌이체", VIRTUAL_ACCOUNT: "가상계좌",
               MOBILE_PHONE: "휴대폰", EASY_PAY: "간편결제", 간편결제: "간편결제", 카드: "카드" })[m] || m;
   }
 
   function render(o) {
-    var canceled = !!o.canceled_at || o.status === "canceled";
+    // 기한 만료(입금 안 됨)도 타임라인상으론 닫힌 주문이다.
+    var expired = o.status === "expired";
+    var awaiting = o.status === "awaiting_deposit";
+    var canceled = !!o.canceled_at || o.status === "canceled" || expired;
     // 단계: 접수 → 준비중 → 배송·도착 → 도착사진
     // 사진까지 보냈으면 4단계 모두 완료. completed_at 만 있으면 3단계가 현재.
     var step = canceled ? -1
@@ -176,7 +179,7 @@
       : o.ordered_at ? 2
       : 1;
     var steps = [
-      ["주문 접수", fmtStamp(o.created_at)],
+      [awaiting ? "입금 대기" : "주문 접수", fmtStamp(o.created_at)],
       ["준비 중", fmtStamp(o.ordered_at)],
       ["배송·도착", fmtStamp(o.completed_at)],
       ["도착 사진", o.has_photo ? "보내드렸어요" : ""]
@@ -202,15 +205,23 @@
       row("안내", '배송 정보가 이 화면에 저장돼 있지 않아요. 자세한 내용은 1577-2286 으로 확인해주세요.');
     }
 
-    var banner = canceled
+    // 입금 대기: 가상계좌면 이 주문 전용 계좌, 무통장이면 가게 계좌를 다시 보여준다.
+    var depAcct = o.va_account
+      ? esc((o.va_bank || "") + " " + o.va_account)
+      : "기업은행 169-165982-04-025 (주)아마존";
+    var depDue = o.va_due ? fmtDate(String(o.va_due).slice(0, 10)) + " " + (fmtStamp(o.va_due).split(" ")[1] || "") + "까지 · " : "";
+    var banner = expired
+      ? '<div class="banner off"><b>입금 기한이 지나 주문이 닫혔어요.</b><br>꽃은 준비되지 않았어요. 다시 주문하시거나 1577-2286 으로 연락 주세요.</div>'
+      : awaiting
+      ? '<div class="banner warn"><b>입금을 기다리고 있어요.</b><br>' + depAcct + '<br>' + depDue
+        + (o.va_account ? '입금하시면 자동으로 확인돼요.' : '입금 확인은 9시~19시에 사장님이 합니다.') + '</div>'
+      : canceled
       ? '<div class="banner off"><b>취소된 주문이에요.</b><br>환불은 결제하신 수단으로 처리됩니다. 궁금한 점은 1577-2286 으로 연락 주세요.</div>'
       : o.has_photo
         ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진을 주문하신 번호로 보내드렸어요. 못 받으셨으면 전화 주세요.</div>'
         : o.completed_at
           ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진을 곧 보내드려요.</div>'
-          : o.payment_method === "MANUAL_BANK"
-            ? '<div class="banner warn"><b>입금 확인 후 준비를 시작합니다.</b><br>기업은행 169-165982-04-025 (주)아마존 · 입금 확인은 9시~19시에 합니다.</div>'
-            : '<div class="banner ok"><b>사장님이 확인하고 준비합니다.</b><br>안부가 닿으면 도착 사진을 문자로 보내드려요.</div>';
+          : '<div class="banner ok"><b>사장님이 확인하고 준비합니다.</b><br>안부가 닿으면 도착 사진을 문자로 보내드려요.</div>';
 
     var acts = '<div class="acts">'
       + (o.receipt_url ? '<a href="' + esc(o.receipt_url) + '" target="_blank" rel="noopener">영수증 보기</a>' : "")

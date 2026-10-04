@@ -22,6 +22,7 @@ import {
   verifyCanceledPayment,
 } from "../lib/payment-integrity.mjs";
 import { beginOrderCancellation } from "../lib/order-coordination.mjs";
+import { AWAITING, BANK_TRANSFER, EXPIRED, MANUAL_BANK, VA_METHOD, markDeposited, readOrderRow } from "../lib/deposit-orders.mjs";
 import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
 
 export const config = { runtime: "nodejs" };
@@ -407,6 +408,9 @@ export default async function handler(req, res) {
       if (pay.orderId !== oid || !Number.isInteger(Number(pay.totalAmount)) || Number(pay.totalAmount) <= 0 || !pay.paymentKey) {
         return res.status(409).json({ error: "결제 원장과 주문 정보가 일치하지 않아 자동 환불을 중단했습니다." });
       }
+      if (pay.method === VA_METHOD) {
+        return res.status(409).json({ error: "가상계좌 결제는 손님 환불 계좌가 필요해 토스 상점관리자에서 환불해 주세요(입금 전이면 그냥 두면 기한 지나 자동으로 닫힙니다)." });
+      }
 
       let cancelVerified = verifyCanceledPayment(pay, {
         orderId: oid, amount: Number(pay.totalAmount), paymentKey: pay.paymentKey,
@@ -622,7 +626,7 @@ export default async function handler(req, res) {
       const oid = `AFB${ymd}-${rnd}`; // AFB = bank(무통장). AF(정가)·AFC(맞춤링크)와 구분
       const paidNow = body.paid !== false;
       const row = {
-        order_id: oid, status: "new",
+        order_id: oid, status: paidNow ? "new" : AWAITING,
         product_label: productLabel, amount, paid_amount: amount,
         recipient_name: clean(body.recipientName, 40) || null,
         recipient_phone: String(body.recipientPhone || "").replace(/[^0-9-]/g, "").slice(0, 20) || null,
@@ -635,10 +639,20 @@ export default async function handler(req, res) {
         referral_source: "phone",
         ...(clean(body.corpName, 60) ? { corp_name: clean(body.corpName, 60), corp_regno: String(body.corpRegNo || "").replace(/\D/g, "").slice(0, 10) || null, corp_email: clean(body.corpEmail, 120) || null } : {}),
       };
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(row),
+      const postRow = (b) => fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(b),
       });
-      if (!r.ok) { console.error("manual order fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "주문을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }); }
+      let r = await postRow(row);
+      if (!r.ok) {
+        const t = await r.text().catch(() => "");
+        // 결제 칸(payment_*)이 없는 DB(supabase-first-bundle.sql 미적용)에서도 주문은 남긴다.
+        // 무통장 표시는 주문번호 AFB 로도 알아볼 수 있다.
+        if (/42703|PGRST204|does not exist|schema cache/i.test(t)) {
+          const { payment_method: _m, payment_status: _s, approved_at: _a, ...slim } = row;
+          r = await postRow(slim);
+        }
+        if (!r.ok) { console.error("manual order fail", r.status); return res.status(502).json({ error: "주문을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }); }
+      }
       await notifyChange(
         `📞 전화·무통장 주문 등록 — ${productLabel} ${won(amount)}${paidNow ? "" : " (입금 대기)"}`
         + `\n받는 곳 ${venue}${row.recipient_name ? ` · ${row.recipient_name}` : ""}${eventDate ? `\n행사 ${eventDate}${row.event_time ? " " + row.event_time : ""}` : ""}`
@@ -668,6 +682,39 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, orderId: oid, customerNote });
     }
 
+    if (action === "deposit" || action === "void") {
+      const oid = String(orderId || "").trim();
+      if (!/^[A-Za-z0-9_-]{6,64}$/.test(oid)) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
+      const read = await readOrderRow(SUPABASE_URL, SERVICE_KEY, oid);
+      if (!read.ok) return res.status(503).json({ error: "주문을 확인하지 못했어요. 잠시 후 다시 시도해주세요." });
+      const row = read.row;
+      if (!row) return res.status(404).json({ error: "해당 주문을 찾을 수 없어요." });
+      if (row.status !== AWAITING) return res.status(409).json({ error: "입금 대기 중인 주문이 아니에요." });
+      const isBank = row.payment_method === BANK_TRANSFER || row.payment_method === MANUAL_BANK || /^AFB/.test(oid);
+      if (row.payment_method === VA_METHOD || !isBank) {
+        return res.status(409).json({ error: "가상계좌 주문은 입금되면 자동으로 접수돼요. 취소는 토스 상점관리자에서 하거나 기한이 지나면 자동으로 닫힙니다." });
+      }
+      if (action === "deposit") {
+        const out = await markDeposited(SUPABASE_URL, SERVICE_KEY, row);
+        if (!out.ok) return res.status(503).json({ error: "입금 확인을 저장하지 못했어요. 잠시 후 다시 시도해주세요." });
+        if (!out.matched) return res.status(409).json({ error: "이미 처리된 주문이에요. 새로고침해 주세요." });
+        await audit("deposit", "order", oid, "");
+        return res.status(200).json({ ok: true, notified: out.notified });
+      }
+      // 돈이 들어오지 않은 주문 닫기 — 환불할 것이 없으므로 상태만 바꾼다.
+      const vr = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&status=eq.${AWAITING}`, {
+        method: "PATCH",
+        headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({ status: "canceled" }),
+      });
+      const vrows = vr.ok ? await vr.json().catch(() => []) : [];
+      if (!vr.ok) return res.status(502).json({ error: "주문 취소를 저장하지 못했어요." });
+      if (!Array.isArray(vrows) || !vrows.length) return res.status(409).json({ error: "이미 처리된 주문이에요. 새로고침해 주세요." });
+      await notifyChange(`🗑 입금 전 주문 취소 — 관리 화면\n${row.product_label || "주문"}\n${oid}`);
+      await audit("void", "order", oid, "");
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === "status") {
       if (!orderId || typeof orderId !== "string" || orderId.length > 60) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
       if (!ORDER_STATUS.has(status)) return res.status(400).json({ error: "상태 값이 올바르지 않습니다." });
@@ -677,14 +724,14 @@ export default async function handler(req, res) {
       if (status === "ordered") patch.ordered_at = nowIso;
       if (status === "delivered" && !body.keepCompletedAt) patch.completed_at = nowIso;
       // 취소(환불)된 주문은 상태 변경 불가 — 환불 주문이 활성 주문으로 부활하는 사고 방지
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}&status=neq.canceled&cancel_requested_at=is.null`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}&status=not.in.(canceled,${AWAITING},${EXPIRED})&cancel_requested_at=is.null`, {
         method: "PATCH",
         headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
         body: JSON.stringify(patch),
       });
       if (!r.ok) { console.error("order status fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상태 변경에 실패했습니다." }); }
       const updated = await r.json().catch(() => []);
-      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문이라 상태를 바꿀 수 없어요." });
+      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문이라 상태를 바꿀 수 없어요. 입금 대기 주문이면 '입금 확인'을 먼저 눌러주세요." });
       // 텔레그램 버튼(order-confirm.js)으로 처리하면 방에 회신이 가는데, 관리 화면에서 바꾸면
       // 아무 흔적이 없어 나머지 두 분은 모른다 → 같은 문구로 맞춰준다(중복 발주 방지).
       const o = updated[0] || {};

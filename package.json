@@ -6,7 +6,9 @@
   "scripts": {
     "check-prices": "node scripts/check-prices.js",
     "build-products": "node scripts/build-products.mjs",
-    "test:first-bundle": "node --test test/first-bundle.test.mjs"
+    "test:first-bundle": "node --test test/first-bundle.test.mjs",
+    "test": "node --test test/first-bundle.test.mjs test/deposit-orders.test.mjs",
+    "test:deposit": "node --test test/deposit-orders.test.mjs"
   },
   "dependencies": {
     "korean-lunar-calendar": "^0.4.0",
