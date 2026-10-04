@@ -8,7 +8,7 @@
 //
 // 코드를 바꾸면 VERSION 을 올려야 옛 캐시가 정리됩니다.
 
-const VERSION = 'v1.12.41';
+const VERSION = 'v1.12.42';
 const CACHE = `kkotanbu-${VERSION}`;
 
 // 오프라인 폴백용 최소 앱셸 (하나라도 404면 install 실패하므로 확실한 것만)
@@ -67,7 +67,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 같은 출처 정적자산: stale-while-revalidate
+  // 코드·데이터 파일(js/css/json)은 network-first.
+  // footer.js 에 사업자정보·입금계좌가, products.js 에 가격이 들어 있다.
+  // stale-while-revalidate 로 두면 배포 후 첫 방문에 '옛 계좌'가 그대로 보이고,
+  // 손님이 그 계좌로 입금하면 돈이 엉뚱한 데로 간다(2026-10-04 실제 발생).
+  // 오프라인일 때만 캐시로 떨어진다.
+  if (/\.(js|css|json)$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // 그 외 정적자산(사진·아이콘·폰트): stale-while-revalidate
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req).then((res) => {
