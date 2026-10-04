@@ -21,6 +21,12 @@ import {
 } from "../lib/payment-integrity.mjs";
 import { beginOrderCancellation } from "../lib/order-coordination.mjs";
 import { reconcileDepositOrders } from "../lib/deposit-orders.mjs";
+import { compatFetch } from "../lib/schema-compat.mjs";
+
+// 운영 DB에 아직 없는 orders 칸 때문에 조회가 깨지지 않게(lib/schema-compat.mjs).
+// 이 파일 안의 fetch 는 전부 이걸 거친다. orders 가 아닌 요청은 그대로 통과.
+const fetch = compatFetch;
+
 
 export const config = { runtime: "nodejs" };
 

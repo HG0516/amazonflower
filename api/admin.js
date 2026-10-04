@@ -23,6 +23,12 @@ import {
 } from "../lib/payment-integrity.mjs";
 import { beginOrderCancellation } from "../lib/order-coordination.mjs";
 import { AWAITING, BANK_TRANSFER, EXPIRED, MANUAL_BANK, VA_METHOD, markDeposited, readOrderRow } from "../lib/deposit-orders.mjs";
+import { compatFetch, compatFetchJson } from "../lib/schema-compat.mjs";
+
+// 운영 DB에 아직 없는 orders 칸 때문에 조회가 깨지지 않게(lib/schema-compat.mjs).
+// 이 파일 안의 fetch 는 전부 이걸 거친다. orders 가 아닌 요청은 그대로 통과.
+const fetch = compatFetch;
+
 import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
 
 export const config = { runtime: "nodejs" };
@@ -784,7 +790,7 @@ export default async function handler(req, res) {
       if (!/^[A-Za-z0-9._-]{4,64}$/.test(oid)) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
       let linkOrder = null;
       try {
-        const lr = await fetchJsonWithTimeout(
+        const lr = await compatFetchJson(
           `${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(oid)}&select=status,canceled_at,cancel_requested_at&limit=1`,
           { headers: sb }, 2200,
         );

@@ -4,6 +4,10 @@
 // 보호: 링크에 HMAC 토큰(t)을 담아 위조 차단. webhook 불필요(URL 버튼 방식).
 
 import crypto from "node:crypto";
+import { compatFetch } from "../lib/schema-compat.mjs";
+
+// 운영 DB에 아직 없는 orders 칸 때문에 '발주 완료' 버튼이 깨지지 않게(lib/schema-compat.mjs).
+const fetch = compatFetch;
 
 export const config = { runtime: "nodejs" };
 
