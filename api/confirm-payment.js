@@ -145,6 +145,11 @@ function buildOwnerMessage(order, payment) {
   const addr = order.address || order.venueAddress;
   if (addr) lines.push(`주소: ${addr}`);
   if (order.date) lines.push(`일시: ${order.date}${order.time ? " " + order.time : ""}`);
+  // 발인·예식 시각은 도착 시각과 다르다 — 이 시각 전에 닿아야 한다.
+  if (order.eventTime) {
+    const evLabel = order.type === "funeral" ? "발인" : order.type === "wedding" ? "예식" : "행사";
+    lines.push(`${evLabel} 시간: ${order.eventTime} (이 전에 도착)`);
+  }
   if (order.delivReq) lines.push(`배송요청: ${order.delivReq}`);
   if (order.entrancePw) lines.push(`공동현관: ${order.entrancePw}`);
   const ribbon =
@@ -448,7 +453,7 @@ const ORDER_TEXT_LIMITS = Object.freeze({
   recipientName: 80, recipientPhone: 32, chiefMourner: 120,
   groomName: 80, brideName: 80,
   venue: 200, venueName: 200, venueDetail: 160, address: 300, venueAddress: 300,
-  date: 24, time: 24, timeSlot: 60,
+  date: 24, time: 24, timeSlot: 60, eventTime: 24,
   senderName: 80, senderPhone: 32, ordererName: 80, ordererPhone: 32,
   ribbonLeft: 240, ribbonRight: 240, ribbonText: 480,
   senderNote: 1000, delivReq: 500, entrancePw: 100,
