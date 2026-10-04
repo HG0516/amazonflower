@@ -64,7 +64,7 @@ function screenError(msg, sub){
     <div class="big">⚠️</div>
     <h2>${esc(msg)}</h2>
     <p class="note">${esc(sub||"")}</p>
-    <p class="note">문의: 꽃안부 031-314-3003</p>
+    <p class="note">문의: 꽃안부 1577-2286</p>
   </div>`;
 }
 
@@ -196,7 +196,7 @@ async function handleRedirect(q){
     view.innerHTML = `<div class="card center"><div class="big">⚠️</div>
       <h2>결제 확인 오류</h2>
       <p class="note">${esc(e.message)}</p>
-      <p class="note">결제가 출금됐는데 이 화면이 보이면 꽃안부(031-314-3003)로<br>주문번호 <b>${esc(orderId||"")}</b>를 알려주세요.</p>
+      <p class="note">결제가 출금됐는데 이 화면이 보이면 꽃안부(1577-2286)로<br>주문번호 <b>${esc(orderId||"")}</b>를 알려주세요.</p>
       <button class="btn" onclick="location.reload()">결제 다시 확인</button></div>`;
   }
   return true;
@@ -210,7 +210,7 @@ function renderDone(info){
     <p class="note" style="margin-top:6px;">${esc(info.label)}</p>
     <p class="note">주문번호 ${esc(info.orderId)}</p>
     ${info.manualRecovery
-      ? `<p class="note" style="background:#fff0ef;border:1px solid #c84b45;border-radius:8px;padding:10px;color:#7d211d;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 031-314-3003으로 알려주세요.</p>`
+      ? `<p class="note" style="background:#fff0ef;border:1px solid #c84b45;border-radius:8px;padding:10px;color:#7d211d;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 1577-2286으로 알려주세요.</p>`
       : (info.needsReconciliation ? `<p class="note" style="background:#fff7e5;border:1px solid #d29b31;border-radius:8px;padding:10px;color:#6f4a08;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요.</p>` : "")}
     ${info.receipt ? `<a class="receipt" href="${esc(info.receipt)}" target="_blank" rel="noopener">영수증 보기</a>` : ""}
     <p class="note" style="margin-top:16px;">꽃안부에서 확인 후 준비해 드립니다. 감사합니다 🌸</p>

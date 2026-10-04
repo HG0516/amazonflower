@@ -658,12 +658,12 @@ export default async function handler(req, res) {
         `주문번호: ${oid}`,
         "",
         ...(paidNow ? [] : [
-          "입금 계좌: 기업은행 169-165982-04-018 (주)아마존",
+          "입금 계좌: 기업은행 169-165982-04-025 (주)아마존",
           "입금 확인은 9시~19시에 합니다.",
           "",
         ]),
         `주문 조회: ${ORIGIN}/order-lookup.html?o=${encodeURIComponent(oid)}`,
-        "문의 031-314-3003",
+        "문의 1577-2286",
       ].join("\n");
       return res.status(200).json({ ok: true, orderId: oid, customerNote });
     }
@@ -784,7 +784,7 @@ export default async function handler(req, res) {
       await audit("create_account_link", "corp", "corporate_account_link");
       return res.status(200).json({ ok: true, url: `${ORIGIN}/corp.html?corp=${regno}&t=${tok}` });
     }
-    // 세금계산서 발행완료 표시 → 거래처 대시보드에 '발행완료/대기'로 보임 (invoice_issued 컬럼)
+    // 계산서 발행완료 표시 → 거래처 대시보드에 '발행완료/대기'로 보임 (invoice_issued 컬럼)
     if (body.action === "invoice") {
       const oid = String(body.order_id || "").trim();
       if (!oid || oid.length > 64) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });

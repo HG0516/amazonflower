@@ -307,7 +307,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 거래처: 세금계산서 재발행 요청 → 사장님 텔레그램 알림 (corp.html) ──
+    // ── 거래처: 계산서 재발행 요청 → 사장님 텔레그램 알림 (corp.html) ──
     // 같은 corp 토큰 검증 후, 전화 대신 사장님 단톡방에 요청을 남긴다. DB 변경 없음.
     if (early && early.action === "corpreq") {
       const regno = String(early.regno || "").replace(/\D/g, "");
@@ -325,7 +325,7 @@ export default async function handler(req, res) {
         try {
           await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: tgc, text: `${tag}🧾 세금계산서 재발행 요청\n사업자번호 ${regno}${memo ? `\n메모: ${memo}` : ""}\n(거래처 대시보드에서 요청)`, disable_web_page_preview: true }),
+            body: JSON.stringify({ chat_id: tgc, text: `${tag}🧾 계산서 재발행 요청\n사업자번호 ${regno}${memo ? `\n메모: ${memo}` : ""}\n(거래처 대시보드에서 요청)`, disable_web_page_preview: true }),
           });
         } catch { /* 알림 실패는 무시 */ }
       }

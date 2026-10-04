@@ -613,10 +613,10 @@ function showSpecial(key){
         <div class="snm">${it.nm}</div>
         <div class="sdesc">${it.d}</div>
         <div class="sprice">${it.price}</div>
-        ${it.link?`<a class="scall" href="${it.link}" style="background:var(--accent);">웨딩 부케 자세히 보기</a>`:`<a class="scall" href="tel:031-314-3003">전화 상담</a>`}
+        ${it.link?`<a class="scall" href="${it.link}" style="background:var(--accent);">웨딩 부케 자세히 보기</a>`:`<a class="scall" href="tel:1577-2286">전화 상담</a>`}
       </div>
     </div>`;}).join("")
-  + (head.cta ? `<a class="scall special-cta" href="tel:031-314-3003">전화 상담 · 031-314-3003</a>` : "");
+  + (head.cta ? `<a class="scall special-cta" href="tel:1577-2286">전화 상담 · 1577-2286</a>` : "");
 }
 
 // 웨딩 부케 실제 제작 사진 (웨딩후 보정컷) — 결혼 탭 하단 '웨딩 부케' 섹션
@@ -1153,7 +1153,7 @@ function renderOccProducts(){
     html += `<div class="group-head">${esc(CAT_TITLE[tk])} <span class="group-count">${list.length}</span></div>`;
     html += `<div class="grid">` + list.map(p=>productCard(p)).join("") + `</div>`;
   }
-  if(!any) html += `<div class="grid"><div class="cat-empty">준비된 상품이 없어요. 전화(031-314-3003)로 문의해 주세요.</div></div>`;
+  if(!any) html += `<div class="grid"><div class="cat-empty">준비된 상품이 없어요. 전화(1577-2286)로 문의해 주세요.</div></div>`;
   document.getElementById("catArea").innerHTML = html;
 }
 
@@ -1261,7 +1261,7 @@ function renderWreath(key){
         <div class="wbody">
           <div class="wtier">근조 바구니</div>
           <div class="wprice">70,000원~</div>
-          <a class="worder" href="tel:031-314-3003" style="display:block;text-align:center;text-decoration:none;">전화 상담</a>
+          <a class="worder" href="tel:1577-2286" style="display:block;text-align:center;text-decoration:none;">전화 상담</a>
         </div>
       </div>` : "")
     + `</div>`;
@@ -1381,7 +1381,7 @@ function doSearch(q){
       <div class="uses" style="justify-content:center;margin-top:14px;">
         ${[["condolence","근조화환"],["congrats","축하화환"],["basket","꽃다발·바구니"],["plant","관엽·식물"],["orchid","난"]].map(([k,l])=>`<button class="use-chip" onclick="document.getElementById('searchInput').value='';doSearch('');showCat('${k}')">${l}</button>`).join("")}
       </div>
-      <a class="scall" href="tel:031-314-3003" style="display:inline-block;margin-top:14px;padding:12px 20px;">전화 주문 031-314-3003</a>
+      <a class="scall" href="tel:1577-2286" style="display:inline-block;margin-top:14px;padding:12px 20px;">전화 주문 1577-2286</a>
     </div>`; }
   html+=`</div>`;
   sa.innerHTML=html;

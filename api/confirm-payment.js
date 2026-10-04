@@ -207,7 +207,7 @@ function buildCustomerMessage(order, payment) {
   // 전화로 물어야 했던 것을 이 링크 한 줄이 대신한다(연락처 뒷 4자리로 본인 확인).
   const _base = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
   L.push(`주문 조회: ${_base}/order-lookup.html?o=${encodeURIComponent(payment.orderId || "")}`);
-  L.push("문의 031-314-3003");
+  L.push("문의 1577-2286");
   return L.join("\n");
 }
 

@@ -72,7 +72,7 @@
 <body>
   <div class="topbar">
     <div class="brand">꽃안부 <small>거래처 전용</small></div>
-    <a class="call" href="tel:031-314-3003">전화 031-314-3003</a>
+    <a class="call" href="tel:1577-2286">전화 1577-2286</a>
   </div>
   <div class="wrap">
     <div id="loading" class="state"><div class="em"><span class="spin">🌿</span></div><div>거래처 정보를 불러오는 중…</div></div>
@@ -80,7 +80,7 @@
     <div id="error" class="state hidden"></div>
     <div class="foot">
       꽃안부 · 1993년부터 · 전국 당일배송<br>
-      문의 <a href="tel:031-314-3003">031-314-3003</a>
+      문의 <a href="tel:1577-2286">1577-2286</a>
     </div>
   </div>
 
@@ -114,7 +114,7 @@
     return { ok:r.ok, status:r.status, data:data };
   }
 
-  // 세금계산서 재발행 요청 → 사장님 텔레그램
+  // 계산서 재발행 요청 → 사장님 텔레그램
   window.requestInvoice = async function(btn){
     var old = btn.textContent; btn.disabled = true; btn.textContent = "요청 보내는 중…";
     try {
@@ -136,7 +136,7 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function(){ URL.revokeObjectURL(u); }, 1500);
       btn.textContent = "✓ 받았어요"; btn.disabled = false;
-    } catch(e){ btn.textContent = old; btn.disabled = false; alert("서류를 불러오지 못했어요. 031-314-3003 으로 요청해주세요."); }
+    } catch(e){ btn.textContent = old; btn.disabled = false; alert("서류를 불러오지 못했어요. 1577-2286 으로 요청해주세요."); }
   };
 
   function docsBlock(){
@@ -144,7 +144,7 @@
       ? '<div class="docs">' + SUPPLIER_DOCS.map(function(d){
           return '<button class="doc-btn" onclick="downloadDoc(this,\''+esc(d.doc)+'\',\''+esc(d.label)+'\')">📄 '+esc(d.label)+'</button>';
         }).join("") + '</div>'
-      : '<div class="doc-ph">서류 준비 중 — 사장님이 등록하면 여기서 바로 받으실 수 있어요.<br>급히 필요하시면 <a href="tel:031-314-3003">031-314-3003</a> 로 요청해주세요.</div>';
+      : '<div class="doc-ph">서류 준비 중 — 사장님이 등록하면 여기서 바로 받으실 수 있어요.<br>급히 필요하시면 <a href="tel:1577-2286">1577-2286</a> 로 요청해주세요.</div>';
     return '<div class="card">'
       + '<div class="sect-h2">📎 공급자 서류</div>'
       + '<div class="sect-note">꽃안부(주식회사 아마존)를 <b>거래처로 등록</b>하거나 대금 품의 올릴 때 쓰세요.</div>'
@@ -153,7 +153,7 @@
 
   function invoiceBlock(email){
     return '<div class="card">'
-      + '<div class="sect-h2">🧾 세금계산서</div>'
+      + '<div class="sect-h2">🧾 계산서</div>'
       + '<div class="sect-note">주문 확인 후 영업일 1~2일 내에 '+(email?('<b>'+esc(email)+'</b> 로'):'입력하신 이메일로')+' 발행됩니다.</div>'
       + '<button class="req-btn" onclick="requestInvoice(this)">계산서 재발행 요청하기</button>'
       + '</div>';
@@ -197,14 +197,14 @@
     if(!regno || !token){ showError("링크가 올바르지 않아요", "사장님께 받은 거래처 전용 링크로 다시 들어와 주세요."); return; }
     try {
       var a = await post("corpinfo");
-      if(!a.ok){ showError("열 수 없는 링크예요", (a.data && a.data.error) || "링크가 만료됐거나 유효하지 않습니다. 사장님(031-314-3003)께 문의해주세요."); return; }
+      if(!a.ok){ showError("열 수 없는 링크예요", (a.data && a.data.error) || "링크가 만료됐거나 유효하지 않습니다. 사장님(1577-2286)께 문의해주세요."); return; }
       var acc = a.data.corp || {};
       var prefill = token;
       var o = await post("corporders");
       var orders = (o.ok && o.data && Array.isArray(o.data.orders)) ? o.data.orders : [];
       render(acc, prefill, orders);
     } catch(e){
-      showError("잠시 문제가 생겼어요", "잠시 후 다시 시도하거나 031-314-3003 으로 연락 주세요.");
+      showError("잠시 문제가 생겼어요", "잠시 후 다시 시도하거나 1577-2286 으로 연락 주세요.");
     }
   }
   boot();

@@ -25,8 +25,8 @@
     bizNo: '234-86-00344',        // 사업자등록번호
     mailOrderNo: '제2026-경기시흥-1357호',   // 통신판매업 신고번호
     addr: '경기 시흥시 신천3길 23, 103호',
-    tel: '031-314-3003',
-    bank: '기업은행 169-165982-04-018 (예금주 (주)아마존)',   // 입금계좌 — 전화·무통장 주문용
+    tel: '1577-2286',
+    bank: '기업은행 169-165982-04-025 (예금주 (주)아마존)',   // 입금계좌 — 전화·무통장 주문용
     email: '',                    // [필수] 고객문의 이메일 — 정해지면 채우기
     privacyOfficer: '권점숙',     // 개인정보 보호책임자(대표자)
     insta: 'floweranbu_'          // 인스타 계정(@ 없이) — 푸터 링크
@@ -50,6 +50,7 @@
       + '.af-footer .af-ft-insta svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;flex-shrink:0;}'
       + '.af-footer .af-ft-insta:active{opacity:.7;}'
       + '.af-footer .af-ft-policy{margin-top:10px;font-size:var(--fs-caption);color:#9e9a8f;}'
+      + '.af-footer .af-ft-escrow{color:#1f4733;font-weight:700;text-decoration:underline;}'
       + '.af-footer .af-ft-origin{margin-top:10px;font-size:var(--fs-caption);}'
       + '.af-footer .af-ft-origin>summary{color:#1f4733;font-weight:700;cursor:pointer;list-style:revert;}'
       + '.af-footer .af-ft-origin-body{margin-top:8px;overflow-x:auto;}'
@@ -72,7 +73,10 @@
       row('전화', BIZ.tel),
       row('입금계좌', BIZ.bank),
       row('이메일', BIZ.email),
-      row('개인정보 보호책임자', BIZ.privacyOfficer)
+      row('개인정보 보호책임자', BIZ.privacyOfficer),
+      // 구매안전서비스(에스크로) 가입 사실 표시 — 전자상거래법 필수.
+      '<span class="af-ft-i"><b>구매안전서비스</b> 토스페이먼츠 가입 '
+        + '<a class="af-ft-escrow" href="/escrow-certificate.pdf" target="_blank" rel="noopener">확인증 보기</a></span>'
     ].filter(Boolean).join('');
     var f = document.createElement('footer');
     f.className = 'af-footer';
@@ -81,7 +85,7 @@
       + '<div class="af-ft-name">' + BIZ.company + '</div>'
       + (BIZ.tel ? '<a class="af-ft-tel" href="tel:' + BIZ.tel.replace(/[^0-9]/g, '') + '">전화 주문·문의 ' + BIZ.tel + '</a>' : '')
       + info
-      + '<div class="af-ft-links"><a href="/order-lookup.html">주문 조회</a><a href="/wedding.html">웨딩 부케</a><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="/#corporate">법인·단체 주문</a><a href="sms:0313143003?body=%5B%EB%8F%99%EB%84%A4%EA%BD%83%EC%A7%91%20%ED%8C%8C%ED%8A%B8%EB%84%88%20%EB%AC%B8%EC%9D%98%5D%20%EC%83%81%ED%98%B8%3A%20%2F%20%EC%A7%80%EC%97%AD%3A%20%2F%20%EC%97%B0%EB%9D%BD%EC%B2%98%3A">동네꽃집 파트너</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
+      + '<div class="af-ft-links"><a href="/order-lookup.html">주문 조회</a><a href="/wedding.html">웨딩 부케</a><a href="/terms.html">이용약관</a><a href="/privacy.html">개인정보처리방침</a><a href="/#corporate">법인·단체 주문</a><a href="sms:15772286?body=%5B%EB%8F%99%EB%84%A4%EA%BD%83%EC%A7%91%20%ED%8C%8C%ED%8A%B8%EB%84%88%20%EB%AC%B8%EC%9D%98%5D%20%EC%83%81%ED%98%B8%3A%20%2F%20%EC%A7%80%EC%97%AD%3A%20%2F%20%EC%97%B0%EB%9D%BD%EC%B2%98%3A">동네꽃집 파트너</a><a href="tel:' + (BIZ.tel || '').replace(/[^0-9]/g, '') + '">전화 주문</a></div>'
       // 인스타 — 제작 사진이 쌓여 있는데 지금껏 홈에서 가는 길이 없었다. 전 페이지 푸터에 한 줄.
       + '<a class="af-ft-insta" href="https://instagram.com/' + BIZ.insta + '" target="_blank" rel="noopener">'
       + '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.2" fill="currentColor" stroke="none"/></svg>'
@@ -118,7 +122,7 @@
       + '· 발렌타인데이·화이트데이·어버이날·스승의날 등 특정 기념일에는 주문 폭주로 상품 모양이 다소 달라질 수 있습니다.'
       + '</p></div></details>'
       + '<details class="af-ft-origin"><summary>취소 · 교환 · 환불 안내</summary><div class="af-ft-origin-body"><p>'
-      + '· 주문 취소는 전화(031-314-3003)로 문의해 주시면 친절히 안내해 드립니다.<br>'
+      + '· 주문 취소는 전화(1577-2286)로 문의해 주시면 친절히 안내해 드립니다.<br>'
       + '· 생화 특성상 주문 접수 즉시 제작되어, 제작이 시작된 후에는 취소·환불이 어렵습니다. (제작 전에는 전액 환불 가능)<br>'
       + '· 예약 주문·특수 상품(파란장미·백장미 등 재고가 없어 별도 주문한 상품)은 취소가 불가할 수 있으며 원가·배송비가 발생할 수 있습니다.<br>'
       + '· 상품에 명백한 하자·오배송이 있는 경우 수령 당일 사진과 함께 연락 주시면 재제작 또는 환불해 드립니다.<br>'

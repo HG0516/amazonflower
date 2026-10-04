@@ -167,6 +167,7 @@
   .pg.bank .pg-acct .no small { display: block; font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 600; color: var(--ink-soft); letter-spacing: 0; }
   .pg.bank .pg-acct button { flex: 0 0 auto; min-height: 44px; padding: 8px 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; font-family: var(--font-body); cursor: pointer; white-space: nowrap; }
   .pg.bank .pg-acct button:active { transform: scale(.97); }
+  .pg .pg-escrow { display: inline-block; margin-top: 6px; font-size: var(--fs-caption); color: var(--accent-deep); font-weight: 700; text-decoration: underline; word-break: keep-all; }
   .pg .pg-tel { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: var(--accent-deep); font-weight: 800; text-decoration: none; font-size: 15px; white-space: nowrap; }
   .pay-note { font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.6; word-break: keep-all; }
   .pay-note b { color: var(--accent-deep); font-weight: 600; }
@@ -561,8 +562,8 @@
       </div>
       <!-- 전화 주문이 다수인 손님층 — 대표번호를 첫 화면 고정 위치에 둔다(벤치마크 9곳 중 8곳).
            예전엔 자동주문 박스 안·푸터·하단네비로 흩어져 있어 고령 손님이 찾기 어려웠다. -->
-      <a class="hdr-tel" href="tel:031-314-3003">
-        <span class="ht-num">031-314-3003</span>
+      <a class="hdr-tel" href="tel:1577-2286">
+        <span class="ht-num">1577-2286</span>
         <span class="ht-sub" id="hdrTelHours">전화 주문 · 상담</span>
       </a>
     </div>
@@ -605,9 +606,9 @@
   <!-- 주문 세 갈래 — 손님 비중 순서(전화 → 골라서 → 링크). 예전엔 '링크 붙여넣기'가 첫 화면
        주인공이라 고령 손님에겐 낯선 동작이 맨 앞에 있었다. 링크 입력은 접어서 세 번째로 내린다. -->
   <section class="home-sect" id="startWays" style="margin-top:var(--space-sect);">
-    <a class="way way-tel" href="tel:031-314-3003">
+    <a class="way way-tel" href="tel:1577-2286">
       <span class="way-ic" aria-hidden="true">📞</span>
-      <span class="way-txt"><b>전화로 주문</b><span>031-314-3003 · 상품부터 리본 문구까지 같이 정해드려요</span></span>
+      <span class="way-txt"><b>전화로 주문</b><span>1577-2286 · 상품부터 리본 문구까지 같이 정해드려요</span></span>
     </a>
     <a class="way way-pick" href="/catalog.html">
       <span class="way-ic" aria-hidden="true">🌷</span>
@@ -646,21 +647,22 @@
         <div class="pg-n">2</div>
         <div class="pg-t">전화 주문</div>
         <div class="pg-d">상품·받는 곳을 전화로 정하고, 계좌이체 또는 문자로 받은 결제 링크로</div>
-        <a class="pg-tel" href="tel:031-314-3003">📞 031-314-3003</a>
+        <a class="pg-tel" href="tel:1577-2286">📞 1577-2286</a>
       </div>
       <div class="pg bank">
         <div class="pg-n">3</div>
         <div class="pg-t">계좌이체 · 무통장입금</div>
         <div class="pg-d">입금 후 전화나 문자로 <b>입금자명·받는 곳</b>을 알려주시면 바로 준비합니다</div>
         <div class="pg-acct">
-          <div class="no" id="bankAcct">기업은행 169-165982-04-018<small>예금주 (주)아마존</small></div>
+          <div class="no" id="bankAcct">기업은행 169-165982-04-025<small>예금주 (주)아마존</small></div>
           <button type="button" onclick="copyBankAcct(this)">계좌 복사</button>
         </div>
       </div>
       <div class="pg">
         <div class="pg-n">4</div>
         <div class="pg-t">영수증 · 계산서</div>
-        <div class="pg-d">카드 매출전표는 결제 완료 화면에서, <b>세금계산서</b>는 주문 시 '법인·계산서'를 고르면 이메일로 발행</div>
+        <div class="pg-d">카드 매출전표는 결제 완료 화면에서, <b>계산서</b>는 주문 시 '법인·계산서'를 고르면 이메일로 발행</div>
+        <a class="pg-escrow" href="/escrow-certificate.pdf" target="_blank" rel="noopener">구매안전서비스 확인증 보기</a>
       </div>
       <div class="pg">
         <div class="pg-n">5</div>
@@ -811,7 +813,7 @@
         </div>
         <div class="ribbon-opts" id="ribbonSug" style="display:none;margin-top:10px;"></div>
       </div>
-      <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">리본 문구가 고민되시면 전화 주세요 — 같이 정해드려요. <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">031-314-3003</a></div>
+      <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">리본 문구가 고민되시면 전화 주세요 — 같이 정해드려요. <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">1577-2286</a></div>
     </div>
 
     <label class="fl" style="margin-top:22px;">사장님께 한 줄 부탁 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 게 있으면 적어주세요 (선택)</span></label>
@@ -852,7 +854,7 @@
     </details>
 
     <div class="corp-box hidden" id="corpBox">
-      <div class="corp-note">계산서 발행을 위해 사업자 정보를 입력해주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 031-314-3003).</div>
+      <div class="corp-note">계산서 발행을 위해 사업자 정보를 입력해주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 1577-2286).</div>
       <div class="hidden" id="corpPrefillNote" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;margin:8px 0 2px;">✓ 지난 주문의 사업자 정보를 불러왔어요 — 바뀐 내용이 있으면 수정해주세요.</div>
       <label class="fl">상호 (회사명) <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 회사명을 치면 사업자번호를 찾아드려요</span></label>
       <input type="text" id="corpName" autocomplete="organization" enterkeyhint="next" placeholder="예) (주)KCC · 삼성전자 인사총무팀" oninput="clearErr(this);corpSearchInput(this)" />
@@ -890,7 +892,7 @@
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">결제수단 고르고 결제하기</button>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제 완료 후 사장님이 주문을 확인하고 준비합니다. 안부가 닿으면 도착 사진을 입력하신 번호로 보내드립니다 — "잘 전했습니다" 보고까지 한 번에 끝나도록.</div>
-    <div class="notice hidden" id="corpNotice">생화는 면세 품목이라 <b>세금계산서가 아닌 계산서</b>로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내드려요.</div>
+    <div class="notice hidden" id="corpNotice">생화는 <b>면세 품목</b>이라 계산서로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내드려요.</div>
   </section>
 
   <!-- 법인(B2B): 개인 동선엔 접힘 한 줄, 총무팀은 탭 한 번. 주문 모드에선 home-sect로 숨김. 푸터 '법인·단체 주문'이 /#corporate 로 연결 -->
@@ -902,11 +904,11 @@
         회사의 안부를 한 곳에서 정리해드립니다.<br><br>
         · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
         · 후불 결제 · <b>계산서 발행</b> — 품의·정산이 깔끔하게<br>
-        &nbsp;&nbsp;<span style="font-size:var(--fs-caption);color:var(--ink-faint);">생화는 면세 품목이라 세금계산서가 아닌 계산서로 발행됩니다(배송비 등 과세분은 별도).</span><br>
+        &nbsp;&nbsp;<span style="font-size:var(--fs-caption);color:var(--ink-faint);">생화는 면세 품목이라 계산서로 발행됩니다(배송비 등 과세분은 별도).</span><br>
         · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
         · 도착 사진 회신 — 보고용 증빙까지 한 번에
       </div>
-      <a class="catalogue-link" href="tel:031-314-3003" style="margin-top:14px;background:var(--paper);">법인 거래처 등록 문의 (전화) — 031-314-3003</a>
+      <a class="catalogue-link" href="tel:1577-2286" style="margin-top:14px;background:var(--paper);">법인 거래처 등록 문의 (전화) — 1577-2286</a>
     </details>
   </section>
 
@@ -1369,7 +1371,7 @@ function applyParsed(r){
   const gotAny = !!(order.recipientName||order.venue||order.venueDetail||order.address||order.date||order.time||order.groomName||order.brideName||order.chiefMourner);
   if(_cs) _cs.innerHTML = gotAny
     ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.'
-    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:031-314-3003" style="color:var(--accent-deep);font-weight:700;">전화 주문(031-314-3003)</a>도 편하게 이용하세요.';
+    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;">전화 주문(1577-2286)</a>도 편하게 이용하세요.';
   const parsedOrderLabel = order.category==="wreath"
     ? (isFun?'근조화환':isWed?'축하화환':'화환')
     : CATALOG[order.category].label;
@@ -2164,7 +2166,7 @@ function afConfirmNeeds(){
   if(isFuneral && order.date){
     const _now=new Date(), _todayIso=afIsoOf(_now);
     if(order.date===_todayIso && (order.timeSlot==="today" || !order.timeSlot))
-      out.push({tag:"발인", msg:"오늘 도착으로 주문하셨어요. 근조 화환은 발인 전에 닿아야 하니, 발인 시간을 전화로 알려주시면 사장님이 맞춰 보내드립니다. (031-314-3003)"});
+      out.push({tag:"발인", msg:"오늘 도착으로 주문하셨어요. 근조 화환은 발인 전에 닿아야 하니, 발인 시간을 전화로 알려주시면 사장님이 맞춰 보내드립니다. (1577-2286)"});
     else if(order.date===_todayIso && _now.getHours()>=afCutoffHour(_now))
       out.push({tag:"발인", msg:"오늘 주문 마감 시간이 지났어요. 발인 전에 닿을 수 있는지 사장님이 확인해 연락드립니다."});
   }
@@ -2302,7 +2304,7 @@ function afValidateOrder(scope){
     else if(order.date === todayIso){
       const now=new Date(), cut=afCutoffHour(now);
       if(now.getHours() >= cut)
-        add(`오늘 배송은 ${cut}시까지 접수합니다. 다른 날짜를 고르시거나 전화(031-314-3003) 주세요.`,null);
+        add(`오늘 배송은 ${cut}시까지 접수합니다. 다른 날짜를 고르시거나 전화(1577-2286) 주세요.`,null);
     }
   }
 
@@ -2465,7 +2467,7 @@ async function handleRedirect(){
     }catch(e){
       document.querySelector(".wrap").innerHTML=`<section class="card"><div class="step-head"><span class="step-title">결제 확인 오류</span></div>
         <p class="err">${escapeHtml(e.message)}</p>
-        <p class="hint">결제가 출금됐는데 이 화면이 보이면 꽃안부(031-314-3003)로 주문번호 <b>${escapeHtml(orderId||"")}</b>를 알려주세요.</p>
+        <p class="hint">결제가 출금됐는데 이 화면이 보이면 꽃안부(1577-2286)로 주문번호 <b>${escapeHtml(orderId||"")}</b>를 알려주세요.</p>
         <button class="btn" onclick="location.reload()" style="margin-top:14px;">결제 다시 확인</button>
         <button class="btn btn-ghost" onclick="location.href='/'" style="margin-top:8px;">처음으로</button></section>`;
     }
@@ -2619,9 +2621,9 @@ function renderDone(data,o){
   })); }catch(_e){}
   const p=data.payment||{};
   const reconciliationNote = data.manualRecovery
-    ? `<div style="background:#fff0ef;border:1px solid #c84b45;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#7d211d;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 031-314-3003으로 알려주세요. 입력하신 주문 정보는 이 기기에 보관했습니다.</div>`
+    ? `<div style="background:#fff0ef;border:1px solid #c84b45;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#7d211d;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 1577-2286으로 알려주세요. 입력하신 주문 정보는 이 기기에 보관했습니다.</div>`
     : (data.needsReconciliation
-      ? `<div style="background:#fff7e5;border:1px solid #d29b31;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#6f4a08;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요. 필요하면 031-314-3003으로 알려주세요.</div>`
+      ? `<div style="background:#fff7e5;border:1px solid #d29b31;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#6f4a08;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요. 필요하면 1577-2286으로 알려주세요.</div>`
       : "");
   const place=[o.venue,o.venueDetail].filter(Boolean).join(" ");
   const isCorp = o.buyerType==="corp";
@@ -2705,7 +2707,7 @@ function renderDone(data,o){
       ${isCorp?`
       <div style="background:transparent;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;">
         <div style="font-size:var(--fs-caption);letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">다음 주문은 더 빠르게</div>
-        <div style="color:var(--ink-soft);">다음 주문도 같은 사업자 정보로 빠르게 진행하실 수 있어요. 정기 거래처 등록(후불·월 정산)은 031-314-3003 으로 문의해주세요.</div>
+        <div style="color:var(--ink-soft);">다음 주문도 같은 사업자 정보로 빠르게 진행하실 수 있어요. 정기 거래처 등록(후불·월 정산)은 1577-2286 으로 문의해주세요.</div>
       </div>`:""}
       ${upsellHtml(o)}
       ${memberCard}
@@ -2717,7 +2719,7 @@ function renderDone(data,o){
       ${sameFlowerBtn}
       <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft);font-size:var(--fs-caption);color:var(--ink-faint);line-height:1.7;">
-        문의 · 031-314-3003 · 사장님께 직접 연락하실 수 있습니다.<br>
+        문의 · 1577-2286 · 사장님께 직접 연락하실 수 있습니다.<br>
         나중에 다시 보시려면 하단 <b>내 주문</b>에서 주문번호와 연락처 뒷 4자리를 넣으시면 됩니다.
       </div>
     </section>`;
@@ -2725,7 +2727,7 @@ function renderDone(data,o){
 
 // 홈 '결제는 이렇게' 계좌 복사 — 고령 손님이 숫자를 옮겨 적다 틀리지 않게
 function copyBankAcct(btn){
-  const txt="기업은행 169-165982-04-018 (주)아마존";
+  const txt="기업은행 169-165982-04-025 (주)아마존";
   const done=()=>{ const o=btn.textContent; btn.textContent="복사됨 ✓"; setTimeout(()=>{ btn.textContent=o; },1800); };
   try{
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ prompt("계좌번호를 길게 눌러 복사하세요", txt); }); }
@@ -2970,7 +2972,7 @@ const POLICY = {
     "  오브제만 반입 가능 · 부안, 정읍\n"+
     "\n"+
     "※ 추가 금액, 배송 불가 지역, 반입 가능 상품은 주기적으로 변경될 수 있으니 참고 바랍니다.\n"+
-    "※ 위 정보 외 자세한 사항은 고객센터 031-314-3003 으로 문의 부탁드립니다."],
+    "※ 위 정보 외 자세한 사항은 고객센터 1577-2286 으로 문의 부탁드립니다."],
   refund: ["교환·환불 안내",
     "[ 교환·환불 ]\n"+
     "· 꽃은 생물이기 때문에 제작/출고된 제품은 교환과 환불이 불가능합니다.\n"+
@@ -2981,7 +2983,7 @@ const POLICY = {
     "[ 주문 취소 ]\n"+
     "· 화환 제작 전(주문 접수 후 사장님 확인 전)에는 전액 환불이 가능합니다.\n"+
     "· 화환 제작이 시작된 후에는 상품 특성상 환불이 어렵습니다.\n"+
-    "· 자세한 사항은 031-314-3003 으로 문의 부탁드립니다."],
+    "· 자세한 사항은 1577-2286 으로 문의 부탁드립니다."],
   privacy: ["개인정보처리방침",
     "· 수집 항목: 주문자 성함, 연락처, (법인) 사업자 정보, 받는 곳 정보\n"+
     "· 수집 목적: 주문 처리, 배송, 도착 확인 사진 발송, 계산서 발행\n"+

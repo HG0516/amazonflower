@@ -67,7 +67,7 @@
       tab(isHome(), '/', IC_HOME, '홈')
       + tab(isCatalog(), '/catalog.html', IC_FLOWER, '전체상품')
       + '<button type="button" id="af-bn-orders"><span class="ic">' + IC_RECEIPT + '</span><span class="lb">내 주문</span></button>'
-      + '<a href="tel:0313143003"><span class="ic">' + IC_PHONE + '</span><span class="lb">전화</span></a>';
+      + '<a href="tel:15772286"><span class="ic">' + IC_PHONE + '</span><span class="lb">전화</span></a>';
     document.body.appendChild(nav);
     document.body.classList.add('af-nav-on');
 

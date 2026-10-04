@@ -174,7 +174,7 @@
         </div>
         <button type="submit" class="cta" id="wedSubmit" style="width:100%;border:none;cursor:pointer;font-family:inherit;">예약 상담 신청</button>
         <p id="wedMsg" class="wnote" style="text-align:center;min-height:18px;"></p>
-        <p style="text-align:center;font-size:var(--fs-caption);color:var(--ink-faint);">전화가 편하시면 <a href="tel:0313143003" style="color:var(--accent-deep);font-weight:700;text-decoration:none;">031-314-3003</a> 으로 문의하셔도 돼요.</p>
+        <p style="text-align:center;font-size:var(--fs-caption);color:var(--ink-faint);">전화가 편하시면 <a href="tel:15772286" style="color:var(--accent-deep);font-weight:700;text-decoration:none;">1577-2286</a> 으로 문의하셔도 돼요.</p>
       </form>
     </section>
 
@@ -247,11 +247,11 @@
       if(!res.ok) throw new Error((res.d && res.d.error) || "접수에 실패했어요.");
       var form = document.getElementById("wedForm");
       var safe = contact.replace(/[<>&]/g, "");
-      form.innerHTML = '<div class="note" style="text-align:center;"><div style="font-size:40px;">✅</div><b>예약 상담이 접수됐어요.</b><br>사장님이 확인 후 <b>' + safe + '</b>로 연락드립니다.<br><span class="wnote">급하시면 031-314-3003 으로 전화 주셔도 돼요.</span></div>';
+      form.innerHTML = '<div class="note" style="text-align:center;"><div style="font-size:40px;">✅</div><b>예약 상담이 접수됐어요.</b><br>사장님이 확인 후 <b>' + safe + '</b>로 연락드립니다.<br><span class="wnote">급하시면 1577-2286 으로 전화 주셔도 돼요.</span></div>';
     })
     .catch(function(err){
       btn.disabled = false; btn.textContent = "예약 상담 신청";
-      setMsg((err.message || "접수 실패") + " 잠시 후 다시 시도하거나 031-314-3003 으로 연락 주세요.", false);
+      setMsg((err.message || "접수 실패") + " 잠시 후 다시 시도하거나 1577-2286 으로 연락 주세요.", false);
     });
     return false;
   };
