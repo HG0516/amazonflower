@@ -368,6 +368,19 @@
   .paychips .pc-toss { --dot: #0064FF; color: #0058E0; border-color: #c6dafc; background: #f2f7ff; }
   .paychips .pc-acct { --dot: #7a6a4f; color: #5a4b33; border-color: #e3dccd; background: #faf7f0; }
   .paychips.center { justify-content: center; }
+  /* 약관 동의 묶음 — 맨 위 '모두 동의', 아래 필수 4개(각각 '보기'로 펼침) */
+  .agree { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #f7f7f3; overflow: hidden; }
+  .agree input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
+  .agree-all { display: flex; align-items: center; gap: 10px; padding: 14px; background: var(--accent-soft); border-bottom: 1px solid var(--line); cursor: pointer; }
+  .agree-all input[type=checkbox] { width: 22px; height: 22px; }
+  .agree-all span { font-size: var(--fs-sub); font-weight: 800; color: var(--accent-deep); }
+  .agree-item { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; padding: 6px 14px; }
+  .agree-item + .agree-item { border-top: 1px solid #ebe8df; }
+  .agree-item > label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; font-size: 15px; color: var(--ink); line-height: 1.45; word-break: keep-all; }
+  .agree-item > label b { color: var(--accent-deep); font-weight: 700; }
+  .agree-more { flex: 0 0 auto; padding: 8px 6px; border: 0; background: none; color: var(--ink-soft); font-size: var(--fs-caption); font-family: var(--font-body); text-decoration: underline; cursor: pointer; }
+  .agree-desc { flex: 0 0 calc(100% - 30px); margin: 0 0 8px 30px; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; word-break: keep-all; }
+  .agree-desc a { color: var(--ink); font-weight: 600; text-decoration: underline; }
   .pay-methods .pm-extra { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fcfbf8; }
   .pay-methods .pm-extra input[type=text] { width: 100%; font-size: 16px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-family: var(--font-body); color: var(--ink); margin-top: 4px; }
   .pay-methods .cr-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 15px; margin: 4px 0 6px; }
@@ -1005,22 +1018,48 @@
       <a href="#" onclick="showPolicy('delivery');return false;" style="color:var(--ink);font-weight:600;text-decoration:underline;">전체 배송 안내 보기 →</a>
     </div>
 
-    <!-- 개인정보 수집·이용 동의 (비회원 구매 필수 — 토스 휴대폰결제 심사 요건) -->
-    <label style="display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:12px 14px;background:#f7f7f3;border-radius:var(--radius-sm);cursor:pointer;">
-      <input type="checkbox" id="privacyAgree" style="width:19px;height:19px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);">
-      <span style="font-size:var(--fs-caption);color:var(--ink);line-height:1.6;"><b>[필수] 개인정보 수집·이용 동의</b> — 주문·배송 처리를 위해 주문자·받는 분 정보(성함·연락처·주소)를 수집·이용하며, 관련 법령에 따른 기간 동안 보관 후 파기됩니다. <a href="/privacy.html" target="_blank" rel="noopener" style="color:var(--ink);font-weight:600;text-decoration:underline;" onclick="event.stopPropagation();">자세히 보기</a></span>
-    </label>
-    <!-- [필수] 주문 확인·결제 동의 — 전자상거래법 제8조 제2항: 상품·가격 등을 명확히 알리고 소비자가 확인하는 절차.
-         위 '주문 확인'(payReview)이 고지, 이 체크가 확인 절차다. 참고 사이트들이 모두 갖춘 항목(10/4 비교표). -->
-    <label style="display:flex;align-items:flex-start;gap:9px;margin-top:8px;padding:12px 14px;background:#f7f7f3;border-radius:var(--radius-sm);cursor:pointer;">
-      <input type="checkbox" id="orderAgree" style="width:19px;height:19px;margin-top:1px;flex-shrink:0;accent-color:var(--accent);">
-      <span style="font-size:var(--fs-caption);color:var(--ink);line-height:1.6;"><b>[필수] 주문 내용 확인 및 결제 동의</b> — 위 상품·받는 곳·날짜·결제 금액을 확인했으며, 이 내용으로 결제하는 데 동의합니다. (전자상거래법 제8조 제2항)</span>
-    </label>
-    <!-- 체크 두 개를 한 번에 — 고령 손님 탭 수 줄이기 -->
-    <label style="display:flex;align-items:center;gap:9px;margin-top:8px;padding:12px 14px;border:1px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;background:var(--accent-soft);">
-      <input type="checkbox" id="allAgree" onchange="afAllAgree(this.checked)" style="width:21px;height:21px;flex-shrink:0;accent-color:var(--accent);">
-      <span style="font-size:var(--fs-sub);color:var(--accent-deep);font-weight:800;">위 내용에 모두 동의합니다</span>
-    </label>
+    <!-- 약관 동의 — 아버지 비교표(10/5) 7번: 이용약관·개인정보 처리위탁 추가(예전엔 개인정보 수집·이용 + 주문 확인 2개).
+         '모두 동의' 한 번이면 끝(고령 손님 탭 수). 하나라도 풀면 '모두 동의'도 풀린다.
+         · 개인정보 수집·이용(개인정보 보호법 제15조) — 항목·목적·보유기간·거부권을 '보기'에 다 적는다. 비회원 구매 필수(토스 휴대폰결제 심사 요건)
+         · 처리위탁 — 법은 공개(처리방침 4번)를 요구하고 동의는 필수가 아니지만, 참고 사이트들처럼 주문 전에 한 번 더 알린다
+         · 주문 확인·결제(전자상거래법 제8조 제2항) — 위 '주문 확인'(payReview)이 고지, 이 체크가 확인 절차 -->
+    <div class="agree" id="agreeBox">
+      <label class="agree-all">
+        <input type="checkbox" id="allAgree" onchange="afAllAgree(this.checked)">
+        <span>아래 내용에 모두 동의합니다</span>
+      </label>
+      <div class="agree-item">
+        <label><input type="checkbox" id="termsAgree"><span><b>[필수]</b> 이용약관 동의</span></label>
+        <a class="agree-more" href="/terms.html" target="_blank" rel="noopener">보기</a>
+      </div>
+      <div class="agree-item">
+        <label><input type="checkbox" id="privacyAgree"><span><b>[필수]</b> 개인정보 수집·이용 동의</span></label>
+        <button type="button" class="agree-more" onclick="afAgreeMore(this)" aria-expanded="false">보기</button>
+        <div class="agree-desc" hidden>
+          <b>수집 항목</b> 주문자 성함·연락처, 받는 분 성함·연락처·주소, 리본·카드 문구 (법인 주문 시 사업자 정보)<br>
+          <b>이용 목적</b> 주문 접수·제작·배송, 주문·도착 사진 문자 안내, 결제 확인·환불, 계산서 발행<br>
+          <b>보유 기간</b> 전자상거래법에 따라 계약·결제 기록 5년, 소비자 불만·분쟁 기록 3년 보관 후 파기<br>
+          동의하지 않으실 수 있지만, 이 경우 주문하실 수 없어요. <a href="/privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
+        </div>
+      </div>
+      <div class="agree-item">
+        <label><input type="checkbox" id="consignAgree"><span><b>[필수]</b> 개인정보 처리위탁 동의</span></label>
+        <button type="button" class="agree-more" onclick="afAgreeMore(this)" aria-expanded="false">보기</button>
+        <div class="agree-desc" hidden>
+          주문을 처리하려고 아래 업체에 개인정보 처리를 맡깁니다.<br>
+          · <b>토스페이먼츠</b> — 결제 처리<br>
+          · <b>솔라피(SOLAPI)</b> — 주문 확인·도착 사진 문자 발송<br>
+          · <b>배송 협력 꽃집</b> — 상품 제작·배송 (받는 분 성함·연락처·주소)<br>
+          · <b>Supabase · Vercel</b> — 주문 정보 저장, 사이트 운영<br>
+          <a href="/privacy.html#consign" target="_blank" rel="noopener">개인정보처리방침 4번</a>
+        </div>
+      </div>
+      <div class="agree-item">
+        <label><input type="checkbox" id="orderAgree"><span><b>[필수]</b> 주문 내용 확인 및 결제 동의</span></label>
+        <button type="button" class="agree-more" onclick="afAgreeMore(this)" aria-expanded="false">보기</button>
+        <div class="agree-desc" hidden>위 상품·받는 곳·날짜·결제 금액을 확인했으며, 이 내용으로 결제하는 데 동의합니다. (전자상거래법 제8조 제2항)</div>
+      </div>
+    </div>
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">동의하고 결제하기</button>
     <div class="paychips center" data-paychips="pays" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></div>
     <div class="err hidden" id="payErr"></div>
@@ -2497,15 +2536,23 @@ function afLoadPayConfig(){
 }
 document.addEventListener("DOMContentLoaded", afLoadPayConfig);
 
-// '모두 동의' — 두 필수 체크를 한 번에. 개별로 풀면 '모두 동의'도 풀린다.
+// '모두 동의' — 필수 체크를 한 번에. 하나라도 풀면 '모두 동의'도 풀린다.
+var AF_AGREE = [["termsAgree","이용약관"],["privacyAgree","개인정보 수집·이용"],["consignAgree","개인정보 처리위탁"],["orderAgree","주문 내용 확인 및 결제"]];
 function afAllAgree(on){
-  ["privacyAgree","orderAgree"].forEach(function(id){ var el=document.getElementById(id); if(el) el.checked=!!on; });
+  AF_AGREE.forEach(function(a){ var el=document.getElementById(a[0]); if(el) el.checked=!!on; });
 }
 document.addEventListener("change", function(e){
-  if(!e.target || (e.target.id!=="privacyAgree" && e.target.id!=="orderAgree")) return;
-  var a=document.getElementById("privacyAgree"), b=document.getElementById("orderAgree"), all=document.getElementById("allAgree");
-  if(all) all.checked=!!(a&&a.checked&&b&&b.checked);
+  if(!e.target || !AF_AGREE.some(function(a){ return a[0]===e.target.id; })) return;
+  var all=document.getElementById("allAgree");
+  if(all) all.checked=AF_AGREE.every(function(a){ var el=document.getElementById(a[0]); return !el || el.checked; });
 });
+function afAgreeMore(btn){
+  var d=btn.parentNode.querySelector(".agree-desc"); if(!d) return;
+  var open=d.hasAttribute("hidden");
+  if(open) d.removeAttribute("hidden"); else d.setAttribute("hidden","");
+  btn.setAttribute("aria-expanded", String(open));
+  btn.textContent = open ? "접기" : "보기";
+}
 function afIsoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function afCutoffHour(d){ const w=d.getDay(); return (w===0||w===6)?AF_CUTOFF_WEEKEND:AF_CUTOFF_WEEKDAY; }
 
@@ -2686,10 +2733,10 @@ function afValidateOrder(scope){
   // 메시지 카드 — '카드 넣기'인데 비어 있으면 빈 카드가 간다.
   if(order.category==="basket" && afCardOn && !afMsgCardText())
     add("메시지 카드에 적을 말을 써 주세요. 카드가 필요 없으면 '안 넣기'를 눌러 주세요.","cardMessage","senderCard");
-  const pvA=document.getElementById("privacyAgree");
-  if(pvA && !pvA.checked) add("개인정보 수집·이용에 동의해주세요. (필수)","privacyAgree","payCard");
-  const odA=document.getElementById("orderAgree");
-  if(odA && !odA.checked) add("주문 내용 확인 및 결제에 동의해주세요. (필수)","orderAgree","payCard");
+  // 약관 — 둘 이상 빠졌으면 '모두 동의' 한 줄로(네 줄을 늘어놓지 않는다)
+  const missAgree=AF_AGREE.filter(a=>{ const el=document.getElementById(a[0]); return el && !el.checked; });
+  if(missAgree.length>=2) add("결제 전에 약관에 동의해주세요 — '아래 내용에 모두 동의합니다'를 눌러 주세요.","allAgree","payCard");
+  else if(missAgree.length===1) add(missAgree[0][1]+"에 동의해주세요. (필수)",missAgree[0][0],"payCard");
   return errs;
 }
 
