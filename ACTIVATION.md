@@ -30,6 +30,7 @@
 
 1. Supabase SQL Editor 에서 **`supabase-deposit-orders.sql`** 전체 실행 → 맨 아래 `deposit_ready=true`
 2. **무통장입금 켜기**: Vercel Production 환경변수 `BANK_TRANSFER_ENABLED=1` → Redeploy
+   - 10/5부터 **SQL 없이도 동작**(lib/schema-compat 대비책 + 주문번호 AFB 로 식별). 1번 SQL 은 가상계좌·결제수단 표시용.
    - 주문서 결제 단계에 '무통장입금'이 나타난다. 주문은 '입금 대기'로 들어오고, 사장님이
      통장 확인 후 주문 관리에서 **💰 입금 확인**을 누르면 접수로 넘어간다.
    - 24시간 지나도 입금 확인이 안 되면 사장님 텔레그램에 한 번 알림(자동으로 닫지 않음).
