@@ -763,8 +763,26 @@ async function prepareIntent(req, orderId, amount, order) {
   }
   if (found.error) return { ok: false, status: 503, error: "결제 준비 정보를 저장하지 못했습니다. 잠시 후 다시 시도해주세요." };
   if (found.row) {
-    if (Number(found.row.expected_amount) !== checked.amount || found.row.order_hash !== hash) {
-      return { ok: false, status: 409, error: "이미 다른 내용으로 사용된 주문번호입니다. 다시 시도해주세요." };
+    if (Number(found.row.expected_amount) !== checked.amount) {
+      return { ok: false, status: 409, error: "이미 다른 금액으로 사용된 주문번호입니다. 새 결제 링크를 요청해 주세요." };
+    }
+    if (found.row.order_hash !== hash) {
+      // 맞춤 결제 링크는 주문번호가 고정이다. 손님이 결제창을 닫았다가 하이픈 하나만 다르게 다시
+      // 입력해도 예전엔 409로 링크가 영영 막혔다(10/6 점검). 금액이 같고 아직 결제가 시작되지 않은
+      // 준비 상태(prepared/failed, payment_key 없음)면 새 입력으로 다시 봉인한다. 이전 해시가
+      // 그대로일 때만 바꾸는 조건부 PATCH라, 그 사이 결제가 시작된 행은 건드리지 않는다.
+      if (!["prepared", "failed"].includes(found.row.state) || found.row.payment_key) {
+        return { ok: false, status: 409, error: "이전 결제 결과를 확인하고 있습니다. 주문번호로 문의해주세요." };
+      }
+      const resealed = await patchPaymentIntent(SUPABASE_URL, SERVICE_KEY, orderId, {
+        state: "prepared", order_data: checked.orderInfo, order_hash: hash,
+        user_id: checked.orderInfo.user_id || null, expires_at: expiresAt,
+        finalization_error: null, last_checked_at: null, confirm_attempt_hash: null, confirm_lease_until: null,
+      }, `state=in.(prepared,failed)&payment_key=is.null&order_hash=eq.${encodeURIComponent(found.row.order_hash)}`);
+      if (!resealed.ok || !resealed.matched) {
+        return { ok: false, status: 409, error: "이전 결제 결과를 확인하고 있습니다. 잠시 후 다시 시도해주세요." };
+      }
+      return { ok: true, prepared: true, reused: true, resealed: true };
     }
     if (["paid", "finalized", "canceling", "canceled"].includes(found.row.state)) {
       return { ok: false, status: 409, error: "이미 처리된 주문입니다. 새 주문으로 다시 시도해주세요." };
@@ -1090,7 +1108,12 @@ export async function notifyPaymentIntentWithLease(intent, order, payment, reque
     ownsTelegram
       ? (critical
         ? notifyCriticalPayment(tagged, payment, criticalMeta.reason || "manual_review", criticalMeta.headline)
-        : notifyTelegram(tagged, payment))
+        // 사장님 휴대폰 문자도 함께(10/6 형구 결정 — 1단계 SQL 뒤 빠졌던 것 복구). 텔레그램 lease 를
+        // 가진 쪽만 보내므로 한 번만 나가고, 문자 결과는 텔레그램 완료 판정에 섞지 않는다(실패해도 재발송 안 함).
+        : Promise.all([
+            notifyTelegram(tagged, payment),
+            notifyOwners(tagged, payment, { includeCustomer: false, includeOwners: true }).catch(() => null),
+          ]).then(([t]) => t))
       : Promise.resolve(null),
   ]);
   const now = new Date().toISOString();

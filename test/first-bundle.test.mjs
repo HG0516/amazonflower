@@ -176,7 +176,7 @@ test("payment notifications retry only the channel that did not succeed", { conc
     notified_at: null, sms_notified_at: null, telegram_notified_at: null,
     updated_at: "2099-01-01T00:00:00.000Z",
   };
-  let smsCalls = 0, telegramCalls = 0, telegramShouldFail = true;
+  let smsCalls = 0, ownerSmsCalls = 0, telegramCalls = 0, telegramShouldFail = true;
   try {
     process.env.SUPABASE_URL = "https://project.example.test";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-test-key";
@@ -194,8 +194,11 @@ test("payment notifications retry only the channel that did not succeed", { conc
         return Response.json([intent]);
       }
       if (url.hostname === "api.solapi.com") {
-        smsCalls++;
-        return Response.json({ groupInfo: { count: { registeredSuccess: 2, registeredFailed: 0 } } });
+        // 손님 확인 문자(SMS 채널)와 사장님 문자(텔레그램과 함께, 10/6)를 나눠 센다.
+        const tos = (JSON.parse(options.body).messages || []).map((m) => m.to);
+        if (tos.includes("01012345678")) smsCalls++;
+        if (tos.includes("01099998888")) ownerSmsCalls++;
+        return Response.json({ groupInfo: { count: { registeredSuccess: tos.length, registeredFailed: 0 } } });
       }
       if (url.hostname === "api.telegram.org") {
         telegramCalls++;
@@ -218,6 +221,7 @@ test("payment notifications retry only the channel that did not succeed", { conc
     assert.ok(intent.notified_at);
     assert.equal(smsCalls, 1, "successful SMS must not be sent again");
     assert.equal(telegramCalls, 2);
+    assert.equal(ownerSmsCalls, 2, "사장님 문자는 텔레그램 시도마다 함께 간다(텔레그램이 실패했을 때의 대체 통로)");
   } finally {
     globalThis.fetch = oldFetch;
     restoreEnv(oldEnv);

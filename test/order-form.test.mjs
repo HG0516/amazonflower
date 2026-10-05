@@ -109,3 +109,58 @@ test("메시지 카드 150자 초과는 결제 승인 전에 거절", { concurre
   assert.equal(calls.confirm, 0, "토스 승인을 부르기 전에 막아야 한다");
   assert.equal(row, undefined);
 }));
+
+// ── 맞춤 결제 링크처럼 같은 주문번호로 다시 준비할 때(10/6) ──
+function intentDb(row, log) {
+  return async (input, options = {}) => {
+    const url = new URL(String(input));
+    const method = String(options.method || "GET").toUpperCase();
+    if (url.pathname === "/rest/v1/payment_intents") {
+      if (method === "GET") return Response.json(row ? [row] : []);
+      if (method === "PATCH") {
+        log.push(decodeURIComponent(url.search));
+        const want = url.searchParams.get("order_hash");
+        const ok = row && ["prepared", "failed"].includes(row.state) && !row.payment_key
+          && (!want || want === `eq.${row.order_hash}`);
+        if (!ok) return Response.json([]);
+        Object.assign(row, JSON.parse(options.body));
+        return Response.json([row]);
+      }
+    }
+    if (url.pathname === "/rest/v1/orders") return Response.json([]);
+    throw new Error(`unexpected fetch ${method} ${url}`);
+  };
+}
+const prep = (order, orderId) => ({ method: "POST", headers: {}, query: {}, body: { action: "prepare", orderId, amount: PRICE, order } });
+
+test("다시 준비: 아직 결제 전이면 새 입력(전화번호만 달라도)으로 다시 봉인한다", { concurrency: false }, withEnv(ENV, async () => {
+  const row = { order_id: "AF20990101-RESEAL1", state: "prepared", expected_amount: PRICE, order_hash: "a".repeat(64), payment_key: null,
+    expires_at: "2099-01-01T00:00:00Z", order_data: {} };
+  const log = [];
+  globalThis.fetch = intentDb(row, log);
+  const res = mockResponse();
+  await confirmPayment(prep({ ...BASKET, senderPhone: "01012345678", cardMessage: "고마워" }, row.order_id), res);
+  assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+  assert.equal(res.body.reused, true);
+  assert.notEqual(row.order_hash, "a".repeat(64), "새 해시로 봉인");
+  assert.equal(row.order_data.senderPhone, "01012345678");
+  assert.match(log[0], /order_hash=eq\.a{64}/, "이전 해시가 그대로일 때만 바꾼다");
+}));
+
+test("다시 준비: 결제가 시작됐거나 금액이 다르면 막는다", { concurrency: false }, withEnv(ENV, async () => {
+  for (const over of [{ state: "confirming" }, { payment_key: "pk_live" }, { state: "paid" }]) {
+    const row = { order_id: "AF20990101-RESEAL2", state: "prepared", expected_amount: PRICE, order_hash: "b".repeat(64), payment_key: null,
+      expires_at: "2099-01-01T00:00:00Z", order_data: {}, ...over };
+    globalThis.fetch = intentDb(row, []);
+    const res = mockResponse();
+    await confirmPayment(prep({ ...BASKET }, row.order_id), res);
+    assert.equal(res.statusCode, 409, JSON.stringify(over));
+    assert.equal(row.order_hash, "b".repeat(64), "봉인을 바꾸지 않는다");
+  }
+  const row = { order_id: "AF20990101-RESEAL3", state: "prepared", expected_amount: PRICE + 1000, order_hash: "c".repeat(64), payment_key: null,
+    expires_at: "2099-01-01T00:00:00Z", order_data: {} };
+  globalThis.fetch = intentDb(row, []);
+  const res = mockResponse();
+  await confirmPayment(prep({ ...BASKET }, row.order_id), res);
+  assert.equal(res.statusCode, 409);
+}));
