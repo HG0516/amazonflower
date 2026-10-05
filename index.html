@@ -747,7 +747,7 @@
       <div class="pg">
         <div class="pg-n">1</div>
         <div class="pg-t">카드 · 간편결제</div>
-        <div class="pg-d">주문 마지막 단계에서 <b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중 골라 결제</div>
+        <div class="pg-d">주문서 맨 아래 결제 칸에서 <b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중 골라 결제</div>
       </div>
       <div class="pg">
         <div class="pg-n">2</div>
@@ -953,14 +953,14 @@
     <!-- 회원/비회원 — 비회원이 기본값이고, 로그인은 접어서 한 줄로 둔다.
          결제 단계에서 가입을 물으면 이탈한다(Baymard: 포기 사유의 18%가 회원가입 강제). -->
     <details class="af-fold" id="memberFold" style="margin-bottom:12px;">
-      <summary>비회원으로 주문 중 — 로그인하면 1,000원 적립</summary>
+      <summary>비회원으로 주문 중 — 로그인하면 2,000원 적립</summary>
       <div class="member-choice" id="memberChoice" style="margin-top:0;">
         <div class="mc-btns">
           <button type="button" class="mc-btn on" id="mcGuest" onclick="selMember('guest')">
             <b>비회원으로 주문</b><span>로그인 없이 바로 · 연락처만 정확히</span>
           </button>
           <button type="button" class="mc-btn" id="mcMember" onclick="selMember('member')">
-            <b>로그인하고 주문</b><span>1,000원 적립 · 원탭 재주문</span>
+            <b>로그인하고 주문</b><span>2,000원 적립 · 원탭 재주문</span>
           </button>
         </div>
       </div>
@@ -1096,7 +1096,7 @@
         회사의 안부를 한 곳에서 정리해드립니다.<br><br>
         · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
         · 후불 결제 · <b>계산서 발행</b> — 품의·정산이 깔끔하게<br>
-        · 품의용 <b>견적서</b> — 주문 화면 결제 단계에서 바로 출력·PDF 저장<br>
+        · 품의용 <b>견적서</b> — 주문서 맨 아래 결제 칸에서 바로 출력·PDF 저장<br>
         &nbsp;&nbsp;<span style="font-size:var(--fs-caption);color:var(--ink-faint);">생화는 면세 품목이라 계산서로 발행됩니다(배송비 등 과세분은 별도).</span><br>
         · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
         · 도착 사진 회신 — 보고용 증빙까지 한 번에
@@ -1169,7 +1169,7 @@
 <!-- 하단 고정 주문바: 상품 선택 후(주문 모드) 실시간 총액 + 결제 진행 CTA를 항상 노출(스크롤로 버튼 찾는 부담 제거) -->
 <div id="buyBar" aria-live="polite">
   <div class="bb-total-wrap"><span class="bb-total-label">합계</span> <span class="bb-total">0원</span><span class="bb-pay">네이버페이 등 간편결제 가능</span></div>
-  <button class="bb-btn" onclick="buyBarGo()">주문 계속하기</button>
+  <button class="bb-btn" onclick="buyBarGo()">결제하기</button>
 </div>
 
 <div class="modal-bg hidden" id="policyModal" onclick="if(event.target===this)this.classList.add('hidden')">
@@ -2006,20 +2006,17 @@ function updateBuyBar(){
   const bar=document.getElementById("buyBar"); if(!bar) return;
   const on = document.body.classList.contains("ordering") && Number(order.price)>0;
   if(on){
-    const payOpen = !document.getElementById("payCard").classList.contains("hidden");
     bar.querySelector(".bb-total").textContent = orderTotal().toLocaleString()+"원";
-    bar.querySelector(".bb-btn").textContent = payOpen ? "결제수단 고르기" : "주문 계속하기";
+    bar.querySelector(".bb-btn").textContent = "결제하기";
     bar.classList.add("show"); document.body.classList.add("buybar-pad");
+    afRefreshPay();
   }else{
     bar.classList.remove("show"); document.body.classList.remove("buybar-pad");
   }
 }
 function buyBarGo(){
-  if(document.getElementById("payCard").classList.contains("hidden")){
-    if(typeof confirmTier==="function") confirmTier();   // 결제 카드 열고 스크롤
-  }else{
-    scrollTo("payCard"); const b=document.getElementById("payBtn"); if(b) setTimeout(()=>b.focus({preventScroll:true}),300);
-  }
+  // 하단 '결제하기' — 빠진 칸이 있으면 한 번에 모아 보여주고, 다 채웠으면 결제 칸(약관·결제 버튼)으로.
+  afGoNext(true);
 }
 
 // 토핑 조합 연출 사진이 있으면 교체, 없으면 기본 사진 유지
@@ -2247,21 +2244,31 @@ function syncOrderBannerItem(t){
   if(el) el.innerHTML=escapeHtml(t.nm)+" <b>"+t.price.toLocaleString()+"원</b>";
 }
 function confirmTier(){
-  // '이 구성으로 주문하기' 버튼.
-  // 이 버튼은 상품 카드 맨 아래, 즉 받는 곳 칸을 만나기도 '전'에 있다. 예전엔 조건 없이
-  // 결제 카드를 열고 스크롤해서 2~4단계를 통째로 건너뛰었고, 그 결과 주소도 날짜도 없이
-  // 결제까지 갈 수 있었다. 이제는 빠진 칸이 있으면 그 칸으로 데려간다.
+  // '이 구성으로 주문하기' 버튼(상품 카드 맨 아래). 한 페이지 구성이라 결제 칸은 이미 열려 있다 —
+  // 이 버튼은 다음 빈칸으로 데려가기만 한다(빨간 표시 없이). 다 채웠으면 결제 칸으로.
+  afGoNext(false);
+}
+/**
+ * 다음 빈칸으로 데려간다. 약관·결제수단(결제 칸)은 결제 버튼 바로 위라 여기선 묻지 않는다.
+ * strict=true(하단 '결제하기')면 빠진 것을 한 번에 모아 보여주고, false 면 첫 빈칸으로 조용히 스크롤만.
+ */
+function afGoNext(strict){
   afSyncFormToOrder();
-  const miss=afValidateOrder("delivery");
-  if(miss.length){ afShowErrors(miss); afRenderConfirmNote(); return; }
-  afShowErrors([]);
+  afOpenPayCard();
   afRenderConfirmNote();
-  document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
-  document.getElementById("payCard").classList.remove("hidden");
-  renderPayReview();
-  initPay(orderTotal());
-  updateBuyBar();
+  const miss=afValidateOrder().filter(e=>e.card!=="payCard");
+  if(miss.length){
+    if(strict){ afShowErrors(miss); return; }
+    afShowErrors([]);
+    const el=miss[0].id && document.getElementById(miss[0].id);
+    const tgt=el || document.getElementById(miss[0].card);
+    if(tgt) tgt.scrollIntoView({behavior:"smooth",block:"center"});
+    if(el && el.focus) setTimeout(()=>el.focus({preventScroll:true}),400);
+    return;
+  }
+  afShowErrors([]);
   scrollTo("payCard");
+  const b=document.getElementById("payBtn"); if(b) setTimeout(()=>b.focus({preventScroll:true}),300);
 }
 // 결제 직전 주문 확인 요약(받는 곳·날짜·시간·상품·금액) — 잘못된 빈소/시간 결제 방지
 function renderPayReview(){
@@ -2273,7 +2280,7 @@ function renderPayReview(){
   if(place) rows.push(["받는 곳", escapeHtml(place)]);
   if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
   if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
-  if(order.category==="basket" && order.price) rows.push(["카드", afCardOn ? (escapeHtml(afMsgCardText())||'<span style="color:#b3261e;">문구를 써 주세요</span>') : "안 넣음"]);
+  if(order.category==="basket" && order.price) rows.push(["카드", afCardOn ? (escapeHtml(afMsgCardText())||'<span style="color:var(--ink-faint);">아직 안 적었어요</span>') : "안 넣음"]);
   if(!rows.length){ el.innerHTML=""; return; }
   el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius: var(--radius);padding:12px 14px;margin:10px 0 4px;text-align:left;">'
     + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
@@ -3211,8 +3218,8 @@ function renderDone(data,o){
   const memberCard = user ? annivCard : (guestAnniv + `
       <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">다음에 더 편하게</div>
-        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;"><b>가입하면 1,000원 적립</b> · 로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지.</div>
-        <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">가입하고 1,000원 받기</button>
+        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;"><b>가입하면 2,000원 적립</b> · 로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지.</div>
+        <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">가입하고 2,000원 받기</button>
       </div>`);
   const surveyCard = `
       <div id="surveyCard" style="border:1px dashed var(--line);border-radius: var(--radius);padding:12px 14px;margin-top:12px;text-align:left;">
@@ -3749,19 +3756,46 @@ function selProduct(p){
 }
 // 상품을 직접 고른 사람은 '결정한 사람' — 홈 둘러보기 섹션(.home-sect)을 숨겨 주문에 집중시키고
 // 상단 고정 배너에 '선택한 상품 + 다른 상품 보기'만 남긴다. '처음으로'/새로고침 시 전체 복원.
+// 한 페이지 구성(아버지 10/5 "한 페이지에 모두"): 상품을 고르면 받는 곳·보내는 분·결제까지 한 번에 다 보인다.
+// 예전엔 받는 곳을 다 채워야 결제 칸이 열렸고 위에 '1/4 · 상품 선택' 진행 표시가 붙어 4단계처럼 보였다.
+// 빠진 칸은 결제 버튼(afValidateOrder)이 한 번에 모아 알려준다.
 function enterOrderMode(labelHtml){
   document.body.classList.add("ordering");
   const b=document.getElementById("catalogBanner");
   if(b){
     b.innerHTML='<div class="pick-label">선택한 상품</div>'
       +'<div class="pick-name">'+labelHtml+'</div>'
-      +'<div id="stepBar"></div>'
       +'<a href="/catalog.html" style="display:inline-block;margin-top:6px;font-size:var(--fs-caption);color:var(--paper);text-decoration:underline;">다른 상품 보기 →</a>';
     b.classList.remove("hidden");
-    if(typeof renderStepBar==="function") renderStepBar(0);
   }
+  afOpenPayCard();
   if(typeof updateBuyBar==="function") updateBuyBar();
 }
+function afOpenPayCard(){
+  const pc=document.getElementById("payCard"); if(!pc) return;
+  pc.classList.remove("hidden");
+  if(!payment) initPay(orderTotal());
+  afRefreshPay();
+}
+/** 결제 칸의 금액·'주문 확인'을 지금 입력과 맞춘다(결제 칸이 처음부터 보이니 늘 최신이어야 한다). */
+function afRefreshPay(){
+  const pc=document.getElementById("payCard"); if(!pc || pc.classList.contains("hidden")) return;
+  const t=document.getElementById("totalAmt"); if(t) t.textContent=orderTotal().toLocaleString()+"원";
+  renderPayReview();
+}
+let _afRefreshT=null;
+function afRefreshSoon(){
+  clearTimeout(_afRefreshT);
+  _afRefreshT=setTimeout(function(){ try{ afSyncFormToOrder(); afRefreshPay(); }catch(_){} },200);
+}
+["input","change"].forEach(function(ev){
+  document.addEventListener(ev, function(){ if(document.body.classList.contains("ordering")) afRefreshSoon(); });
+});
+// 달력·도착 시간·옵션은 누르기(click)로 바뀐다
+document.addEventListener("click", function(e){
+  if(!document.body.classList.contains("ordering") || !e.target || !e.target.closest) return;
+  if(e.target.closest("#prodCard,#confirmCard,#sideCard,#senderCard")) afRefreshSoon();
+});
 // ── 결제 실패 후 입력 되살리기 ───────────────────────────────
 // handleProductParam() 이 상품·카드 골격을 세운 뒤에 값만 얹는다. 순서가 뒤집히면 칸이 아직 없어 못 채운다.
 let afPendingRestore=null;

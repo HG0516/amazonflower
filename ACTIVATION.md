@@ -63,6 +63,14 @@ SQL 필요 없음. 승인되면 바로 결제 완료(DONE)라 카드와 같은 �
 
 ---
 
+## 0-4. 가입 적립 2,000원 (2026-10-05 아버지 결정, 화면 문구는 배포됨)
+
+Supabase SQL Editor 에서 **`supabase-signup-2000.sql`** 전체 실행 → 맨 아래 `min_total`·`max_total` 이 둘 다 2000.
+- 새 가입자: 트리거가 2,000P. 기존 가입자(1,000P)와 이 SQL 전에 가입한 사람: 차액 1,000P 를 '가입 추가'로 한 번.
+- ⚠️ 적립금 **사용**(결제에서 깎기)은 아직 없다 — 쌓이기만 한다(내 적립금 화면에 '곧 열려요' 안내).
+
+---
+
 ## 1. 로그인 — Supabase → Authentication → Providers
 각 provider 키는 해당 개발자센터에서 발급 (자세한 절차는 [SETUP-AUTH.md](SETUP-AUTH.md)).
 공통 콜백: `https://ivlfwlbwiijhmwsfljzz.supabase.co/auth/v1/callback`

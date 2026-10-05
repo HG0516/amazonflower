@@ -163,9 +163,9 @@
       chip.textContent = (isAdmin(user) ? '🔧 ' : '🌸 ') + shortName(user);
       chip.onclick = openAccountSheet;
     } else {
-      // 혜택(가입 1,000원 적립·기념일 알림)은 이미 라이브인데 칩이 그냥 '로그인'이라 아무도 몰랐다.
+      // 혜택(가입 2,000원 적립·기념일 알림 — 10/5 아버지 결정으로 1,000→2,000)은 이미 라이브인데 칩이 그냥 '로그인'이라 아무도 몰랐다.
       // 이득을 버튼에 바로 노출 → 가입 유인. 누르면 기존 로그인 모달이 나머지 혜택을 설명.
-      chip.textContent = '🎁 가입 1,000원';
+      chip.textContent = '🎁 가입 2,000원';
       chip.onclick = openLoginSheet;
     }
     // 페이지(홈 재주문 배너 등)가 로그인 상태 변화에 반응할 수 있게 알림
@@ -194,7 +194,7 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>로그인 / 회원가입</h3>'
-      + '<div style="background:#e8f1ea;border:1px solid #1f4733;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#14311f;font-weight:700;">가입하면 바로 1,000원 적립 · 다음 주문에 현금처럼</div>'
+      + '<div style="background:#e8f1ea;border:1px solid #1f4733;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#14311f;font-weight:700;">가입하면 바로 2,000원 적립 · 다음 주문에 현금처럼</div>'
       + '<p>한 번 로그인하면 지난 주문을 그대로 다시 보내고, 가족 기념일을 일주일 전에 알려드려요.</p>'
       + btns
       + '<button class="af-auth-x">닫기</button>'
@@ -333,7 +333,7 @@
     });
   }
 
-  // 내 적립금 — 잔액 + 적립 내역(가입 1,000원 등). 결제 차감 UI는 수치 확정 전이라 미노출.
+  // 내 적립금 — 잔액 + 적립 내역(가입 2,000원 등. 1,000원 시절 가입자는 '가입 추가'로 차액). 결제 차감 UI는 수치 확정 전이라 미노출.
   function loadPoints() {
     var u = window.afAuth.user;
     var box = document.getElementById('af-points');
@@ -344,7 +344,7 @@
         if (!rows.length) { box.innerHTML = ''; return; }
         var bal = rows.reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
         var items = rows.slice(0, 5).map(function (r) {
-          var label = r.reason === '가입' ? '가입 축하 적립' : r.reason;
+          var label = (r.reason === '가입' || r.reason === '가입 추가') ? '가입 축하 적립' : r.reason;
           var d = (r.created_at || '').slice(0, 10);
           return '<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#5a564d;margin-top:3px;">'
             + '<span>' + esc(label) + (d ? ' · ' + d : '') + '</span>'
