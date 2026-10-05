@@ -374,3 +374,66 @@ test("관리자 환불은 가상계좌 결제를 사이트에서 처리하지 �
     assert.equal(res.statusCode, 409);
     assert.match(res.body.error, /토스 상점관리자에서 환불/);
   }));
+
+// ── 같은 곳으로 여러 상품(장바구니 '한 번에 주문') ──
+const MULTI_ITEMS = [
+  { productCode: "BQ-001", quantity: 1, toppings: [] },
+  { productCode: "BS-002", quantity: 2, toppings: [] },
+];
+const MULTI_TOTAL = priceOf("BQ-001") + priceOf("BS-002") * 2;
+const MULTI_ORDER = { ...ORDER, items: MULTI_ITEMS };
+const cardDone = (orderId, paymentKey, amount) => ({
+  orderId, paymentKey, totalAmount: amount, status: "DONE", method: "카드",
+  approvedAt: "2099-01-01T10:00:00+09:00", receipt: { url: "https://r.example.test" },
+});
+
+test("여러 상품: 합계가 맞으면 한 번에 승인되고, 사장님 문자에 상품이 하나씩 다 적힌다", { concurrency: false },
+  withEnv({ ...BASE_ENV }, async () => {
+    const orderId = "AF20990101-MULTI1";
+    const inserts = [], telegrams = [];
+    globalThis.fetch = legacyConfirmFetch({ tossPayment: cardDone(orderId, "pk_m1", MULTI_TOTAL), inserts, telegrams });
+    const res = mockResponse();
+    await confirmPayment({ method: "POST", headers: {}, query: {}, body: { paymentKey: "pk_m1", orderId, amount: MULTI_TOTAL, order: MULTI_ORDER } }, res);
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    const row = inserts.find((r) => r.order_id === orderId);
+    assert.match(row.product_label, /외 1건$/);
+    assert.match(row.note, /\[상품 2가지: .+ · 노을빛 ×2\]/);
+    assert.match(telegrams[0].text, /상품 2가지 \(같은 곳으로\):/);
+    assert.match(telegrams[0].text, /· 노을빛 ×2/);
+  }));
+
+test("여러 상품: 합계가 하나라도 모자라거나, 모르는 상품·첫 상품 불일치면 승인 전에 거절", { concurrency: false },
+  withEnv({ ...BASE_ENV }, async () => {
+    const cases = [
+      ["한 상품 값만 결제", MULTI_ORDER, priceOf("BQ-001")],
+      ["수량 1개분만 결제", MULTI_ORDER, priceOf("BQ-001") + priceOf("BS-002")],
+      ["모르는 상품", { ...ORDER, items: [MULTI_ITEMS[0], { productCode: "ZZ-999", quantity: 1 }] }, MULTI_TOTAL],
+      ["첫 상품이 주문서와 다름", { ...ORDER, items: [MULTI_ITEMS[1], MULTI_ITEMS[0]] }, MULTI_TOTAL],
+    ];
+    for (const [name, order, amount] of cases) {
+      const inserts = [], telegrams = [];
+      let confirms = 0;
+      const base = legacyConfirmFetch({ tossPayment: cardDone("AF20990101-MULTI2", "pk_m2", amount), inserts, telegrams });
+      globalThis.fetch = async (input, options) => {
+        if (String(input).includes("/v1/payments/confirm")) confirms++;
+        return base(input, options);
+      };
+      const res = mockResponse();
+      await confirmPayment({ method: "POST", headers: {}, query: {}, body: { paymentKey: "pk_m2", orderId: "AF20990101-MULTI2", amount, order } }, res);
+      assert.equal(res.statusCode, 400, `${name}: ${JSON.stringify(res.body)}`);
+      assert.equal(confirms, 0, `${name}: 토스 승인을 부르면 안 된다(돈이 빠지기 전에 막기)`);
+      assert.equal(inserts.length, 0, name);
+    }
+  }));
+
+test("여러 상품: 무통장입금 주문도 상품마다 다시 계산해 입금 대기로 저장", { concurrency: false },
+  withEnv({ ...BASE_ENV, BANK_TRANSFER_ENABLED: "1" }, async () => {
+    const inserts = [], telegrams = [];
+    globalThis.fetch = bankFetch(inserts, telegrams);
+    const res = mockResponse();
+    await confirmPayment({ method: "POST", headers: {}, query: {}, body: { action: "bank_order", amount: MULTI_TOTAL, order: MULTI_ORDER } }, res);
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(res.body.amount, MULTI_TOTAL);
+    assert.equal(inserts[0].status, AWAITING);
+    assert.match(inserts[0].note, /상품 2가지/);
+  }));

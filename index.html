@@ -334,6 +334,19 @@
   .addrbook .ab-pick span { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.4; word-break: keep-all; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .addrbook .ab-pick:active { background: var(--accent-soft); border-color: var(--accent); }
   .addrbook .ab-del { flex: 0 0 44px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink-faint); font-size: 20px; cursor: pointer; }
+  /* 같은 곳으로 함께 보내는 상품 */
+  .extra-box { margin-top: 16px; padding: 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); }
+  .extra-box .ex-title { font-size: 15px; font-weight: 800; color: var(--accent-deep); margin-bottom: 8px; }
+  .extra-box .ex-row { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid rgba(31,71,51,.15); }
+  .extra-box .ex-row:first-of-type { border-top: none; }
+  .extra-box .ex-ph { width: 52px; height: 52px; border-radius: var(--radius-sm); overflow: hidden; background: var(--photo-bg); }
+  .extra-box .ex-ph img { width: 100%; height: 100%; object-fit: cover; }
+  .extra-box .ex-nm { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .extra-box .ex-pr { font-size: var(--fs-caption); color: var(--ink-soft); }
+  .extra-box .ex-ctl { display: flex; align-items: center; gap: 4px; }
+  .extra-box .ex-ctl button { min-width: 36px; min-height: 36px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; font-size: 16px; cursor: pointer; }
+  .extra-box .ex-ctl .n { min-width: 22px; text-align: center; font-weight: 700; }
+  .extra-box .ex-note { margin-top: 8px; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.55; word-break: keep-all; }
   /* 결제 방법 */
   .pay-methods { margin: 4px 0 6px; }
   .pay-methods .pm-label { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
@@ -757,6 +770,8 @@
     <div id="designArea">
       <div class="soon-note">가격대를 선택하면 디자인이 표시됩니다. (실제 상품 사진·디자인은 준비 중)</div>
     </div>
+    <!-- 같은 곳으로 함께 보내는 상품(장바구니 '한 번에 주문') — designArea 는 다시 그려지므로 바깥에 둔다 -->
+    <div id="extraItemsBox" class="extra-box hidden"></div>
   </section>
 
   <section class="card hidden" id="confirmCard">
@@ -1750,7 +1765,59 @@ async function loadLiveCatalog(){
 
 function orderTotal(){
   const per = order.price + (order.toppings||[]).reduce((s,c)=>s+(TOPPINGS[c]?TOPPINGS[c].price:0),0);
-  return per * (order.quantity||1);
+  return per * (order.quantity||1) + afExtrasTotal();
+}
+
+// ── 같은 곳으로 여러 상품(장바구니 '같은 곳으로 한 번에 주문') ──
+// 첫 상품이 주문서의 중심이고, 나머지는 받는 곳·날짜·리본을 공유한다(아버지 비교표 10/4, 추천안 A).
+// 금액은 서버가 상품마다 원장 가격으로 다시 계산해 합계가 맞을 때만 받는다.
+var AF_EXTRAS = [];   // [{pc, qty}]
+function afProd(pc){ return (window.PRODUCTS||[]).find(function(p){ return p.pc===pc; }); }
+function afExtrasTotal(){
+  return AF_EXTRAS.reduce(function(sum,e){ var p=afProd(e.pc); return sum + (p ? p.price*e.qty : 0); }, 0);
+}
+// /?cart=1 로 들어오면 장바구니 첫 상품으로 주문서를 열고 나머지를 함께 보내는 상품으로 둔다.
+function afBootCart(){
+  var q; try{ q=new URLSearchParams(location.search); }catch(_){ return; }
+  if(q.get("cart")!=="1") return;
+  var cart=[]; try{ cart=JSON.parse(localStorage.getItem("af_cart")||"[]"); }catch(_){}
+  cart=(Array.isArray(cart)?cart:[]).filter(function(i){ return i && afProd(i.pc); });
+  if(!cart.length){ try{ history.replaceState({},"","/"); }catch(_){} return; }
+  var first=cart[0], fq=Math.max(1,Math.min(99,first.qty||1));
+  AF_EXTRAS=cart.slice(1, 10).map(function(i){ return { pc:i.pc, qty:Math.max(1,Math.min(99,i.qty||1)) }; });
+  try{ history.replaceState({},"","/?pc="+encodeURIComponent(first.pc)+(fq>1?"&qty="+fq:"")); }catch(_){}
+}
+function afSyncTotals(){
+  if(typeof updateDesignTotal==="function") updateDesignTotal();
+  if(typeof updateBuyBar==="function") updateBuyBar();
+  var pc=document.getElementById("payCard"), ta=document.getElementById("totalAmt");
+  if(pc && ta && !pc.classList.contains("hidden")) ta.textContent=orderTotal().toLocaleString()+"원";
+  if(typeof renderPayReview==="function") renderPayReview();
+}
+function afRenderExtras(){
+  var box=document.getElementById("extraItemsBox"); if(!box) return;
+  if(!AF_EXTRAS.length){ box.classList.add("hidden"); box.innerHTML=""; afSyncTotals(); return; }
+  box.classList.remove("hidden");
+  box.innerHTML='<div class="ex-title">같은 곳으로 함께 보내는 상품</div>'
+    + AF_EXTRAS.map(function(e,i){
+        var p=afProd(e.pc); if(!p) return "";
+        var ph=(p.photos&&p.photos[0])||"";
+        return '<div class="ex-row"><div class="ex-ph"><img src="'+escapeAttr(ph)+'" alt="" onerror="this.style.display=\'none\'"></div>'
+          + '<div><div class="ex-nm">'+escapeHtml(p.name)+'</div><div class="ex-pr">'+(p.price*e.qty).toLocaleString()+'원'+(e.qty>1?' ('+e.qty+'개)':'')+'</div></div>'
+          + '<div class="ex-ctl"><button type="button" onclick="afExtraQty('+i+',-1)" aria-label="수량 줄이기">−</button><span class="n">'+e.qty+'</span>'
+          + '<button type="button" onclick="afExtraQty('+i+',1)" aria-label="수량 늘리기">+</button>'
+          + '<button type="button" onclick="afExtraRemove('+i+')" aria-label="'+escapeAttr(p.name)+' 빼기">×</button></div></div>';
+      }).join("")
+    + '<div class="ex-note">받는 곳·날짜·리본(카드)은 위 상품과 같아요. 받는 곳이 서로 다르면 장바구니에서 <b>하나씩 주문</b>해 주세요.</div>';
+  afSyncTotals();
+}
+function afExtraQty(i,d){ var e=AF_EXTRAS[i]; if(!e) return; e.qty=Math.max(1,Math.min(99,e.qty+d)); afRenderExtras(); }
+function afExtraRemove(i){ AF_EXTRAS.splice(i,1); afRenderExtras(); }
+// 서버로 보낼 상품 목록 — 함께 보내는 상품이 있을 때만(없으면 지금과 똑같이 한 상품 주문).
+function afOrderItems(){
+  if(!AF_EXTRAS.length) return null;
+  return [{ productCode:order.productCode, quantity:order.quantity||1, toppings:(order.toppings||[]).slice() }]
+    .concat(AF_EXTRAS.map(function(e){ return { productCode:e.pc, quantity:e.qty, toppings:[] }; }));
 }
 // 수량 조절(1~99). 같은 상품 여러 개(예: 화환 여러 개 한 장례식장)를 한 번에.
 function changeQty(delta){
@@ -1828,6 +1895,7 @@ function updateDesignTotal(){
   const note=[];
   if(q>1) note.push(`${q}개`);
   if(tops.length) note.push(`옵션 포함`);
+  if(AF_EXTRAS.length) note.push(`함께 보내는 ${AF_EXTRAS.length}건 포함`);
   el.innerHTML = `<b>${orderTotal().toLocaleString()}원</b>`
     + (note.length ? ` <span style="font-size:var(--fs-caption);color:var(--ink-faint);font-weight:400;">(${note.join(' · ')})</span>` : '');
   updateBuyBar();
@@ -2098,6 +2166,7 @@ function renderPayReview(){
   const el=document.getElementById("payReview"); if(!el) return;
   const rows=[];
   if(order.productLabel) rows.push(["상품", escapeHtml(order.productLabel)]);
+  if(AF_EXTRAS.length) rows.push(["함께", AF_EXTRAS.map(function(e){ var p=afProd(e.pc); return escapeHtml(p?p.name:e.pc)+(e.qty>1?" ×"+e.qty:""); }).join(", ")]);
   const place=[order.venue,order.venueDetail].filter(Boolean).join(" ")||order.address||"";
   if(place) rows.push(["받는 곳", escapeHtml(place)]);
   if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
@@ -2587,6 +2656,9 @@ async function requestPay(){
   const payAmount=orderTotal();
   const payBtn=document.getElementById("payBtn");
   const method=afPayMethod;
+  const _items=afOrderItems();
+  if(_items) order.items=_items; else delete order.items;
+  const _orderName=_items ? (order.productLabel||"꽃 주문")+" 외 "+(_items.length-1)+"건" : (order.productLabel||"꽃 주문");
   if(method==="bank"){
     // 무통장입금 — 토스를 거치지 않는다. 서버가 금액·배송정보를 다시 계산하고 입금 대기로 저장한다.
     const crType=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
@@ -2622,7 +2694,7 @@ async function requestPay(){
     if(payBtn) payBtn.textContent="결제창 여는 중…";
     const common={
       amount:{currency:"KRW",value:payAmount},
-      orderId, orderName:order.productLabel||"꽃 주문",
+      orderId, orderName:_orderName,
       successUrl:location.origin+"/?payresult=success",
       failUrl:location.origin+"/?payresult=fail",
       customerName:order.senderName,
@@ -2841,6 +2913,13 @@ function renderDone(data,o){
     event_date:o.date||"", event_time:o.time||""
   })); }catch(_e){}
   try{ afAddrRemember(o); }catch(_e){}
+  try{
+    if(Array.isArray(o.items) && o.items.length){
+      var _done=o.items.map(function(i){ return i.productCode; });
+      var _cart=JSON.parse(localStorage.getItem("af_cart")||"[]");
+      localStorage.setItem("af_cart", JSON.stringify((Array.isArray(_cart)?_cart:[]).filter(function(c){ return _done.indexOf(c.pc)<0; })));
+    }
+  }catch(_e){}
   const p=data.payment||{};
   const reconciliationNote = data.manualRecovery
     ? `<div style="background:#fff0ef;border:1px solid #c84b45;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#7d211d;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 1577-2286으로 알려주세요. 입력하신 주문 정보는 이 기기에 보관했습니다.</div>`
@@ -2928,7 +3007,8 @@ function renderDone(data,o){
       ${timelineHtml}
       ${etaLine}
       <div style="background:#f7f7f3;border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
-        <div>상품: ${escapeHtml(o.productLabel||"")}</div>
+        <div>상품: ${escapeHtml(o.productLabel||"")}${Array.isArray(o.items)&&o.items.length>1?` 외 ${o.items.length-1}건`:""}</div>
+        ${Array.isArray(o.items)&&o.items.length>1?`<div style="font-size:var(--fs-caption);color:var(--ink-soft);">${o.items.map(i=>{const p=(window.PRODUCTS||[]).find(x=>x.pc===i.productCode);return escapeHtml(p?p.name:i.productCode)+(i.quantity>1?" ×"+i.quantity:"");}).join(" · ")}</div>`:""}
         ${(o.toppings&&o.toppings.length)?`<div>얹기: ${o.toppings.map(c=>escapeHtml((TOPPINGS[c]||{}).nm||c)).join(" · ")}</div>`:""}
         <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
         ${place?`<div>장소: ${escapeHtml(place)}</div>`:""}
@@ -3615,11 +3695,13 @@ function handleCatalogParam(){
   },50);
 }
 
+afBootCart();              // /?cart=1 → 첫 상품 딥링크로 바꾸고 나머지를 함께 보내는 상품으로
 handleRedirect();
 renderBest();
 handleProductParam();
 handleWorderParam();
 afApplyPendingRestore();   // 상품·카드 골격이 세워진 뒤에 저장해 둔 값을 얹는다
+afRenderExtras();
 handleCorpParam();
 handleCatalogParam();
 loadLiveCatalog();  // 신규상품·옵션가격 라이브 병합(정적 먼저 렌더 후 비동기 보강)

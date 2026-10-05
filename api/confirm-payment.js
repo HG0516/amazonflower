@@ -143,11 +143,20 @@ function buildOwnerMessage(order, payment) {
   const tags = Array.isArray(order.confirmTags) ? order.confirmTags.filter(Boolean).slice(0, 4) : [];
   if (tags.length) lines.push(`⚠️ 확인 필요 — ${tags.map((t) => String(t).slice(0, 10)).join(" · ")}`);
   lines.push("");
-  lines.push(`상품: ${order.productLabel || "-"}`);
-  if (order.quantity && Number(order.quantity) > 1) lines.push(`수량: ${order.quantity}개`);
-  const tops = Array.isArray(order.toppings) ? order.toppings : [];
-  if (tops.length) {
-    lines.push(`얹기: ${tops.map((t) => TOPPING_LABELS[t] || t).join(" · ")}`);
+  if (Array.isArray(order.items) && order.items.length >= 2) {
+    // 같은 곳으로 여러 상품 — 하나도 빠뜨리지 않게 줄마다 하나씩
+    lines.push(`상품 ${order.items.length}가지 (같은 곳으로):`);
+    for (const it of order.items) {
+      const tl = Array.isArray(it.toppings) && it.toppings.length ? ` (+${it.toppings.map((t) => TOPPING_LABELS[t] || t).join("·")})` : "";
+      lines.push(`· ${it.name || it.productCode}${Number(it.quantity) > 1 ? ` ×${it.quantity}` : ""}${tl}`);
+    }
+  } else {
+    lines.push(`상품: ${order.productLabel || "-"}`);
+    if (order.quantity && Number(order.quantity) > 1) lines.push(`수량: ${order.quantity}개`);
+    const tops = Array.isArray(order.toppings) ? order.toppings : [];
+    if (tops.length) {
+      lines.push(`얹기: ${tops.map((t) => TOPPING_LABELS[t] || t).join(" · ")}`);
+    }
   }
   lines.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
   if (order.recipientName) lines.push(`받는분: ${order.recipientName}`);
@@ -210,7 +219,8 @@ function buildCustomerMessage(order, payment) {
   const L = [];
   L.push("[꽃안부] 주문이 접수되었습니다.");
   L.push("");
-  L.push(`상품: ${order.productLabel || "-"}${Number(order.quantity) > 1 ? ` ${order.quantity}개` : ""}`);
+  const multi = Array.isArray(order.items) && order.items.length >= 2;
+  L.push(`상품: ${order.productLabel || "-"}${!multi && Number(order.quantity) > 1 ? ` ${order.quantity}개` : ""}`);
   const place = [order.venue, order.venueDetail].filter(Boolean).join(" ") || order.address || "";
   if (place) L.push(`받는 곳: ${place}`);
   if (order.recipientName) L.push(`받는 분: ${order.recipientName}`);
@@ -600,6 +610,7 @@ async function validateOrderRequest(req, orderId, amount, order) {
   let authoritativePrice = null;
   let sealedToppings = [];
   let sealedQuantity = 1;
+  let multiItems = null;
   if (isCustom) {
     const secret = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
     const given = String(order.payToken || "");
@@ -620,6 +631,44 @@ async function validateOrderRequest(req, orderId, amount, order) {
     }
     // 구형 링크는 label이 서명되지 않았으므로 고객 URL 값을 절대 신뢰하지 않는다.
     customLabel = goodV2 ? requestedLabel : "맞춤 주문 (기존 링크)";
+  } else if (Array.isArray(order.items) && order.items.length >= 2) {
+    // 같은 곳으로 여러 상품(장바구니 '한 번에 주문'). 상품마다 원장 가격·옵션 가격으로 다시 계산해
+    // 합계가 결제 금액과 정확히 같을 때만 받는다. 첫 상품이 주문서의 중심(productCode)과 같아야 한다.
+    if (order.items.length > 10) return { ok: false, status: 400, error: "한 번에 주문할 수 있는 상품은 10가지까지예요." };
+    if (String(order.items[0] && order.items[0].productCode || "") !== String(productCode || "")) {
+      return { ok: false, status: 400, error: "주문 상품 정보가 맞지 않습니다. 처음부터 다시 주문해주세요." };
+    }
+    let total = 0;
+    const sealedItems = [];
+    for (const it of order.items) {
+      const pc = String(it && it.productCode || "").slice(0, 64);
+      const { price: bp, label: lb } = await resolveBasePrice(pc);
+      if (bp == null) return { ok: false, status: 400, error: "알 수 없는 상품입니다." };
+      const q = parseInt(it.quantity, 10);
+      if (!(Number.isFinite(q) && q >= 1 && q <= 99)) return { ok: false, status: 400, error: "수량이 올바르지 않습니다." };
+      const tops = Array.isArray(it.toppings) ? [...new Set(it.toppings.map(String))].slice(0, 20) : [];
+      const tPrices = await resolveToppingPrices(tops);
+      let ts = 0;
+      for (const t of tops) {
+        const tp = (t in tPrices) ? tPrices[t] : null;
+        if (tp == null) return { ok: false, status: 400, error: "알 수 없는 추가 옵션입니다." };
+        ts += tp;
+      }
+      const name = lb || PRODUCT_LABELS[pc] || (PRODUCTS.find((p) => p.pc === pc) || {}).name || pc;
+      sealedItems.push({ productCode: pc, name: String(name).slice(0, 60), quantity: q, toppings: tops, unitPrice: bp + ts });
+      total += (bp + ts) * q;
+    }
+    if (nAmount !== total) {
+      console.error(`금액 불일치(여러 상품): orderId=${orderId} expected=${total}`);
+      return { ok: false, status: 400, error: "결제 금액이 상품 가격과 일치하지 않습니다." };
+    }
+    const missing = missingDelivery(order);
+    if (missing) return { ok: false, status: 400, error: missing };
+    customLabel = `${sealedItems[0].name} 외 ${sealedItems.length - 1}건`;
+    authoritativePrice = total;
+    sealedToppings = sealedItems[0].toppings;
+    sealedQuantity = sealedItems[0].quantity;
+    multiItems = sealedItems;
   } else {
     const { price: basePrice, label } = await resolveBasePrice(productCode);
     customLabel = label;
@@ -669,6 +718,7 @@ async function validateOrderRequest(req, orderId, amount, order) {
     price: isCustom ? nAmount : authoritativePrice,
     quantity: isCustom ? 1 : sealedQuantity,
     toppings: isCustom ? [] : sealedToppings,
+    ...(multiItems ? { items: multiItems } : {}),
     user_id: userId,
   };
   delete safeOrder.payToken;
