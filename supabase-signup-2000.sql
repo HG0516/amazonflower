@@ -3,9 +3,11 @@
 --
 --  · 새로 가입하는 회원: 가입 트리거(handle_new_user)가 2,000P 를 넣는다.
 --    함수만 바꾼다 — 프로필 자동 생성·중복 방지·오류를 삼켜 가입을 절대 안 막는 동작은 phase2 그대로.
---  · 이미 가입한 회원: 가입 적립 합계가 2,000P 보다 적으면 차액을 '가입 추가'로 한 번 넣는다
+--  · 이미 가입한 회원: '가입' 적립 합계가 2,000P 보다 적으면 차액을 '가입'으로 한 번 더 넣는다
 --    (1,000원 시절 가입자, 사이트 문구가 2,000원으로 바뀐 뒤 이 SQL 전에 가입한 사람 모두).
 --    여러 번 실행해도 두 번 안 들어간다 — 합계가 2,000P 가 되면 대상에서 빠진다.
+--    ⚠️ reason 칸은 check 제약('가입','리뷰','사용','관리자조정')이 있어 새 사유를 못 쓴다(10/6 '가입 추가'로 실패).
+--    트리거의 중복 방지는 '가입' 행이 하나라도 있으면 건너뛰는 것이라, '가입' 두 줄이어도 문제없다.
 --  · 화면 문구(index.html·auth.js)는 같은 날 배포됨. 적립금 '사용'(결제 차감)은 아직 없다.
 --
 --  Supabase → SQL Editor 에 전체 붙여넣고 Run → 맨 아래 확인 결과가 나오면 끝.
@@ -48,9 +50,9 @@ $$;
 
 -- 이미 가입한 회원 — 가입 적립 합계를 2,000P 로 맞춘다(차액만, 한 번만)
 insert into public.points_ledger (user_id, amount, reason)
-select user_id, 2000 - sum(amount), '가입 추가'
+select user_id, 2000 - sum(amount), '가입'
 from public.points_ledger
-where reason in ('가입', '가입 추가')
+where reason = '가입'
 group by user_id
 having sum(amount) < 2000;
 
@@ -60,7 +62,7 @@ select u.id, 2000, '가입'
 from auth.users u
 where not exists (
   select 1 from public.points_ledger p
-  where p.user_id = u.id and p.reason in ('가입', '가입 추가')
+  where p.user_id = u.id and p.reason = '가입'
 );
 
 -- 확인: members = 회원 수, min_total·max_total 둘 다 2000 이면 끝
@@ -68,6 +70,6 @@ select count(*) as members, min(total) as min_total, max(total) as max_total
 from (
   select u.id, coalesce(sum(p.amount), 0) as total
   from auth.users u
-  left join public.points_ledger p on p.user_id = u.id and p.reason in ('가입', '가입 추가')
+  left join public.points_ledger p on p.user_id = u.id and p.reason = '가입'
   group by u.id
 ) t;

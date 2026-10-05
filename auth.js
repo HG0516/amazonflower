@@ -333,7 +333,7 @@
     });
   }
 
-  // 내 적립금 — 잔액 + 적립 내역(가입 2,000원 등. 1,000원 시절 가입자는 '가입 추가'로 차액). 결제 차감 UI는 수치 확정 전이라 미노출.
+  // 내 적립금 — 잔액 + 적립 내역(가입 2,000원 등. 1,000원 시절 가입자는 '가입' 1,000 두 줄). 결제 차감 UI는 수치 확정 전이라 미노출.
   function loadPoints() {
     var u = window.afAuth.user;
     var box = document.getElementById('af-points');
@@ -344,7 +344,7 @@
         if (!rows.length) { box.innerHTML = ''; return; }
         var bal = rows.reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
         var items = rows.slice(0, 5).map(function (r) {
-          var label = (r.reason === '가입' || r.reason === '가입 추가') ? '가입 축하 적립' : r.reason;
+          var label = r.reason === '가입' ? '가입 축하 적립' : r.reason;
           var d = (r.created_at || '').slice(0, 10);
           return '<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#5a564d;margin-top:3px;">'
             + '<span>' + esc(label) + (d ? ' · ' + d : '') + '</span>'
