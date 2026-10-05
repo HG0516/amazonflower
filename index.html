@@ -370,6 +370,21 @@
   .paychips.center { justify-content: center; }
   .quote-btn { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2px 8px; width: 100%; min-height: 46px; margin: 8px 0 6px; padding: 8px 12px; border: 1px dashed #bdb7a8; border-radius: var(--radius-sm); background: #fff; color: var(--ink); font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
   .quote-btn span { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-soft); }
+  /* 상품 화면 배송 지역 확인(꽃집청년들 비교표) — regions.js regionCheck 그대로 */
+  .area-check { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfaf6; }
+  .area-check > summary { min-height: 44px; display: flex; align-items: center; padding: 0 14px; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--ink); list-style: none; }
+  .area-check > summary::-webkit-details-marker { display: none; }
+  .area-check > summary::after { content: "▾"; margin-left: auto; color: var(--ink-faint); }
+  .area-check[open] > summary::after { content: "▴"; }
+  .ac-body { padding: 0 14px 12px; }
+  .ac-row { display: flex; gap: 6px; }
+  .ac-row input { flex: 1; min-width: 0; }
+  .ac-row button { flex: 0 0 auto; min-width: 64px; border: 0; border-radius: var(--radius-sm); background: var(--ink); color: #fff; font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  .ac-out { margin-top: 8px; font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+  .ac-out.ok { color: var(--accent-deep); }
+  .ac-out.warn { color: #8a5a00; }
+  .ac-out.bad { color: #a12d24; }
+  .same-btn { display: inline-flex; align-items: center; min-height: 40px; margin: 2px 0 4px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; }
   /* 약관 동의 묶음 — 맨 위 '모두 동의', 아래 필수 4개(각각 '보기'로 펼침) */
   .agree { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #f7f7f3; overflow: hidden; }
   .agree input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
@@ -888,6 +903,7 @@
       </div>
     </div>
 
+    <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분과 같아요 — 제가 직접 받아요</button>
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
     <input type="text" id="senderName" autocomplete="name" enterkeyhint="next" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this)" />
     <label class="fl">연락처 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 도착 확인 사진을 이 번호로 보내드립니다</span></label>
@@ -2208,6 +2224,7 @@ function selTier(i, autoOpen){
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
       </div>
     </div>
+    ${afAreaHtml()}
     ${qtyRowHtml()}
     <div id="toppingBox"></div>
     <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>
@@ -2313,6 +2330,7 @@ function buildRibbon(){
   document.querySelectorAll(".ribbon-only").forEach(el=>{ el.style.display = noRibbon ? "none" : ""; });
   // 리본 대신 메시지 카드(꽃다발·꽃바구니). 화환·난·관엽은 리본에 문구가 들어가니 카드 칸을 숨기고 값도 비운다.
   document.querySelectorAll(".card-only").forEach(el=>{ el.style.display = noRibbon ? "" : "none"; });
+  const sameBtn=document.getElementById("sameAsRcpt"); if(sameBtn) sameBtn.style.display = order.category==="wreath" ? "none" : "";
   if(noRibbon) afMsgCardRender(); else order.cardMessage="";
   const st=document.getElementById("senderTitle"), ss=document.getElementById("senderSub");
   if(st) st.textContent = noRibbon ? "보내는 분" : "보내는 분 · 리본 문구";
@@ -2540,6 +2558,65 @@ function afLoadPayConfig(){
   }).catch(function(){});
 }
 document.addEventListener("DOMContentLoaded", afLoadPayConfig);
+
+// ── 상품 화면 '배송 가능 지역 확인' ──
+// regions.js 의 regionCheck 그대로(주문서 '확정 필요' 안내와 같은 판정). 금액을 물리지 않고 미리 알려만 준다.
+// regionCheck 는 같은 이름이 다른 도에도 있는 곳(고성·연천 등)을 시·도 힌트로 거른다 → 시·도 없이
+// 이름만 적으면 놓치므로, 이름만 맞는 곳이 있으면 시·도까지 적어 달라고 되묻는다.
+function afAreaHtml(){
+  return '<details class="area-check"><summary>배송 가능 지역 확인</summary><div class="ac-body">'
+    + '<div class="ac-row"><input type="text" id="acInput" placeholder="예) 경기 시흥시 · 서울 강남구" enterkeyhint="search" autocomplete="off"'
+    + ' oninput="afAreaRender(false)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();afAreaRender(true);}">'
+    + '<button type="button" onclick="afAreaRender(true)">확인</button></div>'
+    + '<div class="ac-out" id="acOut" aria-live="polite">받으실 곳의 시·군·구나 동을 적어 보세요.</div></div></details>';
+}
+function afAreaCheck(raw){
+  var a=String(raw||"").replace(/\s+/g," ").trim();
+  if((a.match(/[가-힣]/g)||[]).length<2) return { kind:"short" };
+  if(typeof regionCheck!=="function") return { kind:"ok" };
+  // regionCheck 는 4자 미만을 일부러 건너뛴다(주소를 치는 중 헛걸림 방지). 여기선 다 적은 뒤라 앞에 빈말을 붙여 넘긴다.
+  var r=regionCheck(a.length<4 ? "배송지 "+a : a);
+  if(r) return { kind: r.blocked ? "blocked" : "extra", r:r };
+  // 시·도를 적었으면 regionCheck 결과가 맞다. 안 적었으면 도 힌트 때문에 못 걸린 곳이 있는지 본다.
+  if(/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|충청|전북|전남|전라|경북|경남|경상|제주)/.test(a)) return { kind:"ok" };
+  var D=window.REGION_DATA||{}, list=(D.EXTRA||[]).concat(D.BLOCKED||[]);
+  for(var i=0;i<list.length;i++){
+    var x=list[i]; if(!x.prov || !x.prov.length) continue;
+    // regions.js nameHit 과 같은 규칙 — '영월빌딩'처럼 다른 낱말 속 지명은 안 친다
+    var hit=/[읍면동리시군구]$/.test(x.n) ? a.indexOf(x.n)>=0
+      : new RegExp(x.n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?:시|군|구|읍|면|동|리|로|길|가|\\s|$)").test(a);
+    if(hit){
+      var pv=x.prov.slice().sort(function(p,q){ return p.length-q.length; })[0];   // '전라남'·'전남' 중 짧은 쪽이 말하기 쉽다
+      return { kind:"ambiguous", n:x.n, prov:pv };
+    }
+  }
+  return { kind:"ok" };
+}
+function afAreaRender(final){
+  var inp=document.getElementById("acInput"), out=document.getElementById("acOut"); if(!inp||!out) return;
+  var c=afAreaCheck(inp.value), cls="", msg="";
+  if(c.kind==="short"){ if(!final && inp.value.trim()) return; msg="받으실 곳의 시·군·구나 동 이름을 적어 주세요 (예: 경기 시흥시, 서울 강남구)."; }
+  else if(c.kind==="blocked"){ cls="bad"; msg=c.r.note; }
+  else if(c.kind==="extra"){ cls="warn"; msg=escapeHtml(c.r.name)+" 지역은 추가 배송비(<b>"+escapeHtml(c.r.label)+"</b>)가 "+(c.r.part?"있을 수 있어요":"붙어요")+". 주문은 그대로 하시면 되고, 정확한 금액과 배송 가능 여부는 사장님이 확인해 연락드려요."; }
+  else if(c.kind==="ambiguous"){ cls="warn"; msg="정확히 확인하려면 시·도까지 함께 적어 주세요 (예: "+escapeHtml(c.prov)+" "+escapeHtml(c.n)+")."; }
+  else { if(!final && inp.value.trim().length<3) return; cls="ok"; msg="✓ 추가 배송비 없이 보내 드리는 지역이에요. 평일 18시·주말 16시까지 주문하시면 당일 배송돼요."; }
+  out.className="ac-out "+cls; out.innerHTML=msg;
+}
+
+// ── 보내는 분 '받는 분과 같아요' ──
+// 꽃집청년들의 '주문자와 동일'. 여기는 받는 분을 먼저 적는 순서라, 반대로 받는 분 이름·연락처를
+// 보내는 분 칸으로 옮긴다(꽃을 직접 받는 손님·자기 매장 개업 화분). 화환은 받는 곳이 빈소·식장이라 숨긴다.
+function afSameAsRecipient(btn){
+  var rn=String((document.getElementById("af_recipientName")||{}).value||order.recipientName||"").trim();
+  var rp=String((document.getElementById("recipientPhone")||{}).value||order.recipientPhone||"").trim();
+  var label=btn.getAttribute("data-label")||btn.textContent; btn.setAttribute("data-label",label);
+  if(!rn && !rp){ btn.textContent="받는 분을 먼저 적어 주세요"; setTimeout(function(){ btn.textContent=label; },2200); return; }
+  var sn=document.getElementById("senderName"), sp=document.getElementById("senderPhone");
+  if(sn && rn){ sn.value=rn; order.senderName=rn; if(typeof clearErr==="function") clearErr(sn); }
+  if(sp && rp){ sp.value=rp; if(typeof formatPhone==="function") formatPhone(sp); order.senderPhone=sp.value; if(typeof clearErr==="function") clearErr(sp); }
+  try{ syncRibbonLeft(); }catch(_){}
+  btn.textContent="받는 분과 같게 채웠어요 ✓"; setTimeout(function(){ btn.textContent=label; },2200);
+}
 
 // 견적서 출력 — 지금 주문서의 품목·수량·단가를 quote.html 로 넘긴다(# 뒤라 서버 기록에 안 남음).
 // 화면 합계(orderTotal)와 같은 방식: 상품 단가×수량 + 토핑 단가×수량 + 함께 보내는 상품.
@@ -3662,6 +3739,7 @@ function selProduct(p){
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
       </div>
     </div>
+    ${afAreaHtml()}
     ${qtyRowHtml()}
     <div id="toppingBox"></div>
     <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>
