@@ -49,6 +49,13 @@
   .pmb.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent);}
   /* 10/5까지 이 파일엔 .hidden 정의가 없어 '가상계좌' 칸이 스위치와 상관없이 보였다. */
   .hidden{display:none!important;}
+  /* 동의 한 번(10/6) — 주문서(index.html)의 필수 동의 4개와 같은 내용을 한 칸으로. 전화로 이미 주문한 손님이라 탭 한 번 */
+  .agree1{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#f7f7f3;font-size:14px;line-height:1.6;text-align:left;cursor:pointer;}
+  .agree1 input{width:20px;height:20px;flex-shrink:0;margin:2px 0 0;accent-color:var(--accent);}
+  .agree1 a{color:var(--ink);font-weight:600;text-decoration:underline;}
+  .agree-more{margin-top:6px;font-size:13px;color:var(--ink-soft);text-align:left;}
+  .agree-more summary{cursor:pointer;}
+  .agree-more p{margin:6px 0 0;line-height:1.7;}
   .paychips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
   .paychips .pc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font-size:12px;font-weight:700;font-style:normal;line-height:1.35;white-space:nowrap;}
   .paychips .pc::before{content:"";flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--dot,#8a877d);}
@@ -116,6 +123,14 @@ function renderForm(oid, amt, token, label){
         <button type="button" class="pmb hidden" data-m="transfer"><b>계좌이체</b><span>내 은행 계좌에서 바로 이체 · 현금영수증 자동</span></button>
         <button type="button" class="pmb hidden" data-m="va"><b>계좌로 입금(가상계좌)</b><span>이 주문 전용 계좌가 나와요 · 입금되면 자동 확인</span></button>
       </div>
+      <label class="agree1"><input type="checkbox" id="agreeAll"><span><b>[필수]</b> 위 주문 내용과 금액을 확인했고, 결제·<a href="/terms.html" target="_blank" rel="noopener">이용약관</a>·<a href="/privacy.html" target="_blank" rel="noopener">개인정보 수집·이용과 처리위탁</a>에 동의합니다</span></label>
+      <details class="agree-more"><summary>동의 내용 자세히 보기</summary>
+        <p><b>수집 항목</b> 보내는 분 성함·연락처, 받는 분·받는 곳·요청사항(적으신 경우)<br>
+        <b>이용 목적</b> 주문 접수·제작·배송, 주문·도착 사진 문자 안내, 결제 확인·환불<br>
+        <b>보유 기간</b> 전자상거래법에 따라 계약·결제 기록 5년, 소비자 불만·분쟁 기록 3년 보관 후 파기<br>
+        <b>처리위탁</b> 토스페이먼츠(결제) · 솔라피(문자 발송) · 배송 협력 꽃집(제작·배송) · Supabase·Vercel(저장·운영)<br>
+        동의하지 않으실 수 있지만, 이 경우 결제하실 수 없어요.</p>
+      </details>
       <button class="btn" id="go">${Number(amt).toLocaleString()}원 결제하기</button>
       <p class="note" id="pmNote">결제하기를 누르면 카드·간편결제 창이 열립니다.</p>
     </div>`;
@@ -148,6 +163,7 @@ function renderForm(oid, amt, token, label){
     const sphone = $("sphone").value.trim();
     if(!sname){ err.textContent="보내는 분 성함을 입력해주세요."; err.style.display="block"; $("sname").focus(); return; }
     if(sphone.replace(/\D/g,"").length < 9){ err.textContent="연락처를 정확히 입력해주세요."; err.style.display="block"; $("sphone").focus(); return; }
+    if(!$("agreeAll").checked){ err.textContent="주문 내용과 약관에 동의해 주세요. (필수)"; err.style.display="block"; $("agreeAll").focus(); return; }
     if(!payment){ err.textContent="결제 모듈이 준비되지 않았어요. 새로고침 후 다시 시도해주세요."; err.style.display="block"; return; }
 
     // 주문 정보를 저장 — 결제창→리다이렉트 후 이 값으로 승인 요청한다(index.html과 동일 패턴).

@@ -370,6 +370,10 @@
   .paychips.center { justify-content: center; }
   .quote-btn { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2px 8px; width: 100%; min-height: 46px; margin: 8px 0 6px; padding: 8px 12px; border: 1px dashed #bdb7a8; border-radius: var(--radius-sm); background: #fff; color: var(--ink); font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
   .quote-btn span { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-soft); }
+  /* 원산지 — 원산지표시법: 통신판매는 상품명·가격 근처에. 나라별 표는 푸터(footer.js) '원산지 표시' */
+  .origin-mini { margin-top: 4px; font-size: var(--fs-caption); color: var(--ink-soft); }
+  .origin-mini > summary { cursor: pointer; display: inline; }
+  .origin-mini p { margin: 6px 0 0; line-height: 1.7; }
   /* 상품 화면 배송 지역 확인(꽃집청년들 비교표) — regions.js regionCheck 그대로 */
   .area-check { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfaf6; }
   .area-check > summary { min-height: 44px; display: flex; align-items: center; padding: 0 14px; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--ink); list-style: none; }
@@ -2219,6 +2223,7 @@ function selTier(i, autoOpen){
         <div class="design-desc">${t.desc}</div>
         <div class="design-price" id="designTotal"><b>${t.price.toLocaleString()}원</b></div>
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
+        ${afOriginHtml()}
       </div>
     </div>
     ${afAreaHtml()}
@@ -2565,6 +2570,14 @@ function afLoadPayConfig(){
   }).catch(function(){});
 }
 document.addEventListener("DOMContentLoaded", afLoadPayConfig);
+
+// 원산지 한 줄(펼치면 설명). footer.js '원산지 표시' 표와 같은 말이어야 한다 — 표가 바뀌면 함께 고칠 것.
+function afOriginHtml(){
+  const body = (order.category==="plant"||order.category==="orchid")
+    ? "관엽식물·난은 국내산과 수입산(중국·대만·베트남 등)을 함께 써요."
+    : "생화·계절꽃·그린소재는 국내산과 수입산(중국·베트남·콜롬비아 등)을 함께 써요.";
+  return '<details class="origin-mini"><summary>원산지 · 국내산·수입산 혼용</summary><p>'+body+' 꽃 수급에 따라 달라질 수 있고, 받으시는 상품의 포장재·영수증 등에 원산지를 표시해 보내드려요. 나라별 표는 맨 아래 \'원산지 표시\'에 있어요.</p></details>';
+}
 
 // ── 상품 화면 '배송 가능 지역 확인' ──
 // regions.js 의 regionCheck 그대로(주문서 '확정 필요' 안내와 같은 판정). 금액을 물리지 않고 미리 알려만 준다.
@@ -3744,6 +3757,7 @@ function selProduct(p){
         <div class="design-desc">${escapeHtml(sizeLine)}</div>
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
+        ${afOriginHtml()}
       </div>
     </div>
     ${afAreaHtml()}

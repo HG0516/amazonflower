@@ -330,6 +330,20 @@
   .pm-pay { margin: 14px 0 10px; padding: 10px 12px; border: 1px solid var(--accent-line, var(--line)); border-radius: var(--radius-sm); background: var(--paper); font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.6; text-align: center; word-break: keep-all; }
   .pm-pay b { color: var(--accent-deep); font-weight: 600; }
   .pm-pay span { color: var(--ink-faint); }
+  /* 주문 버튼 바로 아래 간편결제 칩(아버지 비교표 10/5 '결제 버튼 아래 간편결제 표시') — index.html 과 같은 모양 */
+  .pm-paychips { margin: -2px 0 2px; text-align: center; font-size: var(--fs-caption); color: var(--ink-faint); }
+  .paychips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .paychips.center { justify-content: center; }
+  .paychips .pc { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 12px; font-weight: 700; font-style: normal; line-height: 1.35; white-space: nowrap; }
+  .paychips .pc::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, #8a877d); }
+  .paychips .pc-naver { --dot: #03C75A; color: #02803A; border-color: #bfe9cf; background: #f1fbf5; }
+  .paychips .pc-kakao { --dot: #FEE500; color: #3C1E1E; border-color: #f2dc54; background: #fffbe0; }
+  .paychips .pc-kakao::before { box-shadow: inset 0 0 0 1px rgba(60,30,30,.35); }
+  .paychips .pc-toss { --dot: #0064FF; color: #0058E0; border-color: #c6dafc; background: #f2f7ff; }
+  /* 원산지 — 원산지표시법: 통신판매는 상품명·가격 근처에. 나라별 표는 푸터(footer.js) '원산지 표시' */
+  .origin-mini { margin: 6px 0 2px; font-size: var(--fs-caption); color: var(--ink-soft); }
+  .origin-mini > summary { cursor: pointer; display: inline; }
+  .origin-mini p { margin: 6px 0 0; line-height: 1.7; color: var(--ink-soft); }
   /* 화환 등급 설명 — 가격 바로 아래, 주문 버튼 위 */
   .wnote { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.55; margin: 4px 0 10px; word-break: keep-all; }
   /* 계절 배송 주의 — 해당 달에만 나타난다 */
@@ -1495,19 +1509,27 @@ function renderDetail(){
       ${(p.subtitle||FEATURE[p.name])?`<div class="pm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
       <div class="pm-meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}<span class="size-tag">${esc(kind)}</span></div>
       <div class="pm-price">${p.price.toLocaleString()}원</div>
+      ${originHtml(p.cat)}
       ${meaningBlock(p)}
       <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
-      ${sold ? "" : `<div class="pm-pay">회원가입 없이 바로 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 카드</b><br><span>결제 단계에서 원하시는 방법을 고르실 수 있어요</span></div>`}
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
           : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
+             <div class="pm-paychips">회원가입 없이 바로 주문 · 신용카드도 돼요<span class="paychips center" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></span></div>
              ${inCart
                 ? `<button class="pm-cart added" onclick="openCart()">장바구니에 담김 · 열어보기</button>`
                 : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}`}
         <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
       </div>
     </div>`;
+}
+// 원산지 한 줄(펼치면 설명). footer.js '원산지 표시' 표와 같은 말이어야 한다 — 표가 바뀌면 함께 고칠 것.
+function originHtml(cat){
+  const body = (cat==="plant"||cat==="orchid")
+    ? "관엽식물·난은 국내산과 수입산(중국·대만·베트남 등)을 함께 써요."
+    : "생화·계절꽃·그린소재는 국내산과 수입산(중국·베트남·콜롬비아 등)을 함께 써요.";
+  return `<details class="origin-mini"><summary>원산지 · 국내산·수입산 혼용</summary><p>${body} 꽃 수급에 따라 달라질 수 있고, 받으시는 상품의 포장재·영수증 등에 원산지를 표시해 보내드려요. 나라별 표는 맨 아래 '원산지 표시'에 있어요.</p></details>`;
 }
 function addToCartDetail(pc){ addToCart(pc,1); keepModalScroll(renderDetail); }
 
@@ -1565,13 +1587,14 @@ function renderGroupDetail(){
       <div class="gtiers">${tierTabs}</div>
       ${colorOpts?`<div class="glbl">색·구성 고르기</div><div class="gcolors">${colorOpts}</div>`:""}
       <div class="pm-price">${p.price.toLocaleString()}원</div>
+      ${originHtml(p.cat)}
       ${meaningBlock(p)}
       <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
-      ${sold ? "" : `<div class="pm-pay">회원가입 없이 바로 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 카드</b><br><span>결제 단계에서 원하시는 방법을 고르실 수 있어요</span></div>`}
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
           : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
+             <div class="pm-paychips">회원가입 없이 바로 주문 · 신용카드도 돼요<span class="paychips center" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></span></div>
              <button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}
         <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
       </div>
