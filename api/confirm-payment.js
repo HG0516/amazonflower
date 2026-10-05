@@ -195,6 +195,9 @@ function buildOwnerMessage(order, payment) {
     order.ribbonText ||
     [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ");
   if (ribbon) lines.push(`리본문구: ${ribbon}`);
+  // 꽃다발·꽃바구니는 리본 대신 메시지 카드. 안 넣기를 고른 것도 적어 둔다(빠뜨린 건지 헷갈리지 않게).
+  if (order.cardMessage) lines.push(`카드 문구: ${order.cardMessage}`);
+  else if (order.category === "basket") lines.push("메시지 카드: 안 넣음");
   if (order.senderNote) lines.push(`부탁: ${order.senderNote}`);
   lines.push("");
   const orderer = order.senderName || order.ordererName;
@@ -539,7 +542,7 @@ const ORDER_TEXT_LIMITS = Object.freeze({
   date: 24, time: 24, timeSlot: 60, eventTime: 24,
   depositorName: 40, cashReceiptType: 10, cashReceiptNo: 20,
   senderName: 80, senderPhone: 32, ordererName: 80, ordererPhone: 32,
-  ribbonLeft: 240, ribbonRight: 240, ribbonText: 480,
+  ribbonLeft: 240, ribbonRight: 240, ribbonText: 480, cardMessage: 150,
   senderNote: 1000, delivReq: 500, entrancePw: 100,
   buyerType: 20, corpName: 80, corpRegNo: 24, corpCeo: 60, corpAddr: 240, corpEmail: 160,
   src: 2000, sourceUrl: 1000, sourceText: 2000,

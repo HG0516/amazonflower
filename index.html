@@ -523,6 +523,16 @@
   .ribbon-ask-row { display: flex; gap: 8px; align-items: stretch; }
   .ribbon-ask-row input { flex: 1; min-width: 0; }
   .ribbon-ask-row .btn-mini { flex: 0 0 auto; white-space: nowrap; }
+  /* 메시지 카드(꽃다발·꽃바구니 — 리본이 없는 상품). 아버지 비교표 10/5 3번 */
+  .msgcard { margin-top: 22px; }
+  .mc-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .mc-btn { min-height: 48px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); font-size: 16px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  .mc-btn.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); box-shadow: inset 0 0 0 1px var(--accent); }
+  .mc-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .mc-ex button { padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 14px; line-height: 1.4; font-family: var(--font-body); cursor: pointer; text-align: left; }
+  .mc-ex button:active { background: var(--accent-soft); }
+  #cardMessage { min-height: 96px; }
+  .mc-meta { display: flex; justify-content: flex-end; margin-top: 4px; font-size: var(--fs-caption); color: var(--ink-faint); }
   .ribbon-opt { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 14px; cursor: pointer; font-size: 15px; background: transparent; }
   .ribbon-opt.on { border-color: var(--ink); background: #f7f7f3; }
 
@@ -885,6 +895,21 @@
         <div class="ribbon-opts" id="ribbonSug" style="display:none;margin-top:10px;"></div>
       </div>
       <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">리본 문구가 고민되시면 전화 주세요 — 같이 정해드려요. <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">1577-2286</a></div>
+    </div>
+
+    <!-- 메시지 카드 — 리본이 없는 꽃다발·꽃바구니에만(buildRibbon 이 켜고 끈다). 추가 비용 없음.
+         유료 '손글씨 카드'(top_card, 5,000원) 토핑과는 별개 — 그 토핑은 지금 어느 분류에도 안 걸려 있다. -->
+    <div class="card-only msgcard" id="msgCardBox" style="display:none;">
+      <label class="fl" for="cardMessage">메시지 카드 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 꽃과 함께 넣어드려요 · 추가 비용 없음</span></label>
+      <div class="mc-choice" role="radiogroup" aria-label="메시지 카드">
+        <button type="button" class="mc-btn on" id="mcOn" role="radio" aria-checked="true" onclick="afMsgCard(true)">카드 넣기</button>
+        <button type="button" class="mc-btn" id="mcOff" role="radio" aria-checked="false" onclick="afMsgCard(false)">안 넣기</button>
+      </div>
+      <div id="mcBody">
+        <div class="mc-ex" id="mcEx" aria-label="예시 문구 — 누르면 아래 칸에 들어가요"></div>
+        <textarea id="cardMessage" rows="3" maxlength="150" placeholder="카드에 적을 말을 써 주세요&#10;예) 엄마, 생신 축하드려요. 늘 건강하세요. — 막내 올림" oninput="afMsgCardInput(this)"></textarea>
+        <div class="mc-meta"><span><b id="mcCount">0</b>/150</span></div>
+      </div>
     </div>
 
     <label class="fl" style="margin-top:22px;">사장님께 한 줄 부탁 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 게 있으면 적어주세요 (선택)</span></label>
@@ -2187,6 +2212,7 @@ function renderPayReview(){
   if(place) rows.push(["받는 곳", escapeHtml(place)]);
   if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
   if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
+  if(order.category==="basket" && order.price) rows.push(["카드", afCardOn ? (escapeHtml(afMsgCardText())||'<span style="color:#b3261e;">문구를 써 주세요</span>') : "안 넣음"]);
   if(!rows.length){ el.innerHTML=""; return; }
   el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius: var(--radius);padding:12px 14px;margin:10px 0 4px;text-align:left;">'
     + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
@@ -2199,16 +2225,55 @@ function pickDesign(el){
   el.classList.add("on");
 }
 
+// ── 메시지 카드(꽃다발·꽃바구니) ──
+// 기본은 '카드 넣기'(생일·기념일 주문엔 거의 필수 — 아버지 비교표). 넣기인데 비어 있으면 결제 전에 묻는다.
+var afCardOn = true;
+var AF_CARD_EX = {
+  funeral: ["삼가 고인의 명복을 빕니다.", "깊은 위로의 마음을 전합니다."],
+  wedding: ["결혼을 진심으로 축하드립니다.", "두 분의 앞날에 행복이 가득하길 바랍니다."],
+  general: ["생일 축하해요. 늘 건강하고 행복하세요.", "축하드려요. 앞으로도 응원할게요.", "빠른 쾌유를 빕니다.", "늘 고맙습니다. 건강하세요.", "사랑합니다."]
+};
+function afMsgCardRender(){
+  var ex=document.getElementById("mcEx"); if(!ex) return;
+  var list=AF_CARD_EX[order.type]||AF_CARD_EX.general;
+  ex.innerHTML=list.map(function(t){ return '<button type="button" onclick="afMsgCardPick(this)">'+escapeHtml(t)+'</button>'; }).join("");
+  afMsgCard(afCardOn);
+}
+function afMsgCard(on){
+  afCardOn=!!on;
+  var a=document.getElementById("mcOn"), b=document.getElementById("mcOff"), body=document.getElementById("mcBody");
+  if(a){ a.classList.toggle("on",afCardOn); a.setAttribute("aria-checked",String(afCardOn)); }
+  if(b){ b.classList.toggle("on",!afCardOn); b.setAttribute("aria-checked",String(!afCardOn)); }
+  if(body) body.style.display=afCardOn?"":"none";
+  if(typeof renderPayReview==="function") renderPayReview();
+}
+function afMsgCardPick(btn){
+  var ta=document.getElementById("cardMessage"); if(!ta) return;
+  ta.value=btn.textContent; afMsgCardInput(ta);
+}
+function afMsgCardInput(ta){
+  var c=document.getElementById("mcCount"); if(c) c.textContent=String(ta.value.length);
+  if(typeof clearErr==="function") clearErr(ta);
+  if(typeof renderPayReview==="function") renderPayReview();
+}
+function afMsgCardText(){
+  if(order.category!=="basket" || !afCardOn) return "";
+  return String((document.getElementById("cardMessage")||{}).value||"").trim();
+}
+
 let ribbonTone="formal";
 function buildRibbon(){
   afTuneDelivBox();   // 진입 흐름마다 부르는 자리라 여기 한 번만 걸어두면 전부 반영된다
   // 꽃다발·꽃바구니는 리본(화환 띠)이 없다 → 리본 UI 숨기고 헤딩을 '보내는 분'으로
   const noRibbon = order.category==="basket";
   document.querySelectorAll(".ribbon-only").forEach(el=>{ el.style.display = noRibbon ? "none" : ""; });
+  // 리본 대신 메시지 카드(꽃다발·꽃바구니). 화환·난·관엽은 리본에 문구가 들어가니 카드 칸을 숨기고 값도 비운다.
+  document.querySelectorAll(".card-only").forEach(el=>{ el.style.display = noRibbon ? "" : "none"; });
+  if(noRibbon) afMsgCardRender(); else order.cardMessage="";
   const st=document.getElementById("senderTitle"), ss=document.getElementById("senderSub");
   if(st) st.textContent = noRibbon ? "보내는 분" : "보내는 분 · 리본 문구";
   if(ss) ss.textContent = noRibbon
-    ? "보내는 분 정보를 입력해주세요. 원하시는 요청은 아래에 적어주세요."
+    ? "보내는 분 정보를 입력해주세요. 카드에 적을 말도 아래에 써 주세요."
     : "보내는 분 정보는 직접 입력해주세요. 리본 문구는 자동으로 맞춰드립니다.";
   if(noRibbon){ order.ribbonLeft=""; order.ribbonRight=""; return; } // 리본 없음 — 값도 비움
   const set = RIBBON[order.type] || RIBBON.general;
@@ -2566,6 +2631,7 @@ function afSyncFormToOrder(){
   if(document.getElementById("ribbonLeft")) order.ribbonLeft=g("ribbonLeft");
   if(document.getElementById("ribbonRight")) order.ribbonRight=g("ribbonRight");
   if(document.getElementById("senderNote")) order.senderNote=g("senderNote");
+  order.cardMessage=afMsgCardText();
 }
 
 /**
@@ -2617,6 +2683,9 @@ function afValidateOrder(scope){
   // 보내는 분
   if(!has(order.senderName)) add("보내는 분 성함을 입력해주세요.","senderName","senderCard");
   if(!has(order.senderPhone)) add("연락처를 입력해주세요.","senderPhone","senderCard");
+  // 메시지 카드 — '카드 넣기'인데 비어 있으면 빈 카드가 간다.
+  if(order.category==="basket" && afCardOn && !afMsgCardText())
+    add("메시지 카드에 적을 말을 써 주세요. 카드가 필요 없으면 '안 넣기'를 눌러 주세요.","cardMessage","senderCard");
   const pvA=document.getElementById("privacyAgree");
   if(pvA && !pvA.checked) add("개인정보 수집·이용에 동의해주세요. (필수)","privacyAgree","payCard");
   const odA=document.getElementById("orderAgree");
@@ -3588,6 +3657,12 @@ function afApplyPendingRestore(){
      ["ribbonRight","ribbonRight"],["senderNote","senderNote"],["delivReq","delivReq"],
      ["delivReqCustom","delivReqCustom"],["entrancePw","entrancePw"],["recipientPhone","recipientPhone"]]
       .forEach(([k,id])=>{ const v=s[k]; if(v==null||v==="") return; order[k]=v; const el=document.getElementById(id); if(el) el.value=v; });
+    // 메시지 카드 — 저장된 문구가 있으면 '넣기'로, 꽃다발·바구니인데 문구가 없었으면 '안 넣기'였다.
+    if(s.category==="basket"){
+      const ta=document.getElementById("cardMessage");
+      if(ta){ ta.value=s.cardMessage||""; afMsgCardInput(ta); }
+      afMsgCard(!!s.cardMessage);
+    }
     // 법인 정보
     if(s.buyerType==="corp"){
       order.buyerType="corp";
