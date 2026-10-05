@@ -368,6 +368,8 @@
   .paychips .pc-toss { --dot: #0064FF; color: #0058E0; border-color: #c6dafc; background: #f2f7ff; }
   .paychips .pc-acct { --dot: #7a6a4f; color: #5a4b33; border-color: #e3dccd; background: #faf7f0; }
   .paychips.center { justify-content: center; }
+  .quote-btn { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2px 8px; width: 100%; min-height: 46px; margin: 8px 0 6px; padding: 8px 12px; border: 1px dashed #bdb7a8; border-radius: var(--radius-sm); background: #fff; color: var(--ink); font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  .quote-btn span { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-soft); }
   /* 약관 동의 묶음 — 맨 위 '모두 동의', 아래 필수 4개(각각 '보기'로 펼침) */
   .agree { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #f7f7f3; overflow: hidden; }
   .agree input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
@@ -952,6 +954,8 @@
 
     <!-- 결제 전 주문 확인(경조사 받는곳·날짜·시간 오배송 방지). order에서 읽기 전용 -->
     <div id="payReview"></div>
+    <!-- 견적서 출력(아버지 비교표 10/5 4번) — 법인·단체 품의용. 새 탭에서 인쇄·PDF 저장. -->
+    <button type="button" class="quote-btn" onclick="afOpenQuote()">견적서 출력 <span>법인·단체 품의용 · PDF 저장</span></button>
 
     <!-- 개인이 기본. 법인(계산서)은 필요한 사람만 펼치게 — 개인 손님이 고민할 선택지를 줄인다. -->
     <details class="af-fold" id="buyerFold" style="margin-bottom:12px;" ontoggle="if(!this.open)selBuyer('personal')">
@@ -1076,6 +1080,7 @@
         회사의 안부를 한 곳에서 정리해드립니다.<br><br>
         · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
         · 후불 결제 · <b>계산서 발행</b> — 품의·정산이 깔끔하게<br>
+        · 품의용 <b>견적서</b> — 주문 화면 결제 단계에서 바로 출력·PDF 저장<br>
         &nbsp;&nbsp;<span style="font-size:var(--fs-caption);color:var(--ink-faint);">생화는 면세 품목이라 계산서로 발행됩니다(배송비 등 과세분은 별도).</span><br>
         · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
         · 도착 사진 회신 — 보고용 증빙까지 한 번에
@@ -2536,6 +2541,21 @@ function afLoadPayConfig(){
 }
 document.addEventListener("DOMContentLoaded", afLoadPayConfig);
 
+// 견적서 출력 — 지금 주문서의 품목·수량·단가를 quote.html 로 넘긴다(# 뒤라 서버 기록에 안 남음).
+// 화면 합계(orderTotal)와 같은 방식: 상품 단가×수량 + 토핑 단가×수량 + 함께 보내는 상품.
+function afOpenQuote(){
+  try{ afSyncFormToOrder(); }catch(_){}
+  if(!order.price){ alert("상품을 먼저 골라주세요."); return; }
+  var q=order.quantity||1, items=[{ n:order.productLabel||order.productCode||"꽃 상품", c:order.productCode||"", q:q, u:order.price }];
+  (order.toppings||[]).forEach(function(c){ var t=TOPPINGS[c]; if(t) items.push({ n:t.nm, c:"", q:q, u:t.price }); });
+  AF_EXTRAS.forEach(function(e){ var p=afProd(e.pc); if(p) items.push({ n:p.name, c:p.pc, q:e.qty, u:p.price }); });
+  var corp=String((document.getElementById("corpName")||{}).value||"").trim();
+  var place=[order.venue,order.venueDetail].filter(Boolean).join(" ")||order.address||"";
+  var json=JSON.stringify({ v:1, items:items, to:corp, date:order.date||"", place:place });
+  var b64=btoa(unescape(encodeURIComponent(json))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  var w=window.open("/quote.html#d="+b64, "_blank");
+  if(!w) location.href="/quote.html#d="+b64;   // 팝업이 막힌 브라우저
+}
 // '모두 동의' — 필수 체크를 한 번에. 하나라도 풀면 '모두 동의'도 풀린다.
 var AF_AGREE = [["termsAgree","이용약관"],["privacyAgree","개인정보 수집·이용"],["consignAgree","개인정보 처리위탁"],["orderAgree","주문 내용 확인 및 결제"]];
 function afAllAgree(on){

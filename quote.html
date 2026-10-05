@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>견적서 — 꽃안부</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#1f4733" />
+<link rel="icon" href="/favicon.ico">
+<!--
+  견적서 출력(아버지 비교표 10/5 4번 — 법인 고객 품의용).
+  주문 화면(index.html afOpenQuote)이 품목·수량·단가를 #d=… 로 넘기고, 이 페이지는 받은 그대로 그린다.
+  # 뒤 값은 서버로 가지 않는다(받는 곳 같은 정보가 접속 기록에 남지 않게). 금액 확정은 주문·결제 때 서버가 한다.
+-->
+<style>
+  :root { --ink:#1f1d18; --soft:#5d594f; --faint:#8a867b; --line:#d9d4c7; --accent:#1f4733; --paper:#fff; --bg:#ecebe6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-size: 14px; line-height: 1.6; }
+  .bar { position: sticky; top: 0; z-index: 2; display: flex; gap: 8px; justify-content: center; padding: 10px 16px; background: var(--accent); }
+  .bar button, .bar a { min-height: 44px; padding: 0 18px; border: 1px solid rgba(255,255,255,.5); border-radius: 10px; background: transparent; color: #fff; font-size: 15px; font-weight: 700; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; cursor: pointer; }
+  .bar .main { background: #fff; color: var(--accent); border-color: #fff; }
+  .hint { max-width: 794px; margin: 12px auto 0; padding: 0 16px; color: var(--soft); font-size: 13px; text-align: center; }
+  .paper { width: 100%; max-width: 794px; margin: 12px auto 40px; padding: 40px 36px; background: var(--paper); box-shadow: 0 2px 14px rgba(0,0,0,.12); }
+  h1 { margin: 0 0 22px; text-align: center; font-size: 30px; letter-spacing: 18px; font-weight: 800; }
+  .top { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  .to { font-size: 15px; }
+  .to .who { display: flex; align-items: baseline; gap: 6px; border-bottom: 1.5px solid var(--ink); padding-bottom: 4px; margin-bottom: 10px; }
+  .to input { flex: 1; min-width: 0; border: 0; font: inherit; font-size: 17px; font-weight: 700; color: var(--ink); background: #fffbe6; padding: 2px 4px; }
+  .to input:focus { outline: 2px solid var(--accent); }
+  .to .meta div { color: var(--soft); }
+  .to .meta b { display: inline-block; min-width: 64px; color: var(--ink); font-weight: 600; }
+  .sup { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sup th, .sup td { border: 1px solid var(--ink); padding: 5px 7px; vertical-align: middle; }
+  .sup th { width: 76px; background: #f4f2ec; font-weight: 600; white-space: nowrap; }
+  .sup .vert { width: 26px; padding: 4px; text-align: center; line-height: 1.3; background: #f4f2ec; }
+  .sum { margin: 22px 0 10px; padding: 12px 14px; border: 1.5px solid var(--ink); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-size: 16px; }
+  .sum b { font-size: 17px; }
+  table.items { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.items th, table.items td { border: 1px solid var(--line); padding: 7px 8px; }
+  table.items th { background: #f4f2ec; border-color: var(--ink); font-weight: 700; }
+  table.items td.n, table.items th.n { text-align: center; width: 34px; }
+  table.items td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.items td small { display: block; color: var(--faint); font-size: 11.5px; }
+  table.items tfoot td { border-color: var(--ink); font-weight: 800; background: #faf9f5; }
+  .notes { margin: 16px 0 0; padding: 0 0 0 18px; color: var(--soft); font-size: 12.5px; }
+  .notes li { margin: 2px 0; }
+  .foot { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; text-align: center; }
+  .empty { max-width: 520px; margin: 60px auto; padding: 28px 22px; background: #fff; border-radius: 12px; text-align: center; color: var(--soft); }
+  .empty a { color: var(--accent); font-weight: 700; }
+  @media (max-width: 640px) {
+    .paper { padding: 22px 14px; }
+    h1 { font-size: 24px; letter-spacing: 10px; }
+    .top { grid-template-columns: 1fr; }
+    table.items th, table.items td { padding: 6px 5px; }
+  }
+  @page { size: A4; margin: 14mm; }
+  @media print {
+    body { background: #fff; font-size: 12.5px; }
+    .bar, .hint { display: none !important; }
+    .paper { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+    .to input { background: transparent; padding: 0; }
+    .top { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <button type="button" class="main" onclick="window.print()">인쇄 · PDF 저장</button>
+  <a href="/" onclick="if(history.length>1){history.back();return false;}">주문 화면으로</a>
+</div>
+<div class="hint">받는 회사 이름은 노란 칸을 눌러 고칠 수 있어요. 휴대폰에서는 '인쇄'에서 PDF로 저장해 보내시면 됩니다.</div>
+<div id="view"></div>
+
+<script>
+// 공급자 — footer.js BIZ 와 같은 값이어야 한다(사업자정보가 바뀌면 둘 다 고칠 것).
+var SUP = {
+  company: "주식회사 아마존 (꽃안부)", owner: "권점숙", bizNo: "234-86-00344",
+  addr: "경기 시흥시 신천3길 23, 103호", tel: "1577-2286", mailOrderNo: "제2026-경기시흥-1357호",
+  bank: "기업은행 169-165982-04-025 (주)아마존", site: "floweranbu.co.kr"
+};
+var VALID_DAYS = 7;   // 꽃 시세가 명절·기념일 앞뒤로 움직여서 1주일
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function won(n){ return Number(n).toLocaleString("ko-KR"); }
+function ymd(d){ return d.getFullYear()+"년 "+(d.getMonth()+1)+"월 "+d.getDate()+"일"; }
+
+// 금액 한글 표기 — 고쳐 쓰기 어렵게 십·백·천 앞에도 '일'을 붙인다(일금 일십일만육천원정).
+function krWords(n){
+  n = Math.floor(Number(n)||0);
+  if(n<=0) return "영";
+  var D=["","일","이","삼","사","오","육","칠","팔","구"], S=["","십","백","천"], B=["","만","억","조"];
+  var out="", g=0;
+  while(n>0 && g<B.length){
+    var part=n%10000, s="";
+    for(var i=0;i<4;i++){
+      var d=Math.floor(part/Math.pow(10,i))%10;
+      if(d) s=D[d]+S[i]+s;
+    }
+    if(s) out=s+B[g]+out;
+    n=Math.floor(n/10000); g++;
+  }
+  return out;
+}
+
+function decode(){
+  var m=String(location.hash||"").match(/[#&]d=([A-Za-z0-9_-]+)/);
+  if(!m) return null;
+  try{
+    var b64=m[1].replace(/-/g,"+").replace(/_/g,"/");
+    while(b64.length%4) b64+="=";
+    var json=decodeURIComponent(escape(atob(b64)));
+    var d=JSON.parse(json);
+    if(!d || !Array.isArray(d.items) || !d.items.length) return null;
+    var items=d.items.slice(0,30).map(function(it){
+      var q=Math.max(1, Math.min(999, Math.floor(Number(it.q)||1)));
+      var u=Math.max(0, Math.min(10000000, Math.floor(Number(it.u)||0)));
+      return { n:String(it.n||"").slice(0,80), c:String(it.c||"").slice(0,24), q:q, u:u };
+    }).filter(function(it){ return it.n; });
+    if(!items.length) return null;
+    return { items:items, to:String(d.to||"").slice(0,60), date:String(d.date||"").slice(0,10), place:String(d.place||"").slice(0,120) };
+  }catch(_){ return null; }
+}
+
+function render(){
+  var view=document.getElementById("view");
+  var d=decode();
+  if(!d){
+    document.querySelector(".hint").style.display="none";
+    view.innerHTML='<div class="empty"><p><b>견적서에 넣을 상품이 없어요.</b></p><p>주문 화면에서 상품을 고른 뒤 결제 단계의 <b>견적서 출력</b>을 눌러 주세요.<br>전화로도 보내 드려요 — '+esc(SUP.tel)+'</p><p><a href="/">꽃안부 첫 화면으로</a></p></div>';
+    return;
+  }
+  var today=new Date(), until=new Date(today.getTime()+VALID_DAYS*86400000);
+  var total=d.items.reduce(function(s,it){ return s+it.q*it.u; },0);
+  var rows=d.items.map(function(it,i){
+    return '<tr><td class="n">'+(i+1)+'</td><td>'+esc(it.n)+(it.c?'<small>'+esc(it.c)+'</small>':'')+'</td><td class="num">'+won(it.q)+'</td><td class="num">'+won(it.u)+'</td><td class="num">'+won(it.q*it.u)+'</td></tr>';
+  }).join("");
+  var dm=d.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  var dateTxt=dm ? (Number(dm[1])+"년 "+Number(dm[2])+"월 "+Number(dm[3])+"일") : "";
+  view.innerHTML =
+    '<div class="paper">'
+    + '<h1>견 적 서</h1>'
+    + '<div class="top">'
+    +   '<div class="to">'
+    +     '<div class="who"><input id="toName" value="'+esc(d.to)+'" placeholder="받는 회사·단체 이름" aria-label="받는 곳 이름"><span>귀중</span></div>'
+    +     '<div class="meta">'
+    +       '<div><b>견적일</b> '+ymd(today)+'</div>'
+    +       '<div><b>유효기간</b> '+ymd(until)+'까지 ('+VALID_DAYS+'일)</div>'
+    +       (dateTxt?'<div><b>배송 희망일</b> '+esc(dateTxt)+'</div>':'')
+    +       (d.place?'<div><b>배송 장소</b> '+esc(d.place)+'</div>':'')
+    +     '</div>'
+    +     '<p style="margin:12px 0 0;">아래와 같이 견적합니다.</p>'
+    +   '</div>'
+    +   '<table class="sup" aria-label="공급자">'
+    +     '<tr><td class="vert" rowspan="5">공<br>급<br>자</td><th>등록번호</th><td>'+esc(SUP.bizNo)+'</td></tr>'
+    +     '<tr><th>상호</th><td>'+esc(SUP.company)+'</td></tr>'
+    +     '<tr><th>대표자</th><td>'+esc(SUP.owner)+'</td></tr>'
+    +     '<tr><th>주소</th><td>'+esc(SUP.addr)+'</td></tr>'
+    +     '<tr><th>전화</th><td>'+esc(SUP.tel)+'</td></tr>'
+    +   '</table>'
+    + '</div>'
+    + '<div class="sum"><span>합계 금액 <b>일금 '+krWords(total)+'원정</b></span><b>₩'+won(total)+'</b></div>'
+    + '<table class="items"><thead><tr><th class="n">No</th><th>품목</th><th>수량</th><th>단가</th><th>금액</th></tr></thead>'
+    +   '<tbody>'+rows+'</tbody>'
+    +   '<tfoot><tr><td colspan="4" style="text-align:right;">합계</td><td class="num">'+won(total)+'</td></tr></tfoot>'
+    + '</table>'
+    + '<ul class="notes">'
+    +   '<li>모든 금액은 기본 배송비가 포함된 정찰가입니다. 도서·산간·원거리 지역은 추가 배송비가 있을 수 있어요.</li>'
+    +   '<li>생화는 부가가치세 면세 품목이라 <b>계산서</b>로 발행됩니다(과세 품목이 있으면 따로 안내드려요).</li>'
+    +   '<li>결제: 사이트에서 카드·간편결제, 또는 계좌이체 '+esc(SUP.bank)+'. 법인 후불·월 정산은 전화('+esc(SUP.tel)+')로 문의해 주세요.</li>'
+    +   '<li>꽃 시세에 따라 유효기간이 지나면 금액이 달라질 수 있습니다.</li>'
+    + '</ul>'
+    + '<div class="foot">이 견적서는 꽃안부 주문 화면에서 출력한 것입니다. 금액은 주문·결제 때 확정됩니다.<br>'
+    +   esc(SUP.company)+' · 통신판매업 '+esc(SUP.mailOrderNo)+' · '+esc(SUP.site)+' · '+esc(SUP.tel)+'</div>'
+    + '</div>';
+  document.title = "견적서 ₩"+won(total)+" — 꽃안부";
+}
+render();
+window.addEventListener("hashchange", render);
+</script>
+</body>
+</html>
