@@ -369,7 +369,7 @@ export default async function handler(req, res) {
       const oid = String(orderId || "").trim();
       if (!/^[A-Za-z0-9-]{6,40}$/.test(oid)) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
       const RSECRET = process.env.REFUND_LINK_SECRET || "";
-      const kstYm = (off) => { const d = new Date(Date.now() + 9 * 3600000); d.setUTCMonth(d.getUTCMonth() + off); return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
+      const kstYm = (off) => { const d = new Date(Date.now() + 9 * 3600000); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + off); /* 1일로 먼저 — 31일에 -1달 하면 같은 달로 넘침 */ return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
       const mkTok = (ym) => crypto.createHmac("sha256", RSECRET).update(`cancel:${oid}:${ym}`).digest("hex").slice(0, 24);
       const tokOk = RSECRET && (safeEqual(String(body.token || ""), mkTok(kstYm(0))) || safeEqual(String(body.token || ""), mkTok(kstYm(-1))));
       if (!passOk && !tokOk) {

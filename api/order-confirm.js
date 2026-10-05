@@ -77,7 +77,7 @@ export default async function handler(req, res) {
   if (mode === "cancel") {
     const RSECRET = process.env.REFUND_LINK_SECRET || "";
     if (!RSECRET) return page(res, false, "환불 링크가 비활성화되어 있어요.", "주문 관리 화면에서 처리해주세요.");
-    const kstYm = (off) => { const d = new Date(Date.now() + 9 * 3600000); d.setUTCMonth(d.getUTCMonth() + off); return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
+    const kstYm = (off) => { const d = new Date(Date.now() + 9 * 3600000); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + off); /* 1일로 먼저 — 31일에 -1달 하면 같은 달로 넘침 */ return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`; };
     const mk = (ym) => crypto.createHmac("sha256", RSECRET).update(`cancel:${id}:${ym}`).digest("hex").slice(0, 24);
     if (!safeEq(t, mk(kstYm(0))) && !safeEq(t, mk(kstYm(-1)))) {
       return page(res, false, "링크가 만료됐거나 유효하지 않습니다.", "오래된 주문은 주문 관리 화면(비밀번호)에서 환불해주세요.");

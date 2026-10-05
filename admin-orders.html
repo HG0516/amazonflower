@@ -173,7 +173,7 @@ function render(){
     const oid = esc(o.order_id||"");
     const photoNotice = o.photo_notice_status === "sent" ? "고객 문자 전송됨"
       : o.photo_notice_status === "failed" ? "고객 문자 실패"
-      : o.photo_notice_status === "skipped" ? "주문자 번호 없음"
+      : o.photo_notice_status === "skipped" ? (o.photo_notify_error === "manual_mode" ? "링크 직접 전달 필요" : "주문자 번호 없음")
       : o.photo_notice_status === "pending" ? "고객 문자 전송 중" : "";
     return `<div class="order ${urgent?'urgent':''} ${st==='awaiting_deposit'?'awaiting':''} ${st==='expired'?'expired':''} ${st==='canceled'?'canceled':''} ${refundPending?'refund-pending':''}">
       <div class="o-top">
@@ -369,6 +369,8 @@ async function viewPhoto(orderId, btn){
 }
 async function resendPhoto(orderId, btn){
   if(isRefundPending(ORDERS.find(x=>x.order_id===orderId))){ toast("환불 처리 중이라 고객 문자를 보낼 수 없어요.","err"); return; }
+  // 다시 보내면 새 링크가 만들어지고, 이미 손님께 보낸 링크는 더 이상 열리지 않는다.
+  if(!confirm("새 사진 링크를 만들어요.\n이미 손님께 보낸 링크가 있다면 그 링크는 더 이상 열리지 않아요.\n새 링크를 손님께 보내실 거면 '확인'을 눌러 주세요.")) return;
   const old=btn.textContent; btn.textContent="보내는 중…"; btn.disabled=true;
   try{
     const r=await afAdmin.fetch("/api/order-photo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"notify",orderId})});

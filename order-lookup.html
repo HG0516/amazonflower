@@ -182,7 +182,7 @@
       [awaiting ? "입금 대기" : "주문 접수", fmtStamp(o.created_at)],
       ["준비 중", fmtStamp(o.ordered_at)],
       ["배송·도착", fmtStamp(o.completed_at)],
-      ["도착 사진", o.has_photo ? "보내드렸어요" : ""]
+      ["도착 사진", o.has_photo ? "올라왔어요" : ""]
     ];
     var allDone = step >= 4;
     var tl = steps.map(function (s, i) {
@@ -218,7 +218,7 @@
       : canceled
       ? '<div class="banner off"><b>취소된 주문이에요.</b><br>환불은 결제하신 수단으로 처리됩니다. 궁금한 점은 1577-2286 으로 연락 주세요.</div>'
       : o.has_photo
-        ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진을 주문하신 번호로 보내드렸어요. 못 받으셨으면 전화 주세요.</div>'
+        ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진이 올라왔어요. 문자나 카카오톡으로 못 받으셨으면 1577-2286으로 전화 주세요.</div>'
         : o.completed_at
           ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진을 곧 보내드려요.</div>'
           : '<div class="banner ok"><b>사장님이 확인하고 준비합니다.</b><br>안부가 닿으면 도착 사진을 문자로 보내드려요.</div>';
