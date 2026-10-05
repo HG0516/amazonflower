@@ -29,6 +29,7 @@ import {
   SHOP_BANK,
   VA_METHOD,
   bankTransferEnabled,
+  transferEnabled,
   customerWaitingText,
   handleDepositWebhook,
   isWaitingVirtualAccount,
@@ -132,6 +133,14 @@ function buildSolapiAuthHeader(apiKey, apiSecret) {
   return `HMAC-SHA256 apiKey=${apiKey}, date=${dateTime}, salt=${salt}, signature=${signature}`;
 }
 
+// 토스 결제수단 표기 — 간편결제는 어느 페이인지까지(예: "간편결제 (네이버페이)").
+function paymentMethodLabel(payment) {
+  const m = String(payment && payment.method || "").trim();
+  if (!m) return "";
+  const prov = payment.easyPay && payment.easyPay.provider;
+  return prov && prov !== m ? `${m} (${prov})` : m;
+}
+
 // 사장님께 보낼 문자 본문 구성 (발주 복붙용 + 원문 대조용)
 // 프론트 order 객체의 실제 키(venue, ribbonLeft/Right, senderName/Phone, src)를 우선 사용하고,
 // 혹시 모를 구버전 키(venueName, ribbonText, ordererName...)도 함께 지원한다.
@@ -159,6 +168,10 @@ function buildOwnerMessage(order, payment) {
     }
   }
   lines.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
+  const payLabel = paymentMethodLabel(payment);
+  if (payLabel) lines.push(`결제수단: ${payLabel}`);
+  // 손님이 구매안전(에스크로)을 고른 계좌이체·가상계좌 — 사장님이 배송 완료를 등록해야 정산된다.
+  if (payment && payment.useEscrow === true) lines.push("🛡 구매안전(에스크로) 결제 — 배달 후 토스 상점관리자에서 '배송 완료'를 등록해야 정산돼요");
   if (order.recipientName) lines.push(`받는분: ${order.recipientName}`);
   if (order.recipientPhone) lines.push(`받는분 연락처: ${order.recipientPhone}`);
   if (order.chiefMourner) lines.push(`상주: ${order.chiefMourner}`);
@@ -1120,7 +1133,7 @@ export default async function handler(req, res) {
   // 주문서가 결제수단 버튼을 그릴 때 묻는다. Vercel 설정값 하나로 켜고 끈다(코드 배포 없이).
   if (req.method === "GET" && query.config) {
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled() });
+    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled() });
   }
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST 요청만 지원합니다." });

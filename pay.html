@@ -47,6 +47,15 @@
   .pmb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:58px;padding:11px 14px;border:1.5px solid var(--line);border-radius:var(--radius);background:#fff;cursor:pointer;text-align:left;font-family:inherit;}
   .pmb b{font-size:16px;color:var(--ink);} .pmb span{font-size:13px;color:var(--ink-soft);}
   .pmb.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent);}
+  /* 10/5까지 이 파일엔 .hidden 정의가 없어 '가상계좌' 칸이 스위치와 상관없이 보였다. */
+  .hidden{display:none!important;}
+  .paychips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+  .paychips .pc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font-size:12px;font-weight:700;font-style:normal;line-height:1.35;white-space:nowrap;}
+  .paychips .pc::before{content:"";flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--dot,#8a877d);}
+  .paychips .pc-naver{--dot:#03C75A;color:#02803A;border-color:#bfe9cf;background:#f1fbf5;}
+  .paychips .pc-kakao{--dot:#FEE500;color:#3C1E1E;border-color:#f2dc54;background:#fffbe0;}
+  .paychips .pc-kakao::before{box-shadow:inset 0 0 0 1px rgba(60,30,30,.35);}
+  .paychips .pc-toss{--dot:#0064FF;color:#0058E0;border-color:#c6dafc;background:#f2f7ff;}
   .dep{margin-top:16px;padding:14px;border:2px solid var(--accent);border-radius:var(--radius-lg);background:var(--accent-soft);text-align:left;}
   .dep .no{font-size:19px;font-weight:800;margin-top:6px;word-break:break-all;}
   .dep .cp{margin-top:8px;padding:10px 14px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-weight:700;font-family:inherit;cursor:pointer;}
@@ -102,27 +111,35 @@ function renderForm(oid, amt, token, label){
         <textarea id="snote" placeholder="리본 문구 등 전하실 말씀"></textarea>
       </label>
       <div class="err" id="err"></div>
-      <div id="pm" class="pm hidden">
-        <button type="button" class="pmb on" data-m="card"><b>카드 · 간편결제</b><span>신용카드 · 네이버페이 · 카카오페이 · 토스페이</span></button>
-        <button type="button" class="pmb" data-m="va"><b>계좌로 입금(가상계좌)</b><span>이 주문 전용 계좌가 나와요 · 입금되면 자동 확인</span></button>
+      <div id="pm" class="pm">
+        <button type="button" class="pmb on" data-m="card"><b>카드 · 간편결제</b><i class="paychips" aria-label="고르실 수 있는 결제수단" style="font-style:normal;"><i class="pc pc-card">신용카드</i><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></i></button>
+        <button type="button" class="pmb hidden" data-m="transfer"><b>계좌이체</b><span>내 은행 계좌에서 바로 이체 · 현금영수증 자동</span></button>
+        <button type="button" class="pmb hidden" data-m="va"><b>계좌로 입금(가상계좌)</b><span>이 주문 전용 계좌가 나와요 · 입금되면 자동 확인</span></button>
       </div>
       <button class="btn" id="go">${Number(amt).toLocaleString()}원 결제하기</button>
-      <p class="note" id="pmNote">결제하기를 누르면 카드 결제창이 열립니다.</p>
+      <p class="note" id="pmNote">결제하기를 누르면 카드·간편결제 창이 열립니다.</p>
     </div>`;
 
   try{ payment = TossPayments(TOSS_CLIENT_KEY).payment({ customerKey: TossPayments.ANONYMOUS }); }
   catch(e){ console.error(e); }
+  // 결제수단은 늘 보인다(카드·간편결제). 계좌이체·가상계좌는 서버 스위치가 켜졌을 때만 버튼이 생긴다.
   // 가상계좌 — 전화 손님에게 링크를 보내면 손님이 계좌로 입금하고, 입금되면 자동으로 접수된다.
   let method = "card";
   const pmBox = $("pm");
   fetch("/api/confirm-payment?config=1", { cache:"no-store" }).then(r => r.ok ? r.json() : null).then(c => {
-    if(c && c.virtualAccount) pmBox.classList.remove("hidden");
+    if(!c) return;
+    if(c.transfer) pmBox.querySelector('[data-m="transfer"]').classList.remove("hidden");
+    if(c.virtualAccount) pmBox.querySelector('[data-m="va"]').classList.remove("hidden");
   }).catch(()=>{});
+  const PM_GO = { card: Number(amt).toLocaleString()+"원 결제하기", transfer: Number(amt).toLocaleString()+"원 계좌이체하기", va: "입금 계좌 받기" };
+  const PM_NOTE = { card: "결제하기를 누르면 카드·간편결제 창이 열립니다.",
+    transfer: "누르면 계좌이체 창이 열려요. 은행을 고르고 이체하면 바로 끝나고, 현금영수증도 그 자리에서 신청돼요.",
+    va: "누르면 이 주문 전용 입금 계좌가 나와요. 24시간 안에 입금해 주세요." };
   pmBox.querySelectorAll(".pmb").forEach(b => b.onclick = () => {
     method = b.getAttribute("data-m");
     pmBox.querySelectorAll(".pmb").forEach(x => x.classList.toggle("on", x === b));
-    $("go").textContent = method === "va" ? "입금 계좌 받기" : Number(amt).toLocaleString()+"원 결제하기";
-    $("pmNote").textContent = method === "va" ? "누르면 이 주문 전용 입금 계좌가 나와요. 24시간 안에 입금해 주세요." : "결제하기를 누르면 카드 결제창이 열립니다.";
+    $("go").textContent = PM_GO[method] || PM_GO.card;
+    $("pmNote").textContent = PM_NOTE[method] || PM_NOTE.card;
   });
 
   $("go").onclick = async function(){
@@ -158,9 +175,12 @@ function renderForm(oid, amt, token, label){
       if(!prepRes.ok) throw new Error(prep.error || "주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
       try{ sessionStorage.setItem("afc_"+oid, JSON.stringify(order)); }catch(_){}
       this.textContent = "결제창 여는 중…";
+      // 계좌이체·가상계좌: 에스크로(구매안전)는 손님이 결제창에서 고른다. 고르면 토스가 상품 정보를 요구한다.
+      const escrowProducts = [{ id: oid, name: String(label).slice(0,100), code: "AFC", unitPrice: Number(amt), quantity: 1 }];
       await payment.requestPayment({
-        method: method === "va" ? "VIRTUAL_ACCOUNT" : "CARD",
-        ...(method === "va" ? { virtualAccount:{ cashReceipt:{ type:"소득공제" }, validHours:24 } } : {}),
+        method: method === "va" ? "VIRTUAL_ACCOUNT" : method === "transfer" ? "TRANSFER" : "CARD",
+        ...(method === "va" ? { virtualAccount:{ cashReceipt:{ type:"소득공제" }, validHours:24, escrowProducts } } : {}),
+        ...(method === "transfer" ? { transfer:{ cashReceipt:{ type:"소득공제" }, escrowProducts } } : {}),
         amount:{ currency:"KRW", value: Number(amt) },
         orderId: oid,
         orderName: label,
@@ -215,6 +235,7 @@ async function handleRedirect(q){
     if(!res.ok) throw new Error(data.error || "결제 승인에 실패했습니다.");
     if(!data.manualRecovery) sessionStorage.removeItem("afc_"+orderId);
     const info = { orderId, amount:Number(amount), label:order.productLabel||"맞춤 주문", receipt:(data.payment&&data.payment.receiptUrl)||null, needsReconciliation:!!data.needsReconciliation, manualRecovery:!!data.manualRecovery,
+      cashReceipt:(data.payment&&data.payment.cashReceipt&&data.payment.cashReceipt.receiptUrl)||null, escrow:!!(data.payment&&data.payment.useEscrow),
       va: (data.payment && data.payment.status === "WAITING_FOR_DEPOSIT" && data.payment.virtualAccount) || null };
     if(!data.manualRecovery){ try{ sessionStorage.setItem("afc_done_"+orderId, JSON.stringify(info)); }catch(_){} }
     renderDone(info);
@@ -249,6 +270,8 @@ function renderDone(info){
       ? `<p class="note" style="background:#fff0ef;border:1px solid #c84b45;border-radius:8px;padding:10px;color:#7d211d;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 1577-2286으로 알려주세요.</p>`
       : (info.needsReconciliation ? `<p class="note" style="background:#fff7e5;border:1px solid #d29b31;border-radius:8px;padding:10px;color:#6f4a08;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요.</p>` : "")}
     ${info.receipt ? `<a class="receipt" href="${esc(info.receipt)}" target="_blank" rel="noopener">영수증 보기</a>` : ""}
+    ${info.cashReceipt ? `<a class="receipt" style="margin-left:12px;" href="${esc(info.cashReceipt)}" target="_blank" rel="noopener">현금영수증</a>` : ""}
+    ${info.escrow ? `<p class="note" style="margin-top:10px;">구매안전서비스(에스크로)로 결제됐어요. 꽃이 도착하면 토스페이먼츠 안내에 따라 구매를 확정해 주세요(따로 안 하셔도 며칠 뒤 자동 확정).</p>` : ""}
     <p class="note" style="margin-top:16px;">꽃안부에서 확인 후 준비해 드립니다. 감사합니다 🌸</p>
   </div>`;
 }

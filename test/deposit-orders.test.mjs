@@ -25,7 +25,7 @@ function mockResponse() {
 }
 function withEnv(values, fn) {
   return async () => {
-    const keys = [...new Set([...Object.keys(values), "VIRTUAL_ACCOUNT_ENABLED", "BANK_TRANSFER_ENABLED",
+    const keys = [...new Set([...Object.keys(values), "VIRTUAL_ACCOUNT_ENABLED", "BANK_TRANSFER_ENABLED", "TRANSFER_ENABLED",
       "SOLAPI_API_KEY", "SOLAPI_API_SECRET", "SOLAPI_SENDER", "PAYMENT_INTENTS_REQUIRED", "LIVE_PRICING",
       "ADMIN_AUTH_MODE", "ADMIN_OWNER_IDS", "CRON_SECRET", "REFUND_LINK_SECRET"])];
     const old = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
@@ -136,7 +136,11 @@ test("결제수단 설정 조회는 스위치를 그대로 알려준다", { conc
   withEnv({ ...BASE_ENV, BANK_TRANSFER_ENABLED: "1" }, async () => {
     const res = mockResponse();
     await confirmPayment({ method: "GET", headers: {}, query: { config: "1" } }, res);
-    assert.deepEqual(res.body, { virtualAccount: false, bankTransfer: true });
+    assert.deepEqual(res.body, { virtualAccount: false, bankTransfer: true, transfer: false });
+    const on = mockResponse();
+    process.env.TRANSFER_ENABLED = "1";
+    await confirmPayment({ method: "GET", headers: {}, query: { config: "1" } }, on);
+    assert.equal(on.body.transfer, true);
   }));
 
 // ── 입금 웹훅 ──
@@ -436,4 +440,48 @@ test("여러 상품: 무통장입금 주문도 상품마다 다시 계산해 입
     assert.equal(res.body.amount, MULTI_TOTAL);
     assert.equal(inserts[0].status, AWAITING);
     assert.match(inserts[0].note, /상품 2가지/);
+  }));
+
+// ── 실시간 계좌이체(TRANSFER) — 승인 즉시 DONE 이라 카드와 같은 길로 접수된다 ──
+const transferDone = (orderId, paymentKey, amount, over = {}) => ({
+  orderId, paymentKey, totalAmount: amount, status: "DONE", method: "계좌이체",
+  approvedAt: "2099-01-01T10:00:00+09:00", receipt: { url: "https://r.example.test/t" },
+  transfer: { bankCode: "88", settlementStatus: "INCOMPLETED" },
+  cashReceipt: { type: "소득공제", receiptKey: "rk", issueNumber: "1", receiptUrl: "https://cr.example.test/1", amount },
+  ...over,
+});
+
+test("계좌이체(에스크로 고름): 바로 접수(new), 손님 화면에 현금영수증·에스크로, 사장님엔 결제수단·배송완료 등록 안내", { concurrency: false },
+  withEnv({ ...BASE_ENV }, async () => {
+    const orderId = "AF20990101-TRF001";
+    const inserts = [], telegrams = [];
+    globalThis.fetch = legacyConfirmFetch({ tossPayment: transferDone(orderId, "pk_t1", PRICE, { useEscrow: true }), inserts, telegrams });
+    const res = mockResponse();
+    await confirmPayment({ method: "POST", headers: {}, query: {}, body: { paymentKey: "pk_t1", orderId, amount: PRICE, order: ORDER } }, res);
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(res.body.payment.cashReceipt.receiptUrl, "https://cr.example.test/1");
+    assert.equal(res.body.payment.useEscrow, true);
+    assert.equal(res.body.payment.virtualAccount, undefined);
+    const row = inserts.find((r) => r.order_id === orderId);
+    assert.ok(row, "주문이 저장돼야 한다");
+    assert.ok(row.status === undefined || row.status === "new", "돈이 들어온 계좌이체는 바로 접수(DB 기본값 new) — 입금 대기 아님");
+    assert.equal(row.payment_method, "계좌이체");
+    assert.match(telegrams[0].text, /결제수단: 계좌이체/);
+    assert.match(telegrams[0].text, /구매안전\(에스크로\).+배송 완료/);
+    assert.ok(telegrams[0].reply_markup, "접수 주문엔 '발주 완료' 버튼이 붙는다");
+  }));
+
+test("에스크로를 안 고른 결제엔 에스크로 안내가 없고, 간편결제는 어느 페이인지 적힌다", { concurrency: false },
+  withEnv({ ...BASE_ENV }, async () => {
+    const orderId = "AF20990101-NPAY01";
+    const inserts = [], telegrams = [];
+    const pay = { ...cardDone(orderId, "pk_n1", PRICE), method: "간편결제", easyPay: { provider: "네이버페이", amount: PRICE } };
+    globalThis.fetch = legacyConfirmFetch({ tossPayment: pay, inserts, telegrams });
+    const res = mockResponse();
+    await confirmPayment({ method: "POST", headers: {}, query: {}, body: { paymentKey: "pk_n1", orderId, amount: PRICE, order: ORDER } }, res);
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(res.body.payment.useEscrow, undefined);
+    assert.equal(res.body.payment.cashReceipt, undefined);
+    assert.match(telegrams[0].text, /결제수단: 간편결제 \(네이버페이\)/);
+    assert.doesNotMatch(telegrams[0].text, /에스크로/);
   }));

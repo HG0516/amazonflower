@@ -48,7 +48,7 @@
 <link rel="stylesheet" href="/tokens.css" />
 <link rel="stylesheet" href="/a11y.css" />
 <link rel="canonical" href="https://floweranbu.co.kr/" />
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Florist","name":"꽃안부 (아마존플라워)","image":"https://floweranbu.co.kr/og_preview.png","telephone":"+82-31-314-3003","address":{"@type":"PostalAddress","streetAddress":"신천3길 23","addressLocality":"시흥시","addressRegion":"경기","addressCountry":"KR"},"url":"https://floweranbu.co.kr","priceRange":"₩₩"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Florist","name":"꽃안부 (아마존플라워)","image":"https://floweranbu.co.kr/og_preview.png","telephone":"+82-1577-2286","address":{"@type":"PostalAddress","streetAddress":"신천3길 23","addressLocality":"시흥시","addressRegion":"경기","addressCountry":"KR"},"url":"https://floweranbu.co.kr","priceRange":"₩₩"}</script>
 <!-- 로그인 (Supabase Auth: 카카오·구글). 키 설정은 SETUP-AUTH.md 참조 -->
 <script src="/supabase-config.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -356,6 +356,18 @@
   .pay-methods .pm-btn span { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.45; word-break: keep-all; }
   .pay-methods .pm-btn.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
   .pay-methods .pm-btn.on b { color: var(--accent-deep); }
+  .pay-methods.single .pm-btn { cursor: default; }
+  /* 결제수단 칩 — 결제창을 열기 전에 무엇으로 낼 수 있는지 보이게(아버지 비교표 10/5).
+     로고 이미지 대신 이름 + 브랜드 색 점. 글자색은 배경 대비 4.5:1 이상. */
+  .paychips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .paychips .pc { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 12px; font-weight: 700; font-style: normal; line-height: 1.35; white-space: nowrap; }
+  .paychips .pc::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, #8a877d); }
+  .paychips .pc-naver { --dot: #03C75A; color: #02803A; border-color: #bfe9cf; background: #f1fbf5; }
+  .paychips .pc-kakao { --dot: #FEE500; color: #3C1E1E; border-color: #f2dc54; background: #fffbe0; }
+  .paychips .pc-kakao::before { box-shadow: inset 0 0 0 1px rgba(60,30,30,.35); }
+  .paychips .pc-toss { --dot: #0064FF; color: #0058E0; border-color: #c6dafc; background: #f2f7ff; }
+  .paychips .pc-acct { --dot: #7a6a4f; color: #5a4b33; border-color: #e3dccd; background: #faf7f0; }
+  .paychips.center { justify-content: center; }
   .pay-methods .pm-extra { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fcfbf8; }
   .pay-methods .pm-extra input[type=text] { width: 100%; font-size: 16px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-family: var(--font-body); color: var(--ink); margin-top: 4px; }
   .pay-methods .cr-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 15px; margin: 4px 0 6px; }
@@ -934,12 +946,14 @@
       </div>
     </div>
 
-    <!-- 결제 방법 — /api/confirm-payment?config 가 켠 수단만 나타난다(Vercel 설정값 BANK_TRANSFER_ENABLED·VIRTUAL_ACCOUNT_ENABLED).
-         둘 다 꺼져 있으면 이 칸은 숨고 지금처럼 카드 결제창만 열린다. -->
-    <div id="payMethods" class="pay-methods hidden">
+    <!-- 결제 방법 — 늘 보인다(결제창을 열기 전에 무엇으로 낼 수 있는지 보이게, 아버지 비교표 10/5).
+         카드·간편결제 말고는 /api/confirm-payment?config 가 켠 수단만 나타난다
+         (Vercel 설정값 TRANSFER_ENABLED·VIRTUAL_ACCOUNT_ENABLED·BANK_TRANSFER_ENABLED). 하나뿐이면 고르는 칸 없이 보여주기만. -->
+    <div id="payMethods" class="pay-methods single">
       <div class="pm-label">결제 방법</div>
       <div class="pm-btns">
-        <button type="button" class="pm-btn on" data-m="card" onclick="afPickMethod('card')"><b>카드 · 간편결제</b><span>신용카드 · 네이버페이 · 카카오페이 · 토스페이</span></button>
+        <button type="button" class="pm-btn on" data-m="card" onclick="afPickMethod('card')"><b>카드 · 간편결제</b><span class="paychips" data-paychips="easy" aria-label="고르실 수 있는 결제수단"><i class="pc pc-card">신용카드</i><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></span></button>
+        <button type="button" class="pm-btn hidden" data-m="transfer" onclick="afPickMethod('transfer')"><b>실시간 계좌이체</b><span>내 은행 계좌에서 바로 이체 · 현금영수증 자동 · 구매안전(에스크로) 선택 가능</span></button>
         <button type="button" class="pm-btn hidden" data-m="va" onclick="afPickMethod('va')"><b>가상계좌</b><span>주문마다 입금 계좌가 나와요 · 입금되면 자동으로 확인</span></button>
         <button type="button" class="pm-btn hidden" data-m="bank" onclick="afPickMethod('bank')"><b>무통장입금</b><span>기업은행 169-165982-04-025 (주)아마존</span></button>
       </div>
@@ -957,7 +971,7 @@
       </div>
     </div>
 
-    <div class="delivery-note" id="payMethodNote" style="text-align:center;">아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b> 중에서 고르실 수 있어요.</div>
+    <div class="delivery-note" id="payMethodNote" style="text-align:center;">아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중에서 고르실 수 있어요.</div>
 
     <div class="delivery-note">
       <b>안심 배송 · 보증</b><br>
@@ -983,6 +997,7 @@
       <span style="font-size:var(--fs-sub);color:var(--accent-deep);font-weight:800;">위 내용에 모두 동의합니다</span>
     </label>
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">동의하고 결제하기</button>
+    <div class="paychips center" data-paychips="pays" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></div>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제 완료 후 사장님이 주문을 확인하고 준비합니다. 안부가 닿으면 도착 사진을 입력하신 번호로 보내드립니다 — "잘 전했습니다" 보고까지 한 번에 끝나도록.</div>
     <div class="notice hidden" id="corpNotice">생화는 <b>면세 품목</b>이라 계산서로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내드려요.</div>
@@ -2126,7 +2141,8 @@ function selTier(i, autoOpen){
     </div>
     ${qtyRowHtml()}
     <div id="toppingBox"></div>
-    <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>`;
+    <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>
+    <div class="paychips center" data-paychips="all" aria-label="사용할 수 있는 결제수단">${afPayChipsHtml("all")}</div>`;
   renderToppings();
   updateDesignTotal();
   // 결제 카드는 명시적 호출일 때만 열림
@@ -2362,11 +2378,29 @@ document.addEventListener("DOMContentLoaded", afAddrRender);
 // ── 결제 방법(카드 / 가상계좌 / 무통장) ──
 var afPayMethod = "card";
 var AF_PM_NOTE = {
-  card: '아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b> 중에서 고르실 수 있어요.',
+  card: '아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중에서 고르실 수 있어요.',
+  transfer: '아래 버튼을 누르면 <b>토스페이먼츠 계좌이체</b> 창이 열려요.<br>은행을 고르고 이체하면 바로 결제가 끝나고, <b>현금영수증</b>도 그 자리에서 신청돼요.',
   va: '아래 버튼을 누르면 <b>토스페이먼츠</b>에서 이 주문 전용 <b>입금 계좌</b>를 만들어 드려요.<br>24시간 안에 입금하시면 자동으로 확인돼요.',
   bank: '아래 버튼을 누르면 주문이 접수되고 <b>입금하실 계좌</b>가 나와요.<br>입금 확인은 사장님이 통장을 보고 문자로 알려드려요.'
 };
-var AF_PM_BTN = { card: "동의하고 결제하기", va: "동의하고 입금 계좌 받기", bank: "동의하고 주문하기" };
+var AF_PM_BTN = { card: "동의하고 결제하기", transfer: "동의하고 계좌이체하기", va: "동의하고 입금 계좌 받기", bank: "동의하고 주문하기" };
+// 결제수단 칩. easy=카드+간편결제(결제 단계 카드 칸), pays=간편결제 셋(결제 버튼 아래),
+// all=간편결제 셋 + 켜진 계좌 수단(상품 화면 주문 버튼 아래). 카드는 어디서나 되니 버튼 아래엔 뺀다(360px 한 줄).
+var afPayCfg = null;
+var AF_PAYCHIP = { card:["pc-card","신용카드"], naver:["pc-naver","네이버페이"], kakao:["pc-kakao","카카오페이"], toss:["pc-toss","토스페이"],
+  transfer:["pc-acct","계좌이체"], va:["pc-acct","가상계좌"], bank:["pc-acct","무통장입금"] };
+function afPayChipsHtml(kind){
+  var keys = kind==="easy" ? ["card","naver","kakao","toss"] : ["naver","kakao","toss"];
+  if(kind==="all" && afPayCfg){
+    if(afPayCfg.transfer) keys.push("transfer");
+    if(afPayCfg.virtualAccount) keys.push("va");
+    if(afPayCfg.bankTransfer) keys.push("bank");
+  }
+  return keys.map(function(k){ var c=AF_PAYCHIP[k]; return '<i class="pc '+c[0]+'">'+c[1]+'</i>'; }).join("");
+}
+function afRenderPayChips(){
+  document.querySelectorAll("[data-paychips]").forEach(function(el){ el.innerHTML = afPayChipsHtml(el.getAttribute("data-paychips")); });
+}
 function afPickMethod(m){
   afPayMethod = m;
   document.querySelectorAll("#payMethods .pm-btn").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-m")===m); });
@@ -2379,15 +2413,21 @@ function afCrToggle(){
   var v=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
   var no=document.getElementById("cashReceiptNo"); if(no) no.classList.toggle("hidden", !v);
 }
-// 서버가 켠 결제수단만 버튼으로 보인다. 실패하면 조용히 카드만(지금과 동일).
+// 서버가 켠 결제수단만 버튼으로 보인다. 실패하면 조용히 카드·간편결제만(지금과 동일).
 function afLoadPayConfig(){
   if(afLoadPayConfig._done) return; afLoadPayConfig._done = true;
   fetch("/api/confirm-payment?config=1",{cache:"no-store"}).then(function(r){ return r.ok?r.json():null; }).then(function(c){
-    if(!c || !(c.virtualAccount || c.bankTransfer)) return;
-    var box=document.getElementById("payMethods"); if(!box) return;
-    box.classList.remove("hidden");
-    if(c.virtualAccount){ var v=box.querySelector('[data-m="va"]'); if(v) v.classList.remove("hidden"); }
-    if(c.bankTransfer){ var b=box.querySelector('[data-m="bank"]'); if(b) b.classList.remove("hidden"); }
+    if(!c) return;
+    afPayCfg = c;
+    var box=document.getElementById("payMethods");
+    if(box){
+      var shown=0;
+      [["transfer",c.transfer],["va",c.virtualAccount],["bank",c.bankTransfer]].forEach(function(x){
+        var b=box.querySelector('[data-m="'+x[0]+'"]'); if(b && x[1]){ b.classList.remove("hidden"); shown++; }
+      });
+      box.classList.toggle("single", !shown);
+    }
+    afRenderPayChips();
   }).catch(function(){});
 }
 document.addEventListener("DOMContentLoaded", afLoadPayConfig);
@@ -2700,11 +2740,19 @@ async function requestPay(){
       customerName:order.senderName,
       customerMobilePhone:order.senderPhone.replace(/[^0-9]/g,""),
     };
-    if(method==="va"){
-      // 가상계좌 — 24시간 기한(형구 결정 10/4). 에스크로는 지정하지 않아 손님이 결제창에서 고른다
-      // (전자상거래법은 '고를 수 있게' 요구). 현금영수증은 결제창에서 번호를 받는다.
+    // 계좌이체·가상계좌 공통. 에스크로(구매안전)는 지정하지 않아 손님이 결제창에서 고른다
+    // (전자상거래법은 현금 결제에 '고를 수 있게' 요구). 고르면 토스가 상품 정보를 요구해 주문 한 줄로 넘긴다.
+    // 현금영수증은 결제창에서 번호를 받는다. 법인·계산서 손님은 계산서가 나가므로 현금영수증을 따로 내지 않는다.
+    const _escrowProducts=[{ id:orderId, name:String(_orderName).slice(0,100), code:String(order.productCode||"AF"), unitPrice:payAmount, quantity:1 }];
+    const _cashReceipt={ type: order.buyerType==="corp" ? "미발행" : "소득공제" };
+    if(method==="transfer"){
+      // 실시간 계좌이체 — 승인되면 바로 DONE(입금 대기 없음). 카드와 같은 승인 경로를 탄다.
+      await payment.requestPayment({ ...common, method:"TRANSFER",
+        transfer:{ cashReceipt:_cashReceipt, escrowProducts:_escrowProducts } });
+    } else if(method==="va"){
+      // 가상계좌 — 24시간 기한(형구 결정 10/4).
       await payment.requestPayment({ ...common, method:"VIRTUAL_ACCOUNT",
-        virtualAccount:{ cashReceipt:{ type: order.buyerType==="corp" ? "지출증빙" : "소득공제" }, validHours:24 } });
+        virtualAccount:{ cashReceipt:_cashReceipt, validHours:24, escrowProducts:_escrowProducts } });
     } else {
       await payment.requestPayment({ ...common, method:"CARD" });
     }
@@ -2994,6 +3042,7 @@ function renderDone(data,o){
         ${p.receiptUrl?`<a class="btn btn-ghost" style="flex:1;margin:0;" href="${p.receiptUrl}" target="_blank" rel="noopener">영수증 보기</a>`:""}
         ${cashUrl?`<a class="btn btn-ghost" style="flex:1;margin:0;" href="${cashUrl}" target="_blank" rel="noopener">현금영수증</a>`:""}
       </div>` : "";
+  const escrowNote = p.useEscrow ? `<div style="margin-top:10px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#f7f7f3;font-size:var(--fs-caption);color:var(--ink-soft);text-align:left;line-height:1.7;"><b style="color:var(--ink);">구매안전서비스(에스크로)로 결제됐어요.</b> 꽃이 도착하면 토스페이먼츠 안내에 따라 구매를 확정해 주세요. 따로 확정하지 않으셔도 며칠 뒤 자동으로 확정돼요.</div>` : "";
   // 문자를 보냈다는 사실 자체가 안심 장치다(완료 화면을 닫아도 남는 기록).
   const _sphone = String(o.senderPhone||"").replace(/[^0-9]/g,"");
   const smsNote = _sphone ? `<div style="margin-top:10px;font-size:var(--fs-caption);color:var(--ink-soft);text-align:left;line-height:1.7;">주문 내용을 <b style="color:var(--ink);">${escapeHtml(_sphone.slice(0,3))}-****-${escapeHtml(_sphone.slice(-4))}</b> 로 문자 보내드렸어요. 도착 사진도 이 번호로 갑니다.</div>` : "";
@@ -3020,6 +3069,7 @@ function renderDone(data,o){
       </div>
       ${smsNote}
       ${receiptRow}
+      ${escrowNote}
       ${o.senderNote?`
       <div style="background:transparent;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;color:var(--ink-soft);">
         <div style="font-size:var(--fs-caption);letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">사장님께 전달된 부탁</div>
@@ -3478,7 +3528,8 @@ function selProduct(p){
     </div>
     ${qtyRowHtml()}
     <div id="toppingBox"></div>
-    <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>`;
+    <button class="btn design-confirm" onclick="confirmTier()">이 구성으로 주문하기</button>
+    <div class="paychips center" data-paychips="all" aria-label="사용할 수 있는 결제수단">${afPayChipsHtml("all")}</div>`;
   renderToppings();
   updateDesignTotal();
 }
