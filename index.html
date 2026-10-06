@@ -369,6 +369,8 @@
   .paychips .pc-acct { --dot: #7a6a4f; color: #5a4b33; border-color: #e3dccd; background: #faf7f0; }
   .paychips.center { justify-content: center; }
   .quote-btn { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 2px 8px; width: 100%; min-height: 46px; margin: 8px 0 6px; padding: 8px 12px; border: 1px dashed #bdb7a8; border-radius: var(--radius-sm); background: #fff; color: var(--ink); font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; }
+  .pay-miss { display: block; width: 100%; padding: 6px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .pay-methods.single { display: none; }   /* 결제수단이 카드 하나뿐이면 고르는 칸을 숨긴다(10/6 아버지: 손님이 헷갈림). 결제 버튼 아래 칩은 그대로 */
   .quote-btn span { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-soft); }
   /* 원산지 — 원산지표시법: 통신판매는 상품명·가격 근처에. 나라별 표는 푸터(footer.js) '원산지 표시' */
   .origin-mini { margin-top: 4px; font-size: var(--fs-caption); color: var(--ink-soft); }
@@ -644,6 +646,8 @@
     body {
       background: var(--bg-desk);
     }
+    /* 하단 합계·결제하기 바도 본문 폭(680px) 안에(10/6 아버지: 창 양끝으로 떨어져 어색) */
+    #buyBar { max-width: 680px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 12px 12px 0 0; }
     .wrap {
       max-width: 680px;
       background: var(--paper);
@@ -1172,7 +1176,7 @@
 
 <!-- 하단 고정 주문바: 상품 선택 후(주문 모드) 실시간 총액 + 결제 진행 CTA를 항상 노출(스크롤로 버튼 찾는 부담 제거) -->
 <div id="buyBar" aria-live="polite">
-  <div class="bb-total-wrap"><span class="bb-total-label">합계</span> <span class="bb-total">0원</span><span class="bb-pay">네이버페이 등 간편결제 가능</span></div>
+  <div class="bb-total-wrap"><span class="bb-total-label">합계</span> <span class="bb-total">0원</span></div>
   <button class="bb-btn" onclick="buyBarGo()">결제하기</button>
 </div>
 
@@ -2857,6 +2861,26 @@ function afValidateOrder(scope){
   return errs;
 }
 
+/** 결제 버튼에서 빠진 칸이 있을 때 — 화면을 위로 튀게 하지 않고 버튼 바로 위에 목록을 보여준다.
+ *  (10/6 아버지: '동의하고 결제하기'를 누르면 결제창 대신 앞쪽으로 가버려 이유를 몰랐다.)
+ *  각 줄을 누르면 그 칸으로 간다. 칸에는 빨간 표시만 남긴다. */
+function afShowPayErrors(errs){
+  document.querySelectorAll(".input-error").forEach(el=>el.classList.remove("input-error"));
+  const old=document.getElementById("orderErr"); if(old) old.remove();
+  errs.forEach(e=>{ const el=e.id&&document.getElementById(e.id); if(el&&el.tagName==="INPUT") el.classList.add("input-error"); });
+  const pe=document.getElementById("payErr"); if(!pe) return afShowErrors(errs);
+  pe.innerHTML='<b>결제 전에 '+errs.length+'가지만 채워 주세요</b> <span style="font-weight:400;">(누르면 그 칸으로 가요)</span>'
+    +'<ul style="margin:6px 0 0;padding-left:0;list-style:none;line-height:1.5;">'
+    +errs.map((e,i)=>'<li><button type="button" class="pay-miss" data-i="'+i+'">· '+escapeHtml(e.msg)+' ↑</button></li>').join('')+'</ul>';
+  pe.classList.remove("hidden");
+  pe.querySelectorAll(".pay-miss").forEach(b=>b.onclick=function(){
+    const e=errs[+b.getAttribute("data-i")]; const el=e.id&&document.getElementById(e.id);
+    const tgt=el||document.getElementById(e.card);
+    if(tgt) tgt.scrollIntoView({behavior:"smooth",block:"center"});
+    if(el&&el.focus) setTimeout(()=>el.focus({preventScroll:true}),400);
+  });
+  pe.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
 /** 빠진 것을 한 번에 보여주고 첫 칸으로만 데려간다. */
 function afShowErrors(errs){
   document.querySelectorAll(".input-error").forEach(el=>el.classList.remove("input-error"));
@@ -2892,7 +2916,7 @@ async function requestPay(){
   // 🔴 결제창을 열기 전 마지막 관문. 여기를 통과해도 서버가 승인 직전에 한 번 더 본다.
   afSyncFormToOrder();
   const errs=afValidateOrder();
-  if(errs.length){ afShowErrors(errs); return; }
+  if(errs.length){ afShowPayErrors(errs); return; }
   afShowErrors([]);   // 지난 표시 지우기
   // 리본 왼편이 비어있으면 보내는 분 성함으로 자동 채움
   if(!order.ribbonLeft){ order.ribbonLeft = order.senderName; document.getElementById("ribbonLeft").value = order.senderName; }
