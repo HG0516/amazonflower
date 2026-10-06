@@ -7,148 +7,432 @@
 <meta name="robots" content="noindex" />
 <meta name="theme-color" content="#1f4733" />
 <link rel="icon" href="/favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- 무료 부고장·청첩장 만들기(초안, 2026-10-06). 서버 저장 없이 내용을 링크(#d=)에 담는다. card.html 이 그린다. -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+<script src="/address-search.js" defer></script>
+<!--
+  무료 부고장·청첩장 만들기(초안 2판, 2026-10-06).
+  - 장례식장·장지: data/funeral-homes.json · data/burial-places.json(공공데이터, scripts/build-funeral-data.py)에서 이름으로 찾기
+  - 예식장: 다음 주소 검색(건물명 포함)
+  - 미리 보기: card.html 을 iframe 으로 띄워 입력할 때마다 #d= 를 바꿔 다시 그린다(PC 오른쪽 · 휴대폰 '미리 보기')
+  - 서버 저장 없이 내용을 링크 # 뒤에 담는다(정식판에서 DB · 조문 글 · 자동 삭제 · 보낸 링크 즉시 수정)
+-->
 <style>
-  :root { --ink:#1f1d18; --soft:#6b665c; --line:#e3ded2; --green:#1f4733; }
+  :root { --ink:#1f1d18; --soft:#6b665c; --faint:#9a958a; --line:#e4e0d6; --green:#1f4733; --green2:#2f6a4c; --paper:#ffffff; --bg:#f3f2ed; --focus:#2f7a4f; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: #f6f6f3; color: var(--ink); font-family: "Noto Sans KR", sans-serif; }
-  .wrap { max-width: 520px; margin: 0 auto; padding-bottom: 40px; }
-  .bar { background: var(--green); color: #fff; padding: 20px 18px 16px; }
-  .bar h1 { margin: 0; font-size: 19px; } .bar p { margin: 4px 0 0; font-size: 13px; opacity: .85; }
-  .tabs { display: flex; gap: 8px; padding: 14px 16px 0; }
-  .tabs button { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
-  .tabs .on { background: var(--green); color: #fff; border-color: var(--green); }
-  form { padding: 4px 16px; }
-  fieldset { border: 0; padding: 0; margin: 0; }
-  label { display: block; font-size: 13px; color: var(--soft); margin: 14px 0 5px; }
-  input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 15px; background: #fff; }
-  textarea { min-height: 84px; resize: vertical; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .rowm { display: grid; grid-template-columns: 92px 1fr 36px; gap: 6px; margin-top: 6px; }
-  .rowa { display: grid; grid-template-columns: 80px 80px 1fr 36px; gap: 6px; margin-top: 6px; }
-  .x { border: 0; background: none; color: #b33; font-size: 18px; cursor: pointer; }
-  .add { width: 100%; margin-top: 8px; padding: 10px; border: 1px dashed var(--green); color: var(--green); background: transparent; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .themes button { height: 60px; border-radius: 10px; border: 2px solid transparent; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .themes .on { border-color: var(--green); }
-  .chk { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; }
-  .chk input { width: 20px; height: 20px; }
-  .go { width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 12px; background: var(--green); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
-  .out { margin: 16px; padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 12px; display: none; }
-  .out.on { display: block; }
-  .out .btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
-  .out .btns a, .out .btns button { padding: 11px 6px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 13.5px; text-align: center; color: var(--ink); text-decoration: none; cursor: pointer; }
-  .out .btns .p { background: var(--green); color: #fff; border-color: var(--green); }
-  .note { font-size: 12.5px; color: var(--soft); line-height: 1.7; margin: 8px 0 0; }
-  .hide { display: none; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Noto Sans KR", sans-serif; -webkit-font-smoothing: antialiased; }
+  .hero { background: radial-gradient(120% 140% at 85% 0%, #2f6a4c 0%, #1f4733 45%, #16352a 100%); color: #fff; padding: 30px 20px 74px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -40px; top: -30px; width: 220px; height: 220px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.10) 0 18%, transparent 19% 30%, rgba(255,255,255,.06) 31% 44%, transparent 45%); }
+  .hero .in { max-width: 920px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero h1 { margin: 0; font-family: "Nanum Myeongjo", serif; font-size: 27px; letter-spacing: -.3px; }
+  .hero p { margin: 8px 0 14px; font-size: 14.5px; opacity: .88; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { font-size: 12.5px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); }
+  .layout { max-width: 920px; margin: -52px auto 0; padding: 0 14px 120px; display: grid; grid-template-columns: 1fr; gap: 22px; position: relative; z-index: 2; }
+  @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) 340px; padding-bottom: 60px; } }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--paper); padding: 6px; border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.08); margin-bottom: 14px; }
+  .seg button { padding: 13px 10px; border: 0; border-radius: 12px; background: transparent; font: inherit; font-size: 16px; font-weight: 800; color: var(--soft); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .seg button.on { background: var(--green); color: #fff; }
+  .seg i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+  .seg .ic-f { background: radial-gradient(circle, #fff 0 25%, #e9e3cf 26% 55%, #fff 56%); box-shadow: 0 0 0 1px rgba(0,0,0,.12); }
+  .seg .ic-w { border: 3px solid #d9b26a; background: transparent; }
+  .sec { background: var(--paper); border-radius: 18px; padding: 18px 16px 18px; margin-bottom: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.03); border: 1px solid #ece9e1; }
+  .sec h2 { margin: 0 0 4px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .sec h2 b { width: 24px; height: 24px; border-radius: 50%; background: var(--green); color: #fff; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; }
+  .sec .hint { margin: 0 0 4px; font-size: 12.5px; color: var(--faint); }
+  label { display: block; font-size: 13px; color: var(--soft); margin: 14px 0 6px; font-weight: 500; }
+  label small { color: var(--faint); font-weight: 400; }
+  input, select, textarea { width: 100%; padding: 13px 14px; border: 1.5px solid var(--line); border-radius: 12px; font: inherit; font-size: 16px; background: #fbfaf7; color: var(--ink); transition: border-color .15s, background .15s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--focus); background: #fff; }
+  textarea { min-height: 92px; resize: vertical; line-height: 1.7; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .two label { margin-top: 14px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pills button { padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: 14px; cursor: pointer; color: var(--ink); }
+  .pills button.on { border-color: var(--green); background: #e9f1ec; color: var(--green); font-weight: 700; }
+  .rowm { display: grid; grid-template-columns: 96px 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; }
+  .rowa { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: #fbfaf7; position: relative; }
+  .rowa .full { grid-column: 1 / -1; }
+  .rowa input, .rowa select { background: #fff; }
+  .x { width: 40px; height: 40px; border: 0; border-radius: 10px; background: #f6efee; color: #a33; font-size: 16px; cursor: pointer; }
+  .rowa .x { position: absolute; right: -8px; top: -8px; width: 28px; height: 28px; border-radius: 50%; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .add { width: 100%; margin-top: 10px; padding: 12px; border: 1.5px dashed #b9cfc1; color: var(--green); background: #f6faf7; border-radius: 12px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+  /* 검색 자동완성 */
+  .search { position: relative; }
+  .search input { padding-left: 40px; }
+  .search::before { content: ""; position: absolute; left: 14px; top: 50%; width: 14px; height: 14px; margin-top: -9px; border: 2px solid var(--faint); border-radius: 50%; }
+  .search::after { content: ""; position: absolute; left: 27px; top: 50%; width: 7px; height: 2px; margin-top: 5px; background: var(--faint); transform: rotate(45deg); }
+  .sugg { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,.14); z-index: 20; max-height: 330px; overflow-y: auto; display: none; }
+  .sugg.on { display: block; }
+  .sugg button { display: block; width: 100%; text-align: left; padding: 12px 14px; border: 0; border-bottom: 1px solid #f1eee7; background: #fff; font: inherit; cursor: pointer; }
+  .sugg button:hover, .sugg button.hl { background: #f2f7f3; }
+  .sugg b { font-size: 15px; display: block; } .sugg small { font-size: 12.5px; color: var(--soft); display: block; margin-top: 2px; }
+  .sugg .tg { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 6px; background: #eef3ef; color: var(--green); margin-left: 6px; font-weight: 700; vertical-align: 1px; }
+  .sugg .none { padding: 14px; font-size: 13.5px; color: var(--soft); line-height: 1.6; }
+  .picked { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: #f2f7f3; font-size: 13px; color: var(--green); display: none; line-height: 1.6; }
+  .picked.on { display: block; }
+  .addr-btn { margin-top: 8px; padding: 10px 14px; border-radius: 10px; border: 0; background: var(--green); color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  /* 테마 카드 */
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .th { border: 2px solid transparent; border-radius: 14px; padding: 0; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 0 0 1px var(--line); font: inherit; }
+  .th.on { border-color: var(--green); box-shadow: 0 0 0 3px #d7e7dc; }
+  .th .mini { height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: "Nanum Myeongjo", serif; }
+  .th .nm { font-size: 13px; font-weight: 700; padding: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .th .nm span { font-weight: 400; font-size: 11.5px; color: var(--faint); }
+  .switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+  .switch .tx { font-size: 14.5px; line-height: 1.6; } .switch .tx small { display: block; color: var(--faint); font-size: 12.5px; }
+  .tg-sw { position: relative; width: 52px; height: 30px; flex: 0 0 auto; }
+  .tg-sw input { opacity: 0; width: 0; height: 0; }
+  .tg-sw span { position: absolute; inset: 0; border-radius: 15px; background: #cfcac0; transition: background .15s; cursor: pointer; }
+  .tg-sw span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .tg-sw input:checked + span { background: var(--green); }
+  .tg-sw input:checked + span::after { transform: translateX(22px); }
+  .msg-pills { margin-top: 8px; }
+  .msg-pills button { font-size: 12.5px; padding: 7px 11px; }
+  .hide { display: none !important; }
+  /* 미리 보기 */
+  .pv { display: none; }
+  @media (min-width: 900px) { .pv { display: block; position: sticky; top: 16px; align-self: start; } }
+  .pv .cap { font-size: 13px; color: var(--soft); text-align: center; margin: 0 0 8px; }
+  .phone { width: 340px; height: 690px; border-radius: 40px; background: #121212; padding: 11px; box-shadow: 0 18px 40px rgba(0,0,0,.18); position: relative; }
+  .phone::before { content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%); width: 84px; height: 22px; border-radius: 12px; background: #000; z-index: 3; }
+  .phone iframe { width: 100%; height: 100%; border: 0; border-radius: 30px; background: #fff; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px; z-index: 30; }
+  @media (min-width: 900px) { .bar { position: static; background: transparent; border: 0; padding: 6px 0 0; grid-template-columns: 1fr; } .bar .pvb { display: none; } }
+  .bar button { padding: 15px 10px; border-radius: 14px; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+  .pvb { border: 1.5px solid var(--green); background: #fff; color: var(--green); }
+  .mk { border: 0; background: var(--green); color: #fff; box-shadow: 0 6px 16px rgba(31,71,51,.28); }
+  .sheet { position: fixed; inset: 0; z-index: 50; background: rgba(20,20,18,.55); display: none; align-items: flex-end; justify-content: center; }
+  .sheet.on { display: flex; }
+  .sheet .box { width: 100%; max-width: 460px; max-height: 94vh; background: #fff; border-radius: 22px 22px 0 0; overflow: hidden; display: flex; flex-direction: column; }
+  @media (min-width: 600px) { .sheet { align-items: center; } .sheet .box { border-radius: 22px; } }
+  .sheet .hd { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0ede6; font-weight: 800; }
+  .sheet .hd button { border: 0; background: #f3f2ed; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .sheet iframe { flex: 1; width: 100%; border: 0; min-height: 70vh; }
+  .done { padding: 18px 18px 22px; overflow-y: auto; }
+  .done h3 { margin: 4px 0 4px; font-size: 19px; } .done p { margin: 0 0 14px; color: var(--soft); font-size: 13.5px; line-height: 1.7; }
+  .kchat { background: #b2c7da; border-radius: 16px; padding: 16px 14px; }
+  .kchat .card { width: 240px; background: #fff; border-radius: 12px; overflow: hidden; }
+  .kchat .thumb { height: 124px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: "Nanum Myeongjo", serif; }
+  .kchat .tt { padding: 10px 12px 2px; font-size: 14px; font-weight: 700; } .kchat .dd { padding: 0 12px 10px; font-size: 12px; color: #777; line-height: 1.5; }
+  .kchat .bt { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #eee; } .kchat .bt span { text-align: center; font-size: 13px; padding: 10px 0; } .kchat .bt span + span { border-left: 1px solid #eee; }
+  .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .acts a, .acts button { padding: 14px 8px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: 15px; font-weight: 700; color: var(--ink); text-align: center; text-decoration: none; cursor: pointer; }
+  .acts .ka { background: #fee500; border-color: #fee500; color: #191919; }
+  .acts .wide { grid-column: 1 / -1; background: var(--green); border-color: var(--green); color: #fff; }
+  .note { font-size: 12.5px; color: var(--faint); line-height: 1.7; margin-top: 12px; }
+  .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: rgba(0,0,0,.82); color: #fff; padding: 10px 16px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 60; }
+  .toast.on { opacity: 1; }
+  .err { border-color: #c0392b !important; background: #fff6f5 !important; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="bar"><h1>무료로 만들기</h1><p>회원가입 없이 · 3분 · 링크로 바로 보내기</p></div>
-  <div class="tabs"><button type="button" id="tF" class="on" onclick="mode('f')">부고장</button><button type="button" id="tW" onclick="mode('w')">청첩장</button></div>
+<header class="hero"><div class="in">
+  <h1>무료 부고장 · 청첩장</h1>
+  <p>꽃안부가 무료로 만들어 드려요. 링크 하나로 카톡·문자에 보내세요.</p>
+  <div class="chips"><span>회원가입 없음</span><span>광고 없음</span><span>3분이면 끝</span><span>전국 장례식장 1,117곳 검색</span></div>
+</div></header>
 
-  <form onsubmit="make();return false;">
-    <fieldset id="fF">
-      <label>고인 성함</label><input id="f_name" placeholder="김영수" required>
-      <div class="two">
-        <div><label>향년 (선택)</label><input id="f_age" inputmode="numeric" placeholder="82"></div>
-        <div><label>별세일</label><input id="f_died" type="date"></div>
-      </div>
-      <label>종교 (문구가 바뀌어요)</label>
-      <select id="f_rel"><option value="">일반 — 별세</option><option>기독교</option><option>천주교</option><option>불교</option></select>
-      <label>상주 · 유족 (첫 줄이 대표 상주)</label>
-      <div id="mList"></div>
-      <button type="button" class="add" onclick="addM()">＋ 유족 추가 (배우자·사위·손 …)</button>
-      <label>장례식장</label><input id="f_venue" placeholder="시흥장례식장">
-      <div class="two">
-        <div><label>빈소 호수</label><input id="f_room" placeholder="3호실"></div>
-        <div><label>장지 (선택)</label><input id="f_burial" placeholder="시흥 추모공원"></div>
-      </div>
-      <label>장례식장 주소 (길찾기·화환 배송)</label><input id="f_addr" placeholder="경기 시흥시 ○○로 123">
-      <div class="two">
-        <div><label>발인 날짜</label><input id="f_outDate" type="date"></div>
-        <div><label>발인 시간</label><input id="f_out" type="time"></div>
-      </div>
-      <label>테마</label>
-      <div class="themes"><button type="button" class="on" data-t="mono" style="background:#2b2b2b;color:#fff">흑백</button><button type="button" data-t="gukhwa" style="background:#f4f1ea">국화</button></div>
-    </fieldset>
+<div class="layout">
+  <main>
+    <div class="seg"><button type="button" id="tF" class="on" onclick="mode('f')"><i class="ic-f"></i>부고장</button><button type="button" id="tW" onclick="mode('w')"><i class="ic-w"></i>청첩장</button></div>
 
-    <fieldset id="fW" class="hide">
-      <div class="two">
-        <div><label>신랑</label><input id="w_g" placeholder="김민준"></div>
-        <div><label>신부</label><input id="w_b" placeholder="박서연"></div>
-      </div>
-      <div class="two">
-        <div><label>신랑 혼주 (선택)</label><input id="w_gp" placeholder="김철수 · 이영희"></div>
-        <div><label>신부 혼주 (선택)</label><input id="w_bp" placeholder="박정호 · 최미경"></div>
-      </div>
-      <div class="two">
-        <div><label>예식 날짜</label><input id="w_date" type="date"></div>
-        <div><label>예식 시간</label><input id="w_time" type="time"></div>
-      </div>
-      <label>예식장</label><input id="w_venue" placeholder="더채플 앳 청담">
-      <label>홀 (선택)</label><input id="w_hall" placeholder="3층 그랜드홀">
-      <label>예식장 주소</label><input id="w_addr" placeholder="서울 강남구 ○○로 00">
-      <label>주차·교통 안내 (선택)</label><input id="w_park" placeholder="주차 2시간 무료 · 청담역 9번 출구">
-      <label>대표 사진 주소 (선택 — 정식판에서 올리기)</label><input id="w_photo" placeholder="https://…jpg">
-      <label>테마</label>
-      <div class="themes"><button type="button" class="on" data-t="classic" style="background:#d9c8b4;color:#fff">클래식</button><button type="button" data-t="flower" style="background:#f2dcd7">플라워</button></div>
-    </fieldset>
+    <!-- ── 부고장 ── -->
+    <div id="fF">
+      <section class="sec">
+        <h2><b>1</b>고인</h2>
+        <label>고인 성함</label><input id="f_name" placeholder="예) 김영수" autocomplete="off">
+        <div class="two">
+          <div><label>향년 <small>(선택)</small></label><input id="f_age" inputmode="numeric" placeholder="82"></div>
+          <div><label>별세일</label><input id="f_died" type="date"></div>
+        </div>
+        <label>종교 <small>— 알맞은 말로 바뀌어요(별세·소천·선종·입적)</small></label>
+        <div class="pills" id="relPills"><button type="button" class="on" data-v="">일반</button><button type="button" data-v="기독교">기독교</button><button type="button" data-v="천주교">천주교</button><button type="button" data-v="불교">불교</button></div>
+      </section>
 
-    <label>인사말 (비우면 기본 문구)</label><textarea id="msg" placeholder="비워 두시면 알맞은 기본 문구가 들어가요"></textarea>
-    <label>마음 전하실 계좌 (선택)</label>
-    <div id="aList"></div>
-    <button type="button" class="add" onclick="addA()">＋ 계좌 추가</button>
-    <label class="chk"><input type="checkbox" id="noWreath"> 화환 보내기 칸 숨기기 (화환 정중히 사양)</label>
-    <button class="go">링크 만들기</button>
-  </form>
+      <section class="sec">
+        <h2><b>2</b>상주 · 유족</h2>
+        <p class="hint">첫 줄이 대표 상주예요. 화환 리본·주문서에 이 분 이름이 들어가요.</p>
+        <div id="mList"></div>
+        <button type="button" class="add" onclick="addM();preview()">＋ 유족 추가 (배우자 · 사위 · 며느리 · 손주 …)</button>
+      </section>
 
-  <div class="out" id="out">
-    <b>링크가 만들어졌어요</b>
-    <p class="note">카톡·문자로 보내세요. 내용을 고치려면 이 화면에서 고친 뒤 새 링크를 보내면 됩니다(초안 — 정식판에선 보낸 링크가 바로 바뀌어요).</p>
-    <div class="btns"><a id="oOpen" class="p" target="_blank">미리 보기</a><button type="button" onclick="share()">공유하기</button><button type="button" onclick="copyLink()">링크 복사</button></div>
-  </div>
+      <section class="sec">
+        <h2><b>3</b>빈소 · 일정</h2>
+        <label>장례식장 <small>— 이름이나 동네로 찾으면 주소·전화가 채워져요</small></label>
+        <div class="search"><input id="f_venue" placeholder="예) 시흥장례원, 시화병원, 정왕동" autocomplete="off"><div class="sugg" id="sgVenue"></div></div>
+        <div class="picked" id="pkVenue"></div>
+        <div class="two">
+          <div><label>빈소 호수</label><input id="f_room" placeholder="예) 3호실 · 특실"></div>
+          <div><label>장례식장 전화 <small>(자동)</small></label><input id="f_tel" inputmode="tel" placeholder="031-000-0000"></div>
+        </div>
+        <label>장례식장 주소 <small>(자동 · 길찾기와 화환 배송에 써요)</small></label><input id="f_addr" placeholder="장례식장을 고르면 자동으로 들어가요">
+        <div class="two">
+          <div><label>발인 날짜</label><input id="f_outDate" type="date"></div>
+          <div><label>발인 시간</label><input id="f_out" type="time"></div>
+        </div>
+        <label>장지 <small>(선택 — 추모공원·봉안당·화장장 검색)</small></label>
+        <div class="search"><input id="f_burial" placeholder="예) 시흥 추모공원, 함백산" autocomplete="off"><div class="sugg" id="sgBurial"></div></div>
+      </section>
+
+      <section class="sec">
+        <h2><b>4</b>꾸미기</h2>
+        <div class="themes" id="thF">
+          <button type="button" class="th on" data-t="mono"><div class="mini" style="background:#2b2b2b;color:#f3f1ec;"><div style="font-size:10px;letter-spacing:4px;opacity:.75">訃 告</div><div class="mn" style="font-size:17px;font-weight:800;margin-top:4px;">故 김영수</div></div><div class="nm">단정한 흑백 <span>가장 무난</span></div></button>
+          <button type="button" class="th" data-t="gukhwa"><div class="mini" style="background:#f4f1ea;color:#2c2a25;"><div style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#eee8d6 19% 34%,#fff 35% 50%,#e8e1cc 51% 66%,transparent 67%);box-shadow:0 0 0 1px #ddd5c0;"></div><div class="mn" style="font-size:15px;font-weight:800;margin-top:6px;">故 김영수 님</div></div><div class="nm">국화 은은 <span>따뜻하게</span></div></button>
+        </div>
+        <label>인사말 <small>(비우면 기본 문구)</small></label>
+        <textarea id="f_msg" placeholder="삼가 고인의 명복을 빕니다.&#10;생전에 베풀어 주신 은혜에 감사드리며&#10;삼가 알려드립니다."></textarea>
+        <div class="pills msg-pills" data-for="f_msg">
+          <button type="button" data-m="평안히 잠드셨습니다.&#10;가시는 길 함께해 주시면 감사하겠습니다.">평안히 잠드셨습니다</button>
+          <button type="button" data-m="생전에 베풀어 주신 사랑에 감사드리며&#10;삼가 부고를 전해 드립니다.">사랑에 감사드리며</button>
+          <button type="button" data-m="가족끼리 조용히 장례를 치르려 합니다.&#10;마음으로만 함께해 주시면 감사하겠습니다.">가족장(조용히)</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ── 청첩장 ── -->
+    <div id="fW" class="hide">
+      <section class="sec">
+        <h2><b>1</b>신랑 · 신부</h2>
+        <div class="two">
+          <div><label>신랑</label><input id="w_g" placeholder="김민준"></div>
+          <div><label>신부</label><input id="w_b" placeholder="박서연"></div>
+        </div>
+        <div class="two">
+          <div><label>신랑 혼주 <small>(선택)</small></label><input id="w_gp" placeholder="김철수 · 이영희"></div>
+          <div><label>신부 혼주 <small>(선택)</small></label><input id="w_bp" placeholder="박정호 · 최미경"></div>
+        </div>
+      </section>
+      <section class="sec">
+        <h2><b>2</b>예식</h2>
+        <div class="two">
+          <div><label>예식 날짜</label><input id="w_date" type="date"></div>
+          <div><label>예식 시간</label><input id="w_time" type="time" value="12:00"></div>
+        </div>
+        <label>예식장 이름</label><input id="w_venue" placeholder="예) 더채플 앳 청담">
+        <label>홀 <small>(선택)</small></label><input id="w_hall" placeholder="예) 3층 그랜드홀">
+        <label>예식장 주소</label><input id="w_addr" placeholder="'주소 검색'으로 찾아 주세요 (건물 이름으로도 돼요)">
+        <button type="button" class="addr-btn" onclick="openPostcode('w_addr')">주소 검색</button>
+        <label>주차 · 교통 안내 <small>(선택)</small></label><input id="w_park" placeholder="예) 주차 2시간 무료 · 청담역 9번 출구 도보 5분">
+      </section>
+      <section class="sec">
+        <h2><b>3</b>꾸미기</h2>
+        <div class="themes" id="thW">
+          <button type="button" class="th on" data-t="classic"><div class="mini" style="background:linear-gradient(135deg,#d9c8b4,#b9a58e);color:#fff;"><div class="mn" style="font-size:16px;letter-spacing:2px;">민준 · 서연</div><div style="font-size:10px;margin-top:4px;letter-spacing:2px;">WEDDING</div></div><div class="nm">클래식 <span>사진 크게</span></div></button>
+          <button type="button" class="th" data-t="flower"><div class="mini" style="background:#fbf6f4;color:#4a3a3a;"><div class="mn" style="font-size:16px;">민준 <span style="color:#c98f88">&amp;</span> 서연</div><div style="width:46px;height:26px;margin-top:6px;border-radius:23px 23px 6px 6px;background:#f1dcd7;"></div></div><div class="nm">플라워 <span>꽃집이 만든 티</span></div></button>
+        </div>
+        <label>대표 사진 주소 <small>(선택 — 사진 올리기는 정식판에서)</small></label><input id="w_photo" placeholder="https://…jpg">
+        <label>인사말 <small>(비우면 기본 문구)</small></label>
+        <textarea id="w_msg" placeholder="서로를 아끼는 마음으로&#10;평생을 함께하려 합니다.&#10;귀한 걸음으로 축복해 주세요."></textarea>
+      </section>
+    </div>
+
+    <section class="sec">
+      <h2><b id="nAcc">5</b>마음 전하실 곳 <small style="font-weight:400;color:var(--faint);font-size:12.5px;">(선택)</small></h2>
+      <p class="hint">계좌는 받는 화면에서 접혀 있다가 눌러야 보여요.</p>
+      <div id="aList"></div>
+      <button type="button" class="add" onclick="addA();preview()">＋ 계좌 추가</button>
+    </section>
+
+    <section class="sec">
+      <h2><b id="nWr">6</b>화환</h2>
+      <div class="switch"><div class="tx" id="wrTx">화환 보내기 칸 보이기<small>꽃안부가 빈소로 보내드려요. 끄면 '화환은 정중히 사양합니다'로 보여요.</small></div>
+        <label class="tg-sw" style="margin:0"><input type="checkbox" id="wreathOn" checked><span></span></label></div>
+    </section>
+
+    <div class="bar"><button type="button" class="pvb" onclick="openPreview()">미리 보기</button><button type="button" class="mk" onclick="make()">링크 만들기</button></div>
+    <p class="note" style="text-align:center;margin:18px 0 0;">장례식장·장지 정보: 재단법인 한국장례문화진흥원 「전국 장사시설 현황」(2023.6, 공공데이터포털) · 문의 1577-2286 꽃안부</p>
+  </main>
+
+  <aside class="pv">
+    <p class="cap">받는 분 화면 — 입력하는 대로 바로 바뀌어요 · 빈 칸은 예시</p>
+    <div class="phone"><iframe id="pvFrame" title="미리 보기"></iframe></div>
+  </aside>
 </div>
+
+<div class="sheet" id="pvSheet"><div class="box"><div class="hd"><span>미리 보기 <small style="font-weight:400;color:#9a958a;font-size:12px;">빈 칸은 예시로 보여요</small></span><button type="button" onclick="closeSheet('pvSheet')">✕</button></div><iframe id="pvFrame2" title="미리 보기"></iframe></div></div>
+<div class="sheet" id="doneSheet"><div class="box"><div class="hd"><span>링크가 만들어졌어요</span><button type="button" onclick="closeSheet('doneSheet')">✕</button></div>
+  <div class="done">
+    <h3>이렇게 보내져요</h3>
+    <p>카톡이나 문자로 보내면 받는 분이 눌러서 봐요.</p>
+    <div class="kchat"><div class="card"><div class="thumb" id="kThumb"></div><div class="tt" id="kTitle"></div><div class="dd" id="kDesc"></div><div class="bt"><span id="kB1">자세히 보기</span><span>길찾기</span></div></div></div>
+    <div class="acts">
+      <button type="button" class="ka" onclick="shareLink()">카톡으로 보내기</button>
+      <a id="smsBtn" href="#">문자로 보내기</a>
+      <button type="button" onclick="copyLink()">링크 복사</button>
+      <a id="openBtn" target="_blank" rel="noopener">새 창에서 보기</a>
+      <button type="button" class="wide" onclick="closeSheet('doneSheet')">더 고치기</button>
+    </div>
+    <p class="note">고치려면 이 화면에서 고친 뒤 '링크 만들기'를 다시 눌러 새 링크를 보내 주세요. (초안 — 정식판에서는 이미 보낸 링크가 바로 바뀌어요.)<br>카톡 버튼 두 개(자세히 보기·길찾기)는 정식판에서 카카오 공유로 붙어요. 지금은 링크 미리보기로 보여요.</p>
+  </div></div></div>
+<div class="toast" id="toast"></div>
+
 <script>
-var K="f", TF="mono", TW="classic", LINK="";
-var REL=["장남","장녀","차남","차녀","삼남","삼녀","배우자","자부","사위","손","손녀","형제","자매"];
-function mode(k){ K=k; document.getElementById("tF").classList.toggle("on",k==="f"); document.getElementById("tW").classList.toggle("on",k==="w");
-  document.getElementById("fF").classList.toggle("hide",k!=="f"); document.getElementById("fW").classList.toggle("hide",k!=="w"); document.getElementById("out").classList.remove("on"); }
-document.querySelectorAll(".themes").forEach(function(box){ box.addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
-  box.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); if(box.closest("#fF")) TF=b.getAttribute("data-t"); else TW=b.getAttribute("data-t"); }); });
+var K="f", TF="mono", TW="classic", REL="", LINK="";
+var RELS=["장남","장녀","차남","차녀","삼남","삼녀","배우자","며느리","사위","손자","손녀","외손","형제","자매","조카"];
+var BANKS=["국민","신한","우리","하나","농협","기업","카카오뱅크","토스뱅크","케이뱅크","새마을금고","우체국","신협","수협","SC제일","씨티","부산","대구","경남","광주","전북","제주","산업"];
+var $=function(id){ return document.getElementById(id); };
+function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("on"); setTimeout(function(){ t.classList.remove("on"); },1700); }
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+(function(){ var t=new Date(); $("f_died").value=iso(t); var o=new Date(t); o.setDate(o.getDate()+2); $("f_outDate").value=iso(o); })();
+
+function mode(k){
+  K=k; $("tF").classList.toggle("on",k==="f"); $("tW").classList.toggle("on",k==="w");
+  $("fF").classList.toggle("hide",k!=="f"); $("fW").classList.toggle("hide",k!=="w");
+  $("nAcc").textContent = k==="f" ? "5" : "4"; $("nWr").textContent = k==="f" ? "6" : "5";
+  $("wrTx").innerHTML = k==="f"
+    ? '화환 보내기 칸 보이기<small>꽃안부가 빈소로 보내드려요. 끄면 \'화환은 정중히 사양합니다\'로 보여요.</small>'
+    : '축하 화환 보내기 칸 보이기<small>신랑 측·신부 측을 골라 예식장으로 보내드려요.</small>';
+  preview();
+}
+document.querySelectorAll(".themes").forEach(function(box){ box.addEventListener("click", function(e){ var b=e.target.closest(".th"); if(!b) return;
+  box.querySelectorAll(".th").forEach(function(x){ x.classList.toggle("on",x===b); });
+  if(box.id==="thF") TF=b.getAttribute("data-t"); else TW=b.getAttribute("data-t"); preview(); }); });
+$("relPills").addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
+  this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); REL=b.getAttribute("data-v"); preview(); });
+document.querySelectorAll(".msg-pills").forEach(function(p){ p.addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
+  $(p.getAttribute("data-for")).value=b.getAttribute("data-m"); preview(); }); });
+
 function addM(r,n){ var d=document.createElement("div"); d.className="rowm";
-  d.innerHTML='<select>'+REL.map(function(x){ return '<option'+(x===r?' selected':'')+'>'+x+'</option>'; }).join("")+'</select><input placeholder="이름" value="'+(n||"")+'"><button type="button" class="x" onclick="this.parentNode.remove()">✕</button>';
-  document.getElementById("mList").appendChild(d); }
+  d.innerHTML='<select>'+RELS.map(function(x){ return '<option'+(x===r?' selected':'')+'>'+x+'</option>'; }).join("")+'</select><input placeholder="이름" value="'+(n||"")+'"><button type="button" class="x" aria-label="빼기">✕</button>';
+  d.querySelector(".x").onclick=function(){ d.remove(); preview(); };
+  $("mList").appendChild(d); }
 function addA(){ var d=document.createElement("div"); d.className="rowa";
-  d.innerHTML='<input placeholder="누구"><input placeholder="은행"><input placeholder="계좌번호" inputmode="numeric"><button type="button" class="x" onclick="this.parentNode.remove()">✕</button>';
-  document.getElementById("aList").appendChild(d); }
+  d.innerHTML='<input placeholder="누구 (예: 장남 김민준)" class="full"><select><option value="">은행</option>'+BANKS.map(function(b){ return '<option>'+b+'</option>'; }).join("")+'</select><input placeholder="계좌번호" inputmode="numeric"><button type="button" class="x" aria-label="빼기">✕</button>';
+  d.querySelector(".x").onclick=function(){ d.remove(); preview(); };
+  $("aList").appendChild(d); }
 addM("장남"); addM("장녀"); addA();
-function v(id){ return String((document.getElementById(id)||{}).value||"").trim(); }
+
+// ── 이름으로 찾기(장례식장·장지) ──
+var DATA={};
+function loadData(name){ if(!DATA[name]) DATA[name]=fetch("/data/"+name+".json",{cache:"force-cache"}).then(function(r){ return r.json(); }).then(function(j){ return j.items||[]; }).catch(function(){ return []; }); return DATA[name]; }
+function norm(s){ return String(s||"").replace(/\s+/g,"").toLowerCase(); }
+function attachSearch(input, box, dataName, onPick, render){
+  var items=[], hl=-1, timer=null;
+  function close(){ box.classList.remove("on"); hl=-1; }
+  function draw(list, q){
+    items=list;
+    if(!q){ close(); return; }
+    box.innerHTML = list.length
+      ? list.map(function(it,i){ return '<button type="button" data-i="'+i+'">'+render(it)+'</button>'; }).join("")
+      : '<div class="none">목록에서 못 찾았어요. 이름을 그대로 적고 주소는 직접 넣어 주세요.<br><small>2023년 6월 공공데이터 기준이라 새로 생긴 곳은 없을 수 있어요.</small></div>';
+    box.classList.add("on");
+  }
+  function run(){
+    var q=norm(input.value); if(q.length<2){ close(); return; }
+    var toks=input.value.trim().split(/\s+/).map(norm).filter(Boolean);
+    loadData(dataName).then(function(all){
+      var hits=[];
+      for(var i=0;i<all.length && hits.length<60;i++){
+        var it=all[i], key=norm(it.n)+"|"+norm(it.a);
+        if(toks.every(function(t){ return key.indexOf(t)>=0; })){
+          var nn=norm(it.n); hits.push({ it:it, s: nn.indexOf(q)===0?0 : nn.indexOf(toks[0])>=0?1 : 2 });
+        }
+      }
+      hits.sort(function(a,b){ return a.s-b.s || a.it.n.length-b.it.n.length; });
+      draw(hits.slice(0,8).map(function(h){ return h.it; }), q);
+    });
+  }
+  input.addEventListener("input", function(){ clearTimeout(timer); timer=setTimeout(run,120); });
+  input.addEventListener("focus", function(){ loadData(dataName); if(input.value.trim().length>=2) run(); });
+  input.addEventListener("keydown", function(e){
+    var bs=box.querySelectorAll("button"); if(!box.classList.contains("on")||!bs.length) return;
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hl=(hl+(e.key==="ArrowDown"?1:-1)+bs.length)%bs.length; bs.forEach(function(b,i){ b.classList.toggle("hl",i===hl); }); }
+    if(e.key==="Enter"){ e.preventDefault(); var b=bs[hl<0?0:hl]; if(b) b.click(); }
+    if(e.key==="Escape") close();
+  });
+  box.addEventListener("mousedown", function(e){ e.preventDefault(); });
+  box.addEventListener("click", function(e){ var b=e.target.closest("button[data-i]"); if(!b) return; onPick(items[+b.getAttribute("data-i")]); close(); preview(); });
+  input.addEventListener("blur", function(){ setTimeout(close,150); });
+}
+attachSearch($("f_venue"), $("sgVenue"), "funeral-homes", function(it){
+  $("f_venue").value=it.n; $("f_addr").value=it.a; if(it.t) $("f_tel").value=it.t;
+  var pk=$("pkVenue"); pk.innerHTML="✓ "+it.n+"<br>"+it.a+(it.t?" · ☎ "+it.t:"")+(it.r?" · 빈소 "+it.r+"개":""); pk.classList.add("on");
+  $("f_room").focus();
+}, function(it){ return '<b>'+esc(it.n)+(it.k?'<span class="tg">'+esc(it.k)+'</span>':'')+'</b><small>'+esc(it.a)+(it.t?' · '+esc(it.t):'')+'</small>'; });
+attachSearch($("f_burial"), $("sgBurial"), "burial-places", function(it){ $("f_burial").value=it.n; },
+  function(it){ return '<b>'+esc(it.n)+'<span class="tg">'+esc(it.k)+'</span></b><small>'+esc(it.a)+'</small>'; });
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+// ── 내용 → 데이터 → 링크 ──
+function v(id){ return String(($(id)||{}).value||"").trim(); }
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
-function make(){
-  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"); return { who:i[0].value.trim(), bank:i[1].value.trim(), no:i[2].value.trim() }; }).filter(function(a){ return a.no; });
+function data(){
+  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"); return { who:i[0].value.trim(), bank:r.querySelector("select").value, no:i[1].value.trim() }; }).filter(function(a){ return a.no; });
   var d;
   if(K==="f"){
-    if(!v("f_name")||!v("f_venue")){ alert("고인 성함과 장례식장을 적어 주세요."); return; }
-    d={ k:"f", theme:TF, name:v("f_name"), age:v("f_age"), died:v("f_died"), rel:v("f_rel"),
+    d={ k:"f", theme:TF, name:v("f_name"), age:v("f_age"), died:v("f_died"), rel:REL,
         m:[].map.call(document.querySelectorAll("#mList .rowm"), function(r){ return { r:r.querySelector("select").value, n:r.querySelector("input").value.trim() }; }).filter(function(x){ return x.n; }),
-        venue:v("f_venue"), room:v("f_room"), addr:v("f_addr"), burial:v("f_burial"), outDate:v("f_outDate"), out:v("f_out") };
+        venue:v("f_venue"), room:v("f_room"), tel:v("f_tel"), addr:v("f_addr"), burial:v("f_burial"), outDate:v("f_outDate"), out:v("f_out") };
+    if(v("f_msg")) d.msg=v("f_msg");
   }else{
-    if(!v("w_g")||!v("w_b")||!v("w_venue")||!v("w_date")){ alert("신랑·신부, 예식장, 날짜를 적어 주세요."); return; }
     d={ k:"w", theme:TW, g:v("w_g"), b:v("w_b"), gp:v("w_gp"), bp:v("w_bp"), date:v("w_date"), time:v("w_time"),
-        venue:v("w_venue"), hall:v("w_hall"), addr:v("w_addr"), park:v("w_park"), photo:/^https:\/\//.test(v("w_photo"))?v("w_photo"):"" };
+        venue:v("w_venue"), hall:v("w_hall"), addr:v("w_addr").replace(/^\[\d+\]\s*/,""), park:v("w_park"), photo:/^https:\/\//.test(v("w_photo"))?v("w_photo"):"" };
+    if(v("w_msg")) d.msg=v("w_msg");
   }
-  if(v("msg")) d.msg=v("msg");
   if(acc.length) d.acc=acc;
-  if(document.getElementById("noWreath").checked) d.noWreath=1;
-  LINK=location.origin+"/card.html#d="+enc(d);
-  document.getElementById("oOpen").href=LINK;
-  var o=document.getElementById("out"); o.classList.add("on"); o.scrollIntoView({behavior:"smooth",block:"center"});
+  if(!$("wreathOn").checked) d.noWreath=1;
+  return d;
 }
-function copyLink(){ try{ navigator.clipboard.writeText(LINK).then(function(){ alert("링크를 복사했어요. 카톡·문자에 붙여 넣으세요."); }); }catch(_){ prompt("길게 눌러 복사하세요", LINK); } }
-function share(){ if(navigator.share) navigator.share({ title: K==="f"?"부고":"청첩장", url: LINK }).catch(function(){}); else copyLink(); }
+function sample(d){
+  // 미리 보기에서 빈칸이면 예시를 흐리게 대신 넣어 모양을 보여준다(링크엔 안 들어감)
+  var s=JSON.parse(JSON.stringify(d));
+  if(s.k==="f"){ s.name=s.name||"김영수"; if(!s.m||!s.m.length) s.m=[{r:"장남",n:"김민준"}]; s.venue=s.venue||"○○장례식장"; }
+  else { s.g=s.g||"김민준"; s.b=s.b||"박서연"; s.venue=s.venue||"○○웨딩홀"; s.date=s.date||iso(new Date(Date.now()+60*86400000)); }
+  return s;
+}
+var pvTimer=null;
+function preview(){
+  clearTimeout(pvTimer);
+  pvTimer=setTimeout(function(){
+    var h="#p=1&d="+enc(sample(data()));
+    ["pvFrame","pvFrame2"].forEach(function(id){ var f=$(id); if(!f) return;
+      if(!f.getAttribute("src")) f.setAttribute("src","/card.html"+h);
+      else try{ f.contentWindow.location.replace("/card.html"+h); }catch(_){ f.setAttribute("src","/card.html"+h); } });
+    // 테마 카드의 이름도 따라 바뀐다
+    var nm=v("f_name")||"김영수"; document.querySelectorAll("#thF .mn").forEach(function(el,i){ el.textContent= i===0 ? "故 "+nm : "故 "+nm+" 님"; });
+  },220);
+}
+document.addEventListener("input", function(e){ if(e.target && e.target.closest && e.target.closest("main")) { e.target.classList.remove("err"); preview(); } });
+document.addEventListener("change", function(e){ if(e.target && e.target.closest && e.target.closest("main")) preview(); });
+
+function need(ids){ var miss=ids.filter(function(id){ return !v(id); }); miss.forEach(function(id){ $(id).classList.add("err"); }); if(miss.length){ $(miss[0]).scrollIntoView({behavior:"smooth",block:"center"}); setTimeout(function(){ $(miss[0]).focus(); },350); } return !miss.length; }
+var WD=["일","월","화","수","목","금","토"];
+function kDate(s){ var m=String(s||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return ""; var d=new Date(+m[1],+m[2]-1,+m[3]); return (+m[2])+"월 "+(+m[3])+"일("+WD[d.getDay()]+")"; }
+function kTime(hm){ var m=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); if(!m) return ""; var h=+m[1], mi=+m[2]; return (h<12?"오전 ":"오후 ")+((h%12)||12)+"시"+(mi?" "+mi+"분":""); }
+var SMS="";
+function make(){
+  if(K==="f"){ if(!need(["f_name","f_venue"])){ toast("고인 성함과 장례식장을 적어 주세요"); return; } }
+  else if(!need(["w_g","w_b","w_date","w_venue"])){ toast("신랑·신부, 날짜, 예식장을 적어 주세요"); return; }
+  var d=data();
+  LINK=location.origin+"/card.html#d="+enc(d);
+  var th=$("kThumb"), title, desc;
+  if(d.k==="f"){
+    var dark=d.theme!=="gukhwa";
+    th.style.background=dark?"#2b2b2b":"#f4f1ea"; th.style.color=dark?"#f3f1ec":"#2c2a25";
+    th.innerHTML='<div style="font-size:11px;letter-spacing:5px;opacity:.75">訃 告</div><div style="font-size:20px;font-weight:800;margin-top:6px;">故 '+esc(d.name)+'</div>';
+    title="[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세");
+    desc=[d.venue+(d.room?" "+d.room:""), d.out?("발인 "+kDate(d.outDate)+" "+kTime(d.out)):""].filter(Boolean).join(" · ");
+    $("kB1").textContent="부고 보기";
+  }else{
+    th.style.background=d.theme==="flower"?"#f6e7e3":"linear-gradient(135deg,#d9c8b4,#b9a58e)"; th.style.color=d.theme==="flower"?"#4a3a3a":"#fff";
+    th.innerHTML='<div style="font-size:19px;letter-spacing:2px;">'+esc(d.g)+' · '+esc(d.b)+'</div><div style="font-size:11px;margin-top:6px;letter-spacing:2px;">'+esc(d.date.replace(/-/g,". "))+'</div>';
+    title=d.g+" ♥ "+d.b+" 결혼합니다"; desc=[kDate(d.date)+" "+kTime(d.time), d.venue].filter(Boolean).join(" · ");
+    $("kB1").textContent="청첩장 보기";
+  }
+  $("kTitle").textContent=title; $("kDesc").textContent=desc;
+  SMS=title+"\n"+desc+"\n"+LINK;
+  $("smsBtn").href="sms:?&body="+encodeURIComponent(SMS);
+  $("openBtn").href=LINK;
+  $("doneSheet").classList.add("on");
+}
+function copyLink(){ try{ navigator.clipboard.writeText(LINK).then(function(){ toast("링크를 복사했어요"); }); }catch(_){ prompt("길게 눌러 복사하세요", LINK); } }
+function shareLink(){ if(navigator.share) navigator.share({ title:$("kTitle").textContent, text:$("kDesc").textContent, url:LINK }).catch(function(){}); else { copyLink(); toast("링크를 복사했어요 — 카톡에 붙여 넣으세요"); } }
+function openPreview(){ preview(); $("pvSheet").classList.add("on"); }
+function closeSheet(id){ $(id).classList.remove("on"); }
+preview();
 </script>
 </body>
 </html>

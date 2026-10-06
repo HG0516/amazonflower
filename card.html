@@ -123,7 +123,7 @@ function renderFuneral(d){
     ? '<div class="band"><div class="flower"></div><div class="h">부 고</div><div class="name">故 '+esc(d.name)+' 님</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>'
     : '<div class="band"><div class="h">訃 告</div><div class="name">故 '+esc(d.name)+'</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>';
   var msg = d.msg || "삼가 고인의 명복을 빕니다.\n생전에 베풀어 주신 은혜에 감사드리며\n삼가 알려드립니다.";
-  var wreath = d.noWreath ? "" :
+  var wreath = d.noWreath ? '<p class="promise" style="margin-top:20px;font-size:13.5px;opacity:.85;font-family:\'Noto Sans KR\',sans-serif;">유족의 뜻에 따라 화환은 정중히 사양합니다.</p>' :
     '<div class="wreath"><div class="t">직접 못 가셔도, 마음은 빈소에</div>'
     +'<p class="s">주문서가 이미 채워져 있어요. <b>보내는 분 이름만</b> 적으시면 됩니다.</p>'
     +'<ul class="pre"><li>받는 곳 <b>'+esc([d.venue,d.room].filter(Boolean).join(" "))+'</b> · 故 '+esc(d.name)+' 님</li>'
@@ -135,7 +135,7 @@ function renderFuneral(d){
     +'<p class="msg">'+esc(msg)+'</p>'
     +(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')
     +'<div class="sec"><dl class="kv">'
-    +'<dt>빈소</dt><dd>'+esc([d.venue,d.room].filter(Boolean).join(" "))+'</dd>'
+    +'<dt>빈소</dt><dd>'+esc([d.venue,d.room].filter(Boolean).join(" "))+(d.tel?'<br><a href="tel:'+esc(d.tel.replace(/[^0-9]/g,""))+'" style="color:inherit;font-size:13.5px;opacity:.8;">☎ '+esc(d.tel)+'</a>':'')+'</dd>'
     +(d.out?'<dt>발인</dt><dd>'+esc(kDate(d.outDate)+" "+kTime(d.out))+'</dd>':'')
     +(d.burial?'<dt>장지</dt><dd>'+esc(d.burial)+'</dd>':'')
     +'</dl>'+mapsHtml(d.venue, d.addr)+'</div>'
@@ -175,15 +175,23 @@ function shareHtml(title){
   return '<div class="share"><button data-share="'+esc(title)+'">공유하기</button><button data-copy="'+esc(location.href)+'">링크 복사</button></div>';
 }
 
-(function(){
+function render(){
   var d=decode(), app=document.getElementById("app");
+  var preview=/[#&]p=1(&|$)/.test(location.hash);
   if(!d || !(d.k==="f"||d.k==="w")){
     app.innerHTML='<div class="empty"><b>내용을 찾을 수 없어요.</b><br>받으신 링크를 다시 눌러 주세요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
     return;
   }
   app.innerHTML = d.k==="f" ? renderFuneral(d) : renderWedding(d);
+  if(preview){ var sh=app.querySelector(".share"); if(sh) sh.style.display="none"; }
   document.title = d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
+}
+render();
+window.addEventListener("hashchange", render);
+(function(){
+  var app=document.getElementById("app");
   app.addEventListener("click", function(e){
+    if(/[#&]p=1(&|$)/.test(location.hash) && e.target.closest("a")){ e.preventDefault(); return; }   // 미리 보기에선 링크가 열리지 않게
     var b=e.target.closest("[data-copy],[data-share]"); if(!b) return;
     if(b.hasAttribute("data-copy")) return copy(b.getAttribute("data-copy"));
     var t=b.getAttribute("data-share");
