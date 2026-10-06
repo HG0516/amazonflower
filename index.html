@@ -3977,10 +3977,24 @@ function handleWorderParam(){
   const q=new URLSearchParams(location.search);
   const w=q.get("worder"); if(!w) return;
   const isFun = w==="funeral";
+  const isWed = w==="wedding";
+  // 무료 부고장·청첩장(card.html)의 '화환 보내기'에서 오면 받는 곳·날짜·상주가 함께 온다(10/6).
+  // 근조화환은 발인 날이 아니라 '지금 빈소로' — 오늘(마감 뒤면 내일) 당일중. 축하화환은 예식 1시간 전.
+  const P=k=>String(q.get(k)||"").trim().slice(0,200);
+  const et=afToHm(P("et"))||"";
+  let pDate="", pSlot="", pTime="";
+  if(isFun && (P("v")||P("a"))){
+    const now=new Date(); const d=new Date(now);
+    if(now.getHours()>=afCutoffHour(now)) d.setDate(d.getDate()+1);
+    pDate=afIsoOf(d); pSlot="today"; pTime="당일중";
+  } else if(isWed && afToIsoDate(P("d"))){
+    pDate=afToIsoDate(P("d"));
+    if(et){ const [h,m]=et.split(":").map(Number); const t=Math.max(0,h*60+m-60); pSlot="custom"; pTime=String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0"); }
+  }
   Object.assign(order,{
-    type: isFun?"funeral":"unknown", side:"",
-    recipientName:"", venue:"", venueDetail:"", address:"",
-    date:"", time:"", groomName:"", brideName:"", chiefMourner:"",
+    type: isFun?"funeral":(isWed?"wedding":"unknown"), side:"",
+    recipientName:P("rn"), venue:P("v"), venueDetail:P("vd"), address:P("a"),
+    date:pDate, time:pTime, timeSlot:pSlot, eventTime:et, groomName:P("gn"), brideName:P("bn"), chiefMourner:P("cm"),
     category:"wreath", toppings:[],
   });
   const _witems=getItems("wreath");
@@ -3988,18 +4002,18 @@ function handleWorderParam(){
   document.getElementById("typePill").innerHTML =
     '<span class="type-pill '+(isFun?'t-fun':'')+'">'+(isFun?'장례식 · 근조화환':'축하화환')+'</span>';
   document.getElementById("afFields").innerHTML =
-    afField("recipientName","받는 분")
-    + (isFun?afField("chiefMourner","상주",""):"")
-    + afField("venue","장소")
-    + afField("venueDetail",isFun?"빈소 · 홀":"홀")
-    + afField("address","주소")
-    + afField("date","날짜")
-    + afField("time","시간");
+    afField("recipientName","받는 분",order.recipientName)
+    + (isFun?afField("chiefMourner","상주",order.chiefMourner):"")
+    + afField("venue","장소",order.venue)
+    + afField("venueDetail",isFun?"빈소 · 홀":"홀",order.venueDetail)
+    + afField("address","주소",order.address)
+    + afField("date","날짜",order.date)
+    + afField("time","시간",order.time);
   document.getElementById("confirmCard").classList.remove("hidden");
   const _cs=document.getElementById("confirmSub");
   if(_cs) _cs.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 아래에 붙여넣으면 자동으로 채워져요.";
   if(isFun){ document.getElementById("sideCard").classList.add("hidden"); renumber(false); }
-  else { showCongratsOccasion(); }   // 축하화환: 결혼/개업 '자리'를 먼저 묻고 결혼일 때만 신랑/신부
+  else { showCongratsOccasion(); if(isWed) selOccasion("wedding"); }   // 축하화환: 결혼/개업 '자리'를 먼저 묻고 결혼일 때만 신랑/신부
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
@@ -4007,6 +4021,8 @@ function handleWorderParam(){
   renderPriceTabs();
   renderRecoOptions(tier);
   selTier(tier, false);
+  if(isWed && (P("side")==="groom"||P("side")==="bride")) selSide(P("side"));
+  if(P("from")==="card"){ const _cs2=document.getElementById("confirmSub"); if(_cs2) _cs2.textContent="부고장·청첩장에서 받는 곳과 날짜를 채워 왔어요. 맞는지 보시고 보내는 분만 적어 주세요."; }
   enterOrderMode((isFun?'근조화환':'축하화환')+' '+((_witems[tier]||{}).tab||'')+' <b>'+(((_witems[tier]||{}).price)||0).toLocaleString()+'원</b>');
   cleanUrl();
   scrollTo("prodCard");

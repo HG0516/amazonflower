@@ -8,5 +8,7 @@ Disallow: /api/
 Disallow: /order-lookup.html
 Disallow: /delivery-photo.html
 Disallow: /quote.html
+Disallow: /card.html
+Disallow: /card-make.html
 
 Sitemap: https://floweranbu.co.kr/sitemap.xml

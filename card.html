@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>꽃안부 — 부고 · 청첩장</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#1f4733" />
+<meta property="og:title" content="꽃안부 무료 부고장 · 청첩장" />
+<meta property="og:description" content="눌러서 자세히 보기 · 길찾기" />
+<meta property="og:image" content="https://floweranbu.co.kr/og_preview.png" />
+<link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<!--
+  무료 부고장·청첩장 — 받는 사람 화면(초안, 2026-10-06).
+  card-make.html 이 만든 내용을 주소 # 뒤(d=)로 받아 그린다. 서버 저장이 없는 초안이라
+  조문 글·자동 삭제·수정 반영은 아직 없다(정식판은 DB 필요). '화환 보내기'는 주문서(/?worder=…)를 미리 채워 연다.
+-->
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9e7e1; }
+  .card { max-width: 460px; margin: 0 auto; min-height: 100vh; }
+  .pad { padding: 24px 22px; }
+  .kv { display: grid; grid-template-columns: 64px 1fr; gap: 6px 10px; font-size: 15px; line-height: 1.6; margin: 0; }
+  .kv dt { opacity: .65; } .kv dd { margin: 0; }
+  .maps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; font-family: "Noto Sans KR", sans-serif; }
+  .maps a { display: flex; align-items: center; justify-content: center; padding: 12px 8px; border-radius: 10px; font-size: 14px; font-weight: 700; text-decoration: none; }
+  .maps .km { background: #fee500; color: #191919; } .maps .nm { background: #03c75a; color: #fff; }
+  .addr { grid-column: 1 / -1; font-size: 13px; opacity: .75; text-align: center; }
+  .mourners { font-family: "Noto Sans KR", sans-serif; font-size: 15px; line-height: 1.9; }
+  .mourners b { display: inline-block; min-width: 48px; font-weight: 500; opacity: .6; font-size: 13.5px; }
+  details.accts summary { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 0 6px; font-family: "Noto Sans KR", sans-serif; }
+  .acct { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 10px; font-size: 14px; margin-top: 8px; font-family: "Noto Sans KR", sans-serif; }
+  .acct button { border: 0; border-radius: 8px; padding: 7px 11px; font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+  .wreath { margin-top: 22px; padding: 16px; border-radius: 14px; font-family: "Noto Sans KR", sans-serif; }
+  .wreath .t { font-weight: 700; font-size: 16px; }
+  .wreath .s { font-size: 13px; opacity: .85; margin: 4px 0 0; line-height: 1.6; }
+  .pre { list-style: none; margin: 10px 0 12px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.75); font-size: 13px; line-height: 1.85; }
+  .pre li::before { content: "✓ "; font-weight: 700; color: #2f7a4f; }
+  .btn { display: block; width: 100%; padding: 14px; border-radius: 12px; border: 0; font: inherit; font-size: 15px; font-weight: 700; text-align: center; cursor: pointer; text-decoration: none; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .promise { font-size: 12px; opacity: .7; margin: 8px 0 0; text-align: center; line-height: 1.6; }
+  .share { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; font-family: "Noto Sans KR", sans-serif; }
+  .share button, .share a { padding: 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,.15); background: transparent; font: inherit; font-size: 14px; text-align: center; color: inherit; text-decoration: none; cursor: pointer; }
+  .foot { text-align: center; font-size: 12px; opacity: .55; padding: 16px 0 28px; font-family: "Noto Sans KR", sans-serif; }
+  .foot a { color: inherit; }
+  .empty { max-width: 460px; margin: 80px auto; padding: 24px; background: #fff; border-radius: 14px; font-family: "Noto Sans KR", sans-serif; text-align: center; line-height: 1.7; }
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); background: rgba(0,0,0,.8); color: #fff; padding: 10px 16px; border-radius: 20px; font: 14px "Noto Sans KR", sans-serif; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+
+  /* 부고 — 흑백 */
+  .t-mono { background: #fbfaf7; color: #222; font-family: "Nanum Myeongjo", serif; }
+  .t-mono .band { background: #2b2b2b; color: #f3f1ec; text-align: center; padding: 40px 20px 30px; }
+  .t-mono .band .h { font-size: 13px; letter-spacing: 6px; opacity: .8; }
+  .t-mono .band .name { font-size: 30px; font-weight: 700; margin: 14px 0 6px; letter-spacing: 2px; }
+  .t-mono .band .sub { font-size: 14px; opacity: .8; font-family: "Noto Sans KR", sans-serif; }
+  .t-mono .acct { background: #f0eee8; } .t-mono .acct button { background: #2b2b2b; color: #fff; }
+  .t-mono .wreath { background: #f0eee8; } .t-mono .wreath .btn { background: #2b2b2b; color: #fff; }
+  /* 부고 — 국화 */
+  .t-gukhwa { background: #f4f1ea; color: #2c2a25; font-family: "Gowun Batang", serif; }
+  .t-gukhwa .band { text-align: center; padding: 44px 20px 14px; }
+  .t-gukhwa .band .flower { width: 78px; height: 78px; margin: 0 auto 12px; border-radius: 50%; background: radial-gradient(circle, #fff 0 18%, #eee8d6 19% 34%, #fff 35% 50%, #e8e1cc 51% 66%, transparent 67%); box-shadow: 0 0 0 1px #ddd5c0; }
+  .t-gukhwa .band .h { font-size: 14px; letter-spacing: 4px; color: #7a735f; }
+  .t-gukhwa .band .name { font-size: 27px; margin: 10px 0 4px; }
+  .t-gukhwa .band .sub { font-size: 14px; color: #7a735f; }
+  .t-gukhwa .acct { background: #ebe6da; } .t-gukhwa .acct button { background: #5b5644; color: #fff; }
+  .t-gukhwa .wreath { background: #eae5d8; } .t-gukhwa .wreath .btn { background: #3d3a30; color: #fff; }
+  /* 청첩장 — 클래식 */
+  .t-classic { background: #fffdfa; color: #3a3530; font-family: "Gowun Batang", serif; }
+  .t-classic .band { min-height: 300px; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,.4)), linear-gradient(135deg, #d9c8b4, #b9a58e); background-size: cover; background-position: center; display: flex; align-items: flex-end; justify-content: center; color: #fff; padding: 0 20px 24px; text-align: center; }
+  .t-classic .band .name { font-size: 28px; letter-spacing: 3px; } .t-classic .band .sub { font-size: 14px; margin-top: 6px; letter-spacing: 1px; }
+  .t-classic .acct { background: #f7f1ea; } .t-classic .acct button { background: #b48a6a; color: #fff; }
+  .t-classic .wreath { background: #f7f1ea; } .t-classic .wreath .btn { background: #8c6a50; color: #fff; }
+  /* 청첩장 — 플라워 */
+  .t-flower { background: #fbf6f4; color: #4a3a3a; font-family: "Gowun Batang", serif; }
+  .t-flower .band { text-align: center; padding: 48px 20px 20px; position: relative; overflow: hidden; }
+  .t-flower .band::before, .t-flower .band::after { content: ""; position: absolute; width: 100px; height: 100px; border-radius: 60% 40% 60% 40%; opacity: .55; }
+  .t-flower .band::before { top: 6px; left: -24px; background: #f2c9c4; } .t-flower .band::after { top: 40px; right: -30px; background: #e9d7b8; }
+  .t-flower .band .name { font-size: 28px; position: relative; } .t-flower .band .sub { font-size: 14px; margin-top: 8px; color: #8a6d6a; position: relative; }
+  .t-flower .photo { height: 260px; margin: 6px 20px 0; border-radius: 130px 130px 16px 16px; background: linear-gradient(180deg, #f1dcd7, #e4c3bc); background-size: cover; background-position: center; }
+  .t-flower .acct { background: #fff; } .t-flower .acct button { background: #c98f88; color: #fff; }
+  .t-flower .wreath { background: #fff; border: 1px solid #f0d9d5; } .t-flower .wreath .btn { background: #c98f88; color: #fff; }
+  .msg { text-align: center; font-size: 15px; line-height: 2; margin: 4px 0 18px; white-space: pre-line; }
+  .parents { text-align: center; font-size: 15px; line-height: 1.9; margin: 0 0 16px; }
+  .sec { border-top: 1px solid rgba(0,0,0,.08); padding-top: 16px; margin-top: 18px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("on"); setTimeout(function(){ t.classList.remove("on"); },1600); }
+function copy(txt){ try{ navigator.clipboard.writeText(txt).then(function(){ toast("복사했어요"); }); }catch(_){ prompt("길게 눌러 복사하세요", txt); } }
+var WD=["일","월","화","수","목","금","토"];
+function kDate(iso){ var m=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return ""; var d=new Date(+m[1],+m[2]-1,+m[3]); return (+m[2])+"월 "+(+m[3])+"일("+WD[d.getDay()]+")"; }
+function kTime(hm){ var m=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); if(!m) return ""; var h=+m[1], mi=+m[2]; return (h<12?"오전 ":"오후 ")+((h%12)||12)+"시"+(mi?" "+mi+"분":""); }
+function decode(){
+  var m=String(location.hash||"").match(/[#&]d=([A-Za-z0-9_-]+)/); if(!m) return null;
+  try{ var b=m[1].replace(/-/g,"+").replace(/_/g,"/"); while(b.length%4) b+="="; return JSON.parse(decodeURIComponent(escape(atob(b)))); }catch(_){ return null; }
+}
+function mapsHtml(place, addr){
+  var q=encodeURIComponent(place||addr||"");
+  if(!q) return "";
+  return '<div class="maps"><a class="km" href="https://map.kakao.com/link/search/'+q+'" target="_blank" rel="noopener">카카오맵</a>'
+    +'<a class="nm" href="https://map.naver.com/p/search/'+q+'" target="_blank" rel="noopener">네이버 지도</a>'
+    +(addr?'<div class="addr">'+esc(addr)+'</div>':'')+'</div>';
+}
+function acctsHtml(list){
+  list=(list||[]).filter(function(a){ return a && a.no; }); if(!list.length) return "";
+  return '<details class="accts"'+(list.length<=2?' open':'')+'><summary>마음 전하실 곳 ('+list.length+')</summary>'
+    + list.map(function(a){ var t=[a.who,a.bank,a.no].filter(Boolean).join(" "); return '<div class="acct"><span>'+esc(t)+'</span><button data-copy="'+esc((a.bank||"")+" "+a.no)+'">복사</button></div>'; }).join("")
+    + '</details>';
+}
+function orderUrl(p){ var u=new URLSearchParams(Object.assign({ from:"card" }, p)); Object.keys(p).forEach(function(k){ if(!p[k]) u.delete(k); }); return "/?"+u.toString(); }
+var FUN_WORD={ "": "별세", "기독교":"소천", "천주교":"선종", "불교":"입적" };
+
+function renderFuneral(d){
+  var word=FUN_WORD[d.rel||""]||"별세";
+  var mourners=(d.m||[]).filter(function(x){ return x && x.n; });
+  var chief=(mourners[0]||{}).n||"";
+  var head = d.theme==="gukhwa"
+    ? '<div class="band"><div class="flower"></div><div class="h">부 고</div><div class="name">故 '+esc(d.name)+' 님</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>'
+    : '<div class="band"><div class="h">訃 告</div><div class="name">故 '+esc(d.name)+'</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>';
+  var msg = d.msg || "삼가 고인의 명복을 빕니다.\n생전에 베풀어 주신 은혜에 감사드리며\n삼가 알려드립니다.";
+  var wreath = d.noWreath ? "" :
+    '<div class="wreath"><div class="t">직접 못 가셔도, 마음은 빈소에</div>'
+    +'<p class="s">주문서가 이미 채워져 있어요. <b>보내는 분 이름만</b> 적으시면 됩니다.</p>'
+    +'<ul class="pre"><li>받는 곳 <b>'+esc([d.venue,d.room].filter(Boolean).join(" "))+'</b> · 故 '+esc(d.name)+' 님</li>'
+    +(d.out?'<li>도착 <b>발인('+esc(kDate(d.outDate))+' '+esc(kTime(d.out))+') 전</b>까지</li>':'')
+    +'<li>리본 문구는 관계에 맞게 골라 드려요</li></ul>'
+    +'<a class="btn" href="'+esc(orderUrl({ worder:"funeral", rn:"故 "+d.name, cm:chief, v:d.venue, vd:d.room, a:d.addr, et:d.out }))+'">이름만 적고 근조화환 보내기</a>'
+    +'<p class="promise">배송비 포함 · 도착하면 사진으로 알려드려요 · 1577-2286</p></div>';
+  return '<div class="card t-'+(d.theme==="gukhwa"?"gukhwa":"mono")+'">'+head+'<div class="pad">'
+    +'<p class="msg">'+esc(msg)+'</p>'
+    +(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')
+    +'<div class="sec"><dl class="kv">'
+    +'<dt>빈소</dt><dd>'+esc([d.venue,d.room].filter(Boolean).join(" "))+'</dd>'
+    +(d.out?'<dt>발인</dt><dd>'+esc(kDate(d.outDate)+" "+kTime(d.out))+'</dd>':'')
+    +(d.burial?'<dt>장지</dt><dd>'+esc(d.burial)+'</dd>':'')
+    +'</dl>'+mapsHtml(d.venue, d.addr)+'</div>'
+    +acctsHtml(d.acc)
+    +wreath
+    +shareHtml("부고 · 故 "+d.name)
+    +'</div><div class="foot">무료 부고장 · <a href="/card-make.html">꽃안부에서 만들기</a></div></div>';
+}
+
+function renderWedding(d){
+  var when=kDate(d.date)+" "+kTime(d.time);
+  var photo = d.photo ? ' style="background-image:url('+esc(d.photo)+')"' : '';
+  var head = d.theme==="flower"
+    ? '<div class="band"><div class="name">'+esc(d.g)+' <span style="color:#c98f88">&amp;</span> '+esc(d.b)+'</div><div class="sub">'+esc(when)+'</div></div><div class="photo"'+photo+'></div>'
+    : '<div class="band"'+photo+'><div><div class="name">'+esc(d.g)+' · '+esc(d.b)+'</div><div class="sub">'+esc(when)+'</div></div></div>';
+  var msg = d.msg || "서로를 아끼는 마음으로\n평생을 함께하려 합니다.\n귀한 걸음으로 축복해 주세요.";
+  var wreath = d.noWreath ? "" :
+    '<div class="wreath"><div class="t">못 가는 대신, 꽃으로 먼저</div>'
+    +'<ul class="pre"><li>받는 곳 <b>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</b></li>'
+    +(d.time?'<li>도착 <b>'+esc(when)+' 예식 전</b></li>':'')
+    +'<li>리본 祝 結婚 / 祝 華婚 — 측에 맞춰 자동</li></ul>'
+    +'<div class="two"><a class="btn" href="'+esc(orderUrl({ worder:"wedding", side:"groom", rn:"신랑 "+d.g, gn:d.g, bn:d.b, v:d.venue, vd:d.hall, a:d.addr, d:d.date, et:d.time }))+'">신랑 측으로</a>'
+    +'<a class="btn" href="'+esc(orderUrl({ worder:"wedding", side:"bride", rn:"신부 "+d.b, gn:d.g, bn:d.b, v:d.venue, vd:d.hall, a:d.addr, d:d.date, et:d.time }))+'">신부 측으로</a></div>'
+    +'<p class="promise">배송비 포함 · 도착하면 사진으로 알려드려요</p></div>';
+  var parents = (d.gp||d.bp) ? '<p class="parents">'+(d.gp?esc(d.gp)+' 의 아들 <b>'+esc(d.g)+'</b><br>':'')+(d.bp?esc(d.bp)+' 의 딸 <b>'+esc(d.b)+'</b>':'')+'</p>' : '';
+  return '<div class="card t-'+(d.theme==="flower"?"flower":"classic")+'">'+head+'<div class="pad">'
+    +'<p class="msg">'+esc(msg)+'</p>'+parents
+    +'<div class="sec"><dl class="kv"><dt>일시</dt><dd>'+esc(when)+'</dd><dt>장소</dt><dd>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</dd></dl>'
+    +mapsHtml(d.venue, d.addr)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
+    +acctsHtml(d.acc)
+    +wreath
+    +shareHtml(d.g+" ♥ "+d.b+" 결혼합니다")
+    +'</div><div class="foot">무료 모바일 청첩장 · <a href="/card-make.html">꽃안부에서 만들기</a></div></div>';
+}
+
+function shareHtml(title){
+  return '<div class="share"><button data-share="'+esc(title)+'">공유하기</button><button data-copy="'+esc(location.href)+'">링크 복사</button></div>';
+}
+
+(function(){
+  var d=decode(), app=document.getElementById("app");
+  if(!d || !(d.k==="f"||d.k==="w")){
+    app.innerHTML='<div class="empty"><b>내용을 찾을 수 없어요.</b><br>받으신 링크를 다시 눌러 주세요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
+    return;
+  }
+  app.innerHTML = d.k==="f" ? renderFuneral(d) : renderWedding(d);
+  document.title = d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
+  app.addEventListener("click", function(e){
+    var b=e.target.closest("[data-copy],[data-share]"); if(!b) return;
+    if(b.hasAttribute("data-copy")) return copy(b.getAttribute("data-copy"));
+    var t=b.getAttribute("data-share");
+    if(navigator.share) navigator.share({ title:t, url:location.href }).catch(function(){});
+    else copy(location.href);
+  });
+})();
+</script>
+</body>
+</html>

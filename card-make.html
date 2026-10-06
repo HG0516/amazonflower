@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>무료 부고장 · 청첩장 만들기 — 꽃안부</title>
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#1f4733" />
+<link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 무료 부고장·청첩장 만들기(초안, 2026-10-06). 서버 저장 없이 내용을 링크(#d=)에 담는다. card.html 이 그린다. -->
+<style>
+  :root { --ink:#1f1d18; --soft:#6b665c; --line:#e3ded2; --green:#1f4733; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f6f6f3; color: var(--ink); font-family: "Noto Sans KR", sans-serif; }
+  .wrap { max-width: 520px; margin: 0 auto; padding-bottom: 40px; }
+  .bar { background: var(--green); color: #fff; padding: 20px 18px 16px; }
+  .bar h1 { margin: 0; font-size: 19px; } .bar p { margin: 4px 0 0; font-size: 13px; opacity: .85; }
+  .tabs { display: flex; gap: 8px; padding: 14px 16px 0; }
+  .tabs button { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .tabs .on { background: var(--green); color: #fff; border-color: var(--green); }
+  form { padding: 4px 16px; }
+  fieldset { border: 0; padding: 0; margin: 0; }
+  label { display: block; font-size: 13px; color: var(--soft); margin: 14px 0 5px; }
+  input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 15px; background: #fff; }
+  textarea { min-height: 84px; resize: vertical; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .rowm { display: grid; grid-template-columns: 92px 1fr 36px; gap: 6px; margin-top: 6px; }
+  .rowa { display: grid; grid-template-columns: 80px 80px 1fr 36px; gap: 6px; margin-top: 6px; }
+  .x { border: 0; background: none; color: #b33; font-size: 18px; cursor: pointer; }
+  .add { width: 100%; margin-top: 8px; padding: 10px; border: 1px dashed var(--green); color: var(--green); background: transparent; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .themes button { height: 60px; border-radius: 10px; border: 2px solid transparent; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .themes .on { border-color: var(--green); }
+  .chk { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; }
+  .chk input { width: 20px; height: 20px; }
+  .go { width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 12px; background: var(--green); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .out { margin: 16px; padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 12px; display: none; }
+  .out.on { display: block; }
+  .out .btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+  .out .btns a, .out .btns button { padding: 11px 6px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 13.5px; text-align: center; color: var(--ink); text-decoration: none; cursor: pointer; }
+  .out .btns .p { background: var(--green); color: #fff; border-color: var(--green); }
+  .note { font-size: 12.5px; color: var(--soft); line-height: 1.7; margin: 8px 0 0; }
+  .hide { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar"><h1>무료로 만들기</h1><p>회원가입 없이 · 3분 · 링크로 바로 보내기</p></div>
+  <div class="tabs"><button type="button" id="tF" class="on" onclick="mode('f')">부고장</button><button type="button" id="tW" onclick="mode('w')">청첩장</button></div>
+
+  <form onsubmit="make();return false;">
+    <fieldset id="fF">
+      <label>고인 성함</label><input id="f_name" placeholder="김영수" required>
+      <div class="two">
+        <div><label>향년 (선택)</label><input id="f_age" inputmode="numeric" placeholder="82"></div>
+        <div><label>별세일</label><input id="f_died" type="date"></div>
+      </div>
+      <label>종교 (문구가 바뀌어요)</label>
+      <select id="f_rel"><option value="">일반 — 별세</option><option>기독교</option><option>천주교</option><option>불교</option></select>
+      <label>상주 · 유족 (첫 줄이 대표 상주)</label>
+      <div id="mList"></div>
+      <button type="button" class="add" onclick="addM()">＋ 유족 추가 (배우자·사위·손 …)</button>
+      <label>장례식장</label><input id="f_venue" placeholder="시흥장례식장">
+      <div class="two">
+        <div><label>빈소 호수</label><input id="f_room" placeholder="3호실"></div>
+        <div><label>장지 (선택)</label><input id="f_burial" placeholder="시흥 추모공원"></div>
+      </div>
+      <label>장례식장 주소 (길찾기·화환 배송)</label><input id="f_addr" placeholder="경기 시흥시 ○○로 123">
+      <div class="two">
+        <div><label>발인 날짜</label><input id="f_outDate" type="date"></div>
+        <div><label>발인 시간</label><input id="f_out" type="time"></div>
+      </div>
+      <label>테마</label>
+      <div class="themes"><button type="button" class="on" data-t="mono" style="background:#2b2b2b;color:#fff">흑백</button><button type="button" data-t="gukhwa" style="background:#f4f1ea">국화</button></div>
+    </fieldset>
+
+    <fieldset id="fW" class="hide">
+      <div class="two">
+        <div><label>신랑</label><input id="w_g" placeholder="김민준"></div>
+        <div><label>신부</label><input id="w_b" placeholder="박서연"></div>
+      </div>
+      <div class="two">
+        <div><label>신랑 혼주 (선택)</label><input id="w_gp" placeholder="김철수 · 이영희"></div>
+        <div><label>신부 혼주 (선택)</label><input id="w_bp" placeholder="박정호 · 최미경"></div>
+      </div>
+      <div class="two">
+        <div><label>예식 날짜</label><input id="w_date" type="date"></div>
+        <div><label>예식 시간</label><input id="w_time" type="time"></div>
+      </div>
+      <label>예식장</label><input id="w_venue" placeholder="더채플 앳 청담">
+      <label>홀 (선택)</label><input id="w_hall" placeholder="3층 그랜드홀">
+      <label>예식장 주소</label><input id="w_addr" placeholder="서울 강남구 ○○로 00">
+      <label>주차·교통 안내 (선택)</label><input id="w_park" placeholder="주차 2시간 무료 · 청담역 9번 출구">
+      <label>대표 사진 주소 (선택 — 정식판에서 올리기)</label><input id="w_photo" placeholder="https://…jpg">
+      <label>테마</label>
+      <div class="themes"><button type="button" class="on" data-t="classic" style="background:#d9c8b4;color:#fff">클래식</button><button type="button" data-t="flower" style="background:#f2dcd7">플라워</button></div>
+    </fieldset>
+
+    <label>인사말 (비우면 기본 문구)</label><textarea id="msg" placeholder="비워 두시면 알맞은 기본 문구가 들어가요"></textarea>
+    <label>마음 전하실 계좌 (선택)</label>
+    <div id="aList"></div>
+    <button type="button" class="add" onclick="addA()">＋ 계좌 추가</button>
+    <label class="chk"><input type="checkbox" id="noWreath"> 화환 보내기 칸 숨기기 (화환 정중히 사양)</label>
+    <button class="go">링크 만들기</button>
+  </form>
+
+  <div class="out" id="out">
+    <b>링크가 만들어졌어요</b>
+    <p class="note">카톡·문자로 보내세요. 내용을 고치려면 이 화면에서 고친 뒤 새 링크를 보내면 됩니다(초안 — 정식판에선 보낸 링크가 바로 바뀌어요).</p>
+    <div class="btns"><a id="oOpen" class="p" target="_blank">미리 보기</a><button type="button" onclick="share()">공유하기</button><button type="button" onclick="copyLink()">링크 복사</button></div>
+  </div>
+</div>
+<script>
+var K="f", TF="mono", TW="classic", LINK="";
+var REL=["장남","장녀","차남","차녀","삼남","삼녀","배우자","자부","사위","손","손녀","형제","자매"];
+function mode(k){ K=k; document.getElementById("tF").classList.toggle("on",k==="f"); document.getElementById("tW").classList.toggle("on",k==="w");
+  document.getElementById("fF").classList.toggle("hide",k!=="f"); document.getElementById("fW").classList.toggle("hide",k!=="w"); document.getElementById("out").classList.remove("on"); }
+document.querySelectorAll(".themes").forEach(function(box){ box.addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
+  box.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); if(box.closest("#fF")) TF=b.getAttribute("data-t"); else TW=b.getAttribute("data-t"); }); });
+function addM(r,n){ var d=document.createElement("div"); d.className="rowm";
+  d.innerHTML='<select>'+REL.map(function(x){ return '<option'+(x===r?' selected':'')+'>'+x+'</option>'; }).join("")+'</select><input placeholder="이름" value="'+(n||"")+'"><button type="button" class="x" onclick="this.parentNode.remove()">✕</button>';
+  document.getElementById("mList").appendChild(d); }
+function addA(){ var d=document.createElement("div"); d.className="rowa";
+  d.innerHTML='<input placeholder="누구"><input placeholder="은행"><input placeholder="계좌번호" inputmode="numeric"><button type="button" class="x" onclick="this.parentNode.remove()">✕</button>';
+  document.getElementById("aList").appendChild(d); }
+addM("장남"); addM("장녀"); addA();
+function v(id){ return String((document.getElementById(id)||{}).value||"").trim(); }
+function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function make(){
+  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"); return { who:i[0].value.trim(), bank:i[1].value.trim(), no:i[2].value.trim() }; }).filter(function(a){ return a.no; });
+  var d;
+  if(K==="f"){
+    if(!v("f_name")||!v("f_venue")){ alert("고인 성함과 장례식장을 적어 주세요."); return; }
+    d={ k:"f", theme:TF, name:v("f_name"), age:v("f_age"), died:v("f_died"), rel:v("f_rel"),
+        m:[].map.call(document.querySelectorAll("#mList .rowm"), function(r){ return { r:r.querySelector("select").value, n:r.querySelector("input").value.trim() }; }).filter(function(x){ return x.n; }),
+        venue:v("f_venue"), room:v("f_room"), addr:v("f_addr"), burial:v("f_burial"), outDate:v("f_outDate"), out:v("f_out") };
+  }else{
+    if(!v("w_g")||!v("w_b")||!v("w_venue")||!v("w_date")){ alert("신랑·신부, 예식장, 날짜를 적어 주세요."); return; }
+    d={ k:"w", theme:TW, g:v("w_g"), b:v("w_b"), gp:v("w_gp"), bp:v("w_bp"), date:v("w_date"), time:v("w_time"),
+        venue:v("w_venue"), hall:v("w_hall"), addr:v("w_addr"), park:v("w_park"), photo:/^https:\/\//.test(v("w_photo"))?v("w_photo"):"" };
+  }
+  if(v("msg")) d.msg=v("msg");
+  if(acc.length) d.acc=acc;
+  if(document.getElementById("noWreath").checked) d.noWreath=1;
+  LINK=location.origin+"/card.html#d="+enc(d);
+  document.getElementById("oOpen").href=LINK;
+  var o=document.getElementById("out"); o.classList.add("on"); o.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function copyLink(){ try{ navigator.clipboard.writeText(LINK).then(function(){ alert("링크를 복사했어요. 카톡·문자에 붙여 넣으세요."); }); }catch(_){ prompt("길게 눌러 복사하세요", LINK); } }
+function share(){ if(navigator.share) navigator.share({ title: K==="f"?"부고":"청첩장", url: LINK }).catch(function(){}); else copyLink(); }
+</script>
+</body>
+</html>
