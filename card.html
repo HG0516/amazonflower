@@ -12,9 +12,11 @@
 <link rel="icon" href="/favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
 <!--
-  무료 부고장·청첩장 — 받는 사람 화면(초안, 2026-10-06).
-  card-make.html 이 만든 내용을 주소 # 뒤(d=)로 받아 그린다. 서버 저장이 없는 초안이라
-  조문 글·자동 삭제·수정 반영은 아직 없다(정식판은 DB 필요). '화환 보내기'는 주문서(/?worder=…)를 미리 채워 연다.
+  무료 부고장·청첩장 — 받는 사람 화면(2026-10-06 정식판).
+  - 짧은 링크 /c/<id> → (api/order-meta 가 카톡 미리보기를 내주고) card.html?c=<id> → 서버에서 내용·조문 글을 받아 그린다.
+  - 예전 긴 링크(#d=, 정식판 표가 없을 때 만들기 화면이 쓰는 방식)도 그대로 열린다 — 이땐 조문 글·자동 닫힘 없음.
+  - #p=1 은 만들기 화면의 미리 보기(링크·글쓰기 막음), &s=1 이면 정식판 모양(조문 글 칸·닫히는 날)까지 보여준다.
+  - '화환 보내기'는 주문서(/?worder=…)를 미리 채워 연다. 떠 있는 버튼은 화환 칸이 화면에 보이면 숨는다.
 -->
 <style>
   * { box-sizing: border-box; }
@@ -80,6 +82,25 @@
   .t-flower .photo { height: 260px; margin: 6px 20px 0; border-radius: 130px 130px 16px 16px; background: linear-gradient(180deg, #f1dcd7, #e4c3bc); background-size: cover; background-position: center; }
   .t-flower .acct { background: #fff; } .t-flower .acct button { background: #c98f88; color: #fff; }
   .t-flower .wreath { background: #fff; border: 1px solid #f0d9d5; } .t-flower .wreath .btn { background: #c98f88; color: #fff; }
+  /* 떠 있는 화환 버튼(화환 칸이 보이면 숨김) */
+  .fab { position: fixed; left: 50%; bottom: 14px; transform: translate(-50%, 140%); width: calc(100% - 24px); max-width: 436px; z-index: 40; border-radius: 16px; padding: 12px 14px; color: #fff; text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 10px 26px rgba(0,0,0,.28); transition: transform .25s, opacity .25s, visibility .25s; font-family: "Noto Sans KR", sans-serif; opacity: 0; visibility: hidden; pointer-events: none; }
+  .fab.on { transform: translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto; }
+  .fab b { display: block; font-size: 15px; } .fab small { display: block; font-size: 12px; opacity: .85; margin-top: 2px; }
+  .fab span.go { flex: 0 0 auto; background: rgba(255,255,255,.18); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; font-weight: 700; }
+  .t-mono .fab, .t-gukhwa .fab { background: #2b2b2b; } .t-classic .fab { background: #8c6a50; } .t-flower .fab { background: #c98f88; }
+  .due { font-weight: 700; }
+  /* 조문 글·방명록 */
+  .cm { margin-top: 24px; font-family: "Noto Sans KR", sans-serif; }
+  .cm .h { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 700; }
+  .cm .h span { font-weight: 400; font-size: 12.5px; opacity: .6; }
+  .cm form { margin-top: 10px; display: grid; gap: 8px; }
+  .cm input, .cm textarea { width: 100%; padding: 11px 12px; border: 1px solid rgba(0,0,0,.14); border-radius: 10px; font: inherit; font-size: 15px; background: rgba(255,255,255,.85); }
+  .cm textarea { min-height: 70px; resize: vertical; }
+  .cm button[type=submit] { padding: 12px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; background: rgba(0,0,0,.78); color: #fff; }
+  .cm .it { padding: 11px 0; border-bottom: 1px solid rgba(0,0,0,.08); font-size: 14px; line-height: 1.65; white-space: pre-line; }
+  .cm .it b { font-size: 13.5px; } .cm .it small { opacity: .5; font-size: 11.5px; margin-left: 6px; }
+  .cm .more { margin-top: 8px; width: 100%; padding: 10px; border: 1px solid rgba(0,0,0,.12); border-radius: 10px; background: transparent; font: inherit; font-size: 13.5px; cursor: pointer; }
+  .exp { margin-top: 18px; text-align: center; font-size: 12px; opacity: .55; font-family: "Noto Sans KR", sans-serif; }
   .msg { text-align: center; font-size: 15px; line-height: 2; margin: 4px 0 18px; white-space: pre-line; }
   .parents { text-align: center; font-size: 15px; line-height: 1.9; margin: 0 0 16px; }
   .sec { border-top: 1px solid rgba(0,0,0,.08); padding-top: 16px; margin-top: 18px; }
@@ -114,6 +135,40 @@ function acctsHtml(list){
 }
 function orderUrl(p){ var u=new URLSearchParams(Object.assign({ from:"card" }, p)); Object.keys(p).forEach(function(k){ if(!p[k]) u.delete(k); }); return "/?"+u.toString(); }
 var FUN_WORD={ "": "별세", "기독교":"소천", "천주교":"선종", "불교":"입적" };
+var STATE={ server:false, id:"", comments:[], expiresAt:"", kakaoKey:"" };
+// 주문 마감 — 사이트 당일 배송 기준(평일 18시 · 주말 16시까지 주문 시 당일). 발인·예식 시각에 비춰 말을 고른다.
+function cutoffHour(d){ var w=d.getDay(); return (w===0||w===6)?16:18; }
+function at(dateIso, hm){ var m=String(dateIso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return null; var t=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); return new Date(+m[1],+m[2]-1,+m[3], t?+t[1]:23, t?+t[2]:59); }
+// 발인·예식까지 3시간이 안 남았거나, 오늘 마감이 지나 내일 낮 12시 전 발인이면 '전화로' 안내한다(주문서도 같은 건 '확정 필요'로 표시).
+function deadline(d){
+  var now=new Date(), cut=cutoffHour(now), before=now.getHours()<cut;
+  var cutTxt="오후 "+(cut-12)+"시";
+  var when = d.k==="f" ? at(d.outDate, d.out) : at(d.date, d.time);
+  var left = when ? (when.getTime()-now.getTime())/3600000 : Infinity;
+  if(left<0) return { over:true, text:"", short:"" };
+  if(left<3) return { tight:true, text:(d.k==="f"?"발인":"예식")+"까지 시간이 빠듯해요 — 전화 주시면 바로 확인해 드려요", short:"시간이 빠듯해요 · 전화 1577-2286" };
+  if(d.k==="f"){
+    if(before) return { text:"오늘 "+cutTxt+"까지 주문하시면 오늘 빈소로 보내드려요", short:"오늘 "+cutTxt+"까지 주문 시 오늘 배송" };
+    var noonTomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,12,0);
+    if(when && when.getTime()<=noonTomorrow.getTime()) return { tight:true, text:"발인이 내일 아침이라 빠듯해요 — 전화 주시면 바로 확인해 드려요", short:"발인이 내일 아침 · 전화 1577-2286" };
+    return { text:"지금 주문하시면 내일 빈소로 보내드려요", short:"지금 주문 시 내일 빈소로" };
+  }
+  var sameDay = when && when.toDateString()===now.toDateString();
+  if(sameDay && !before) return { tight:true, text:"오늘 예식은 시간이 빠듯해요 — 전화 주시면 바로 확인해 드려요", short:"오늘 예식 · 전화 1577-2286" };
+  return { text:"예식 전에 예식장으로 보내드려요", short:"예식 전에 예식장으로" };
+}
+function dueHtml(dl){ return '<span class="due">⏰ '+esc(dl.text)+(dl.tight?' · <a href="tel:15772286" style="color:inherit">1577-2286</a>':'')+'</span>'; }
+function relTime(iso){ var t=Date.parse(iso||""); if(!isFinite(t)) return ""; var s=(Date.now()-t)/1000; if(s<60) return "방금"; if(s<3600) return Math.floor(s/60)+"분 전"; if(s<86400) return Math.floor(s/3600)+"시간 전"; return Math.floor(s/86400)+"일 전"; }
+var PV=false, PVS=false;   // 미리 보기(#p=1) · 정식판 모양(&s=1) — 만들기 화면이 # 를 바꿀 때마다 draw() 가 다시 읽는다
+function commentsHtml(d){
+  if(!(STATE.server || PVS) || d.noComment) return "";
+  var fun=d.k==="f", list=STATE.comments||[], dis=PV?" disabled":"";
+  return '<div class="cm" id="cm"><div class="h">'+(fun?"조문 글":"축하 방명록")+' <span>'+(PV?"받는 분들이 여기에 남겨요":list.length+"개")+'</span></div>'
+    +'<form id="cmForm"><input id="cmName" maxlength="20" placeholder="이름" autocomplete="name"'+dis+'><textarea id="cmBody" maxlength="300" placeholder="'+(fun?"위로의 말을 남겨 주세요":"축하 한마디 남겨 주세요")+'"'+dis+'></textarea><button type="submit"'+dis+'>남기기</button></form>'
+    +'<div id="cmList">'+list.slice(0,20).map(cmItem).join("")+'</div>'
+    +(list.length>20?'<button type="button" class="more" id="cmMore">글 더 보기 ('+(list.length-20)+')</button>':'')+'</div>';
+}
+function cmItem(c){ return '<div class="it"><b>'+esc(c.name)+'</b><small>'+esc(relTime(c.created_at))+'</small><br>'+esc(c.body)+'</div>'; }
 
 function renderFuneral(d){
   var word=FUN_WORD[d.rel||""]||"별세";
@@ -123,14 +178,16 @@ function renderFuneral(d){
     ? '<div class="band"><div class="flower"></div><div class="h">부 고</div><div class="name">故 '+esc(d.name)+' 님</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>'
     : '<div class="band"><div class="h">訃 告</div><div class="name">故 '+esc(d.name)+'</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>';
   var msg = d.msg || "삼가 고인의 명복을 빕니다.\n생전에 베풀어 주신 은혜에 감사드리며\n삼가 알려드립니다.";
+  var dl=deadline(d);
   var wreath = d.noWreath ? '<p class="promise" style="margin-top:20px;font-size:13.5px;opacity:.85;font-family:\'Noto Sans KR\',sans-serif;">유족의 뜻에 따라 화환은 정중히 사양합니다.</p>' :
-    '<div class="wreath"><div class="t">직접 못 가셔도, 마음은 빈소에</div>'
+    dl.over ? '' :
+    '<div class="wreath" id="wreathBox"><div class="t">직접 못 가셔도, 마음은 빈소에</div>'
     +'<p class="s">주문서가 이미 채워져 있어요. <b>보내는 분 이름만</b> 적으시면 됩니다.</p>'
     +'<ul class="pre"><li>받는 곳 <b>'+esc([d.venue,d.room].filter(Boolean).join(" "))+'</b> · 故 '+esc(d.name)+' 님</li>'
     +(d.out?'<li>도착 <b>발인('+esc(kDate(d.outDate))+' '+esc(kTime(d.out))+') 전</b>까지</li>':'')
     +'<li>리본 문구는 관계에 맞게 골라 드려요</li></ul>'
     +'<a class="btn" href="'+esc(orderUrl({ worder:"funeral", rn:"故 "+d.name, cm:chief, v:d.venue, vd:d.room, a:d.addr, et:d.out }))+'">이름만 적고 근조화환 보내기</a>'
-    +'<p class="promise">배송비 포함 · 도착하면 사진으로 알려드려요 · 1577-2286</p></div>';
+    +'<p class="promise">'+dueHtml(dl)+'<br>배송비 포함 · 도착하면 사진으로 알려드려요</p></div>';
   return '<div class="card t-'+(d.theme==="gukhwa"?"gukhwa":"mono")+'">'+head+'<div class="pad">'
     +'<p class="msg">'+esc(msg)+'</p>'
     +(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')
@@ -141,8 +198,11 @@ function renderFuneral(d){
     +'</dl>'+mapsHtml(d.venue, d.addr)+'</div>'
     +acctsHtml(d.acc)
     +wreath
+    +commentsHtml(d)
     +shareHtml("부고 · 故 "+d.name)
-    +'</div><div class="foot">무료 부고장 · <a href="/card-make.html">꽃안부에서 만들기</a></div></div>';
+    +expHtml()
+    +'</div><div class="foot">무료 부고장 · <a href="/card-make.html">꽃안부에서 만들기</a></div>'
+    +fabHtml(d, dl, orderUrl({ worder:"funeral", rn:"故 "+d.name, cm:chief, v:d.venue, vd:d.room, a:d.addr, et:d.out }), "근조화환 보내기")+'</div>';
 }
 
 function renderWedding(d){
@@ -152,14 +212,15 @@ function renderWedding(d){
     ? '<div class="band"><div class="name">'+esc(d.g)+' <span style="color:#c98f88">&amp;</span> '+esc(d.b)+'</div><div class="sub">'+esc(when)+'</div></div><div class="photo"'+photo+'></div>'
     : '<div class="band"'+photo+'><div><div class="name">'+esc(d.g)+' · '+esc(d.b)+'</div><div class="sub">'+esc(when)+'</div></div></div>';
   var msg = d.msg || "서로를 아끼는 마음으로\n평생을 함께하려 합니다.\n귀한 걸음으로 축복해 주세요.";
-  var wreath = d.noWreath ? "" :
-    '<div class="wreath"><div class="t">못 가는 대신, 꽃으로 먼저</div>'
+  var dl=deadline(d);
+  var wreath = (d.noWreath || dl.over) ? "" :
+    '<div class="wreath" id="wreathBox"><div class="t">못 가는 대신, 꽃으로 먼저</div>'
     +'<ul class="pre"><li>받는 곳 <b>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</b></li>'
     +(d.time?'<li>도착 <b>'+esc(when)+' 예식 전</b></li>':'')
     +'<li>리본 祝 結婚 / 祝 華婚 — 측에 맞춰 자동</li></ul>'
     +'<div class="two"><a class="btn" href="'+esc(orderUrl({ worder:"wedding", side:"groom", rn:"신랑 "+d.g, gn:d.g, bn:d.b, v:d.venue, vd:d.hall, a:d.addr, d:d.date, et:d.time }))+'">신랑 측으로</a>'
     +'<a class="btn" href="'+esc(orderUrl({ worder:"wedding", side:"bride", rn:"신부 "+d.b, gn:d.g, bn:d.b, v:d.venue, vd:d.hall, a:d.addr, d:d.date, et:d.time }))+'">신부 측으로</a></div>'
-    +'<p class="promise">배송비 포함 · 도착하면 사진으로 알려드려요</p></div>';
+    +'<p class="promise">'+dueHtml(dl)+'<br>배송비 포함 · 도착하면 사진으로 알려드려요</p></div>';
   var parents = (d.gp||d.bp) ? '<p class="parents">'+(d.gp?esc(d.gp)+' 의 아들 <b>'+esc(d.g)+'</b><br>':'')+(d.bp?esc(d.bp)+' 의 딸 <b>'+esc(d.b)+'</b>':'')+'</p>' : '';
   return '<div class="card t-'+(d.theme==="flower"?"flower":"classic")+'">'+head+'<div class="pad">'
     +'<p class="msg">'+esc(msg)+'</p>'+parents
@@ -167,36 +228,140 @@ function renderWedding(d){
     +mapsHtml(d.venue, d.addr)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
     +acctsHtml(d.acc)
     +wreath
+    +commentsHtml(d)
     +shareHtml(d.g+" ♥ "+d.b+" 결혼합니다")
-    +'</div><div class="foot">무료 모바일 청첩장 · <a href="/card-make.html">꽃안부에서 만들기</a></div></div>';
+    +expHtml()
+    +'</div><div class="foot">무료 모바일 청첩장 · <a href="/card-make.html">꽃안부에서 만들기</a></div>'
+    +fabHtml(d, dl, "#wreathBox", "축하 화환 보내기")+'</div>';
 }
 
+// lib/cards.mjs cardExpiry 와 같은 셈(부고 발인+7일, 청첩장 예식+30일) — 미리 보기용
+function guessExpiry(d){ var b=d.k==="f"?(d.outDate||d.died):d.date; var m=String(b||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return ""; return new Date(+m[1],+m[2]-1,+m[3]+(d.k==="f"?7:30),23,59).toISOString(); }
+var CUR=null;
+function expHtml(){
+  var iso = STATE.server ? STATE.expiresAt : (PVS && CUR ? guessExpiry(CUR) : "");
+  if(!iso) return "";
+  var t=new Date(iso); if(!isFinite(t)) return "";
+  return '<p class="exp">이 안내는 '+(t.getMonth()+1)+'월 '+t.getDate()+'일에 자동으로 닫혀요 · 계좌·글도 함께 지워져요</p>';
+}
+function fabHtml(d, dl, href, label){
+  if(d.noWreath || dl.over) return "";
+  return '<a class="fab" id="fab" href="'+esc(href)+'"><span><b>'+esc(label)+'</b><small>'+esc(dl.short||dl.text)+'</small></span><span class="go">보내기</span></a>';
+}
+var FABSTATE={ scrolled:false, boxSeen:false, typing:false, bound:false };
+function setupFab(){
+  var fab=document.getElementById("fab"), box=document.getElementById("wreathBox");
+  if(!fab || PV) { if(fab) fab.remove(); return; }
+  function upd(){ var f=document.getElementById("fab"); if(f) f.classList.toggle("on", FABSTATE.scrolled && !FABSTATE.boxSeen && !FABSTATE.typing); }
+  if(!FABSTATE.bound){
+    FABSTATE.bound=true;
+    window.addEventListener("scroll", function(){ FABSTATE.scrolled = window.scrollY > 260; upd(); }, { passive:true });
+    // 조문 글을 쓰는 동안엔 키보드 위로 버튼이 떠서 가리지 않게
+    document.addEventListener("focusin", function(e){ if(e.target.closest && e.target.closest(".cm")){ FABSTATE.typing=true; upd(); } });
+    document.addEventListener("focusout", function(){ FABSTATE.typing=false; setTimeout(upd,200); });
+  }
+  if(box && "IntersectionObserver" in window) new IntersectionObserver(function(es){ FABSTATE.boxSeen = es[0].isIntersecting; upd(); }, { threshold:0.15 }).observe(box);
+  if(fab.getAttribute("href")==="#wreathBox") fab.addEventListener("click", function(e){ e.preventDefault(); if(box) box.scrollIntoView({behavior:"smooth",block:"center"}); });
+}
+function setupComments(){
+  var f=document.getElementById("cmForm"); if(!f || PV) return;
+  try{ var nm=localStorage.getItem("af_card_name"); if(nm) document.getElementById("cmName").value=nm; }catch(_){}
+  var more=document.getElementById("cmMore");
+  if(more) more.onclick=function(){ document.getElementById("cmList").innerHTML=STATE.comments.map(cmItem).join(""); more.remove(); };
+  f.onsubmit=function(e){
+    e.preventDefault();
+    var name=document.getElementById("cmName").value.trim(), body=document.getElementById("cmBody").value.trim();
+    if(!name||!body){ toast("이름과 글을 적어 주세요"); return; }
+    var btn=f.querySelector("button"); btn.disabled=true; btn.textContent="남기는 중…";
+    fetch("/api/order-meta",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ type:"card", action:"comment", id:STATE.id, name:name, body:body }) })
+      .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
+      .then(function(x){
+        if(!x.ok) throw new Error(x.j && x.j.error || "남기지 못했어요");
+        try{ localStorage.setItem("af_card_name", name); }catch(_){}
+        var c=x.j.comment||{ name:name, body:body, created_at:new Date().toISOString() };
+        STATE.comments.unshift(c);
+        document.getElementById("cmList").insertAdjacentHTML("afterbegin", cmItem(c));
+        document.getElementById("cmBody").value="";
+        var h=document.querySelector("#cm .h span"); if(h) h.textContent=STATE.comments.length+"개";
+        toast("남겼어요");
+      })
+      .catch(function(err){ toast(err.message); })
+      .then(function(){ btn.disabled=false; btn.textContent="남기기"; });
+  };
+}
+function shareUrl(){ return STATE.server ? location.origin+"/c/"+STATE.id : location.href; }
 function shareHtml(title){
-  return '<div class="share"><button data-share="'+esc(title)+'">공유하기</button><button data-copy="'+esc(location.href)+'">링크 복사</button></div>';
+  return '<div class="share"><button data-share="'+esc(title)+'">'+(STATE.kakaoKey?"카톡으로 전하기":"공유하기")+'</button><button data-copy="'+esc(shareUrl())+'">링크 복사</button></div>';
+}
+// 카카오 공유 — 버튼 두 개(보기·길찾기). 키(Vercel env KAKAO_JS_KEY)와 카카오 앱에 사이트 도메인이 등록돼 있어야 한다.
+var KAKAO_SDK="https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js", KAKAO_SRI="sha384-oroumrnFVE0xtgqyDZJARgERibXg2C28380uaUZz2kHDS5CR7tu20eGiOU6GkTpy";
+function kakaoReady(key){
+  return new Promise(function(ok, no){
+    function init(){ try{ if(!window.Kakao.isInitialized()) window.Kakao.init(key); ok(window.Kakao); }catch(e){ no(e); } }
+    if(window.Kakao) return init();
+    var s=document.createElement("script"); s.src=KAKAO_SDK; s.integrity=KAKAO_SRI; s.crossOrigin="anonymous";
+    s.onload=init; s.onerror=no; document.head.appendChild(s);
+  });
+}
+function kakaoShare(d){
+  var url=shareUrl(), fun=d.k==="f";
+  var title = fun ? "[부고] 故 "+d.name+" 님 "+(FUN_WORD[d.rel||""]||"별세") : d.g+" ♥ "+d.b+" 결혼합니다";
+  var desc = fun ? [[d.venue,d.room].filter(Boolean).join(" "), d.out?"발인 "+kDate(d.outDate)+" "+kTime(d.out):""].filter(Boolean).join(" · ")
+                 : [kDate(d.date)+" "+kTime(d.time), [d.venue,d.hall].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+  var img=location.origin+"/og/card-"+(fun?(d.theme==="gukhwa"?"f-gukhwa":"f-mono"):(d.theme==="flower"?"w-flower":"w-classic"))+".png";
+  return kakaoReady(STATE.kakaoKey).then(function(K){
+    K.Share.sendDefault({ objectType:"feed",
+      content:{ title:title, description:desc, imageUrl:img, imageWidth:1200, imageHeight:630, link:{ mobileWebUrl:url, webUrl:url } },
+      buttons:[ { title: fun?"부고 보기":"청첩장 보기", link:{ mobileWebUrl:url, webUrl:url } },
+                { title:"길찾기", link:{ mobileWebUrl:url+"?go=map", webUrl:url+"?go=map" } } ] });
+  });
 }
 
-function render(){
-  var d=decode(), app=document.getElementById("app");
-  var preview=/[#&]p=1(&|$)/.test(location.hash);
+function draw(d){
+  var app=document.getElementById("app");
+  PV=/[#&]p=1(&|$)/.test(location.hash); PVS=PV && /[#&]s=1(&|$)/.test(location.hash);
+  var preview=PV;
   if(!d || !(d.k==="f"||d.k==="w")){
     app.innerHTML='<div class="empty"><b>내용을 찾을 수 없어요.</b><br>받으신 링크를 다시 눌러 주세요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
     return;
   }
+  CUR=d;
   app.innerHTML = d.k==="f" ? renderFuneral(d) : renderWedding(d);
   if(preview){ var sh=app.querySelector(".share"); if(sh) sh.style.display="none"; }
   document.title = d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
+  setupFab(); setupComments();
+}
+function closedPage(kind){
+  document.getElementById("app").innerHTML='<div class="empty"><b>기간이 지나 닫힌 '+(kind==="w"?"청첩장":"부고")+'예요.</b><br>계좌와 글은 지워졌어요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
+}
+function render(){
+  var c=(new URLSearchParams(location.search)).get("c");
+  if(c && /^[A-Za-z0-9]{6,12}$/.test(c)){
+    STATE.server=true; STATE.id=c;
+    fetch("/api/order-meta?card="+encodeURIComponent(c)+"&json=1",{ cache:"no-store" })
+      .then(function(r){ return r.json().then(function(j){ return { s:r.status, j:j }; }); })
+      .then(function(x){
+        if(x.s===410){ closedPage(x.j && x.j.kind); return; }
+        if(!x.j || !x.j.data) throw new Error("load");
+        STATE.comments=x.j.comments||[]; STATE.expiresAt=x.j.expiresAt||""; STATE.kakaoKey=x.j.kakaoKey||"";
+        draw(x.j.data);
+      })
+      .catch(function(){ document.getElementById("app").innerHTML='<div class="empty"><b>잠시 불러오지 못했어요.</b><br>잠시 뒤 다시 열어 주세요.<br><br>문의 1577-2286</div>'; });
+    return;
+  }
+  draw(decode());
 }
 render();
-window.addEventListener("hashchange", render);
+window.addEventListener("hashchange", function(){ if(!STATE.server) render(); });
 (function(){
   var app=document.getElementById("app");
   app.addEventListener("click", function(e){
-    if(/[#&]p=1(&|$)/.test(location.hash) && e.target.closest("a")){ e.preventDefault(); return; }   // 미리 보기에선 링크가 열리지 않게
+    if(PV && e.target.closest("a")){ e.preventDefault(); return; }   // 미리 보기에선 링크가 열리지 않게
     var b=e.target.closest("[data-copy],[data-share]"); if(!b) return;
     if(b.hasAttribute("data-copy")) return copy(b.getAttribute("data-copy"));
     var t=b.getAttribute("data-share");
-    if(navigator.share) navigator.share({ title:t, url:location.href }).catch(function(){});
-    else copy(location.href);
+    function plain(){ if(navigator.share) navigator.share({ title:t, url:shareUrl() }).catch(function(){}); else copy(shareUrl()); }
+    if(STATE.kakaoKey && CUR) kakaoShare(CUR).catch(plain); else plain();
   });
 })();
 </script>

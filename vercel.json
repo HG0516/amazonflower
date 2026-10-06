@@ -195,6 +195,10 @@
     {
       "source": "/s/:pc",
       "destination": "/s/:pc.html"
+    },
+    {
+      "source": "/c/:id",
+      "destination": "/api/order-meta?card=:id"
     }
   ]
 }

@@ -21,6 +21,7 @@ import {
 } from "../lib/payment-integrity.mjs";
 import { beginOrderCancellation } from "../lib/order-coordination.mjs";
 import { reconcileDepositOrders } from "../lib/deposit-orders.mjs";
+import { cleanupExpiredCards } from "../lib/cards.mjs";
 import { compatFetch } from "../lib/schema-compat.mjs";
 
 // 운영 DB에 아직 없는 orders 칸 때문에 조회가 깨지지 않게(lib/schema-compat.mjs).
@@ -825,6 +826,11 @@ export default async function handler(req, res) {
     deposits = { error: "deposit_reconcile_failed" };
   }
 
+  // 무료 부고장·청첩장: 기간 지난 카드의 내용·조문 글 지우기(개인정보). 실패해도 마감 경고는 계속.
+  let cards = null;
+  try { cards = await cleanupExpiredCards(); }
+  catch (e) { console.error("card cleanup:", e && e.message); cards = { error: "card_cleanup_failed" }; }
+
   const now = new Date();
   const until = new Date(now.getTime() + ALERT_WINDOW_HOURS * 3600000);
   const floor = new Date(now.getTime() - GRACE_PAST_HOURS * 3600000);
@@ -940,5 +946,5 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ ok: true, checked: rows.length, alerted, deposits });
+  return res.status(200).json({ ok: true, checked: rows.length, alerted, deposits, cards });
 }

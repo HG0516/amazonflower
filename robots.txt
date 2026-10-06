@@ -11,4 +11,16 @@ Disallow: /quote.html
 Disallow: /card.html
 Disallow: /card-make.html
 
+# 카카오톡 링크 미리보기(스크랩 봇)는 검색 노출이 아니라 받는 사람 화면의 제목·사진을 읽어 가는 것 —
+# 부고장·청첩장·견적서 링크를 카톡에 붙였을 때 미리보기가 뜨도록 허용한다(검색엔진은 위 규칙대로 막힘).
+User-agent: kakaotalk-scrap
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /admin-order
+Disallow: /admin-order.html
+Disallow: /api/
+Disallow: /order-lookup.html
+Disallow: /delivery-photo.html
+Allow: /
+
 Sitemap: https://floweranbu.co.kr/sitemap.xml
