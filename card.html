@@ -332,7 +332,7 @@ function draw(d){
   setupFab(); setupComments();
 }
 function closedPage(kind){
-  document.getElementById("app").innerHTML='<div class="empty"><b>기간이 지나 닫힌 '+(kind==="w"?"청첩장":"부고")+'예요.</b><br>계좌와 글은 지워졌어요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
+  document.getElementById("app").innerHTML='<div class="empty"><b>'+(kind==="w"?"닫힌 청첩장이에요.":"닫힌 부고예요.")+'</b><br>기간이 지났거나 만든 분이 닫아서 계좌와 글은 지워졌어요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
 }
 function render(){
   var c=(new URLSearchParams(location.search)).get("c");

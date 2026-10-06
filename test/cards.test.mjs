@@ -96,7 +96,7 @@ test("renderOgHtml: 제목은 이스케이프, 봇은 머물고 사람은 card.h
   assert.doesNotMatch(bot, /refresh|location\.replace/, "봇에겐 넘기는 코드가 없어야 미리보기가 안 바뀐다");
   const map = renderOgHtml({ id: "Ab3xK9q", data: FUN, go: "map" });
   assert.match(map, /map\.kakao\.com\/link\/search\/%EC%8B%9C%ED%99%94/);
-  assert.match(renderOgHtml({ id: "Ab3xK9q", data: null, closed: true }), /종료된 안내/);
+  assert.match(renderOgHtml({ id: "Ab3xK9q", data: null, closed: true }), /닫힌 안내예요/);
 });
 
 test("isPreviewBot: 카톡 스크랩·페북·네이버는 봇, 카톡 인앱 브라우저는 사람", () => {
