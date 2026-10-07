@@ -3997,6 +3997,10 @@ function handleWorderParam(){
     date:pDate, time:pTime, timeSlot:pSlot, eventTime:et, groomName:P("gn"), brideName:P("bn"), chiefMourner:P("cm"),
     category:"wreath", toppings:[],
   });
+  // 부고장·청첩장(/c/<id>)에서 온 주문은 '원문(대조용)' 링크로 어느 안내에서 왔는지 남긴다(파트너 코드 ref 포함, 10/8).
+  // sourceUrl 은 서버 whitelist(confirm-payment)에 이미 있는 칸이라 결제 코드는 손대지 않는다.
+  const _cid=P("cid"), _ref=P("ref");
+  if(/^[A-Za-z0-9]{6,12}$/.test(_cid)) order.sourceUrl = location.origin+"/c/"+_cid+(/^[A-Za-z0-9_-]{1,30}$/.test(_ref)?"?ref="+_ref:"");
   const _witems=getItems("wreath");
   const tier=Math.max(0, Math.min(Math.max(0,_witems.length-1), parseInt(q.get("tier"),10)||0));
   document.getElementById("typePill").innerHTML =

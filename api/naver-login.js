@@ -24,8 +24,15 @@ export default async function handler(req, res) {
   }
   const state = crypto.randomBytes(16).toString("hex");
   const redirect = `${base}/api/naver-callback`;
+  // 로그인 뒤 돌아갈 자리(10/8) — 사이트 안 경로만(//·외부 주소·/api 거부). 콜백이 쿠키로 받아 redirect_to 에 붙인다.
+  let ret = "";
+  try { ret = new URL(req.url, "http://localhost").searchParams.get("return") || ""; } catch (e) {}
+  if (!/^\/(?!\/)[A-Za-z0-9._~\-\/?=&%]{0,200}$/.test(ret) || /^\/api\//.test(ret)) ret = "";
   // CSRF 방지용 state 를 짧은 수명 쿠키에 저장(콜백에서 대조)
-  res.setHeader("Set-Cookie", `naver_state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`);
+  res.setHeader("Set-Cookie", [
+    `naver_state=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+    `naver_return=${encodeURIComponent(ret)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+  ]);
   const url = "https://nid.naver.com/oauth2.0/authorize"
     + `?response_type=code&client_id=${encodeURIComponent(CLIENT_ID)}`
     + `&redirect_uri=${encodeURIComponent(redirect)}&state=${state}`;

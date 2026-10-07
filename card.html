@@ -101,6 +101,16 @@
   .cm .it b { font-size: 13.5px; } .cm .it small { opacity: .5; font-size: 11.5px; margin-left: 6px; }
   .cm .more { margin-top: 8px; width: 100%; padding: 10px; border: 1px solid rgba(0,0,0,.12); border-radius: 10px; background: transparent; font: inherit; font-size: 13.5px; cursor: pointer; }
   .exp { margin-top: 18px; text-align: center; font-size: 12px; opacity: .55; font-family: "Noto Sans KR", sans-serif; }
+  /* 글자 크게(어르신) · 인쇄 */
+  .tools { display: flex; justify-content: flex-end; gap: 6px; margin: -6px 0 10px; font-family: "Noto Sans KR", sans-serif; }
+  .tools button { border: 1px solid rgba(0,0,0,.14); background: rgba(255,255,255,.6); color: inherit; border-radius: 999px; padding: 6px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .card.big { zoom: 1.18; }
+  @media print {
+    body { background: #fff; }
+    .card { max-width: none; min-height: 0; }
+    .tools, .share, .fab, .cm form, .cm .more, .foot, .exp, .toast, .wreath, .maps a, .acct button { display: none !important; }
+    .band { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
   .msg { text-align: center; font-size: 15px; line-height: 2; margin: 4px 0 18px; white-space: pre-line; }
   .parents { text-align: center; font-size: 15px; line-height: 1.9; margin: 0 0 16px; }
   .sec { border-top: 1px solid rgba(0,0,0,.08); padding-top: 16px; margin-top: 18px; }
@@ -133,7 +143,11 @@ function acctsHtml(list){
     + list.map(function(a){ var t=[a.who,a.bank,a.no].filter(Boolean).join(" "); return '<div class="acct"><span>'+esc(t)+'</span><button data-copy="'+esc((a.bank||"")+" "+a.no)+'">복사</button></div>'; }).join("")
     + '</details>';
 }
-function orderUrl(p){ var u=new URLSearchParams(Object.assign({ from:"card" }, p)); Object.keys(p).forEach(function(k){ if(!p[k]) u.delete(k); }); return "/?"+u.toString(); }
+function orderUrl(p){
+  if(STATE.server) p.cid=STATE.id;                 // 어느 안내에서 온 주문인지(원문 링크로 남는다)
+  if(CUR && CUR.ref) p.ref=CUR.ref;                // 파트너 코드(상조·식장)도 따라간다
+  var u=new URLSearchParams(Object.assign({ from:"card" }, p)); Object.keys(p).forEach(function(k){ if(!p[k]) u.delete(k); }); return "/?"+u.toString();
+}
 var FUN_WORD={ "": "별세", "기독교":"소천", "천주교":"선종", "불교":"입적" };
 var STATE={ server:false, id:"", comments:[], expiresAt:"", kakaoKey:"" };
 // 주문 마감 — 사이트 당일 배송 기준(평일 18시 · 주말 16시까지 주문 시 당일). 발인·예식 시각에 비춰 말을 고른다.
@@ -328,8 +342,18 @@ function draw(d){
   CUR=d;
   app.innerHTML = d.k==="f" ? renderFuneral(d) : renderWedding(d);
   if(preview){ var sh=app.querySelector(".share"); if(sh) sh.style.display="none"; }
+  else { var padEl=app.querySelector(".pad"); if(padEl) padEl.insertAdjacentHTML("afterbegin", toolsHtml()); setupTools(); }
+  if(BIG){ var cardEl=app.querySelector(".card"); if(cardEl) cardEl.classList.add("big"); }
   document.title = d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
   setupFab(); setupComments();
+}
+// 어르신이 많이 받는 안내라 '글자 크게'를 기억해 둔다. 인쇄는 빈소 앞 게시용(화환·공유 칸은 빠진다).
+var BIG=false; try{ BIG=localStorage.getItem("af_card_big")==="1"; }catch(_){}
+function toolsHtml(){ return '<div class="tools"><button type="button" id="bigBtn">'+(BIG?"글자 보통으로":"가 글자 크게")+'</button><button type="button" id="printBtn">인쇄</button></div>'; }
+function setupTools(){
+  var b=document.getElementById("bigBtn"), p=document.getElementById("printBtn");
+  if(b) b.onclick=function(){ BIG=!BIG; try{ localStorage.setItem("af_card_big", BIG?"1":"0"); }catch(_){} var c=document.querySelector(".card"); if(c) c.classList.toggle("big", BIG); b.textContent=BIG?"글자 보통으로":"가 글자 크게"; };
+  if(p) p.onclick=function(){ window.print(); };
 }
 function closedPage(kind){
   document.getElementById("app").innerHTML='<div class="empty"><b>'+(kind==="w"?"닫힌 청첩장이에요.":"닫힌 부고예요.")+'</b><br>기간이 지났거나 만든 분이 닫아서 계좌와 글은 지워졌어요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';

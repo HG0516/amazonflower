@@ -41,6 +41,10 @@ export default async function handler(req, res) {
   if (!code || !state || !cm || cm[1] !== state) {
     return page(res, 400, "로그인 검증 실패", "잠시 후 다시 시도해주세요.");
   }
+  // 로그인 전에 있던 자리(naver-login 이 쿠키에 둠) — 사이트 안 경로만 믿는다
+  let ret = "";
+  try { const rm = cookie.match(/naver_return=([^;]*)/); ret = rm ? decodeURIComponent(rm[1]) : ""; } catch (e) { ret = ""; }
+  if (!/^\/(?!\/)[A-Za-z0-9._~\-\/?=&%]{0,200}$/.test(ret) || /^\/api\//.test(ret)) ret = "";
 
   try {
     // 1) code → 네이버 access_token
@@ -70,14 +74,14 @@ export default async function handler(req, res) {
     // 4) 매직링크 생성 → action_link (Supabase verify 후 사이트로 세션과 함께 리다이렉트)
     const gl = await fetch(`${SUPABASE_URL}/auth/v1/admin/generate_link`, {
       method: "POST", headers: sbAdmin,
-      body: JSON.stringify({ type: "magiclink", email: email, options: { redirect_to: base } }),
+      body: JSON.stringify({ type: "magiclink", email: email, options: { redirect_to: base + ret } }),
     });
     const glj = await gl.json().catch(() => ({}));
     const actionLink = glj.action_link || (glj.properties && glj.properties.action_link);
     if (!actionLink) return page(res, 502, "세션 생성 실패", "다시 시도해주세요.");
 
     // 5) action_link 로 리다이렉트 → 브라우저가 Supabase verify 거쳐 사이트로(#access_token) → auth.js 가 세션 처리
-    res.setHeader("Set-Cookie", "naver_state=; Path=/; Max-Age=0");
+    res.setHeader("Set-Cookie", ["naver_state=; Path=/; Max-Age=0", "naver_return=; Path=/; Max-Age=0"]);
     res.setHeader("Location", actionLink);
     return res.status(302).end();
   } catch (e) {

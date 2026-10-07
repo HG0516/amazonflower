@@ -25,7 +25,7 @@ function fakeFetch(routes) {
   const fn = async (url, opts = {}) => {
     const method = (opts.method || "GET").toUpperCase();
     const u = String(url);
-    const body = opts.body ? JSON.parse(opts.body) : undefined;
+    let body; try { body = typeof opts.body === "string" ? JSON.parse(opts.body) : undefined; } catch { body = undefined; }
     calls.push({ method, url: u, body });
     for (const [m, re, h] of routes) {
       if (m === method && re.test(u)) {
@@ -301,4 +301,27 @@ test("order-meta: /c/<id> 는 미리보기 HTML(봇이면 넘기지 않음) + �
     for (const k of Object.keys(process.env)) if (!(k in old)) delete process.env[k];
     Object.assign(process.env, old);
   }
+});
+
+test("sanitizeCard: 파트너 코드 ref 는 영문·숫자·-_ 30자만", () => {
+  assert.equal(sanitizeCard({ ...FUN, ref: "sihwa-01" }).data.ref, "sihwa-01");
+  assert.equal(sanitizeCard({ ...FUN, ref: "시화 병원" }).data.ref, undefined);
+  assert.equal(sanitizeCard({ ...FUN, ref: "a".repeat(31) }).data.ref, undefined);
+  assert.equal(sanitizeCard({ k: "w", g: "a", b: "b", date: "2026-11-01", venue: "v", ref: "planner_kim" }).data.ref, "planner_kim");
+});
+
+test("사진 올리기: jpg·png 만, 공개 버킷 cards/ 에 올리고 주소만 돌려준다", async () => {
+  const png = "data:image/png;base64," + Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 73, 72, 68, 82]).toString("base64");
+  await withFetch(fakeFetch([["POST", /\/storage\/v1\/object\/gallery\/cards\/[A-Za-z0-9]{10}\.png$/, () => ({ status: 200, body: { Key: "x" } })]]), async (f) => {
+    const r = await handleCardPost({ action: "photo", image: png }, req("5.5.5.5"), ENV);
+    assert.equal(r.status, 200);
+    assert.match(r.body.url, /^https:\/\/project\.example\.test\/storage\/v1\/object\/public\/gallery\/cards\/[A-Za-z0-9]{10}\.png$/);
+    const up = f.calls.find((c) => c.method === "POST");
+    assert.equal(up.url.startsWith("https://project.example.test/storage/v1/object/gallery/cards/"), true);
+  })();
+  await withFetch(fakeFetch([]), async (f) => {
+    assert.equal((await handleCardPost({ action: "photo", image: "data:text/html;base64,PGI+" }, req(), ENV)).status, 400);
+    assert.equal((await handleCardPost({ action: "photo", image: "data:image/png;base64," + Buffer.from("not-a-png-at-all").toString("base64") }, req(), ENV)).status, 400, "매직바이트가 아니면 거절");
+    assert.equal(f.calls.length, 0, "거절한 건 저장소에 안 간다");
+  })();
 });

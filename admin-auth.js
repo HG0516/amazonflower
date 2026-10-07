@@ -65,7 +65,7 @@
     var provider = desiredProvider();
     if (provider === "naver") {
       try { sessionStorage.setItem("af_admin_return", location.pathname + location.search); } catch (_) {}
-      location.href = "/api/naver-login";
+      location.href = "/api/naver-login?return=" + encodeURIComponent(location.pathname + location.search);
       return;
     }
     var options = { redirectTo: location.href };
