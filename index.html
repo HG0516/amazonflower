@@ -1763,7 +1763,7 @@ function afApplyToConfirm(r){
 // ※ 화환 외 카테고리 가격은 임시 정찰가 — 사장님 확인 후 숫자만 바꾸면 됩니다.
 //    가격을 바꾸면 api/confirm-payment.js 의 PRODUCT_PRICES 도 같이 바꿔야 결제가 됩니다.
 const WREATH_TIERS = [
-  {key:"1", grade:"일반형", price:59000, desc:"3단 기본형. 단정하게 마음을 전합니다."},
+  {key:"1", grade:"일반형", price:49000, desc:"3단 기본형. 단정하게 마음을 전합니다."},
   {key:"2", grade:"중급형", price:79000, desc:"가장 많이 나가는 주력형입니다."},
   {key:"3", grade:"고급형", price:99000, desc:"3단 고급형. 격식을 갖춘 자리에 어울립니다."},
   {key:"4", grade:"최고급형", price:129000, desc:"4단 특대형. 거래처·회사 명의에 적합합니다."},
@@ -3971,7 +3971,7 @@ async function handleCorpParam(){
   }catch(_e){}
 }
 
-// 카탈로그 화환 사다리(등급 주문) → 주문 플로우 티어 주문. 단일 기준 = WREATH_TIERS(59/79/99/129).
+// 카탈로그 화환 사다리(등급 주문) → 주문 플로우 티어 주문. 단일 기준 = WREATH_TIERS(49/79/99/129 — 10/8 보통 59→49, 형구·아버지 결정).
 // /?worder=funeral|congrats & tier=0..3
 function handleWorderParam(){
   const q=new URLSearchParams(location.search);

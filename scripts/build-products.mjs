@@ -42,8 +42,8 @@ const FOLDER_MAP = {
 
 // 구 티어 정가표 (api/confirm-payment.js PRODUCT_PRICES 와 동일 — 재주문·구주문 호환용)
 const LEGACY_TIERS = {
-  congrats_g1: 59000, congrats_g2: 79000, congrats_g3: 99000, congrats_g4: 129000,
-  condolence_c1: 59000, condolence_c2: 79000, condolence_c3: 99000, condolence_c4: 129000,
+  congrats_g1: 49000, congrats_g2: 79000, congrats_g3: 99000, congrats_g4: 129000,
+  condolence_c1: 49000, condolence_c2: 79000, condolence_c3: 99000, condolence_c4: 129000,
   orchid_o1: 69000, orchid_o2: 99000, orchid_o3: 79000, orchid_o4: 119000,
   plant_p1: 59000, plant_p2: 79000, plant_p3: 99000, plant_p4: 129000,
   basket_b1: 49000, basket_b2: 69000, basket_b3: 59000, basket_b4: 89000,
@@ -100,8 +100,8 @@ function bandOf(price) {
 function legacyTierOf(cat, sub, price) {
   const tiers = {
     plant: [["plant_p1", 59000], ["plant_p2", 79000], ["plant_p3", 99000], ["plant_p4", 129000]],
-    congrats: [["congrats_g1", 59000], ["congrats_g2", 79000], ["congrats_g3", 99000], ["congrats_g4", 129000]],
-    condolence: [["condolence_c1", 59000], ["condolence_c2", 79000], ["condolence_c3", 99000], ["condolence_c4", 129000]],
+    congrats: [["congrats_g1", 49000], ["congrats_g2", 79000], ["congrats_g3", 99000], ["congrats_g4", 129000]],
+    condolence: [["condolence_c1", 49000], ["condolence_c2", 79000], ["condolence_c3", 99000], ["condolence_c4", 129000]],
     bouquet: [["basket_b1", 49000], ["basket_b2", 69000]],
     basket: [["basket_b3", 59000], ["basket_b4", 89000]],
     orchid: sub === "서양란"

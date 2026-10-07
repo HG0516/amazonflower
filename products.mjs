@@ -1710,7 +1710,7 @@ const PRODUCTS = [
   "sub": "근조",
   "name": "근조 보통",
   "subtitle": null,
-  "price": 59000,
+  "price": 49000,
   "band": "5만대",
   "grade": "보통",
   "size": null,
@@ -1806,7 +1806,7 @@ const PRODUCTS = [
   "sub": "축하",
   "name": "축하 보통",
   "subtitle": null,
-  "price": 59000,
+  "price": 49000,
   "band": "5만대",
   "grade": "보통",
   "size": null,
@@ -1899,11 +1899,11 @@ const PRODUCTS = [
 ];
 
 const LEGACY_TIERS = {
- "congrats_g1": 59000,
+ "congrats_g1": 49000,
  "congrats_g2": 79000,
  "congrats_g3": 99000,
  "congrats_g4": 129000,
- "condolence_c1": 59000,
+ "condolence_c1": 49000,
  "condolence_c2": 79000,
  "condolence_c3": 99000,
  "condolence_c4": 129000,
