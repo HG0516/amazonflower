@@ -9,7 +9,7 @@ import test from "node:test";
 import crypto from "node:crypto";
 
 import {
-  sanitizeCard, cardExpiry, renderOgHtml, isPreviewBot, editHash,
+  sanitizeCard, cardExpiry, renderOgHtml, isPreviewBot, editHash, createdText,
   handleCardPost, handleCardGet, cleanupExpiredCards,
 } from "../lib/cards.mjs";
 import orderMeta from "../api/order-meta.js";
@@ -246,7 +246,7 @@ test("보기: 열린 안내는 내용·글(숨긴 글 빼고)·조회수, 기간
 test("준비 확인: 표가 있으면 ready, 없으면 false · 카카오 키는 32자리 16진수만", async () => {
   await withFetch(fakeFetch([["GET", /\/cards\?select=id/, () => ({ body: [] })]]), async () => {
     const r = await handleCardGet({ card: "ready", json: "1" }, { ...ENV, KAKAO_JS_KEY: "not-a-key" });
-    assert.deepEqual(r.json, { ready: true, kakaoKey: "" });
+    assert.deepEqual(r.json, { ready: true, kakaoKey: "", rsvp: true });
   })();
   await withFetch(fakeFetch([["GET", /\/cards\?select=id/, () => MISSING]]), async () => {
     const r = await handleCardGet({ card: "ready", json: "1" }, ENV);
@@ -259,7 +259,8 @@ test("크론: 기간 지난 안내를 모두 닫는다 · 표가 없으면 건�
     const r = await cleanupExpiredCards(ENV);
     assert.equal(r.closed, 2);
     assert.equal(f.calls.filter((c) => c.method === "PATCH").length, 2);
-    assert.equal(f.calls.filter((c) => c.method === "DELETE").length, 2);
+    assert.equal(f.calls.filter((c) => c.method === "DELETE" && /card_comments/.test(c.url)).length, 2);
+    assert.equal(f.calls.filter((c) => c.method === "DELETE" && /card_rsvps/.test(c.url)).length, 2, "참석 답도 같이 지운다");
   })();
   await withFetch(fakeFetch([["GET", /\/cards\?/, () => MISSING]]), async () => {
     assert.deepEqual(await cleanupExpiredCards(ENV), { skipped: "no_table" });
@@ -323,5 +324,85 @@ test("사진 올리기: jpg·png 만, 공개 버킷 cards/ 에 올리고 주소�
     assert.equal((await handleCardPost({ action: "photo", image: "data:text/html;base64,PGI+" }, req(), ENV)).status, 400);
     assert.equal((await handleCardPost({ action: "photo", image: "data:image/png;base64," + Buffer.from("not-a-png-at-all").toString("base64") }, req(), ENV)).status, 400, "매직바이트가 아니면 거절");
     assert.equal(f.calls.length, 0, "거절한 건 저장소에 안 간다");
+  })();
+});
+
+const WED = { k: "w", g: "민준", b: "서연", date: "2026-11-21", time: "12:30", venue: "더채플 앳 청담", hall: "3층" };
+const wrow = (over = {}) => row({ id: "Wed1234", kind: "w", data: { ...WED }, ...over });
+
+test("만들 때 사장님 텔레그램: 식장·일정·링크만, 이름은 없음", withFetch(fakeFetch([
+  ["GET", /\/cards\?ip_hash=/, () => ({ body: [] })],
+  ["POST", /\/rest\/v1\/cards$/, () => ({ status: 201 })],
+  ["POST", /api\.telegram\.org/, () => ({ body: { ok: true } })],
+]), async (f) => {
+  const r = await handleCardPost({ action: "create", data: { ...FUN, m: [{ r: "장남", n: "김민준" }] } }, req(), { ...ENV, TELEGRAM_BOT_TOKEN: "tg", TELEGRAM_CHAT_ID: "chat" });
+  assert.equal(r.status, 200);
+  const tg = f.calls.find((c) => /api\.telegram\.org/.test(c.url));
+  assert.ok(tg, "텔레그램 호출");
+  assert.match(tg.body.text, /새 부고장/);
+  assert.match(tg.body.text, /시화병원 장례식장 3호실/);
+  assert.match(tg.body.text, /발인 10월 8일\(목\) 오전 8시/);
+  assert.match(tg.body.text, /\/c\/[A-Za-z0-9]{7}$/);
+  assert.equal(tg.body.text.includes("김영수"), false, "고인 이름은 알림에 안 넣는다");
+  assert.equal(tg.body.text.includes("김민준"), false);
+  assert.match(createdText({ ...WED, ref: "planner_kim" }, "https://x/c/A"), /새 청첩장[\s\S]*더채플 앳 청담 3층[\s\S]*11월 21일\(토\) 오후 12시 30분[\s\S]*파트너 코드 planner_kim/);
+}));
+
+test("참석 여부: 청첩장만, 못 받는 안내는 403, 링크 금지, 정상은 저장(인원·측 정리)", async () => {
+  await withFetch(fakeFetch(cardRoutes(row())), async () => {
+    assert.equal((await handleCardPost({ action: "rsvp", id: "Ab3xK9q", name: "이웃", attend: true }, req(), ENV)).status, 403, "부고장엔 참석 여부 없음");
+  })();
+  await withFetch(fakeFetch(cardRoutes(wrow({ data: { ...WED, noRsvp: 1 } }))), async () => {
+    assert.equal((await handleCardPost({ action: "rsvp", id: "Wed1234", name: "이웃", attend: true }, req(), ENV)).status, 403);
+  })();
+  await withFetch(fakeFetch(cardRoutes(wrow())), async () => {
+    assert.equal((await handleCardPost({ action: "rsvp", id: "Wed1234", name: "이웃", attend: true, memo: "www.spam.com" }, req(), ENV)).status, 400);
+    assert.equal((await handleCardPost({ action: "rsvp", id: "Wed1234", name: "", attend: true }, req(), ENV)).status, 400);
+  })();
+  await withFetch(fakeFetch(cardRoutes(wrow(), [
+    ["GET", /\/card_rsvps\?card_id=.*ip_hash=/, () => ({ body: [] })],
+    ["POST", /\/card_rsvps$/, () => ({ status: 201 })],
+  ])), async (f) => {
+    const r = await handleCardPost({ action: "rsvp", id: "Wed1234", name: " 박하객 ", attend: "1", headcount: "3", side: "bride", memo: "축하해요" }, req(), ENV);
+    assert.equal(r.status, 200);
+    assert.equal(r.body.attend, true);
+    const ins = f.calls.find((c) => c.method === "POST");
+    assert.deepEqual({ ...ins.body, ip_hash: undefined }, { card_id: "Wed1234", name: "박하객", attend: true, headcount: 3, side: "bride", memo: "축하해요", ip_hash: undefined });
+    const r2 = await handleCardPost({ action: "rsvp", id: "Wed1234", name: "김불참", attend: false, headcount: "7", side: "evil" }, req(), ENV);
+    assert.equal(r2.body.attend, false);
+    const ins2 = f.calls.filter((c) => c.method === "POST")[1];
+    assert.equal(ins2.body.headcount, 1, "못 가요는 인원 1");
+    assert.equal(ins2.body.side, "", "모르는 측은 빈 값");
+  })();
+  await withFetch(fakeFetch(cardRoutes(wrow(), [["GET", /\/card_rsvps\?/, () => MISSING]])), async () => {
+    const r = await handleCardPost({ action: "rsvp", id: "Wed1234", name: "이웃", attend: true }, req(), ENV);
+    assert.equal(r.status, 503);
+    assert.equal(r.body.fallback, true, "표가 없으면 fallback");
+  })();
+});
+
+test("보기·준비 확인·관리: 참석 여부 표가 있을 때만 rsvp 가 켜지고, 닫을 때 참석 답도 지운다", async () => {
+  await withFetch(fakeFetch(cardRoutes(wrow(), [
+    ["GET", /\/card_rsvps\?select=id&limit=1/, () => ({ body: [] })],
+    ["GET", /\/card_comments\?/, () => ({ body: [] })],
+  ])), async () => {
+    const r = await handleCardGet({ card: "Wed1234", json: "1" }, ENV);
+    assert.equal(r.json.rsvp, true);
+  })();
+  await withFetch(fakeFetch(cardRoutes(row(), [["GET", /\/card_comments\?/, () => ({ body: [] })]])), async () => {
+    assert.equal((await handleCardGet({ card: "Ab3xK9q", json: "1" }, ENV)).json.rsvp, false, "부고장은 항상 false");
+  })();
+  await withFetch(fakeFetch(cardRoutes(wrow(), [
+    ["GET", /\/card_rsvps\?select=id&limit=1/, () => ({ body: [] })],
+    ["GET", /\/card_rsvps\?card_id=eq\.Wed1234&select=/, () => ({ body: [{ id: 1, name: "박하객", attend: true, headcount: 3, side: "bride", memo: "", created_at: "2026-10-08T00:00:00Z" }] })],
+    ["GET", /\/card_comments\?/, () => ({ body: [] })],
+  ])), async () => {
+    const r = await handleCardPost({ action: "manage", id: "Wed1234", key: "right-key" }, req(), ENV);
+    assert.equal(r.body.rsvpReady, true);
+    assert.equal(r.body.rsvps.length, 1);
+  })();
+  await withFetch(fakeFetch(cardRoutes(wrow())), async (f) => {
+    await handleCardPost({ action: "close", id: "Wed1234", key: "right-key" }, req(), ENV);
+    assert.ok(f.calls.some((c) => c.method === "DELETE" && /card_rsvps\?card_id=eq\.Wed1234/.test(c.url)));
   })();
 });

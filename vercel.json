@@ -204,6 +204,10 @@
     {
       "source": "/c/:id",
       "destination": "/api/order-meta?card=:id"
+    },
+    {
+      "source": "/bugo",
+      "destination": "/bugo.html"
     }
   ]
 }

@@ -273,6 +273,8 @@
         <label class="tg-sw" style="margin:0"><input type="checkbox" id="wreathOn" checked><span></span></label></div>
       <div class="switch hide" id="cmSw" style="margin-top:16px;"><div class="tx" id="cmTx">조문 글 받기<small>받는 분들이 위로의 글을 남길 수 있어요. 만든 분은 글을 숨길 수 있어요.</small></div>
         <label class="tg-sw" style="margin:0"><input type="checkbox" id="cmOn" checked><span></span></label></div>
+      <div class="switch hide" id="rsvpSw" style="margin-top:16px;"><div class="tx">참석 여부 받기<small>하객이 참석해요·못 가요를 남겨요. 못 간다는 분께는 '꽃으로 마음 전하기'를 보여 드려요.</small></div>
+        <label class="tg-sw" style="margin:0"><input type="checkbox" id="rsvpOn" checked><span></span></label></div>
     </section>
 
     <div class="bar"><button type="button" class="pvb" onclick="openPreview()">미리 보기</button><button type="button" class="mk" id="mkBtn" onclick="make()">링크 만들기</button></div>
@@ -307,7 +309,7 @@
 
 <script>
 var K="f", TF="mono", TW="classic", REL="", LINK="";
-var READY=false, KAKAO="", EDIT=null, MG=null, EDITLINK="";   // 정식판 준비 여부 · 카카오 공유 키 · 고치는 중인 안내 {id,key}
+var READY=false, KAKAO="", RSVP_READY=false, EDIT=null, MG=null, EDITLINK="";   // 정식판 준비 여부 · 카카오 공유 키 · 고치는 중인 안내 {id,key}
 var RELS=["장남","장녀","차남","차녀","삼남","삼녀","배우자","며느리","사위","손자","손녀","외손","형제","자매","조카"];
 var BANKS=["국민","신한","우리","하나","농협","기업","카카오뱅크","토스뱅크","케이뱅크","새마을금고","우체국","신협","수협","SC제일","씨티","부산","대구","경남","광주","전북","제주","산업"];
 var $=function(id){ return document.getElementById(id); };
@@ -326,6 +328,7 @@ function mode(k){
   $("cmTx").innerHTML = k==="f"
     ? '조문 글 받기<small>받는 분들이 위로의 글을 남길 수 있어요. 만든 분은 글을 숨길 수 있어요.</small>'
     : '축하 방명록 받기<small>하객들이 축하 글을 남길 수 있어요. 만든 분은 글을 숨길 수 있어요.</small>';
+  $("rsvpSw").classList.toggle("hide", !(READY && RSVP_READY && k==="w"));
   preview();
 }
 function setTheme(boxId, t){ document.querySelectorAll("#"+boxId+" .th").forEach(function(x){ x.classList.toggle("on", x.getAttribute("data-t")===t); }); }
@@ -423,6 +426,7 @@ function data(){
   if(acc.length) d.acc=acc;
   if(!$("wreathOn").checked) d.noWreath=1;
   if(READY && !$("cmOn").checked) d.noComment=1;
+  if(READY && RSVP_READY && K==="w" && !$("rsvpOn").checked) d.noRsvp=1;
   if(REF) d.ref=REF;
   return d;
 }
@@ -484,7 +488,7 @@ function fill(d){
   }
   if(d.ref) REF=d.ref;
   $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no); }); if(!(d.acc||[]).length) addA();
-  $("wreathOn").checked=!d.noWreath; $("cmOn").checked=!d.noComment;
+  $("wreathOn").checked=!d.noWreath; $("cmOn").checked=!d.noComment; $("rsvpOn").checked=!d.noRsvp;
   preview();
 }
 function sample(d){
@@ -637,6 +641,15 @@ function loadEdit(id, key, quiet){
     renderMg(); renderMine(); busy(false);
   });
 }
+function rsvpSummaryHtml(mg){
+  if(!mg || !mg.rsvpReady) return "";
+  var list=mg.rsvps||[], yes=list.filter(function(r){ return r.attend; }), no=list.filter(function(r){ return !r.attend; });
+  var ppl=yes.reduce(function(a,r){ return a+(r.headcount||1); },0);
+  var sideT={ groom:"신랑 측", bride:"신부 측", "":"" };
+  return '<div class="cms"><b class="t">참석 여부</b> <span style="font-size:12.5px;color:var(--soft)">참석 '+yes.length+'명(총 '+ppl+'명) · 못 가요 '+no.length+'명</span>'
+    +(list.length?list.map(function(r){ return '<div class="cmi"><span><b>'+esc(r.name)+'</b> <small style="color:#9a958a">'+esc(sideT[r.side]||"")+' · '+esc(relT(r.created_at))+'</small><br>'+(r.attend?'참석 · '+(r.headcount||1)+'명':'못 가요')+(r.memo?' · '+esc(r.memo):'')+'</span></div>'; }).join(""):'<div class="cmi"><span style="color:var(--faint)">아직 답이 없어요</span></div>')
+    +'</div>';
+}
 function renderMg(){
   var box=$("mg"); if(!EDIT || !MG){ box.classList.add("hide"); return; }
   var d=MG.data, fun=d.k==="f", cms=MG.comments||[], exp=new Date(MG.expiresAt||"");
@@ -645,6 +658,7 @@ function renderMg(){
     +(isFinite(exp)?' · '+(exp.getMonth()+1)+'월 '+exp.getDate()+'일에 자동으로 닫혀요':'')
     +'<br>아래에서 고친 뒤 <b>고친 내용 저장</b>을 누르면 이미 보낸 링크에도 바로 반영돼요.</p>'
     +'<div class="btns"><button type="button" class="send" id="mgSend">링크 보내기</button><a href="/card-make.html" id="mgNew">새로 만들기</a><button type="button" class="cl" id="mgClose">지금 닫기</button></div>'
+    +rsvpSummaryHtml(MG)
     +(cms.length?'<div class="cms"><b class="t">'+(fun?"조문 글":"방명록")+'</b>'+cms.map(function(c){
         return '<div class="cmi'+(c.hidden?' off':'')+'"><span><b>'+esc(c.name)+'</b> <small style="color:#9a958a">'+esc(relT(c.created_at))+'</small><br>'+esc(c.body)+'</span><button type="button" data-cid="'+c.id+'" data-h="'+(c.hidden?0:1)+'">'+(c.hidden?"다시 보이기":"숨기기")+'</button></div>';
       }).join("")+'</div>':'');
@@ -668,11 +682,11 @@ function renderMg(){
 
 // ── 정식판 준비 확인(표가 있나 · 카카오 키) ──
 var READY_P=fetch("/api/order-meta?card=ready&json=1",{ cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
-  READY=!!(j && j.ready); KAKAO=(j && j.kakaoKey)||"";
+  READY=!!(j && j.ready); KAKAO=(j && j.kakaoKey)||""; RSVP_READY=!!(j && j.rsvp);
 }).catch(function(){ READY=false; }).then(function(){
   if(READY){
-    $("chips").insertAdjacentHTML("beforeend",'<span>보낸 뒤에도 고치기</span><span>조문 글 · 방명록</span><span>기간 지나면 자동 삭제</span>');
-    $("cmSw").classList.remove("hide"); $("wrH").textContent="화환 · 글";
+    $("chips").insertAdjacentHTML("beforeend",'<span>보낸 뒤에도 고치기</span><span>조문 글 · 방명록</span>'+(RSVP_READY?'<span>참석 여부</span>':'')+'<span>기간 지나면 자동 삭제</span>');
+    $("cmSw").classList.remove("hide"); $("wrH").textContent="화환 · 글"; $("rsvpSw").classList.toggle("hide", !(RSVP_READY && K==="w"));
     var q=new URLSearchParams(location.search), id=q.get("edit"), km=String(location.hash||"").match(/[#&]k=([A-Za-z0-9_-]{10,})/);
     if(id && /^[A-Za-z0-9]{6,12}$/.test(id)){
       var key = km ? km[1] : (myCards().filter(function(x){ return x.id===id; })[0]||{}).key;

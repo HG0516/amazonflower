@@ -101,6 +101,23 @@
   .cm .it b { font-size: 13.5px; } .cm .it small { opacity: .5; font-size: 11.5px; margin-left: 6px; }
   .cm .more { margin-top: 8px; width: 100%; padding: 10px; border: 1px solid rgba(0,0,0,.12); border-radius: 10px; background: transparent; font: inherit; font-size: 13.5px; cursor: pointer; }
   .exp { margin-top: 18px; text-align: center; font-size: 12px; opacity: .55; font-family: "Noto Sans KR", sans-serif; }
+  /* 참석 여부 · '못 가요 → 꽃으로' 계단 · 조문이 어려우세요? */
+  .rsvp { margin-top: 22px; padding: 16px; border-radius: 14px; background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.08); font-family: "Noto Sans KR", sans-serif; }
+  .rsvp .h { font-weight: 700; font-size: 16px; } .rsvp .s { font-size: 13px; opacity: .75; margin: 4px 0 12px; }
+  .rsvp .rb { padding: 13px; border-radius: 12px; border: 1.5px solid rgba(0,0,0,.14); background: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; color: inherit; }
+  .rsvp .rb.on { border-color: #2f6a4c; background: #e9f1ec; color: #1f4733; }
+  .rsvp form { margin-top: 12px; display: grid; gap: 8px; }
+  .rsvp input, .rsvp select, .rsvp textarea { width: 100%; padding: 11px 12px; border: 1px solid rgba(0,0,0,.14); border-radius: 10px; font: inherit; font-size: 15px; background: #fff; }
+  .rsvp textarea { min-height: 56px; resize: vertical; }
+  .rsvp .pills { display: flex; gap: 6px; } .rsvp .pills button { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,.14); background: #fff; font: inherit; font-size: 14px; cursor: pointer; color: inherit; }
+  .rsvp .pills button.on { border-color: #2f6a4c; background: #e9f1ec; color: #1f4733; font-weight: 700; }
+  .rsvp button[type=submit] { padding: 12px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; background: rgba(0,0,0,.78); color: #fff; }
+  .rsvp .done { font-size: 14.5px; line-height: 1.7; }
+  .ladder { margin-top: 12px; display: grid; gap: 8px; }
+  .ladder a, .ladder button { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,.1); background: #fff; color: inherit; text-decoration: none; font: inherit; font-size: 14.5px; cursor: pointer; text-align: left; }
+  .ladder b { font-size: 14.5px; } .ladder small { display: block; font-size: 12px; opacity: .65; margin-top: 2px; } .ladder span.go { opacity: .5; font-size: 13px; }
+  .cantgo { margin-top: 12px; width: 100%; padding: 11px; border-radius: 10px; border: 1px dashed rgba(0,0,0,.2); background: transparent; font: inherit; font-size: 13.5px; color: inherit; cursor: pointer; font-family: "Noto Sans KR", sans-serif; }
+  @media print { .rsvp, .cantgo, .ladder { display: none !important; } }
   /* 글자 크게(어르신) · 인쇄 */
   .tools { display: flex; justify-content: flex-end; gap: 6px; margin: -6px 0 10px; font-family: "Noto Sans KR", sans-serif; }
   .tools button { border: 1px solid rgba(0,0,0,.14); background: rgba(255,255,255,.6); color: inherit; border-radius: 999px; padding: 6px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
@@ -149,7 +166,7 @@ function orderUrl(p){
   var u=new URLSearchParams(Object.assign({ from:"card" }, p)); Object.keys(p).forEach(function(k){ if(!p[k]) u.delete(k); }); return "/?"+u.toString();
 }
 var FUN_WORD={ "": "별세", "기독교":"소천", "천주교":"선종", "불교":"입적" };
-var STATE={ server:false, id:"", comments:[], expiresAt:"", kakaoKey:"" };
+var STATE={ server:false, id:"", comments:[], expiresAt:"", kakaoKey:"", rsvp:false };
 // 주문 마감 — 사이트 당일 배송 기준(평일 18시 · 주말 16시까지 주문 시 당일). 발인·예식 시각에 비춰 말을 고른다.
 function cutoffHour(d){ var w=d.getDay(); return (w===0||w===6)?16:18; }
 function at(dateIso, hm){ var m=String(dateIso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return null; var t=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); return new Date(+m[1],+m[2]-1,+m[3], t?+t[1]:23, t?+t[2]:59); }
@@ -182,6 +199,75 @@ function commentsHtml(d){
     +'<div id="cmList">'+list.slice(0,20).map(cmItem).join("")+'</div>'
     +(list.length>20?'<button type="button" class="more" id="cmMore">글 더 보기 ('+(list.length-20)+')</button>':'')+'</div>';
 }
+// '못 가요 → 꽃으로 마음 전하기' 계단. 가장 자연스러운 순간(못 간다고 답한 직후·조문이 어려울 때)에만 보여 준다.
+function ladderHtml(d, dl){
+  var fun=d.k==="f", items=[];
+  if(!d.noWreath && !dl.over) items.push('<a href="#wreathBox" data-ladder="wreath"><span><b>'+(fun?"근조화환 보내기":"축하 화환 보내기")+'</b><small>'+esc(dl.short||dl.text)+' · 보내는 분 이름만 적으면 돼요</small></span><span class="go">›</span></a>');
+  if(d.acc && d.acc.length) items.push('<button type="button" data-ladder="acct"><span><b>'+(fun?"조의금 계좌 보기":"축의금 계좌 보기")+'</b><small>번호를 한 번에 복사할 수 있어요</small></span><span class="go">›</span></button>');
+  if(STATE.server && !d.noComment) items.push('<button type="button" data-ladder="cm"><span><b>'+(fun?"조문 글 남기기":"축하 글 남기기")+'</b><small>'+(fun?"위로의 말 한 줄":"축하 한마디")+'</small></span><span class="go">›</span></button>');
+  if(!items.length) return "";
+  return '<div class="ladder">'+items.join("")+'</div>';
+}
+function cantGoHtml(d, dl){
+  if(PV && !PVS) return "";
+  var lad=ladderHtml(d, dl); if(!lad) return "";
+  return '<button type="button" class="cantgo" id="cantGo">직접 조문이 어려우세요? 마음 전하는 방법 보기</button><div id="cantGoBox" class="hide" style="display:none">'+lad+'</div>';
+}
+function rsvpHtml(d, dl){
+  if(!(STATE.rsvp || PVS) || d.noRsvp) return "";
+  var dis=PV?" disabled":"";
+  return '<div class="rsvp" id="rsvp"><div class="h">참석 여부를 알려 주세요</div><div class="s">신랑·신부가 자리를 준비하는 데 큰 도움이 돼요.</div>'
+    +'<div class="two"><button type="button" class="rb" data-att="1"'+dis+'>참석해요</button><button type="button" class="rb" data-att="0"'+dis+'>못 가요</button></div>'
+    +'<form id="rsvpForm" style="display:none"><input id="rsvpName" maxlength="20" placeholder="이름" autocomplete="name">'
+    +'<div class="pills" id="rsvpSide"><button type="button" data-side="groom">신랑 측</button><button type="button" data-side="bride">신부 측</button></div>'
+    +'<select id="rsvpN">'+[1,2,3,4,5,6,7,8,9,10].map(function(n){ return '<option value="'+n+'">'+(n===1?"본인만 (1명)":"총 "+n+"명")+'</option>'; }).join("")+'</select>'
+    +'<textarea id="rsvpMemo" maxlength="100" placeholder="전하고 싶은 말 (선택)"></textarea><button type="submit">보내기</button></form>'
+    +'<div id="rsvpDone" class="done" style="display:none"></div></div>';
+}
+function setupRsvp(d, dl){
+  var box=document.getElementById("rsvp"); if(!box || PV) return;
+  var att=null, side="";
+  var form=document.getElementById("rsvpForm"), nSel=document.getElementById("rsvpN");
+  try{ var nm=localStorage.getItem("af_card_name"); if(nm) document.getElementById("rsvpName").value=nm; }catch(_){}
+  box.querySelectorAll(".rb").forEach(function(b){ b.onclick=function(){
+    att=b.getAttribute("data-att")==="1";
+    box.querySelectorAll(".rb").forEach(function(x){ x.classList.toggle("on", x===b); });
+    form.style.display="grid"; nSel.style.display= att ? "block" : "none";
+    document.getElementById("rsvpName").focus();
+  }; });
+  box.querySelectorAll("#rsvpSide button").forEach(function(b){ b.onclick=function(){ side=b.getAttribute("data-side"); box.querySelectorAll("#rsvpSide button").forEach(function(x){ x.classList.toggle("on", x===b); }); }; });
+  form.onsubmit=function(e){
+    e.preventDefault();
+    var name=document.getElementById("rsvpName").value.trim(); if(!name){ toast("이름을 적어 주세요"); return; }
+    var btn=form.querySelector("button[type=submit]"); btn.disabled=true; btn.textContent="보내는 중…";
+    fetch("/api/order-meta",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ type:"card", action:"rsvp", id:STATE.id, name:name, attend:att, side:side, headcount:+nSel.value, memo:document.getElementById("rsvpMemo").value.trim() }) })
+      .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, j:j }; }); })
+      .then(function(x){
+        if(!x.ok) throw new Error(x.j && x.j.error || "보내지 못했어요");
+        try{ localStorage.setItem("af_card_name", name); }catch(_){}
+        form.style.display="none"; box.querySelector(".two").style.display="none"; box.querySelector(".s").style.display="none";
+        var done=document.getElementById("rsvpDone"); done.style.display="block";
+        done.innerHTML = att
+          ? '<b>'+esc(name)+'</b> 님, 참석으로 전달했어요. 당일에 뵐게요.'
+          : '<b>'+esc(name)+'</b> 님, 마음 전해 드렸어요. 멀리서도 함께하는 방법이 있어요.'+ladderHtml(d, dl);
+        setupLadder();
+        toast("전달했어요");
+      })
+      .catch(function(err){ toast(err.message); btn.disabled=false; btn.textContent="보내기"; });
+  };
+}
+function setupLadder(){
+  var cg=document.getElementById("cantGo");
+  if(cg) cg.onclick=function(){ var b=document.getElementById("cantGoBox"); var open=b.style.display!=="none"; b.style.display=open?"none":"block"; cg.textContent=open?"직접 조문이 어려우세요? 마음 전하는 방법 보기":"접기"; };
+  document.querySelectorAll("[data-ladder]").forEach(function(el){
+    var kind=el.getAttribute("data-ladder");
+    el.onclick=function(e){
+      if(kind==="wreath"){ e.preventDefault(); var w=document.getElementById("wreathBox"); if(w){ w.scrollIntoView({behavior:"smooth",block:"center"}); w.style.outline="3px solid rgba(47,106,76,.5)"; setTimeout(function(){ w.style.outline=""; },1600); } }
+      if(kind==="acct"){ var a=document.querySelector("details.accts"); if(a){ a.open=true; a.scrollIntoView({behavior:"smooth",block:"center"}); } }
+      if(kind==="cm"){ var c=document.getElementById("cmBody"); if(c){ c.scrollIntoView({behavior:"smooth",block:"center"}); setTimeout(function(){ c.focus(); },500); } }
+    };
+  });
+}
 function cmItem(c){ return '<div class="it"><b>'+esc(c.name)+'</b><small>'+esc(relTime(c.created_at))+'</small><br>'+esc(c.body)+'</div>'; }
 
 function renderFuneral(d){
@@ -209,7 +295,7 @@ function renderFuneral(d){
     +'<dt>빈소</dt><dd>'+esc([d.venue,d.room].filter(Boolean).join(" "))+(d.tel?'<br><a href="tel:'+esc(d.tel.replace(/[^0-9]/g,""))+'" style="color:inherit;font-size:13.5px;opacity:.8;">☎ '+esc(d.tel)+'</a>':'')+'</dd>'
     +(d.out?'<dt>발인</dt><dd>'+esc(kDate(d.outDate)+" "+kTime(d.out))+'</dd>':'')
     +(d.burial?'<dt>장지</dt><dd>'+esc(d.burial)+'</dd>':'')
-    +'</dl>'+mapsHtml(d.venue, d.addr)+'</div>'
+    +'</dl>'+mapsHtml(d.venue, d.addr)+cantGoHtml(d, dl)+'</div>'
     +acctsHtml(d.acc)
     +wreath
     +commentsHtml(d)
@@ -240,6 +326,7 @@ function renderWedding(d){
     +'<p class="msg">'+esc(msg)+'</p>'+parents
     +'<div class="sec"><dl class="kv"><dt>일시</dt><dd>'+esc(when)+'</dd><dt>장소</dt><dd>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</dd></dl>'
     +mapsHtml(d.venue, d.addr)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
+    +rsvpHtml(d, dl)
     +acctsHtml(d.acc)
     +wreath
     +commentsHtml(d)
@@ -345,7 +432,7 @@ function draw(d){
   else { var padEl=app.querySelector(".pad"); if(padEl) padEl.insertAdjacentHTML("afterbegin", toolsHtml()); setupTools(); }
   if(BIG){ var cardEl=app.querySelector(".card"); if(cardEl) cardEl.classList.add("big"); }
   document.title = d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
-  setupFab(); setupComments();
+  setupFab(); setupComments(); setupRsvp(d, deadline(d)); setupLadder();
 }
 // 어르신이 많이 받는 안내라 '글자 크게'를 기억해 둔다. 인쇄는 빈소 앞 게시용(화환·공유 칸은 빠진다).
 var BIG=false; try{ BIG=localStorage.getItem("af_card_big")==="1"; }catch(_){}
@@ -367,7 +454,7 @@ function render(){
       .then(function(x){
         if(x.s===410){ closedPage(x.j && x.j.kind); return; }
         if(!x.j || !x.j.data) throw new Error("load");
-        STATE.comments=x.j.comments||[]; STATE.expiresAt=x.j.expiresAt||""; STATE.kakaoKey=x.j.kakaoKey||"";
+        STATE.comments=x.j.comments||[]; STATE.expiresAt=x.j.expiresAt||""; STATE.kakaoKey=x.j.kakaoKey||""; STATE.rsvp=!!x.j.rsvp;
         draw(x.j.data);
       })
       .catch(function(){ document.getElementById("app").innerHTML='<div class="empty"><b>잠시 불러오지 못했어요.</b><br>잠시 뒤 다시 열어 주세요.<br><br>문의 1577-2286</div>'; });
