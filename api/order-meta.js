@@ -5,6 +5,7 @@
 export const config = { runtime: "nodejs" };
 
 import { handleCardGet, handleCardPost } from "../lib/cards.mjs";
+import { publicSetup } from "../lib/setup-status.mjs";
 // 3) 무료 부고장·청첩장 정식판(10/6) — GET ?card=<id> (짧은 링크 /c/<id> 미리보기·내용), POST {type:"card"} (만들기·고치기·조문 글).
 
 const ALLOWED = ["검색", "지인", "전단·현수막", "기타"];
@@ -125,6 +126,11 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     let q = {};
     try { q = Object.fromEntries(new URL(req.url, "http://x").searchParams); } catch { q = {}; }
+    // 4) 설정 확인(10/7) — 키를 넣고 다시 배포한 게 반영됐는지 밖에서 보는 용도. 값·보안 설정은 안 보냄.
+    if (q.setup === "1") {
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(200).json(publicSetup(process.env));
+    }
     if (q.card) {
       const out = await handleCardGet(q, process.env, req.headers && req.headers["user-agent"]).catch((e) => { console.error("card get", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
       res.setHeader("Cache-Control", "no-store");

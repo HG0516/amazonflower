@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko" data-admin-role="owner">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>설정 점검 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<!--
+  설정 점검(2026-10-07) — Vercel 환경변수에 키·스위치가 들어갔는지 '있다/없다'만 본다(값은 안 옴, 대표 관리자만).
+  서버: api/admin.js resource "setup" (check · sms-test), 판정: lib/setup-status.mjs.
+  환경변수를 바꾼 뒤에는 Vercel 에서 Redeploy 해야 여기에도 반영된다.
+-->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.55;font-size:15px;padding:0 0 40px;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 14px;}
+  header{text-align:center;padding:18px 0 6px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  .top{display:block;margin-top:12px;padding:12px;text-align:center;border:1px solid var(--accent);border-radius:10px;background:var(--paper);color:var(--accent);font-weight:800;text-decoration:none;}
+  .row{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-top:10px;}
+  .row .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .row b{font-size:15px;}
+  .chip{flex:0 0 auto;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;}
+  .on{background:#e5f1e8;color:#1f6b3f;} .off{background:#efede7;color:#6b665c;} .warn{background:#fbe7e3;color:#9a3b2e;}
+  .row p{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+  .row .det{font-size:12.5px;color:var(--ink-faint);margin-top:4px;}
+  .row code{font-size:12.5px;background:#f4f2ec;padding:1px 5px;border-radius:5px;overflow-wrap:anywhere;}
+  .btn{margin-top:10px;width:100%;padding:12px;font-size:15px;font-weight:800;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
+  .btn.ghost{background:var(--paper);color:var(--accent);border:1px solid var(--accent);}
+  .btn:disabled{background:var(--ink-faint);border-color:var(--ink-faint);color:#fff;}
+  .navlink{display:inline-block;margin-top:16px;font-size:13px;color:var(--accent);text-decoration:none;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>⚙️ 설정 점검</h1>
+    <div class="sub">키·스위치가 들어갔는지 보여요(값은 안 보여요). Vercel에서 바꾼 뒤엔 <b>Redeploy</b> 해야 여기에도 바뀌어요.</div>
+  </header>
+  <a class="top" href="https://vercel.com/hg0516s-projects/amazonflower/settings/environment-variables" target="_blank" rel="noopener">Vercel 환경변수 열기 ↗</a>
+  <div id="list"><div class="row"><p>불러오는 중…</p></div></div>
+  <a class="navlink" href="/admin-orders.html">← 주문 관리</a>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let toastT=null;
+function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2600); }
+async function api(payload){
+  const r = await afAdmin.fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({resource:"setup", ...payload}) });
+  const data = await r.json().catch(()=>({}));
+  return { ok:r.ok, status:r.status, data };
+}
+const chip = (state, text) => `<span class="chip ${state}">${esc(text)}</span>`;
+const yn = v => v ? "✓" : "✗";
+function row(title, state, label, body){ return `<div class="row"><div class="hd"><b>${esc(title)}</b>${chip(state,label)}</div>${body||""}</div>`; }
+
+function render(s, me){
+  const h = [];
+  // 문자
+  h.push(row("문자 (SOLAPI)", s.sms.ready ? "on" : "warn", s.sms.ready ? "켜짐" : "없음",
+    `<p>${s.sms.ready ? "주문 확인·배송 사진 문자가 손님에게 자동으로 가요." : "없으면 손님에게 주문 확인·배송 사진 문자가 안 가요. 텔레그램 알림은 그대로 와요."}</p>`
+    + `<div class="det">API 키 ${yn(s.sms.apiKey)} · 비밀 키 ${yn(s.sms.apiSecret)} · 발신번호 ${yn(s.sms.sender)} · 사장님 번호 ${s.sms.ownerPhones}개</div>`
+    + (s.sms.ready ? `<button class="btn ghost" id="smsTest" ${s.sms.ownerPhones? "" : "disabled"}>사장님 번호로 시험 문자 보내기</button>` : "")));
+  // 배송 사진
+  h.push(row("배송 사진 알림", s.photoNotice.effective==="sms" ? "on" : "off", s.photoNotice.effective==="sms" ? "문자로 자동" : "직접 전달",
+    `<p>${s.photoNotice.effective==="sms" ? "사진을 올리면 손님에게 사진 링크 문자가 바로 가요." : "사진을 올리면 사장님 텔레그램에 손님용 링크가 와요. 카톡이나 문자로 전달해 주세요."}</p>`
+    + `<div class="det">PHOTO_NOTICE_MODE = <code>${esc(s.photoNotice.mode)}</code></div>`));
+  // 텔레그램
+  h.push(row("텔레그램 주문 알림", s.telegram ? "on" : "warn", s.telegram ? "켜짐" : "없음", s.telegram ? "" : "<p>새 주문 알림이 아무 데도 안 가요. 바로 넣어야 해요.</p>"));
+  // 관리자 로그인
+  const adminWarn = s.admin.mode !== "jwt" && s.admin.password;
+  h.push(row("관리자 로그인", adminWarn ? "warn" : "on", adminWarn ? "비밀번호 뒷문 열림" : "계정 로그인만",
+    `<p>${adminWarn ? "관리자 화면은 네이버 로그인으로만 쓰는데, 서버는 예전 비밀번호도 받아 줘요. 비밀번호만 알면 환불까지 할 수 있어요. <code>ADMIN_AUTH_MODE</code>=<code>jwt</code> 넣고 <code>ADMIN_PASSWORD</code> 지우기." : "등록된 계정으로 로그인해야만 열려요."}</p>`
+    + `<div class="det">방식 <code>${esc(s.admin.mode)}</code> · 대표 계정 번호 ${s.admin.ownerIds}개 · 직원 ${s.admin.staffIds}개 · 예전 비밀번호 ${s.admin.password?"남아 있음":"없음"}</div>`
+    + (me && me.userId ? `<div class="det" style="margin-top:8px;">지금 로그인한 계정 번호(UID): <code id="myUid">${esc(me.userId)}</code></div><button class="btn ghost" id="copyUid">내 계정 번호 복사 (ADMIN_OWNER_IDS 에 붙여 넣기)</button>` : "")));
+  // 결제 봉인
+  h.push(row("결제 금액 봉인", s.payment.intentsRequired ? "on" : "warn", s.payment.intentsRequired ? "켜짐" : "꺼짐",
+    `<p>${s.payment.intentsRequired ? "결제 전에 서버에 봉인한 금액으로만 결제창이 열려요." : "봉인 장치는 동작 중인데 '없어도 결제창 열기'로 돼 있어요. <code>PAYMENT_INTENTS_REQUIRED</code>=<code>1</code> 권장."}</p>`));
+  // 카카오 공유
+  h.push(row("카카오 공유 (부고장 버튼 두 개)", s.kakaoShare ? "on" : "off", s.kakaoShare ? "켜짐" : "꺼짐",
+    `<p>${s.kakaoShare ? "부고장·청첩장을 카톡으로 보내면 '보기 · 길찾기' 버튼이 붙어요." : "없어도 부고장은 돼요. 카톡에 버튼 두 개를 붙이려면 <code>KAKAO_JS_KEY</code>."}</p>`));
+  // 결제수단
+  const pm = s.payment;
+  h.push(row("결제수단 스위치", "off", "참고",
+    `<div class="det">실시간 계좌이체 ${pm.transfer?"켜짐":"꺼짐"} · 무통장입금 ${pm.bankTransfer?"켜짐":"꺼짐"} · 가상계좌 ${pm.virtualAccount?"켜짐":"꺼짐"} · DB 가격 ${pm.livePricing?"켜짐":"꺼짐"}</div>`
+    + `<p>계좌이체는 토스 계약이 '사용'인지 먼저 확인하고 켜요.</p>`));
+  // 그 밖
+  h.push(row("그 밖", "off", "참고",
+    `<div class="det">네이버 로그인 키 ${yn(s.login.naver)} · 기념일 푸시 키(VAPID) ${yn(s.push.vapid)} · 사이트 주소 <code>${esc(s.baseHost || "기본값 floweranbu.co.kr")}</code></div>`));
+  $("list").innerHTML = h.join("");
+
+  const t = $("smsTest");
+  if (t) t.onclick = async () => {
+    t.disabled = true; t.textContent = "보내는 중…";
+    const r = await api({ action:"sms-test" });
+    t.disabled = false; t.textContent = "사장님 번호로 시험 문자 보내기";
+    if (r.ok) toast("보냈어요 — 휴대폰을 확인해 주세요 ✓");
+    else toast("❌ 안 갔어요: " + (r.data.error || r.data.reason || ("오류 " + r.status)), "err");
+  };
+  const c = $("copyUid");
+  if (c) c.onclick = () => { const v = $("myUid").textContent; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(()=>toast("복사했어요 ✓"), ()=>prompt("길게 눌러 복사하세요", v)); };
+}
+
+async function load(){
+  const r = await api({ action:"check" });
+  if (!r.ok) { $("list").innerHTML = `<div class="row"><p>${esc(r.data.error || "불러오지 못했어요")}</p></div>`; return; }
+  render(r.data.setup, r.data.me);
+}
+afAdmin.ready.then(a=>{ if(a) load(); });
+</script>
+</body>
+</html>

@@ -30,6 +30,8 @@ import { compatFetch, compatFetchJson } from "../lib/schema-compat.mjs";
 const fetch = compatFetch;
 
 import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
+import { setupStatus } from "../lib/setup-status.mjs";
+import { sendTransactionalText } from "../lib/solapi.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -236,6 +238,27 @@ export default async function handler(req, res) {
     supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY, auth: auditActor, action, resource, targetId, detail,
     outcome: "success", requestId: auditId,
   });
+
+  // ─────────────────────── 설정 점검 (10/7) ───────────────────────
+  // 키·스위치가 Vercel 에 들어갔는지 '있다/없다'만(값은 안 보냄) + 사장님 번호로 시험 문자 한 통.
+  if (body.resource === "setup") {
+    if (body.action === "check") {
+      // 지금 로그인한 관리자 본인의 계정 번호(UID) — ADMIN_OWNER_IDS 에 그대로 붙여 넣으라고 보여 준다.
+      return res.status(200).json({ ok: true, setup: setupStatus(process.env), me: { userId: auth.userId || null, role: auth.role, authMethod: auth.authMethod } });
+    }
+    if (body.action === "sms-test") {
+      const to = [process.env.OWNER_PHONE_1, process.env.OWNER_PHONE_2].find((p) => /^01[016789]\d{7,8}$/.test(String(p || "").replace(/\D/g, "")));
+      if (!to) return res.status(400).json({ error: "사장님 번호(OWNER_PHONE_1)가 없어서 시험 문자를 보낼 곳이 없어요." });
+      const r = await sendTransactionalText({
+        to,
+        text: "[꽃안부] 시험 문자예요.\n이 문자가 오면 주문 확인·배송 사진 문자도 나가요.",
+        subject: "꽃안부 시험 문자",
+      });
+      await audit("sms-test", "setup", "owner_phone", r.sent ? "sent" : String(r.reason || "failed"));
+      return res.status(r.sent ? 200 : 502).json({ ok: !!r.sent, reason: r.reason || null, status: r.status || null });
+    }
+    return res.status(400).json({ error: "알 수 없는 요청입니다." });
+  }
 
   // ─────────────────────── 신규상품 (#1) ───────────────────────
   if (body.resource === "product") {

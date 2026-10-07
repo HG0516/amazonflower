@@ -10,17 +10,24 @@
 1. Supabase SQL Editor에서 **`supabase-first-bundle.sql`** 전체 실행
 2. Vercel Production 환경변수에 `.env.example`의 1차 묶음 항목 설정
    - 첫 배포는 `PAYMENT_INTENTS_REQUIRED=0`, `ADMIN_AUTH_MODE=dual`
-   - 문자 계정 준비 전에는 `PHOTO_NOTICE_MODE=manual`
+   - ~~문자 계정 준비 전에는 `PHOTO_NOTICE_MODE=manual`~~ → 10/7부터 **안 넣어도 됨**: 문자 키가 없으면 자동으로 직접 전달(사장님 텔레그램에 손님 링크)
 3. 새 코드 배포 후 보호된 결제 대사 endpoint를 1회 실행하고 성공 heartbeat 확인
 4. **`supabase-first-bundle-activate.sql`** 실행 → 5~10분 후
    `first_bundle_readiness()`의 `active_ready=true` 확인
 5. 배포 전에 열려 있던 결제창의 최대 유효시간(2시간)이 지난 뒤
    `PAYMENT_INTENTS_REQUIRED=1`로 전환
 6. 사장님 Supabase 로그인과 UID allowlist를 확인한 뒤 `ADMIN_AUTH_MODE=jwt`로 전환
+   - 10/7 확인: 관리자 화면(admin-auth.js)은 이미 네이버 로그인만 쓰고 비밀번호를 안 보낸다 → **바로 jwt + `ADMIN_PASSWORD` 삭제 가능**.
+     목록(ADMIN_OWNER_IDS 등)이 비어 있으면 lib/admin-auth.mjs 의 기본 대표 계정(형구 네이버)이 대표 관리자.
+     ADMIN_OWNER_IDS 를 넣을 땐 **형구 UID 도 꼭 함께**(넣는 순간 기본 계정이 빠진다) — UID 는 /admin-setup.html 에서 복사.
 7. `node scripts/audit-first-bundle.mjs`가 exit 0인지 최종 확인
 
 > 환불은 꽃안부 관리자 화면에서 시작해야 outbox·발주중지·자동복구가 함께 기록됩니다.
 > 토스 상점관리자에서 바로 취소하는 것은 관리 화면이 **수동 취소 확인**을 안내한 건에만 사용하세요.
+
+> **설정 점검 화면**(10/7): https://floweranbu.co.kr/admin-setup.html (대표 관리자) — 키·스위치가 들어갔는지 '있다/없다'만,
+> 문자 시험 발송 버튼, 내 계정 UID 복사. 밖에서 보는 확인: `GET /api/order-meta?setup=1`(손님 기능 켜짐만).
+> 환경변수를 바꾼 뒤에는 **Redeploy** 해야 반영된다.
 
 ---
 

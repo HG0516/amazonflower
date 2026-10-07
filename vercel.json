@@ -189,6 +189,11 @@
       "source": "/admin-products",
       "destination": "/admin-products.html",
       "permanent": false
+    },
+    {
+      "source": "/admin-setup",
+      "destination": "/admin-setup.html",
+      "permanent": false
     }
   ],
   "rewrites": [

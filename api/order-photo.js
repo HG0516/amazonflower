@@ -24,6 +24,7 @@ import {
   normalizeKoreanMobile,
   sendTransactionalText,
 } from "../lib/solapi.mjs";
+import { photoNoticeEffective } from "../lib/setup-status.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -119,7 +120,8 @@ async function deleteObject(supabaseUrl, serviceKey, path) {
 async function sendCustomerNotice({ order, guestToken, oid, path, supabaseUrl, serviceKey, leaseUntil }) {
   const phone = normalizeKoreanMobile(order.sender_phone) || normalizeKoreanMobile(order.orderer_phone);
   const base = publicBaseUrl();
-  const noticeMode = String(process.env.PHOTO_NOTICE_MODE || "auto").trim().toLowerCase();
+  // 문자 키가 없으면(그리고 PHOTO_NOTICE_MODE 가 solapi 로 강제되지 않았으면) 직접 전달로 — lib/setup-status.mjs
+  const noticeMode = photoNoticeEffective(process.env);
   const link = base ? `${base}/delivery-photo.html#t=${guestToken}` : "";
   let result;
   if (noticeMode === "manual") {
