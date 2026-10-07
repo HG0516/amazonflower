@@ -15,6 +15,26 @@ const NEEDS = ["본식 부케", "촬영용 부케", "부토니아·코사지", "
 const cleanStr = (s, n) =>
   String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, n);
 
+// 사장님 텔레그램 한 줄. 토큰·방 번호 없으면 조용히 건너뛴다.
+async function tgSend(text) {
+  const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
+  if (!tg || !tgc) return false;
+  const r = await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: tgc, text, disable_web_page_preview: true }),
+  });
+  return r.ok;
+}
+// 로그인 실패 보고 — 같은 곳에서 10분에 3번까지만(텔레그램 도배 방지). 함수 인스턴스마다 따로 세지만 충분하다.
+const AUTH_ERR_SEEN = new Map();
+function authErrorAllowed(ip) {
+  const now = Date.now();
+  const list = (AUTH_ERR_SEEN.get(ip) || []).filter((t) => now - t < 10 * 60000);
+  if (list.length >= 3) { AUTH_ERR_SEEN.set(ip, list); return false; }
+  list.push(now); AUTH_ERR_SEEN.set(ip, list);
+  return true;
+}
+
 // 참고 사진 1장을 Supabase 스토리지(gallery 버킷, 공개)에 올리고 URL 반환. 실패하면 null.
 async function uploadInqPhoto(dataUrl, URL, KEY) {
   if (typeof dataUrl !== "string" || !/^data:image\/(jpeg|jpg|png);base64,/.test(dataUrl)) return null;
@@ -157,6 +177,24 @@ export default async function handler(req, res) {
     const out = await handleCardPost(body, req).catch((e) => { console.error("card post", e && e.message); return { status: 503, body: { error: "잠시 후 다시 시도해 주세요.", fallback: true } }; });
     res.setHeader("Cache-Control", "no-store");
     return res.status(out.status).json(out.body);
+  }
+
+  // ── 로그인 실패 보고(10/7) — auth.js 가 돌려받은 #error 를 사장님 텔레그램으로. 값은 짧게 자르고 링크는 지운다. 늘 200. ──
+  if (body.type === "auth-error") {
+    res.setHeader("Cache-Control", "no-store");
+    const ip = String(req.headers["x-vercel-forwarded-for"] || req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "?";
+    if (!authErrorAllowed(ip)) return res.status(200).json({ ok: true, muted: true });
+    const pick = (k, n) => cleanStr(body[k], n).replace(/https?:\/\/\S+/g, "[링크]");
+    const provider = ["kakao", "naver", "google", "apple"].includes(body.provider) ? body.provider : "모름";
+    const text = [
+      `⚠️ 로그인 실패 보고 — ${provider}`,
+      `오류: ${pick("error", 60) || "-"} / ${pick("code", 60) || "-"}`,
+      `설명: ${pick("description", 300) || "-"}`,
+      `화면: ${pick("page", 80) || "/"}`,
+      `기기: ${cleanStr(req.headers["user-agent"], 120) || "-"}`,
+    ].join("\n");
+    await tgSend(text).catch(() => {});
+    return res.status(200).json({ ok: true });
   }
 
   // ── 웨딩(신부 부케) 예약 상담 문의 ──

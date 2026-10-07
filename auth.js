@@ -424,7 +424,78 @@
     });
   }
 
+  // ── 돌아온 로그인 오류 보여주기(10/7) ──
+  // 카카오·구글·애플·네이버(매직링크) 어느 쪽이든 실패하면 Supabase 가 #error=…&error_description=… 을 붙여 돌려보내는데,
+  // 여태 아무 안내가 없어서 '로그인 버튼이 안 먹는다'로만 보였다. 이유를 보여 주고(쉬운 말 + 원문) 사장님 텔레그램에도 알린다.
+  var LOGIN_TRY_KEY = 'af_login_try';
+  var PROVIDER_NAMES = { kakao: '카카오', naver: '네이버', google: '구글', apple: '애플' };
+  function rememberTry(provider) {
+    try { sessionStorage.setItem(LOGIN_TRY_KEY, JSON.stringify({ p: provider, t: Date.now() })); } catch (e) {}
+  }
+  function lastTry() {
+    try {
+      var v = JSON.parse(sessionStorage.getItem(LOGIN_TRY_KEY) || 'null');
+      sessionStorage.removeItem(LOGIN_TRY_KEY);
+      return v && (Date.now() - v.t) < 30 * 60000 ? v : null;
+    } catch (e) { return null; }
+  }
+  function explainAuthError(provider, code, desc) {
+    var d = String(desc || '').toLowerCase();
+    if (code === 'otp_expired' || /expired/.test(d)) return '로그인 링크가 만료됐어요. 한 번 더 눌러 주세요.';
+    if (/email/.test(d) && /external provider|not provided|getting user email/.test(d)) return (PROVIDER_NAMES[provider] || '로그인 계정') + '에서 이메일을 받지 못해 계정을 만들지 못했어요. 다른 방법(네이버·구글)으로 로그인해 주세요.';
+    if (/verification|not completed|unverified|blocked|not verified/.test(d)) return (PROVIDER_NAMES[provider] || '이') + ' 로그인 앱이 아직 테스트(심사 전) 상태라 등록된 계정만 로그인돼요. 다른 방법으로 로그인해 주세요.';
+    if (code === 'access_denied' || /denied|cancel/.test(d)) return '로그인이 중간에 취소됐어요. 다시 시도해 주세요.';
+    if (/signups? not allowed/.test(d)) return '지금은 새 가입을 받지 않고 있어요.';
+    if (/already (registered|exists|linked)/.test(d)) return '같은 이메일로 다른 방법으로 가입된 계정이 있어요. 처음 가입한 방법으로 로그인해 주세요.';
+    return '로그인 서비스에서 오류가 돌아왔어요. 다른 방법으로 로그인해 보시고, 계속 안 되면 1577-2286 으로 알려 주세요.';
+  }
+  function showAuthError(provider, code, desc) {
+    injectStyles();
+    var ov = overlay();
+    ov.innerHTML =
+      '<div class="af-auth-sheet">'
+      + '<h3>' + (PROVIDER_NAMES[provider] ? PROVIDER_NAMES[provider] + ' ' : '') + '로그인이 안 됐어요</h3>'
+      + '<p>' + esc(explainAuthError(provider, code, desc)) + '</p>'
+      + (code || desc ? '<div style="font-size:12px;color:#9e9a8f;background:#f7f4ee;border-radius:8px;padding:8px 10px;margin:-8px 0 14px;word-break:break-all;">' + esc([code, desc].filter(Boolean).join(' · ')) + '</div>' : '')
+      + '<button class="af-auth-btn" style="background:#1f4733;color:#fff;" data-retry="1">다른 방법으로 로그인</button>'
+      + '<button class="af-auth-x">닫기</button>'
+      + '</div>';
+    ov.style.display = 'flex';
+    ov.querySelector('[data-retry]').onclick = function () { openLoginSheet(); };
+    ov.querySelector('.af-auth-x').onclick = function () { ov.style.display = 'none'; };
+  }
+  function handleReturnError() {
+    var src = '';
+    if (/(^#|[&#])(error|error_code|error_description)=/.test(location.hash)) src = location.hash.slice(1);
+    else if (/[?&](error|error_code|error_description)=/.test(location.search)) src = location.search.slice(1);
+    if (!src) return false;
+    var q = {};
+    src.split('&').forEach(function (kv) {
+      var i = kv.indexOf('='), k = i < 0 ? kv : kv.slice(0, i);
+      try { q[k] = decodeURIComponent((i < 0 ? '' : kv.slice(i + 1)).replace(/\+/g, ' ')); } catch (e) { q[k] = ''; }
+    });
+    if (!q.error && !q.error_code && !q.error_description) return false;
+    var tried = lastTry();
+    var provider = tried ? tried.p : '';
+    var code = q.error_code || q.error || '';
+    var desc = q.error_description || '';
+    // 주소에서 오류 꼬리를 떼서 새로고침·공유 때 또 안 뜨게
+    try {
+      var qs = location.search.replace(/([?&])(error|error_code|error_description)=[^&]*&?/g, '$1').replace(/[?&]$/, '');
+      history.replaceState(null, '', location.pathname + qs);
+    } catch (e) {}
+    showAuthError(provider, code, desc);
+    try {
+      fetch('/api/order-meta', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'auth-error', provider: provider, error: q.error || '', code: q.error_code || '', description: desc.slice(0, 300), page: location.pathname })
+      }).catch(function () {});
+    } catch (e) {}
+    return true;
+  }
+
   function login(provider) {
+    rememberTry(provider);
     // 네이버는 Supabase 미지원 → 백엔드 OAuth 흐름으로(매직링크로 정식 세션 발급)
     if (provider === 'naver') { location.href = '/api/naver-login'; return; }
     var opts = { redirectTo: location.origin + location.pathname };
@@ -461,6 +532,7 @@
   });
   sb.auth.onAuthStateChange(function (_event, session) {
     var user = session ? session.user : null;
+    if (user) { try { sessionStorage.removeItem(LOGIN_TRY_KEY); } catch (e) {} }
     window.afAuth.user = user;
     renderChip(user);
     refreshAdminAccess(session);
@@ -468,8 +540,10 @@
 
   // 안전: DOM 준비 전이면 칩만 미리
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { renderChip(window.afAuth.user); });
+    document.addEventListener('DOMContentLoaded', function () { renderChip(window.afAuth.user); handleReturnError(); });
   } else {
     renderChip(window.afAuth.user);
+    handleReturnError();
   }
+  window.addEventListener('hashchange', function () { handleReturnError(); });
 })();
