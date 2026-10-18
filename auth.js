@@ -27,9 +27,12 @@
     if (window.afAuth && window.afAuth.user) openAccountSheet(); else openLoginSheet();
   };
 
+  // 네이버 로그인 버튼 가이드(10/18 형구, 검수 대비): 배경 #03A94D, 흰 N 로고 16px 이상·글자보다 크게, 로고-글자 8px(.af-auth-btn gap).
+  // N 모양은 네이버 공식 파일(NAVER_login_KR.ai)에서 그대로 옮긴 것 — 비율·모양 바꾸지 말 것.
+  var NAVER_N = '<svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" style="flex:0 0 auto;display:block"><path fill="#fff" d="M13.561 10.706L6.146 0L0 0L0 20L6.44 20L6.44 9.298L13.855 20L20 20L20 0L13.561 0Z"/></svg>';
   var ENABLED_PROVIDERS = [
     { id: 'kakao', label: '카카오로 시작하기', bg: '#FEE500', fg: '#191600' },
-    { id: 'naver', label: '네이버로 시작하기', bg: '#03C75A', fg: '#ffffff', custom: true },
+    { id: 'naver', label: '네이버로 시작하기', bg: '#03A94D', fg: '#ffffff', icon: NAVER_N, custom: true },
     { id: 'google', label: 'Google로 시작하기', bg: '#ffffff', fg: '#1f1d18', border: '#dcd9cf' },
     { id: 'apple', label: 'Apple로 시작하기', bg: '#000000', fg: '#ffffff' }
     // 네이버=Supabase 미지원이라 백엔드 OAuth(api/naver-*) + 매직링크로 처리(custom). 애플=Apple Developer($99) 후 Supabase 설정.
@@ -198,7 +201,7 @@
     var ov = overlay();
     var btns = availableProviders().map(function (p) {
       var style = 'background:' + p.bg + ';color:' + p.fg + ';' + (p.border ? 'border:1px solid ' + p.border + ';' : '');
-      return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + p.label + '</button>';
+      return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + (p.icon || '') + p.label + '</button>';
     }).join('');
     ov.innerHTML =
       '<div class="af-auth-sheet">'
@@ -232,7 +235,7 @@
     var ov = overlay();
     var btns = availableProviders().map(function (p) {
       var style = 'background:' + p.bg + ';color:' + p.fg + ';' + (p.border ? 'border:1px solid ' + p.border + ';' : '');
-      return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + p.label.replace('시작하기', '계속하기') + '</button>';
+      return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + (p.icon || '') + p.label.replace('시작하기', '계속하기') + '</button>';
     }).join('');
     ov.innerHTML =
       '<div class="af-auth-sheet">'
