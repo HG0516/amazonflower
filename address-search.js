@@ -91,6 +91,9 @@
     }).embed(box);
   }
 
+  // 버튼 모양도 이 스타일에 들어 있다 → 첫 클릭 전에도 보이게 처음부터 넣는다(전엔 회색 기본 버튼으로 보였음, 10/19).
+  injectStyles();
+
   // 전역 노출
   window.openPostcode = function (inputId) {
     targetInput = document.getElementById(inputId);
