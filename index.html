@@ -1812,11 +1812,11 @@ const TOPPINGS = {
   top_card:    {nm:"손글씨 카드",          price:5000,  d:"메시지를 카드에 정성껏 적어 동봉"}, // 구주문 호환(미노출)
   top_cake:    {nm:"케이크 소형",          price:39000, d:"작은 케이크를 함께 (생신·기념일)"},
   top_planting:{nm:"추가 식재",            price:40000, d:"화분에 식물을 더 심어 풍성하게"},
-  // 배송 할증 — regions.js 판정 등급과 짝: 1만→deliv1, 2만→deliv_far, 3만→deliv2.
+  // 배송 할증 — regions.js 솔 님 목록 금액과 짝: 1만→deliv1, 2만→deliv_far, 3만→deliv2. 주소가 맞으면 자동으로 들어간다.
   // 예전엔 1만/3만뿐이라 '2만원 추가' 지역에 맞는 항목이 없었다. 가격은 products.mjs 와 반드시 같아야 한다.
-  top_deliv1:    {nm:"추가 배송비 (원거리)",    price:10000, d:"군 단위·외곽 등 원거리 지역", grp:"deliv"},
-  top_deliv_far: {nm:"추가 배송비 (먼 지역)",   price:20000, d:"강원 산간·경북 동해안 등 더 먼 지역", grp:"deliv"},
-  top_deliv2:    {nm:"추가 배송비 (도서·산간)", price:30000, d:"도서·산간·제주 등 먼 지역", grp:"deliv"},
+  top_deliv1:    {nm:"추가지역 배송비 1만",    price:10000, d:"주소가 추가지역이면 자동으로 들어가요", grp:"deliv"},
+  top_deliv_far: {nm:"추가지역 배송비 2만",   price:20000, d:"주소가 추가지역이면 자동으로 들어가요", grp:"deliv"},
+  top_deliv2:    {nm:"추가지역 배송비 3만", price:30000, d:"주소가 추가지역이면 자동으로 들어가요", grp:"deliv"},
 };
 // 배송 할증은 화환만의 일이 아니다(꽃다발도 정선으로 가면 원거리) → 전 품목에 둔다.
 // 화면에는 주소가 그 지역으로 판정됐을 때만 뜬다(renderToppings 의 deliv 필터).
@@ -1976,6 +1976,8 @@ function qtyRowHtml(){
 async function toggleTopping(code){
   order.toppings = order.toppings||[];
   const i=order.toppings.indexOf(code);
+  // 주소가 추가지역이면 그 배송비는 뺄 수 없다(빼면 사장님이 전화로 다시 받아야 한다). 주소를 고치면 따라 바뀐다.
+  if(i>=0 && (TOPPINGS[code]||{}).grp==="deliv" && typeof afDelivTopping==="function" && afDelivTopping()===code) return;
   if(i>=0){ order.toppings.splice(i,1); }
   else{
     // 같은 grp(단계 옵션)은 하나만 — 켜기 전에 같은 그룹 다른 선택 해제
@@ -2622,6 +2624,7 @@ function afAreaCheck(raw){
   if(typeof regionCheck!=="function") return { kind:"ok" };
   // regionCheck 는 4자 미만을 일부러 건너뛴다(주소를 치는 중 헛걸림 방지). 여기선 다 적은 뒤라 앞에 빈말을 붙여 넘긴다.
   var r=regionCheck(a.length<4 ? "배송지 "+a : a);
+  if(r && r.soft) return { kind:"soft" };
   if(r) return { kind: r.blocked ? "blocked" : "extra", r:r };
   // 시·도를 적었으면 regionCheck 결과가 맞다. 안 적었으면 도 힌트 때문에 못 걸린 곳이 있는지 본다.
   if(/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|충청|전북|전남|전라|경북|경남|경상|제주)/.test(a)) return { kind:"ok" };
@@ -2643,7 +2646,8 @@ function afAreaRender(final){
   var c=afAreaCheck(inp.value), cls="", msg="";
   if(c.kind==="short"){ if(!final && inp.value.trim()) return; msg="받으실 곳의 시·군·구나 동 이름을 적어 주세요 (예: 경기 시흥시, 서울 강남구)."; }
   else if(c.kind==="blocked"){ cls="bad"; msg=c.r.note; }
-  else if(c.kind==="extra"){ cls="warn"; msg=escapeHtml(c.r.name)+" 지역은 추가 배송비(<b>"+escapeHtml(c.r.label)+"</b>)가 "+(c.r.part?"있을 수 있어요":"붙어요")+". 주문은 그대로 하시면 되고, 정확한 금액과 배송 가능 여부는 사장님이 확인해 연락드려요."; }
+  else if(c.kind==="extra"){ cls="warn"; msg=escapeHtml(c.r.name)+" 지역은 배송비 <b>"+c.r.amt.toLocaleString()+"원</b>이 더 붙어요. 주문서에 주소를 넣으면 결제 금액에 함께 들어가요."; }
+  else if(c.kind==="soft"){ cls="warn"; msg="산간 지역은 배송비가 더 붙을 수 있어요. 붙게 되면 사장님이 먼저 전화드려요."; }
   else if(c.kind==="ambiguous"){ cls="warn"; msg="정확히 확인하려면 시·도까지 함께 적어 주세요 (예: "+escapeHtml(c.prov)+" "+escapeHtml(c.n)+")."; }
   else { if(!final && inp.value.trim().length<3) return; cls="ok"; msg="✓ 추가 배송비 없이 보내 드리는 지역이에요. 평일 18시·주말 16시까지 주문하시면 당일 배송돼요."; }
   out.className="ac-out "+cls; out.innerHTML=msg;
@@ -2728,7 +2732,13 @@ function afConfirmNeeds(){
   const place=[order.address,order.venue,order.venueDetail].filter(Boolean).join(" ");
   const rg=(typeof regionCheck==="function") ? regionCheck(place) : null;
   if(rg && rg.blocked) out.push({tag:"지역", msg:rg.note});
-  else if(rg) out.push({tag:"지역", msg:`${rg.name} 지역은 추가 배송비(${rg.label})가 ${rg.part?"발생할 수 있어요":"발생합니다"}. 정확한 금액과 배송 가능 여부는 사장님이 확인해 연락드립니다.`});
+  // 솔 님 목록에 있는 곳은 배송비를 결제 금액에 넣어 두니 '확정 필요'가 아니다. 사장님 알림에 태그만 단다.
+  else if(rg && rg.topping){
+    const has=(order.toppings||[]).includes(rg.topping);
+    // 태그가 하나라도 있으면 사장님 텔레그램·손님 문자에 '확인 필요'로 나간다 → 넣어 둔 건 태그 없이(옵션 이름으로 보임)
+    out.push({tag:has?"":"추가지역 미포함", fee:true, rg:rg});
+  }
+  else if(rg && rg.soft) out.push({tag:"", soft:true});
 
   const mm=afPlaceMismatch();
   if(mm) out.push({tag:"상품", msg:mm});
@@ -2740,27 +2750,22 @@ function afDelivTopping(){
   const place=[order.address,order.venue,order.venueDetail].filter(Boolean).join(" ");
   const rg=(typeof regionCheck==="function") ? regionCheck(place) : null;
   if(!rg || rg.blocked) return "";           // 배송 불가는 금액을 물릴 일이 아니라 사장님이 확인할 일
-  return ({1:"top_deliv1",2:"top_deliv_far",3:"top_deliv_far",4:""})[rg.level] || "";
+  return rg.topping || "";                    // 1만 top_deliv1 · 2만 top_deliv_far · 3만 top_deliv2 (regions.js)
 }
 
 /**
  * 주소를 고치면 담아둔 배송비도 따라가야 한다.
  * 정선(2만원)으로 담아뒀다가 서울로 고쳤는데 2만원이 남아 있으면 안 받을 돈을 받는 것이고,
  * 연천(1만원)으로 고쳤는데 2만원이 남아 있어도 마찬가지다.
- * 안 맞는 건 빼기만 한다 — 새로 넣는 건 손님이 직접 눌러야 금액이 오른다.
+ * 10/18부터 목록에 있는 곳이면 맞는 배송비를 바로 넣는다(B안). 사장님이 전화로 추가금을 받지 않게.
  */
 function afSyncDelivTopping(){
   const want=afDelivTopping();
   const cur=(order.toppings||[]).filter(c=>(TOPPINGS[c]||{}).grp==="deliv");
   cur.forEach(c=>{ if(c!==want) toggleTopping(c); });
+  if(want && TOPPINGS[want] && !(order.toppings||[]).includes(want)) toggleTopping(want);
 }
 
-/** 안내에서 '담기'를 누르면 해당 배송비를 얹는다. 손님이 눌러야만 금액이 오른다. */
-function afAddDeliv(){
-  const c=afDelivTopping(); if(!c) return;
-  if(typeof toggleTopping==="function" && !(order.toppings||[]).includes(c)) toggleTopping(c);
-  afRenderConfirmNote();
-}
 
 /** 받는 곳과 상품이 어긋나는지 — 주소 글자만 본다(바뀌는 외부 목록에 기대지 않게). */
 const AF_FUNERAL_PLACE=/(장례식장|장례문화원|장례예식장|추모공원|추모관|승화원|화장장|장사시설|빈소|영안실|영결식장)/;
@@ -2778,23 +2783,34 @@ function afPlaceMismatch(){
 
 /** 확정 필요 안내를 받는 곳 카드 아래에 띄운다. 막지 않고 알리기만 한다. */
 function afRenderConfirmNote(){
-  const old=document.getElementById("confirmNeed"); if(old) old.remove();
-  const needs=afConfirmNeeds(); if(!needs.length) return;
+  ["confirmNeed","confirmNeed2"].forEach(id=>{ const o=document.getElementById(id); if(o) o.remove(); });
+  const all=afConfirmNeeds();
+  const card=document.getElementById("confirmCard");
+  // 추가지역: 배송비를 결제 금액에 넣어 뒀다고 알린다. 목록 밖 읍면리는 약하게만.
+  const fee=all.find(n=>n.fee), soft=all.find(n=>n.soft);
+  if(card && (fee||soft)){
+    const fb=document.createElement("div");
+    fb.id="confirmNeed";
+    if(fee){
+      fb.style.cssText="border:1px solid #c8863c;background:#fdf7ee;border-radius:var(--radius);padding:12px 14px;margin-top:12px;font-size:var(--fs-caption);color:#8a5a18;line-height:1.7;";
+      fb.innerHTML=`📍 ${escapeHtml(fee.rg.name)} 지역은 배송비 <b>${fee.rg.amt.toLocaleString()}원</b>이 더 붙어요. 결제 금액에 넣어 둘게요.`;
+    } else {
+      fb.style.cssText="border:1px solid var(--line);background:#f7f7f3;border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:var(--fs-caption);color:var(--ink-soft);line-height:1.7;";
+      fb.textContent="산간 지역은 배송비가 더 붙을 수 있어요. 붙게 되면 사장님이 먼저 전화드려요.";
+    }
+    // 손님이 주소를 친 바로 아래에 보이게(카드 맨 끝은 달력 밑이라 안 보인다)
+    let anchor=document.getElementById("af_address"), up=anchor;
+    for(let k=0;up && k<3;k++){ const sb=up.parentElement && up.parentElement.querySelector(".addr-search-btn"); if(sb){ anchor=sb; break; } up=up.parentElement; }
+    if(anchor && card.contains(anchor)) anchor.insertAdjacentElement("afterend",fb); else card.appendChild(fb);
+  }
+  const needs=all.filter(n=>!n.fee && !n.soft); if(!needs.length) return;
   const box=document.createElement("div");
-  box.id="confirmNeed";
+  box.id="confirmNeed2";
   box.style.cssText="border:1px solid var(--warn,#c8863c);background:#fdf7ee;border-radius:var(--radius);padding:12px 14px;margin-top:12px;";
-  // 해당 지역 배송비를 미리 얹어두면 사장님이 따로 받지 않아도 된다. 손님이 눌러야만 오른다.
-  const dc=afDelivTopping();
-  const already=dc && (order.toppings||[]).includes(dc);
-  const addBtn = (dc && !already && window.TOPPINGS && TOPPINGS[dc])
-    ? `<button type="button" onclick="afAddDeliv()" style="margin-top:10px;padding:10px 14px;border:1px solid #c8863c;background:#fff;color:#8a5a18;border-radius:var(--radius);font-family:var(--font-body);font-size:var(--fs-caption);font-weight:700;cursor:pointer;">추가 배송비 ${TOPPINGS[dc].price.toLocaleString()}원 미리 담기</button>`
-    : (already ? `<div style="margin-top:8px;font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">✓ 추가 배송비를 담았어요</div>` : "");
   box.innerHTML='<div style="font-weight:700;color:#8a5a18;margin-bottom:5px;">확인이 필요한 주문이에요</div>'
     +'<div style="font-size:var(--fs-caption);color:var(--ink-soft);line-height:1.75;">'
     + needs.map(n=>'· '+escapeHtml(n.msg)).join("<br>")
-    +'<br><br><b>주문은 그대로 받아드립니다.</b> 어려우면 사장님이 연락드린 뒤 전액 환불해 드려요.</div>'
-    + addBtn;
-  const card=document.getElementById("confirmCard");
+    +'<br><br><b>주문은 그대로 받아드립니다.</b> 어려우면 사장님이 연락드린 뒤 전액 환불해 드려요.</div>';
   if(card) card.appendChild(box);
 }
 
@@ -2967,7 +2983,7 @@ async function requestPay(){
   }catch(_e){}
   // 확정이 필요한 건이면 사장님 문자·텔레그램에 실려 가게 태그를 붙인다.
   // (서버가 신뢰하는 값이 아니라 '알림용 메모'다 — 금액·상품 검증은 서버가 따로 한다)
-  try{ order.confirmTags=afConfirmNeeds().map(n=>n.tag); }catch(_){ order.confirmTags=[]; }
+  try{ order.confirmTags=afConfirmNeeds().map(n=>n.tag).filter(Boolean); }catch(_){ order.confirmTags=[]; }
   const _rnd=(window.crypto&&crypto.randomUUID)
     ? crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase()
     : (Date.now().toString(36)+Math.random().toString(36).slice(2,10)).toUpperCase();
@@ -3526,52 +3542,56 @@ const POLICY = {
     "\n"+
     "[ 배송비 추가 지역 ]\n"+
     "※ 배송비 추가 지역은 배송지 사정에 따라 변경될 수 있습니다.\n"+
+    "※ 받는 곳 주소가 아래 지역이면 추가 배송비가 결제 금액에 함께 들어갑니다.\n"+
     "\n"+
     "▸ 경기도\n"+
-    "  1만원 추가 · 연천, 가평, 양평, 의정부, 양주, 포천\n"+
-    "  배송 불가 · 화성 공룡알화석지, 대부도\n"+
+    "  1만원 추가 · 가평군, 연천군, 양평 양서면, 용인 남사읍, 남양주 화도읍, 안성 일죽, 청담 채플, 플로팅아일랜드\n"+
+    "  2만원 추가 · 포천 금강산·영북농협·관인장례식장\n"+
+    "  배송 불가 · 화성 공룡알화석지\n"+
     "\n"+
     "▸ 인천\n"+
-    "  1~2만원 추가 · 운서동\n"+
-    "  2만원 추가 · 대부도, 영종도\n"+
-    "  배송 불가 · 옹왕린, 옹진군\n"+
+    "  2만원 추가 · 영종\n"+
+    "  배송 불가 · 옹진군\n"+
     "\n"+
     "▸ 강원도\n"+
-    "  1만원 추가 · 영월, 원주, 삼척, 철원, 양구, 속초, 인제, 양양, 홍천, 강릉, 동해, 춘천\n"+
-    "  1~2만원 추가 · 횡성\n"+
-    "  2만원 추가 · 고성, 화천, 평창, 정선\n"+
-    "  배송 불가 · 임계면\n"+
+    "  1만원 추가 · 강원 전 지역\n"+
+    "  2만원 추가 · 횡성군, 인제군, 강릉 주문진, 원주 문막\n"+
+    "  3만원 추가 · 평창군, 동해시, 고성 죽왕면\n"+
+    "  배송 불가 · 정선 임계면\n"+
     "\n"+
     "▸ 충청북도\n"+
-    "  1만원 추가 · 영동, 오창읍, 내수읍, 괴산, 단양\n"+
-    "  2만원 추가 · 보은, 진천, 증평\n"+
+    "  1만원 추가 · 단양군, 진천군, 영동군, 청주 내수읍·오송읍·오창읍, 초정장례식장, 제천 명지병원장례식장\n"+
+    "  2만원 추가 · 보은군\n"+
     "\n"+
     "▸ 충청남도\n"+
-    "  1만원 추가 · 청양, 논산\n"+
+    "  1만원 추가 · 청양군, 금산군, 논산 정동, 당진 합덕읍, 보령 웅천읍, 계룡 엄사면, 공주 이인면·유구읍, 송산장례문화원, 유리병원\n"+
     "\n"+
     "▸ 전라북도\n"+
-    "  1만원 추가 · 무주, 진안, 장수, 남원, 순창, 완주, 고창, 임실\n"+
-    "  배송 불가 · 변산반도\n"+
+    "  1만원 추가 · 남원시, 무주군, 순창군, 임실군, 익산 함열\n"+
+    "  2만원 추가 · 진안군, 장수군\n"+
+    "  3만원 추가 · 장수 장계면\n"+
+    "  배송 불가 · 부안 변산반도\n"+
     "\n"+
     "▸ 전라남도\n"+
-    "  1만원 추가 · 곡성, 장흥, 진도, 해남, 나주, 광양, 보성, 완도, 영암, 구례\n"+
-    "  2만원 추가 · 고흥\n"+
-    "  배송 불가 · 땅끝마을, 소록도, 신안군 일부 지역, 기타 외곽 섬마을\n"+
+    "  1만원 추가 · 곡성군, 담양군, 구례군, 해남군, 진도군, 함평군, 완도군, 나주 노안면, 보성 미력면, 화순고려장례식장\n"+
+    "  2만원 추가 · 고흥군, 영암군, 장흥군(관산·정남진장례식장), 해남 우수영장례식장\n"+
+    "  3만원 추가 · 신안군, 회진장례식장\n"+
+    "  배송 불가 · 땅끝마을, 소록도, 기타 외곽 섬마을\n"+
     "\n"+
     "▸ 경상북도\n"+
-    "  1만원 추가 · 울주, 의성, 영양, 군위, 청송, 고령, 영천, 문경, 상주, 영주, 영덕, 안동(풍산·풍전면), 대구 달성군, 경주시 일부 지역\n"+
-    "  2만원 추가 · 울진\n"+
-    "  배송 불가 · 감포읍\n"+
+    "  1만원 추가 · 고령군, 군위군, 봉화군, 영덕군, 예천군, 울진군, 청송군, 청도군, 문경, 상주시, 영주시, 영천시, 안동 풍산읍, 칠곡 동명면·가산면, 경주 안강읍·감포읍·서면·외동읍, 경산 하양읍·와촌면·자인면·진량읍, 포항 구룡포읍·기계면, 하늘마루\n"+
+    "  2만원 추가 · 영양군, 성주군, 청송 안덕면\n"+
     "\n"+
     "▸ 경상남도\n"+
-    "  1만원 추가 · 의령, 산청, 하동\n"+
-    "  2만원 추가 · 합천, 밀양\n"+
+    "  1만원 추가 · 남해군, 산청군, 고성군, 창녕군, 합천군, 함안군, 밀양, 김해 진영읍, 창원 진해구\n"+
+    "  2만원 추가 · 함양 마전\n"+
     "\n"+
-    "▸ 부산\n"+
-    "  기타 비용 추가 · 강서, 기장, 정관 일부 지역\n"+
+    "▸ 부산·대구·울산\n"+
+    "  1만원 추가 · 부산 기장·강서구·해운대, 대구 달성군, 울주군\n"+
     "\n"+
     "▸ 제주\n"+
-    "  1~2만원 추가 · 서귀포, 제주시 일부 지역\n"+
+    "  1만원 추가 · 제주 전 지역\n"+
+    "  2만원 추가 · 제주 구좌읍·애월읍·조천읍·한경면·한림읍, 서귀포 남원읍·대정읍·성산읍·안덕면·표선면\n"+
     "\n"+
     "[ 지정 상품만 배송 가능한 장소 ]\n"+
     "아래 장소에서는 지정된 상품만 배송됩니다. 확인 후 담당자가 개별로 연락드리며, 대체 상품으로 교체됩니다.\n"+

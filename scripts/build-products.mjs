@@ -72,9 +72,9 @@ const TOPPINGS = {
   // 금액은 regions.js 의 판정 등급과 짝이다: 1만 → deliv1, 2만 → deliv_far, 3만 → deliv2.
   // 예전엔 1만/3만 두 개뿐이라 '2만원 추가' 지역에 맞는 항목이 없었다.
   // ⚠️ 코드명은 바꾸지 말 것 — 지난 주문이 이 코드로 저장돼 있다.
-  top_deliv1:    { nm: "추가 배송비 (원거리)",     price: 10000, d: "군 단위·외곽 등 원거리 지역", grp: "deliv" },
-  top_deliv_far: { nm: "추가 배송비 (먼 지역)",    price: 20000, d: "강원 산간·경북 동해안 등 더 먼 지역", grp: "deliv" },
-  top_deliv2:    { nm: "추가 배송비 (도서·산간)",  price: 30000, d: "도서·산간·제주 등 먼 지역", grp: "deliv" },
+  top_deliv1:    { nm: "추가지역 배송비 1만",     price: 10000, d: "주소가 추가지역이면 자동으로 들어가요", grp: "deliv" },
+  top_deliv_far: { nm: "추가지역 배송비 2만",    price: 20000, d: "주소가 추가지역이면 자동으로 들어가요", grp: "deliv" },
+  top_deliv2:    { nm: "추가지역 배송비 3만",  price: 30000, d: "주소가 추가지역이면 자동으로 들어가요", grp: "deliv" },
 };
 // 배송 할증은 화환만의 일이 아니다(꽃다발도 정선으로 가면 원거리) → 전 품목에 둔다.
 // 다만 화면에는 주소가 원거리로 판정됐을 때만 뜬다(renderToppings 의 deliv 필터).
