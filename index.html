@@ -916,7 +916,8 @@
 
     <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분과 같아요 — 제가 직접 받아요</button>
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
-    <input type="text" id="senderName" autocomplete="name" enterkeyhint="next" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this)" />
+    <input type="text" id="senderName" autocomplete="name" enterkeyhint="next" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this);afNameHint()" />
+    <button type="button" id="senderNameHint" class="same-btn" style="display:none;" onclick="afUseAccountName()"></button>
     <label class="fl">연락처 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 도착 확인 사진을 이 번호로 보내드립니다</span></label>
     <input type="tel" id="senderPhone" autocomplete="tel" enterkeyhint="done" placeholder="010-0000-0000" inputmode="tel" oninput="formatPhone(this);clearErr(this)" />
     <div class="ribbon-only">
@@ -1903,10 +1904,26 @@ function afSyncMemberFold(){
   const user=window.afAuth&&window.afAuth.user;
   f.style.display=(user||guest)?"none":"";
   if(user) order.memberChoice="member";
-  if(user){ const sn=document.getElementById("senderName"); const nm=(user.user_metadata||{}).full_name||(user.user_metadata||{}).name||"";
-    if(sn && !sn.value && nm && !/^[^@]+@/.test(nm)){ sn.value=nm; order.senderName=nm; if(typeof syncRibbonLeft==="function") try{ syncRibbonLeft(); }catch(_){} } }
+  afNameHint();
 }
 window.addEventListener("af-order-gate", afSyncMemberFold);
+// 로그인 이름(카카오 닉네임 등)은 영어·별명일 수 있는데 리본에 그대로 인쇄된다 → 칸을 미리 채우지 않고
+// 성함 칸 아래 '내 계정 이름 넣기' 버튼으로만 권한다. 손님이 눌러야 들어간다(10/19 형구).
+function afAccountName(){
+  const user=window.afAuth&&window.afAuth.user; if(!user) return "";
+  const m=user.user_metadata||{}; const nm=String(m.full_name||m.name||"").trim();
+  return (nm && !/^[^@]+@/.test(nm)) ? nm : "";
+}
+function afNameHint(){
+  const b=document.getElementById("senderNameHint"), sn=document.getElementById("senderName"); if(!b||!sn) return;
+  const nm=afAccountName();
+  if(nm && !sn.value.trim()){ b.textContent="내 계정 이름 넣기 · "+nm; b.style.display=""; } else b.style.display="none";
+}
+function afUseAccountName(){
+  const sn=document.getElementById("senderName"), nm=afAccountName(); if(!sn||!nm) return;
+  sn.value=nm; try{ syncRibbonLeft(); }catch(_){} if(typeof clearErr==="function") clearErr(sn); afNameHint();
+}
+document.addEventListener("af-auth-change", afNameHint);
 // /?cart=1 로 들어오면 장바구니 첫 상품으로 주문서를 열고 나머지를 함께 보내는 상품으로 둔다.
 function afBootCart(){
   var q; try{ q=new URLSearchParams(location.search); }catch(_){ return; }
