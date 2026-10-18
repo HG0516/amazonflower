@@ -5,7 +5,7 @@
 //  그 외(기본)                → 상품 편집: product_overrides upsert (이름·설명·사진·품절)
 //
 // 보안: Supabase access token 검증 + 서버 allowlist/역할(owner·staff). 전환기 dual 모드에서만
-//   기존 ADMIN_PASSWORD를 허용한다. 입력 정화, JPEG 매직바이트, 자기 도메인 CORS,
+//   (예전 ADMIN_PASSWORD 경로는 10/18 닫음.) 입력 정화, JPEG 매직바이트, 자기 도메인 CORS,
 //   no-store를 적용하며 orders는 service_role로만 조회한다.
 
 import crypto from "node:crypto";

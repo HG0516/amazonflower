@@ -106,12 +106,20 @@ test("배송 사진: 문자 키가 없고 PHOTO_NOTICE_MODE 도 없으면 실패
 
 const ADMIN_ENV = {
   SUPABASE_URL: "https://project.example.test", SUPABASE_SERVICE_ROLE_KEY: "service-test-key",
-  ADMIN_PASSWORD: "legacy-pw", ADMIN_AUTH_MODE: "dual",
+  ADMIN_PASSWORD: "legacy-pw", ADMIN_AUTH_MODE: "dual", ADMIN_OWNER_IDS: "owner-uid",
 };
-const adminReq = (body) => ({ method: "POST", url: "/api/admin", headers: {}, body: { password: "legacy-pw", ...body } });
+const adminReq = (body) => ({ method: "POST", url: "/api/admin", headers: { authorization: "Bearer owner-token" }, body });
+// Supabase 로그인 확인(/auth/v1/user)만 대신 답하고 나머지는 그 시험의 fetch 로
+const asOwner = (fn) => async (input, options = {}) => {
+  if (String(input).includes("/auth/v1/user")) {
+    const ok = String(options.headers && options.headers.Authorization) === "Bearer owner-token";
+    return ok ? Response.json({ id: "owner-uid", email: "owner@example.test" }) : new Response("{}", { status: 401 });
+  }
+  return fn(input, options);
+};
 
 test("관리자 설정 점검: 대표 관리자만, 값 없이 상태만", withEnv({ ...ADMIN_ENV, SOLAPI_API_KEY: "NCSKEYVALUE123" }, async () => {
-  globalThis.fetch = async () => new Response(null, { status: 201 });   // 감사 기록
+  globalThis.fetch = asOwner(async () => new Response(null, { status: 201 }));   // 감사 기록
   const res = mockRes();
   await admin(adminReq({ resource: "setup", action: "check" }), res);
   assert.equal(res.statusCode, 200);
@@ -123,13 +131,17 @@ test("관리자 설정 점검: 대표 관리자만, 값 없이 상태만", withE
   const denied = mockRes();
   await admin({ method: "POST", url: "/api/admin", headers: {}, body: { resource: "setup", action: "check", password: "wrong" } }, denied);
   assert.equal(denied.statusCode, 401);
+  // 10/18: 맞는 예전 비밀번호도 dual 모드에서 더는 안 열린다
+  const legacy = mockRes();
+  await admin({ method: "POST", url: "/api/admin", headers: {}, body: { resource: "setup", action: "check", password: "legacy-pw" } }, legacy);
+  assert.equal(legacy.statusCode, 401, "예전 비밀번호 경로는 닫혔다");
 }));
 
 test("시험 문자: 사장님 번호로 한 통, 번호 없으면 400", withEnv({
   ...ADMIN_ENV, SOLAPI_API_KEY: "k", SOLAPI_API_SECRET: "s", SOLAPI_SENDER: "0313143003", OWNER_PHONE_1: "010-1234-5678",
 }, async () => {
   const sent = [];
-  globalThis.fetch = async (input, options = {}) => {
+  globalThis.fetch = asOwner(async (input, options = {}) => {
     const url = new URL(String(input));
     if (url.hostname === "api.solapi.com") {
       assert.match(options.headers.Authorization, /^HMAC-SHA256 apiKey=k, date=\S+, salt=[a-f0-9]{64}, signature=[a-f0-9]{64}$/);
@@ -137,7 +149,7 @@ test("시험 문자: 사장님 번호로 한 통, 번호 없으면 400", withEnv
       return Response.json({ groupInfo: { count: { registeredSuccess: 1, registeredFailed: 0 } } });
     }
     return new Response(null, { status: 201 });
-  };
+  });
   const res = mockRes();
   await admin(adminReq({ resource: "setup", action: "sms-test" }), res);
   assert.equal(res.statusCode, 200);

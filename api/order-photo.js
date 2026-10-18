@@ -225,11 +225,7 @@ export default async function handler(req, res) {
   const oid = validOrderId(body.orderId);
   if (!oid) return res.status(400).json({ error: "주문번호가 올바르지 않습니다." });
 
-  const adminAuth = await authenticateAdmin(req, body, {
-    supabaseUrl,
-    serviceKey,
-    allowLegacy: true,
-  });
+  const adminAuth = await authenticateAdmin(req, body, { supabaseUrl, serviceKey });
   const isAdmin = adminAuth.ok;
   const uploadSecret = getPhotoUploadSecret();
   const uploadAuth = verifyUploadToken({

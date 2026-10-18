@@ -78,9 +78,9 @@ function render(s, me){
   // 텔레그램
   h.push(row("텔레그램 주문 알림", s.telegram ? "on" : "warn", s.telegram ? "켜짐" : "없음", s.telegram ? "" : "<p>새 주문 알림이 아무 데도 안 가요. 바로 넣어야 해요.</p>"));
   // 관리자 로그인
-  const adminWarn = s.admin.mode !== "jwt" && s.admin.password;
+  const adminWarn = false; // 예전 비밀번호 경로는 10/18 코드로 닫음
   h.push(row("관리자 로그인", adminWarn ? "warn" : "on", adminWarn ? "비밀번호 뒷문 열림" : "계정 로그인만",
-    `<p>${adminWarn ? "관리자 화면은 네이버 로그인으로만 쓰는데, 서버는 예전 비밀번호도 받아 줘요. 비밀번호만 알면 환불까지 할 수 있어요. <code>ADMIN_AUTH_MODE</code>=<code>jwt</code> 넣고 <code>ADMIN_PASSWORD</code> 지우기." : "등록된 계정으로 로그인해야만 열려요."}</p>`
+    `<p>${s.admin.password ? "등록된 계정으로 로그인해야만 열려요. 예전 비밀번호는 서버가 더 받지 않아요(10/18). Vercel 의 <code>ADMIN_PASSWORD</code> 는 지워도 돼요." : "등록된 계정으로 로그인해야만 열려요."}</p>`
     + `<div class="det">방식 <code>${esc(s.admin.mode)}</code> · 대표 계정 번호 ${s.admin.ownerIds}개 · 직원 ${s.admin.staffIds}개 · 예전 비밀번호 ${s.admin.password?"남아 있음":"없음"}</div>`
     + (me && me.userId ? `<div class="det" style="margin-top:8px;">지금 로그인한 계정 번호(UID): <code id="myUid">${esc(me.userId)}</code></div><button class="btn ghost" id="copyUid">내 계정 번호 복사 (ADMIN_OWNER_IDS 에 붙여 넣기)</button>` : "")));
   // 결제 봉인
