@@ -749,7 +749,8 @@ function productsFor(key, sub, band){
 
 // 주문 버튼 문구 — 전 카테고리 공용(근조 포함 안전). 카드에 사진·상품명이 보여 '무엇을'은 이미 분명.
 // '마음'=브랜드(꽃안부) 결, '보내기'=주문 액션 명확. 감성어 '~전하기'는 액션 신호가 약해 제외.
-const ORDER_LABEL = "마음 담아 보내기";
+// 10/18 아버지: '마음 담아 보내기'·'장바구니에 담김 · 열어보기'가 헷갈린다 → 쇼핑몰에서 흔히 쓰는 '구매하기'·'장바구니'로.
+const ORDER_LABEL = "구매하기";
 const ORDER_VERB = { condolence:ORDER_LABEL, congrats:ORDER_LABEL, orchid:ORDER_LABEL, plant:ORDER_LABEL, basket:ORDER_LABEL, bouquet:ORDER_LABEL };
 // 관엽 크기는 원장 파일명에서 mm 로 들어온다(H1500=150cm). 방어적으로 300 초과면 mm→cm 변환.
 const cmH = (v) => (v > 300 ? Math.round(v / 10) : v);
@@ -1518,8 +1519,8 @@ function renderDetail(){
           : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
              <div class="pm-paychips">회원가입 없이 바로 주문 · 신용카드도 돼요<span class="paychips center" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></span></div>
              ${inCart
-                ? `<button class="pm-cart added" onclick="openCart()">장바구니에 담김 · 열어보기</button>`
-                : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}`}
+                ? `<button class="pm-cart added" onclick="openCart()">장바구니 보기</button>`
+                : `<button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">장바구니 담기</button>`}`}
         <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
       </div>
     </div>`;
@@ -1535,7 +1536,7 @@ function addToCartDetail(pc){ addToCart(pc,1); keepModalScroll(renderDetail); }
 
 /* ───────── 묶인 상품 상세(가격대·색 선택) ───────── */
 // 같은 이름 상품을 상세에서 가격대→색(사진)으로 고른다. 고르면 detailPc에 단일 상품코드가 잡혀
-// 상세의 '마음 담아 보내기'가 그 상품으로 주문(결제 검증 불변). pmodal 을 그대로 재사용한다.
+// 상세의 '구매하기'가 그 상품으로 주문(결제 검증 불변). pmodal 을 그대로 재사용한다.
 let groupSel = null;
 const GRADE_WORDS = ["일반","중급","고급","최고급","프리미엄"];
 function openGroup(name){
@@ -1595,7 +1596,7 @@ function renderGroupDetail(){
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
           : `<button class="pm-order" onclick="goOrderPc('${esc(p.pc)}')">${ORDER_VERB[p.cat]||ORDER_LABEL}</button>
              <div class="pm-paychips">회원가입 없이 바로 주문 · 신용카드도 돼요<span class="paychips center" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></span></div>
-             <button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">담아두고 더 둘러보기</button>`}
+             <button class="pm-cart" onclick="addToCartDetail('${esc(p.pc)}')">장바구니 담기</button>`}
         <button class="pm-share" onclick="shareItem('${esc(p.pc)}')">이 상품 공유하기</button>
       </div>
     </div>`;
