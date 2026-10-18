@@ -270,6 +270,9 @@
   .af-input-wrap { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fcfbf8; padding: 0 12px; }
   .af-input-wrap:focus-within { border-color: var(--ink); background: #fff; }
   .af-input-wrap input { border: none; outline: none; background: transparent; padding: 11px 0; flex: 1; font-size: 15px; }
+  .addr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 8px; }
+  .addr-row .addr-search-btn { margin-top: 0; }
+  .addr-hint { font-size: var(--fs-caption); color: var(--ink-faint); }
   .af-auto { font-size: var(--fs-label); color: var(--auto); background: var(--auto-bg); padding: 2px 7px; border-radius: var(--radius-sm); flex: 0 0 auto; font-weight: 600; letter-spacing: 0.5px; }
 
   /* ── 칩(신랑/신부) ── */
@@ -847,7 +850,7 @@
     <div class="af-linkbar" id="afLinkbar">
       <div class="af-lb-title">링크로 받는 곳 자동입력 <span>— 부고·청첩장·초대 링크가 있으면 붙여넣으세요 (선택)</span></div>
       <div class="af-lb-row">
-        <input type="text" inputmode="url" placeholder="문자로 받은 링크를 붙여넣기" oninput="var b=this.nextElementSibling;b.disabled=!this.value.trim();" />
+        <input type="text" inputmode="url" placeholder="링크 붙여넣기" oninput="var b=this.nextElementSibling;b.disabled=!this.value.trim();" />
         <button type="button" disabled onclick="afLinkParse()">자동입력</button>
       </div>
       <div class="af-lb-msg"></div>
@@ -1478,6 +1481,8 @@ function selMember(m){
   if(me) me.classList.toggle("on", m==="member");
   if(m==="member" && window.afOpenAuth) window.afOpenAuth();
 }
+// 칸이 비어 있는 주문서(상품·추천·화환)의 2번 안내. 기본 문구 '맞는지 확인'은 지난 주문 다시 담기처럼 채워 온 경우용.
+function afConfirmSubEmpty(){ const c=document.getElementById("confirmSub"); if(c) c.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 아래에 붙여넣으면 자동으로 채워져요."; }
 // 자동입력 칸 한 줄 생성 (applyParsed·applyOccasion 공용)
 function afField(key,label,val){
   val = val || "";
@@ -1489,8 +1494,8 @@ function afField(key,label,val){
     return `<div class="af-field"><label>받는 날짜 · 도착 시간</label><div id="dtWidget" class="dt-widget"></div></div>`;
   }
   if(key==='time'){ return ""; }  // 시간은 달력 위젯의 '도착 시간대'로 통합
-  var search = key==='address' ? '<button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button>' : '';
-  var ph = key==='address' ? '주소 검색을 눌러 찾으세요 (동·호는 직접 추가)' : '(비어있음 — 직접 입력)';
+  var search = key==='address' ? '<div class="addr-row"><button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button><span class="addr-hint">동·호수는 찾은 뒤 이어서 적어 주세요</span></div>' : '';
+  var ph = key==='address' ? '주소 검색을 눌러 주세요' : '(비어있음 — 직접 입력)';
   var ekh = key==='address' ? 'next' : (key==='time'?'done':'next');
   return `
     <div class="af-field"><label>${label}</label>
@@ -1519,6 +1524,7 @@ function applyOccasion(reco, text){
     + afField("date","받는 날짜")
     + afField("time","받는 시간");
   document.getElementById("confirmCard").classList.remove("hidden");
+  afConfirmSubEmpty();
   document.getElementById("sideCard").classList.add("hidden");
   renumber(false);
   document.getElementById("prodCard").classList.remove("hidden");
@@ -1582,7 +1588,7 @@ function applyParsed(r){
       <div class="af-input-wrap">
         <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="(비어있음 — 직접 입력)"/>
         ${val?'<span class="af-auto">자동</span>':''}
-      </div>${key==='address'?'<button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button>':''}</div>`;
+      </div>${key==='address'?'<div class="addr-row"><button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button><span class="addr-hint">동·호수는 찾은 뒤 이어서 적어 주세요</span></div>':''}</div>`;
   let html="";
   html+=field("recipientName","받는 분",order.recipientName);
   if(isWed){ html+=field("groomName","신랑",order.groomName); html+=field("brideName","신부",order.brideName); }
@@ -2827,7 +2833,7 @@ function afRenderConfirmNote(){
     }
     // 손님이 주소를 친 바로 아래에 보이게(카드 맨 끝은 달력 밑이라 안 보인다)
     let anchor=document.getElementById("af_address"), up=anchor;
-    for(let k=0;up && k<3;k++){ const sb=up.parentElement && up.parentElement.querySelector(".addr-search-btn"); if(sb){ anchor=sb; break; } up=up.parentElement; }
+    for(let k=0;up && k<3;k++){ const sb=up.parentElement && up.parentElement.querySelector(".addr-search-btn"); if(sb){ anchor=sb.closest(".addr-row")||sb; break; } up=up.parentElement; }
     if(anchor && card.contains(anchor)) anchor.insertAdjacentElement("afterend",fb); else card.appendChild(fb);
   }
   const needs=all.filter(n=>!n.fee && !n.soft); if(!needs.length) return;
@@ -3994,6 +4000,7 @@ function handleProductParam(){
   const tp=document.getElementById("typePill");
   if(tp) tp.innerHTML='<span class="type-pill">'+escapeHtml(P.name+(P.subtitle?" · "+P.subtitle:""))+' '+P.price.toLocaleString()+'원 — 받는 곳부터 알려주세요</span>';
   document.getElementById("confirmCard").classList.remove("hidden");
+  afConfirmSubEmpty();
   if(P.cat==="congrats"){ showCongratsOccasion(); }   // 축하화환 상품: 결혼/개업 자리 먼저 묻기
   else { document.getElementById("sideCard").classList.add("hidden"); renumber(false); }
   document.getElementById("prodCard").classList.remove("hidden");
@@ -4083,8 +4090,7 @@ function handleWorderParam(){
     + afField("date","날짜",order.date)
     + afField("time","시간",order.time);
   document.getElementById("confirmCard").classList.remove("hidden");
-  const _cs=document.getElementById("confirmSub");
-  if(_cs) _cs.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 아래에 붙여넣으면 자동으로 채워져요.";
+  afConfirmSubEmpty();
   if(isFun){ document.getElementById("sideCard").classList.add("hidden"); renumber(false); }
   else { showCongratsOccasion(); if(isWed) selOccasion("wedding"); }   // 축하화환: 결혼/개업 '자리'를 먼저 묻고 결혼일 때만 신랑/신부
   document.getElementById("prodCard").classList.remove("hidden");
