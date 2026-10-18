@@ -1884,6 +1884,26 @@ function afProd(pc){ return (window.PRODUCTS||[]).find(function(p){ return p.pc=
 function afExtrasTotal(){
   return AF_EXTRAS.reduce(function(sum,e){ var p=afProd(e.pc); return sum + (p ? p.price*e.qty : 0); }, 0);
 }
+// 구매하기로 들어온 주문(?pc · ?worder · ?cart)만 '로그인 또는 비회원' 시트를 먼저 띄운다(10/18 형구, auth.js afOrderGate).
+// 홈에서 부고장 링크를 붙여 시작한 주문은 로그인하고 돌아오면 붙인 내용이 사라지니, 예전처럼 결제 단계의 접힌 칸으로 둔다.
+var AF_GATE_RESUME="";
+function afGateOrder(labelHtml){
+  if(typeof afPendingRestore!=="undefined" && afPendingRestore) return;   // 결제 실패로 돌아온 주문을 다시 채우는 중이면 묻지 않는다
+  const resume=AF_GATE_RESUME||location.search;
+  // auth.js 는 defer 라 이 시점엔 아직 없을 수 있다 → 맡겨 두면 auth.js 가 뜰 때 연다
+  if(window.afOrderGate) window.afOrderGate(labelHtml, resume); else window.AF_PENDING_GATE=[labelHtml, resume];
+}
+// 구매하기 시트에서 이미 골랐거나 로그인한 상태면 결제 단계의 '비회원/로그인' 접힌 칸은 다시 묻지 않는다.
+function afSyncMemberFold(){
+  const f=document.getElementById("memberFold"); if(!f) return;
+  let guest=false; try{ guest=sessionStorage.getItem("af_order_guest")==="1"; }catch(_){}
+  const user=window.afAuth&&window.afAuth.user;
+  f.style.display=(user||guest)?"none":"";
+  if(user) order.memberChoice="member";
+  if(user){ const sn=document.getElementById("senderName"); const nm=(user.user_metadata||{}).full_name||(user.user_metadata||{}).name||"";
+    if(sn && !sn.value && nm && !/^[^@]+@/.test(nm)){ sn.value=nm; order.senderName=nm; if(typeof syncRibbonLeft==="function") try{ syncRibbonLeft(); }catch(_){} } }
+}
+window.addEventListener("af-order-gate", afSyncMemberFold);
 // /?cart=1 로 들어오면 장바구니 첫 상품으로 주문서를 열고 나머지를 함께 보내는 상품으로 둔다.
 function afBootCart(){
   var q; try{ q=new URLSearchParams(location.search); }catch(_){ return; }
@@ -1894,6 +1914,7 @@ function afBootCart(){
   var first=cart[0], fq=Math.max(1,Math.min(99,first.qty||1));
   AF_EXTRAS=cart.slice(1, 10).map(function(i){ return { pc:i.pc, qty:Math.max(1,Math.min(99,i.qty||1)) }; });
   try{ history.replaceState({},"","/?pc="+encodeURIComponent(first.pc)+(fq>1?"&qty="+fq:"")); }catch(_){}
+  AF_GATE_RESUME="?cart=1";   // 로그인하고 돌아오면 장바구니 전체로 다시 연다
 }
 function afSyncTotals(){
   if(typeof updateDesignTotal==="function") updateDesignTotal();
@@ -3806,6 +3827,7 @@ function enterOrderMode(labelHtml){
   const b=document.getElementById("catalogBanner");
   if(b) b.classList.add("hidden");
   afOpenPayCard();
+  afSyncMemberFold();
   if(typeof updateBuyBar==="function") updateBuyBar();
 }
 function afOpenPayCard(){
@@ -3939,6 +3961,7 @@ function handleProductParam(){
   const _qn=parseInt(q.get("qty"),10);
   if(Number.isFinite(_qn)&&_qn>=1&&_qn<=99){ order.quantity=_qn; const _qd=document.getElementById("qtyDisplay"); if(_qd)_qd.textContent=_qn; if(typeof updateDesignTotal==="function")updateDesignTotal(); }
   enterOrderMode(escapeHtml(P.name)+(P.subtitle?' · '+escapeHtml(P.subtitle):'')+' <b>'+P.price.toLocaleString()+'원</b>');
+  afGateOrder(escapeHtml(P.name)+' · '+P.price.toLocaleString()+'원'+(AF_EXTRAS&&AF_EXTRAS.length?' 외 '+AF_EXTRAS.length+'가지':''));
   cleanUrl();
   scrollTo("prodCard");
 }
@@ -4027,6 +4050,7 @@ function handleWorderParam(){
   if(isWed && (P("side")==="groom"||P("side")==="bride")) selSide(P("side"));
   if(P("from")==="card"){ const _cs2=document.getElementById("confirmSub"); if(_cs2) _cs2.textContent="부고장·청첩장에서 받는 곳과 날짜를 채워 왔어요. 맞는지 보시고 보내는 분만 적어 주세요."; }
   enterOrderMode((isFun?'근조화환':'축하화환')+' '+((_witems[tier]||{}).tab||'')+' <b>'+(((_witems[tier]||{}).price)||0).toLocaleString()+'원</b>');
+  afGateOrder((isFun?'근조화환':'축하화환')+' '+escapeHtml((_witems[tier]||{}).tab||'')+' · '+(((_witems[tier]||{}).price)||0).toLocaleString()+'원');
   cleanUrl();
   scrollTo("prodCard");
 }

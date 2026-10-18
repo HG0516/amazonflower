@@ -55,8 +55,12 @@
     ];
     return Promise.all(jobs).then(function () { PROVIDER_STATUS = status; });
   }
+  // 네이버 로그인 앱이 아직 '개발 중'(검수 전)이라 등록된 아이디만 된다(10/18). 손님이 눌렀다 막히지 않게 검수 통과 전까지 숨긴다.
+  // 검수 통과하면 false 로. 관리자 화면(admin-auth.js)의 네이버 로그인은 이 값과 상관없다.
+  var NAVER_REVIEW_PENDING = true;
   function availableProviders() {
     var list = ENABLED_PROVIDERS.filter(function (p) {
+      if (p.id === 'naver' && NAVER_REVIEW_PENDING) return false;
       if (!PROVIDER_STATUS) return true;          // 확인 전 → 전부 노출
       if (!(p.id in PROVIDER_STATUS)) return true; // 확인 못 한 항목 → 노출(안전)
       return PROVIDER_STATUS[p.id] === true;       // 연결 확인된 것만
@@ -205,6 +209,57 @@
       b.onclick = function () { login(b.getAttribute('data-prov')); };
     });
     ov.querySelector('.af-auth-x').onclick = function () { ov.style.display = 'none'; };
+  }
+
+  // 구매하기 → 로그인 또는 비회원 → 주문서(10/18 형구). 주문서는 뒤에 이미 그려져 있고 이 시트가 위에 뜬다.
+  // 로그인하면 소셜 창을 다녀오면서 주소의 ?pc= 가 사라지니, 떠나기 전 주문 주소를 저장해 두고 돌아오면 다시 연다(resumeOrder).
+  // 비회원은 이 탭에서 한 번 고르면 다시 묻지 않는다.
+  var ORDER_RESUME_KEY = 'af_order_resume', ORDER_GUEST_KEY = 'af_order_guest';
+  var sessionKnown = false, gateWaiting = window.AF_PENDING_GATE || null;
+  window.afOrderGate = function (label, resume) {
+    if (!sessionKnown) { gateWaiting = [label, resume]; return; }
+    if (window.afAuth.user) return;
+    try { if (sessionStorage.getItem(ORDER_GUEST_KEY) === '1') return; } catch (e) {}
+    openOrderGate(label, resume);
+  };
+  function openOrderGate(label, resume) {
+    injectStyles();
+    var ov = overlay();
+    var btns = availableProviders().map(function (p) {
+      var style = 'background:' + p.bg + ';color:' + p.fg + ';' + (p.border ? 'border:1px solid ' + p.border + ';' : '');
+      return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + p.label.replace('시작하기', '계속하기') + '</button>';
+    }).join('');
+    ov.innerHTML =
+      '<div class="af-auth-sheet">'
+      + '<h3>주문하기 전에</h3>'
+      + (label ? '<div style="background:#f6f4ee;border:1px solid #e3dfd4;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#2a2a24;">' + label + '</div>' : '')
+      + '<p>로그인하면 2,000원 적립되고, 다음엔 지난 주문 그대로 다시 보낼 수 있어요.</p>'
+      + btns
+      + '<button class="af-auth-btn af-order-guest" style="background:#1f4733;color:#fff;margin-top:12px;">비회원으로 주문하기</button>'
+      + '<div class="af-auth-note">로그인 없이도 주문할 수 있어요. 주문 확인은 연락처로 해요.</div>'
+      + '</div>';
+    ov.style.display = 'flex';
+    ov.querySelectorAll('.af-auth-btn[data-prov]').forEach(function (b) {
+      b.onclick = function () {
+        try { if (resume) sessionStorage.setItem(ORDER_RESUME_KEY, resume); } catch (e) {}
+        login(b.getAttribute('data-prov'));
+      };
+    });
+    ov.querySelector('.af-order-guest').onclick = function () {
+      try { sessionStorage.setItem(ORDER_GUEST_KEY, '1'); } catch (e) {}
+      ov.style.display = 'none';
+      try { window.dispatchEvent(new Event('af-order-gate')); } catch (e) {}
+    };
+  }
+  function resumeOrder(user) {
+    if (!user) return;
+    var r = null;
+    try { r = sessionStorage.getItem(ORDER_RESUME_KEY); if (r) sessionStorage.removeItem(ORDER_RESUME_KEY); } catch (e) {}
+    if (r && /^\?[\w=&%.+,\-]+$/.test(r) && location.pathname === '/' && !location.search) location.replace('/' + r);
+  }
+  function flushGate() {
+    sessionKnown = true;
+    if (gateWaiting) { var g = gateWaiting; gateWaiting = null; window.afOrderGate(g[0], g[1]); }
   }
 
   function esc(s) {
@@ -548,6 +603,8 @@
     window.afAuth.user = user;
     renderChip(user);
     refreshAdminAccess(session);
+    resumeOrder(user);
+    flushGate();
   });
   sb.auth.onAuthStateChange(function (_event, session) {
     var user = session ? session.user : null;
@@ -555,6 +612,9 @@
     window.afAuth.user = user;
     renderChip(user);
     refreshAdminAccess(session);
+    resumeOrder(user);
+    try { window.dispatchEvent(new Event('af-order-gate')); } catch (e) {}
+    if (user) { var gov = document.getElementById('af-auth-ov'); if (gov && gov.querySelector('.af-order-guest')) gov.style.display = 'none'; }
   });
 
   // 안전: DOM 준비 전이면 칩만 미리
