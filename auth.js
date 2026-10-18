@@ -58,9 +58,14 @@
   // 네이버 로그인 앱이 아직 '개발 중'(검수 전)이라 등록된 아이디만 된다(10/18). 손님이 눌렀다 막히지 않게 검수 통과 전까지 숨긴다.
   // 검수 통과하면 false 로. 관리자 화면(admin-auth.js)의 네이버 로그인은 이 값과 상관없다.
   var NAVER_REVIEW_PENDING = true;
+  // 검수 신청용(10/18): 주소에 ?naver=1 을 붙여 열면 그 탭에서만 네이버 버튼을 보인다. 네이버 심사 담당자가 로그인 과정을 볼 수 있게.
+  // 네이버 로그인 뒤 돌아와도 같은 탭이면 sessionStorage 로 이어진다. 손님 화면(주소에 naver=1 없음)은 그대로 숨김.
+  var NAVER_REVIEW_KEY = 'af_naver_review';
+  try { if (/[?&]naver=1(&|$)/.test(location.search)) sessionStorage.setItem(NAVER_REVIEW_KEY, '1'); } catch (e) {}
+  function naverReviewTab() { try { return sessionStorage.getItem(NAVER_REVIEW_KEY) === '1'; } catch (e) { return false; } }
   function availableProviders() {
     var list = ENABLED_PROVIDERS.filter(function (p) {
-      if (p.id === 'naver' && NAVER_REVIEW_PENDING) return false;
+      if (p.id === 'naver' && NAVER_REVIEW_PENDING && !naverReviewTab()) return false;
       if (!PROVIDER_STATUS) return true;          // 확인 전 → 전부 노출
       if (!(p.id in PROVIDER_STATUS)) return true; // 확인 못 한 항목 → 노출(안전)
       return PROVIDER_STATUS[p.id] === true;       // 연결 확인된 것만
@@ -424,6 +429,8 @@
     ov.innerHTML =
       '<div class="af-auth-sheet">'
       + '<h3>' + (user ? esc(shortName(user)) : '내 계정') + '님</h3>'
+      // 로그인한 이메일 한 줄(10/18, 네이버 검수가 이름·이메일 보이는 화면을 요구). 이메일 없는 계정(카카오)은 뺀다.
+      + (user && user.email ? '<div class="af-auth-email" style="margin:0 0 12px;font-size:13px;color:#5a564d;word-break:break-all;">' + esc(user.email) + '</div>' : '')
       + adminBlockHtml(user)
       + '<div id="af-points"></div>'
       + '<div id="af-anniv"></div>'
