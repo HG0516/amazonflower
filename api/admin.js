@@ -916,6 +916,91 @@ export default async function handler(req, res) {
     return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true, items: await r.json().catch(() => []) } : { error: "불러오지 못했습니다." });
   }
 
+  // ─────────────────────── 사진 위치 맞추기 (10/18) ───────────────────────
+  // 사진 파일은 그대로, 중심(x·y %)·확대·꽉채움/전체보임·숨김만 photo_meta 에 저장한다(supabase-photo-home.sql).
+  // 코드 안 원래 사진첩·상품 사진도 같은 표로 덮는다. 표가 없으면 안내만 하고 아무것도 안 바뀐다.
+  if (body.resource === "photometa") {
+    const { action } = body;
+    const NO_TABLE = "사진 위치 저장 칸이 아직 없어요. supabase-photo-home.sql 을 먼저 실행해야 해요.";
+    if (action === "save" || action === "reset") {
+      const key = String(body.key || "");
+      if (!/^\/(photos|storage\/v1\/object\/public)\/[^?#]{1,380}$/.test(key) || key.includes("..")) {
+        return res.status(400).json({ error: "사진 주소가 올바르지 않습니다." });
+      }
+      if (action === "reset") {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/photo_meta?key=eq.${encodeURIComponent(key)}`, { method: "DELETE", headers: sb });
+        if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: r.status === 404 ? NO_TABLE : "되돌리지 못했어요." });
+        await audit("reset", "photometa", key.slice(0, 120));
+        return res.status(200).json({ ok: true });
+      }
+      const num = (v, lo, hi, d) => { const n = Number(v); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n * 10) / 10)) : d; };
+      const row = {
+        key,
+        x: num(body.x, 0, 100, 50), y: num(body.y, 0, 100, 50), zoom: num(body.zoom, 1, 3, 1),
+        fit: body.fit === "contain" ? "contain" : "cover",
+        hidden: body.hidden === true,
+        updated_at: new Date().toISOString(),
+      };
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/photo_meta?on_conflict=key`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify(row),
+      });
+      if (!r.ok) {
+        console.error("photometa save fail", r.status, await r.text().catch(() => ""));
+        return res.status(r.status === 404 ? 503 : 502).json({ error: r.status === 404 ? NO_TABLE : "저장에 실패했습니다." });
+      }
+      // 위치 조정은 알리지 않는다(맞출 때마다 알림이 쏟아진다). 숨김만 알린다.
+      if (body.hiddenChanged === true) await notifyChange(`🖼 사진첩 사진 ${row.hidden ? "숨김" : "다시 보임"} — ${clean(body.label, 40) || key.split("/").pop()}`);
+      await audit("save", "photometa", key.slice(0, 120), `fit=${row.fit} zoom=${row.zoom} hidden=${row.hidden}`);
+      return res.status(200).json({ ok: true });
+    }
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/photo_meta?select=key,x,y,zoom,fit,hidden`, { headers: sb });
+    if (!r.ok) return res.status(200).json({ ok: true, ready: false, items: [] });
+    return res.status(200).json({ ok: true, ready: true, items: await r.json().catch(() => []) });
+  }
+
+  // ─────────────────────── 홈 화면 관리 (10/18) ───────────────────────
+  // 칸 순서·숨김, 맨 위 대표 상품(최대 3), 시즌 띠. site_settings key='home' 한 줄에 JSON.
+  // 칸 안 디자인은 못 바꾼다 — 잘못 눌러도 홈이 깨지지 않게 정해진 칸 이름만 받는다.
+  if (body.resource === "home") {
+    // 홈 칸 이름 = index.html section 의 data-home. 앞 6개는 순서를 바꿀 수 있고, corp·reviews 는 숨김만.
+    const HOME_SECTIONS = ["occ", "ways", "paste", "payguide", "best", "wed", "corp", "reviews"];
+    if (body.action === "save") {
+      const v = body.value || {};
+      const order = Array.isArray(v.order) ? v.order.filter((k) => HOME_SECTIONS.includes(k)) : [];
+      const seen = new Set(); const ord = order.filter((k) => !seen.has(k) && seen.add(k));
+      HOME_SECTIONS.forEach((k) => { if (!seen.has(k)) ord.push(k); });
+      const hidden = Array.isArray(v.hidden) ? [...new Set(v.hidden.filter((k) => HOME_SECTIONS.includes(k)))] : [];
+      const featured = Array.isArray(v.featured)
+        ? [...new Set(v.featured.map(String).filter((pc) => VALID_PC.has(pc) || /^CU-\d{4}$/.test(pc)))].slice(0, 3) : [];
+      const b = v.banner || {};
+      const dateOk = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || "")) ? String(s) : "";
+      const link = String(b.link || "").trim();
+      const banner = {
+        on: b.on === true,
+        text: clean(b.text, 60) || "",
+        link: /^\/[^\s]{0,200}$/.test(link) ? link : "",
+        from: dateOk(b.from), to: dateOk(b.to),
+      };
+      const value = { order: ord, hidden, featured, banner };
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?on_conflict=key`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify({ key: "home", value, updated_at: new Date().toISOString() }),
+      });
+      if (!r.ok) {
+        console.error("home save fail", r.status, await r.text().catch(() => ""));
+        return res.status(r.status === 404 ? 503 : 502).json({ error: r.status === 404 ? "홈 설정 칸이 아직 없어요. supabase-photo-home.sql 을 먼저 실행해야 해요." : "저장에 실패했습니다." });
+      }
+      await notifyChange(`🏠 홈 화면 바뀜 — 숨긴 칸 ${hidden.length}개 · 대표 상품 ${featured.length}개${banner.on ? ` · 띠 "${banner.text}"` : ""}`);
+      await audit("save", "home", "home", JSON.stringify(value).slice(0, 300));
+      return res.status(200).json({ ok: true, value });
+    }
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?key=eq.home&select=value`, { headers: sb });
+    if (!r.ok) return res.status(200).json({ ok: true, ready: false, value: null });
+    const rows = await r.json().catch(() => []);
+    return res.status(200).json({ ok: true, ready: true, value: (rows[0] && rows[0].value) || null });
+  }
+
   // ─────────────────────── 홈 리뷰사진 관리 ───────────────────────
   if (body.resource === "review") {
     const { action } = body;

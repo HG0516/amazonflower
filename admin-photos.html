@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko" data-admin-role="owner">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>사진 위치·숨김 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;padding:0 0 40px;}
+  .wrap{max-width:960px;margin:0 auto;padding:0 14px;}
+  header{text-align:center;padding:18px 0 4px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  .notice{margin-top:14px;background:#fff6e5;border:1px solid #e8c98a;border-radius:10px;padding:12px 14px;font-size:13px;color:#6b4e12;display:none;}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+  .bar input{flex:1 1 200px;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;font-family:inherit;}
+  .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:10px;}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font:700 13px inherit;font-family:inherit;color:var(--ink-soft);cursor:pointer;}
+  .chip.on{background:var(--accent-deep,#1f4733);border-color:var(--accent-deep,#1f4733);color:#fff;}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+  @media (min-width:700px){.grid{grid-template-columns:repeat(6,1fr);}}
+  .tile{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper);cursor:pointer;padding:0;font-family:inherit;text-align:left;}
+  .tile .ph{aspect-ratio:3/4;overflow:hidden;background:#f0ece3;}
+  .tile img{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block;}
+  .tile .nm{font-size:11px;padding:4px 6px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tile .tag{position:absolute;top:4px;left:4px;font-size:10px;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(31,71,51,.9);color:#fff;}
+  .tile .tag.off{background:rgba(154,59,46,.92);}
+  .tile.hid .ph{opacity:.4;}
+  .more{display:block;margin:14px auto 0;padding:10px 18px;border:1px solid var(--line);border-radius:20px;background:var(--paper);font:700 13px inherit;font-family:inherit;cursor:pointer;}
+  .empty{text-align:center;color:var(--ink-faint);padding:30px 0;font-size:14px;}
+
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:none;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--paper);border-radius:16px 16px 0 0;z-index:61;padding:16px 16px 22px;display:none;}
+  @media (min-width:900px){.sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:860px;border-radius:16px;}}
+  .sheet h2{font-size:16px;font-weight:800;}
+  .sheet .src{font-size:12px;color:var(--ink-faint);margin-top:2px;word-break:break-all;}
+  .ed{display:flex;flex-direction:column;gap:14px;margin-top:12px;}
+  @media (min-width:900px){.ed{flex-direction:row;align-items:flex-start;}}
+  .stage{position:relative;width:min(100%,300px);aspect-ratio:3/4;margin:0 auto;border-radius:10px;overflow:hidden;background:#f0ece3;touch-action:none;cursor:grab;flex:0 0 auto;}
+  .stage img{width:100%;height:100%;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;}
+  .stage .dot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:none;}
+  .ctl{flex:1;min-width:0;}
+  .ctl label{display:block;font-size:13px;font-weight:700;margin:0 0 6px;}
+  .ctl .row{margin-bottom:14px;}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .seg button{flex:1;min-height:42px;border:0;background:var(--paper);font:700 14px inherit;font-family:inherit;color:var(--ink-soft);cursor:pointer;}
+  .seg button.on{background:var(--accent-deep,#1f4733);color:#fff;}
+  input[type=range]{width:100%;height:32px;}
+  .pv{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+  .pv figure{display:flex;flex-direction:column;gap:4px;}
+  .pv figcaption{font-size:11px;color:var(--ink-faint);}
+  .pv .fr{overflow:hidden;background:#f0ece3;border-radius:6px;border:1px solid var(--line);}
+  .pv .fr img{width:100%;height:100%;display:block;}
+  .pv .p1{width:84px;aspect-ratio:3/4;} .pv .p2{width:120px;aspect-ratio:3/4;} .pv .p3{width:200px;height:150px;}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .acts button{min-height:44px;padding:0 16px;border-radius:8px;font:800 14px inherit;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink);}
+  .acts .save{background:var(--accent);border-color:var(--accent);color:#fff;flex:1 1 120px;}
+  .acts .hide{color:#9a3b2e;}
+  .acts .save:disabled{background:var(--ink-faint);border-color:var(--ink-faint);}
+  .tip{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🖼 사진 위치·숨김</h1>
+    <div class="sub">사진을 누르면 손님 화면에서 어디가 보일지 맞출 수 있어요. 사진 파일은 그대로 두고 보이는 모양만 바꿔요.</div>
+  </header>
+  <div class="notice" id="notReady">아직 저장 칸이 없어요. <b>supabase-photo-home.sql</b> 을 실행한 뒤부터 저장돼요. 지금은 미리보기만 돼요.</div>
+
+  <div class="bar"><input type="search" id="q" placeholder="이름·파일명으로 찾기" autocomplete="off" /></div>
+  <div class="chips" id="srcChips"></div>
+  <div class="chips" id="catChips"></div>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" style="display:none">더 보기</button>
+</div>
+
+<div class="sheet-bg" id="bg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="edTitle">
+  <h2 id="edTitle"></h2>
+  <div class="src" id="edSrc"></div>
+  <div class="ed">
+    <div class="stage" id="stage"><img id="edImg" alt="" draggable="false" /><div class="dot" id="dot"></div></div>
+    <div class="ctl">
+      <div class="row">
+        <label>보이는 방식</label>
+        <div class="seg" id="fitSeg">
+          <button type="button" data-fit="cover">꽉 채우기</button>
+          <button type="button" data-fit="contain">전체 보이기</button>
+        </div>
+        <div class="tip">꽉 채우기일 때 사진을 끌거나 눌러서 보일 곳을 정해요.</div>
+      </div>
+      <div class="row">
+        <label>확대 <span id="zoomVal">1.0</span>배</label>
+        <input type="range" id="zoom" min="1" max="3" step="0.1" value="1" />
+      </div>
+      <div class="row">
+        <label>손님 화면 미리보기</label>
+        <div class="pv">
+          <figure><div class="fr p1"><img alt="" /></div><figcaption>폰 목록</figcaption></figure>
+          <figure><div class="fr p2"><img alt="" /></div><figcaption>PC 상세</figcaption></figure>
+          <figure><div class="fr p3"><img alt="" /></div><figcaption>홈 가로칸</figcaption></figure>
+        </div>
+      </div>
+      <div class="acts">
+        <button type="button" class="save" id="saveBtn">저장</button>
+        <button type="button" id="resetBtn">원래대로</button>
+        <button type="button" class="hide" id="hideBtn">숨기기</button>
+        <button type="button" id="closeBtn">닫기</button>
+      </div>
+      <div class="tip" id="hideTip"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
+<script src="/gallery-data.js"></script>
+<script src="/products.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// 손님 화면(photo-meta.js)과 같은 규칙: 주소의 경로 부분만
+const keyOf = src => { try { return decodeURIComponent(new URL(src, location.href).pathname); } catch(e){ return ""; } };
+const CAT = {congrats:"축하화환",condolence:"근조화환",basket:"근조바구니",orchid:"난",plant:"관엽",bouquet:"꽃다발",flowerbox:"꽃바구니",rice:"쌀화환",wedding:"웨딩",etc:"기타"};
+const SRC = [["all","전체"],["gallery","원래 사진첩"],["upload","여기서 올림"],["product","판매 상품"],["home","홈 사진"]];
+let ITEMS = [], META = {}, READY = false, fSrc = "all", fCat = "all", shown = 60, cur = null, st = null;
+
+function toast(m, kind){ const t=$("toast"); t.textContent=m; t.className="toast show"+(kind?" "+kind:""); clearTimeout(t._h); t._h=setTimeout(()=>t.className="toast",2200); }
+async function api(payload){
+  const r = await afAdmin.fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){ toast("❌ "+(d.error||"오류"),"err"); return null; }
+  return d;
+}
+
+function add(list, src, url, name, cat, extra){
+  if(!url) return; const key = keyOf(url); if(!key || list.seen.has(key)) return;
+  list.seen.add(key); list.push(Object.assign({src, url, key, name: name||key.split("/").pop(), cat: cat||"etc"}, extra||{}));
+}
+async function load(){
+  const list = []; list.seen = new Set();
+  const G = window.GALLERY || {};
+  Object.keys(G).forEach(c => (G[c]||[]).forEach(g => add(list, "gallery", g.f, [g.nm, g.sub].filter(Boolean).join(" · "), c, {canHide:true})));
+  (window.PRODUCTS||[]).forEach(p => (p.photos||[]).forEach((u,i) => add(list, "product", u, `${p.name}${i?` (${i+1})`:""} · ${p.pc}`, p.cat)));
+  const [m, g, pr, rv] = await Promise.all([
+    api({resource:"photometa"}), api({resource:"gallery"}), api({resource:"product", action:"list"}), api({resource:"review", action:"list"}),
+  ]);
+  ((g&&g.items)||[]).forEach(x => add(list, "upload", x.photo_url, [x.name, x.sub].filter(Boolean).join(" · "), x.category, {canHide:true}));
+  ((pr&&pr.products)||[]).forEach(p => (p.photos||[]).forEach((u,i) => add(list, "product", u, `${p.name||p.pc}${i?` (${i+1})`:""} · ${p.pc}`, p.cat)));
+  ((rv&&rv.reviews)||[]).forEach(x => add(list, "home", x.photo_url, x.caption || "홈 사진", x.cat || "etc"));
+  READY = !!(m && m.ready);
+  META = {}; ((m&&m.items)||[]).forEach(r => META[r.key] = r);
+  $("notReady").style.display = READY ? "none" : "block";
+  ITEMS = list; renderChips(); render();
+}
+
+function renderChips(){
+  const n = s => s==="all" ? ITEMS.length : ITEMS.filter(i=>i.src===s).length;
+  $("srcChips").innerHTML = SRC.map(([k,l]) => `<button type="button" class="chip ${fSrc===k?"on":""}" data-src="${k}">${l} ${n(k)}</button>`).join("");
+  const cats = [...new Set(ITEMS.filter(i=>fSrc==="all"||i.src===fSrc).map(i=>i.cat))];
+  $("catChips").innerHTML = [`<button type="button" class="chip ${fCat==="all"?"on":""}" data-cat="all">모든 종류</button>`]
+    .concat(cats.map(c => `<button type="button" class="chip ${fCat===c?"on":""}" data-cat="${esc(c)}">${esc(CAT[c]||c)}</button>`)).join("");
+}
+function filtered(){
+  const q = $("q").value.trim().toLowerCase();
+  return ITEMS.filter(i => (fSrc==="all"||i.src===fSrc) && (fCat==="all"||i.cat===fCat) && (!q || (i.name+" "+i.key).toLowerCase().includes(q)));
+}
+// 저장값을 <img> 에 입힌다(손님 화면과 같은 방식)
+function paint(img, m){
+  const x = m ? m.x : 50, y = m ? m.y : 50, z = m ? m.zoom : 1, fit = m ? m.fit : "cover";
+  img.style.objectFit = fit; img.style.objectPosition = m ? `${x}% ${y}%` : "";
+  img.style.transform = z > 1 ? `scale(${z})` : ""; img.style.transformOrigin = `${x}% ${y}%`;
+}
+function render(){
+  const all = filtered(), list = all.slice(0, shown);
+  $("grid").innerHTML = list.map((i,n) => {
+    const m = META[i.key];
+    const tag = m && m.hidden ? `<span class="tag off">숨김</span>` : m ? `<span class="tag">맞춤</span>` : "";
+    return `<button type="button" class="tile ${m&&m.hidden?"hid":""}" data-i="${ITEMS.indexOf(i)}"><div class="ph"><img loading="lazy" src="${esc(i.url)}" alt=""></div>${tag}<div class="nm">${esc(i.name)}</div></button>`;
+  }).join("") || `<div class="empty" style="grid-column:1/-1">맞는 사진이 없어요.</div>`;
+  $("grid").querySelectorAll(".tile").forEach(t => paint(t.querySelector("img"), META[ITEMS[+t.dataset.i].key]));
+  $("more").style.display = all.length > shown ? "block" : "none";
+}
+
+function open(i){
+  cur = ITEMS[i]; const m = META[cur.key];
+  st = m ? {x:m.x, y:m.y, zoom:m.zoom, fit:m.fit, hidden:!!m.hidden} : {x:50, y:40, zoom:1, fit:"cover", hidden:false};
+  $("edTitle").textContent = cur.name; $("edSrc").textContent = (SRC.find(s=>s[0]===cur.src)||[])[1] + " · " + cur.key;
+  $("edImg").src = cur.url; document.querySelectorAll(".pv img").forEach(im => im.src = cur.url);
+  $("hideBtn").style.display = cur.canHide ? "" : "none";
+  $("hideTip").textContent = cur.canHide ? "숨기기는 사진첩에서만 안 보이게 해요. 사진은 지워지지 않아요." : "";
+  $("saveBtn").disabled = !READY; $("resetBtn").disabled = !READY || !m; $("hideBtn").disabled = !READY;
+  sync(); $("bg").style.display = $("sheet").style.display = "block"; document.body.style.overflow = "hidden";
+}
+function close(){ $("bg").style.display = $("sheet").style.display = "none"; document.body.style.overflow = ""; cur = null; }
+function sync(){
+  document.querySelectorAll("#fitSeg button").forEach(b => b.classList.toggle("on", b.dataset.fit === st.fit));
+  $("zoom").value = st.zoom; $("zoomVal").textContent = (+st.zoom).toFixed(1);
+  [$("edImg"), ...document.querySelectorAll(".pv img")].forEach(im => paint(im, st));
+  const d = $("dot"); d.style.left = st.x + "%"; d.style.top = st.y + "%"; d.style.display = st.fit === "cover" ? "" : "none";
+  $("hideBtn").textContent = st.hidden ? "다시 보이기" : "숨기기";
+}
+// 끌기·누르기 → 보일 곳(%)
+(function(){
+  const s = $("stage"); let drag = false;
+  const at = e => { const r = s.getBoundingClientRect(); st.x = Math.round(Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100))); st.y = Math.round(Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100))); sync(); };
+  s.addEventListener("pointerdown", e => { if (!st || st.fit !== "cover") return; drag = true; s.setPointerCapture(e.pointerId); at(e); });
+  s.addEventListener("pointermove", e => { if (drag) at(e); });
+  s.addEventListener("pointerup", () => drag = false); s.addEventListener("pointercancel", () => drag = false);
+})();
+
+async function save(hiddenChanged){
+  if (!cur) return;
+  const d = await api({resource:"photometa", action:"save", key:cur.key, x:st.x, y:st.y, zoom:+st.zoom, fit:st.fit, hidden:st.hidden, hiddenChanged, label:cur.name});
+  if (!d) return;
+  META[cur.key] = {key:cur.key, x:st.x, y:st.y, zoom:+st.zoom, fit:st.fit, hidden:st.hidden};
+  toast(hiddenChanged ? (st.hidden ? "사진첩에서 숨겼어요" : "다시 보이게 했어요") : "저장했어요");
+  $("resetBtn").disabled = false; render(); if (!hiddenChanged) close(); else sync();
+}
+
+$("q").addEventListener("input", () => { shown = 60; render(); });
+$("srcChips").addEventListener("click", e => { const b = e.target.closest("[data-src]"); if(!b) return; fSrc = b.dataset.src; fCat = "all"; shown = 60; renderChips(); render(); });
+$("catChips").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if(!b) return; fCat = b.dataset.cat; shown = 60; renderChips(); render(); });
+$("grid").addEventListener("click", e => { const t = e.target.closest(".tile"); if (t) open(+t.dataset.i); });
+$("more").addEventListener("click", () => { shown += 60; render(); });
+$("fitSeg").addEventListener("click", e => { const b = e.target.closest("[data-fit]"); if(!b) return; st.fit = b.dataset.fit; sync(); });
+$("zoom").addEventListener("input", e => { st.zoom = +e.target.value; sync(); });
+$("saveBtn").addEventListener("click", () => save(false));
+$("hideBtn").addEventListener("click", () => { st.hidden = !st.hidden; save(true); });
+$("resetBtn").addEventListener("click", async () => {
+  if (!cur || !confirm("이 사진을 원래 모양으로 되돌릴까요?")) return;
+  if (!await api({resource:"photometa", action:"reset", key:cur.key})) return;
+  delete META[cur.key]; toast("원래대로 했어요"); render(); close();
+});
+$("closeBtn").addEventListener("click", close); $("bg").addEventListener("click", close);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && cur) close(); });
+
+afAdmin.ready.then(a=>{ if(a) load(); });
+</script>
+</body>
+</html>

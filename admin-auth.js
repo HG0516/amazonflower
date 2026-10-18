@@ -24,7 +24,11 @@
       ".af-admin-login,.af-admin-retry{width:100%;min-height:52px;border:0;border-radius:10px;background:#1f4733;color:#fff;font:800 17px inherit;padding:13px;cursor:pointer;margin-top:8px;}" +
       ".af-admin-logout{background:transparent;border:0;color:#7a766c;font:600 14px inherit;padding:15px;cursor:pointer;}" +
       ".af-admin-who{font-size:12px;color:#7a766c;text-align:right;padding:8px 14px 0;max-width:680px;margin:0 auto;}" +
-      ".af-admin-out{background:transparent;border:0;color:#1f4733;font:700 12px inherit;text-decoration:underline;padding:6px 2px;cursor:pointer;}";
+      ".af-admin-out{background:transparent;border:0;color:#1f4733;font:700 12px inherit;text-decoration:underline;padding:6px 2px;cursor:pointer;}" +
+      ".af-admin-nav{display:flex;gap:6px;overflow-x:auto;padding:8px 14px 2px;max-width:680px;margin:0 auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}" +
+      ".af-admin-nav::-webkit-scrollbar{display:none}" +
+      ".af-admin-nav a{flex:0 0 auto;min-height:36px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid #dcd9cf;border-radius:999px;background:#fff;color:#3d3a33;font:700 13px -apple-system,'Apple SD Gothic Neo',sans-serif;text-decoration:none;white-space:nowrap;}" +
+      ".af-admin-nav a.on{background:#1f4733;border-color:#1f4733;color:#fff;}";
     document.head.appendChild(style);
   }
 
@@ -139,6 +143,36 @@
     out.onclick = logout;
     el.appendChild(out);
     document.body.insertBefore(el, document.body.firstChild);
+    nav(el);
+  }
+
+  // 관리자 화면끼리 오가는 메뉴(10/18). 예전엔 화면마다 주소를 외워야 했다. 운영 관리자는 주문만.
+  var MENU = [
+    ["/admin-orders.html", "주문", "staff"],
+    ["/admin-photos.html", "사진 위치·숨김", "owner"],
+    ["/admin.html", "사진 올리기", "owner"],
+    ["/admin-products.html", "상품", "owner"],
+    ["/admin-site.html", "홈 화면 순서", "owner"],
+    ["/admin-home.html", "홈 배송 사진", "owner"],
+    ["/admin-pay.html", "결제 링크", "owner"],
+    ["/admin-setup.html", "설정 점검", "owner"],
+  ];
+  function nav(after) {
+    if (document.getElementById("af-admin-nav")) return;
+    var bar = document.createElement("nav");
+    bar.id = "af-admin-nav";
+    bar.className = "af-admin-nav";
+    var here = location.pathname.replace(/\/$/, "") || "/admin.html";
+    MENU.forEach(function (m) {
+      if (m[2] === "owner" && access.role !== "owner") return;
+      var a = document.createElement("a");
+      a.href = m[0];
+      a.textContent = m[1];
+      if (here === m[0] || here + ".html" === m[0]) { a.className = "on"; a.setAttribute("aria-current", "page"); }
+      bar.appendChild(a);
+    });
+    after.insertAdjacentElement("afterend", bar);
+    var on = bar.querySelector(".on"); if (on && on.scrollIntoView) try { on.scrollIntoView({ block: "nearest", inline: "center" }); } catch (_) {}
   }
 
   async function checkAccess() {

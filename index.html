@@ -41,6 +41,7 @@
 <script src="/promotions.js" defer></script>
 <script src="/meanings.js" defer></script>
 <script src="/regions.js" defer></script>
+<script src="/photo-meta.js" defer></script><!-- 관리자 사진 위치 맞추기 값 입히기 -->
 <script src="/products.js"></script><!-- 상품 단일 소스(window.PRODUCTS 등). 본문 스크립트가 참조하므로 defer 없이 먼저 로드 -->
 
 <!-- LCP 최적화: 히어로 대표사진 우선 로드 -->
@@ -147,6 +148,8 @@
   .occ .ol { font-size: var(--fs-sub); font-weight: 700; color: var(--ink); word-break: keep-all; text-align: center; line-height: 1.2; }
   /* 주문 모드: 상품을 직접 고른 사람에겐 홈 둘러보기 섹션을 숨겨 집중시킨다(새로고침 시 복원) */
   body.ordering .home-sect { display: none; }
+  .home-off { display: none !important; }
+  .home-banner { display: block; margin: 12px 0 0; padding: 12px 16px; border-radius: var(--radius); background: #1f4733; color: #fff; text-align: center; font-weight: 700; font-size: 15px; text-decoration: none; }
   /* 신뢰 한 줄(marks 축소) */
   .trust-line { margin-top: 10px; text-align: center; font-size: 14px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 10px 12px; }
   .trust-line b { color: var(--accent-deep); }
@@ -702,7 +705,7 @@
 
   <!-- 상황(용도) 진입 — 사건명 6개. 감정어("멋진 도약" 등)는 고령 손님에게 모호해 쓰지 않는다.
        예전엔 아래 카테고리 2×2와 같은 곳으로 가는 문이 두 벌이었다 → 카테고리는 전체상품 탭으로 일원화. -->
-  <section class="home-sect" style="margin-top:var(--space-sect);">
+  <section class="home-sect" data-home="occ" style="margin-top:var(--space-sect);">
     <div class="occ-title">무슨 일로 보내세요?</div>
     <div class="occ-row">
       <div class="occ" onclick="goCatalog('condolence')"><div class="ic"><img src="/photos/products/WC-02_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">부고</div></div>
@@ -719,7 +722,7 @@
 
   <!-- 주문 세 갈래 — 손님 비중 순서(전화 → 골라서 → 링크). 예전엔 '링크 붙여넣기'가 첫 화면
        주인공이라 고령 손님에겐 낯선 동작이 맨 앞에 있었다. 링크 입력은 접어서 세 번째로 내린다. -->
-  <section class="home-sect" id="startWays" style="margin-top:var(--space-sect);">
+  <section class="home-sect" data-home="ways" id="startWays" style="margin-top:var(--space-sect);">
     <a class="way way-tel" href="tel:1577-2286">
       <span class="way-ic" aria-hidden="true">📞</span>
       <span class="way-txt"><b>전화로 주문</b><span>1577-2286 · 상품부터 리본 문구까지 같이 정해드려요</span></span>
@@ -730,7 +733,7 @@
     </a>
   </section>
 
-  <section class="card home-sect" id="quickStart" style="margin-top:12px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
+  <section class="card home-sect" data-home="paste" id="quickStart" style="margin-top:12px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
     <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">청첩장·부고 링크가 있으면 붙여넣기</div>
     <div style="display:flex;gap:8px;">
       <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;color:var(--ink);">
@@ -749,7 +752,7 @@
 
   <!-- 결제 안내 4칸 — 카드·간편결제 / 계좌이체(무통장, 계좌 명시) / 영수증·계산서 / 전화주문 절차.
        결제수단이 6단계 결제 직전에야 보여 "홈피 보고 전화하는 손님"이 계좌를 못 찾던 문제(2026-09-12). -->
-  <section class="home-sect" id="payguide" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
+  <section class="home-sect" data-home="payguide" id="payguide" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
     <div class="occ-title">결제는 이렇게</div>
     <div class="payguide">
       <div class="pg">
@@ -791,7 +794,7 @@
   <div id="reorderBanner" class="hidden home-sect" style="margin-top:var(--space-sect);"></div>
 
   <!-- 사장님 추천(1열 가로 슬라이드 유지) -->
-  <section class="home-sect" style="margin-top:var(--space-sect);">
+  <section class="home-sect" data-home="best" style="margin-top:var(--space-sect);">
     <div class="occ-title">사장님 추천</div>
     <div id="bestArea" class="best-slider"></div>
   </section>
@@ -804,7 +807,7 @@
 
   <!-- 신부 부케(웨딩) 전용 섹션 — 축하화환(남에게 보내는 것)과 구분되는, 신부 본인이 쓰는 생화 수제 부케.
        첫 화면(히어로)엔 안 넣음: 근조 등 다양한 손님이 첫 화면부터 웨딩을 마주치지 않게. -->
-  <section class="home-sect wed-home" style="margin-top:var(--space-sect);">
+  <section class="home-sect wed-home" data-home="wed" style="margin-top:var(--space-sect);">
     <a class="wedcard" href="/wedding.html">
       <div class="wedcard-ph">
         <img src="/photos/웨딩/신부부케_데이지_홈.jpg" alt="어머니가 만든 생화 수제 신부 부케" loading="lazy" onerror="this.closest('.wedcard-ph').style.display='none'">
@@ -1096,7 +1099,7 @@
   </section>
 
   <!-- 법인(B2B): 개인 동선엔 접힘 한 줄, 총무팀은 탭 한 번. 주문 모드에선 home-sect로 숨김. 푸터 '법인·단체 주문'이 /#corporate 로 연결 -->
-  <section class="home-sect" id="corporate" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
+  <section class="home-sect" data-home="corp" id="corporate" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
     <details class="af-fold af-fold-corp">
       <summary>총무·인사팀이세요? — 법인 거래처 (계산서·후불·정찰)</summary>
       <div class="story-body" style="margin-top:12px;">
@@ -1115,7 +1118,7 @@
 
   <!-- 잘 전했습니다 — 배송 직후 도착 사진. 사진은 자동으로 넘어가고(손으로도 넘길 수 있음),
        관리자(/admin-home)에서 올린 사진이 있으면 그걸로 교체된다. -->
-  <section class="reviews-sect home-sect">
+  <section class="reviews-sect home-sect" data-home="reviews">
     <div class="reviews-wrap">
       <div class="reviews-label">REVIEWS</div>
       <div class="reviews-title">잘 전했습니다</div>
@@ -2074,7 +2077,9 @@ function renderBest(){
   const list=(window.PRODUCTS||[]).filter(p=>(p.cat==="bouquet"||p.cat==="basket") && p.price>=57000 && p.price<=89000);
   if(!el || !list.length){ if(el) el.closest("section").style.display="none"; return; }
   // 꽃다발·바구니 번갈아 섞어 다양하게, 6개
-  const bq=list.filter(p=>p.cat==="bouquet"), bs=list.filter(p=>p.cat==="basket"), mix=[];
+  // 관리자 '홈 화면 관리'에서 고른 대표 상품(최대 3)을 맨 앞에. 품절이거나 없는 코드는 건너뛴다.
+  const mix=(window.AF_HOME_FEATURED||[]).map(pc=>(window.PRODUCTS||[]).find(p=>p.pc===pc)).filter(p=>p && p.status!=="품절" && (p.photos||[]).length).slice(0,3);
+  const bq=list.filter(p=>p.cat==="bouquet"&&!mix.includes(p)), bs=list.filter(p=>p.cat==="basket"&&!mix.includes(p));
   for(let i=0;i<Math.max(bq.length,bs.length) && mix.length<8;i++){ if(bq[i])mix.push(bq[i]); if(bs[i]&&mix.length<8)mix.push(bs[i]); }
   // 이름 → 가격 순으로 읽게(가격이 앞서면 이름이 묻힌다). 6개 세로 2열.
   el.innerHTML=mix.slice(0,6).map(p=>`
@@ -4172,6 +4177,43 @@ document.addEventListener("DOMContentLoaded", function(){
         return '<div class="review-card"><img src="'+esc(v.photo_url)+'" alt="'+esc(v.caption||"제작 실사진")+'" loading="lazy" onerror="this.closest(\'.review-card\').style.display=\'none\';"><div class="review-cap">'+esc(v.caption||"")+'</div></div>';
       }).join("");
     }).catch(function(){});
+});
+
+// 홈 화면 관리(/admin-site.html) — site_settings key='home'. 칸 순서·숨김, 사장님 추천 맨 앞 상품, 시즌 띠.
+// 표가 없거나(supabase-photo-home.sql 전) 실패하면 지금 모양 그대로. 칸 안 디자인은 안 바꾼다.
+window.afApplyHome=function(v){
+  if(!v) return;
+  var sec=function(k){ return document.querySelector('[data-home="'+k+'"]'); };
+  var MOV=["occ","ways","paste","payguide","best","wed"];
+  var order=(v.order||[]).filter(function(k){ return MOV.indexOf(k)>=0; });
+  MOV.forEach(function(k){ if(order.indexOf(k)<0) order.push(k); });
+  var anchor=document.getElementById("prodCard");
+  if(anchor) order.forEach(function(k){
+    var el=sec(k); if(!el) return;
+    var grp=[el];
+    if(k==="paste"){ var t=document.querySelector(".trust-line"); if(t) grp.push(t); }        // 링크 칸 밑 신뢰 한 줄은 따라다닌다
+    if(k==="best"){ var c=document.querySelector(".catalogue-link"); if(c) grp.push(c.closest("section")); }
+    grp.forEach(function(n){ anchor.parentNode.insertBefore(n, anchor); });
+  });
+  document.querySelectorAll("[data-home].home-off").forEach(function(el){ el.classList.remove("home-off"); });
+  (v.hidden||[]).forEach(function(k){ var el=sec(k); if(el) el.classList.add("home-off"); });
+  if(Array.isArray(v.featured) && v.featured.length){ window.AF_HOME_FEATURED=v.featured; try{ renderBest(); }catch(_){} }
+  var b=v.banner||{}, old=document.getElementById("af-home-banner"); if(old) old.remove();
+  var now=new Date(Date.now()+9*3600000).toISOString().slice(0,10);   // 한국 날짜
+  if(b.on && b.text && (!b.from || now>=b.from) && (!b.to || now<=b.to)){
+    var se=document.getElementById("af-season"); if(se) se.remove();   // 자동 시즌 띠(season.js) 대신 사장님이 정한 띠
+    var el=document.createElement(b.link ? "a" : "div");
+    el.id="af-home-banner"; el.className="home-sect home-banner"; el.textContent=b.text;
+    if(b.link) el.href=b.link;
+    var hero=document.querySelector(".hero"); if(hero) hero.insertAdjacentElement("afterend", el);
+  }
+};
+document.addEventListener("DOMContentLoaded", function(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  fetch(SUPA.url + "/rest/v1/site_settings?key=eq.home&select=value", { headers:{ apikey:SUPA.anon, Authorization:"Bearer "+SUPA.anon } })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(rows){ if(Array.isArray(rows) && rows[0]) window.afApplyHome(rows[0].value); })
+    .catch(function(){});
 });
 
 // '잘 전했습니다' 사진은 세로 나열(2026-09). 자동 넘김(마퀴)은 제거 — 움직이는 요소와
