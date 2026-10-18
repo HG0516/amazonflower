@@ -20,7 +20,7 @@
     style.textContent =
       ".af-admin-gate{position:fixed;inset:0;z-index:10050;background:#f7f4ee;display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;}" +
       ".af-admin-gate-card{width:100%;max-width:430px;background:#fff;border:1px solid #dcd9cf;border-radius:16px;padding:26px 20px;text-align:center;box-shadow:0 10px 35px rgba(31,29,24,.08);}" +
-      ".af-admin-gate h2{font-size:22px;margin:8px 0;color:#1f1d18}.af-admin-gate p{font-size:15px;line-height:1.65;color:#5a564d;margin:0 0 16px;}" +
+      ".af-admin-gate h2{font-size:22px;margin:8px 0;color:#1f1d18}.af-admin-gate p{font-size:15px;line-height:1.65;color:#5a564d;margin:0 0 16px;white-space:pre-line;word-break:break-all;}" +
       ".af-admin-login,.af-admin-retry{width:100%;min-height:52px;border:0;border-radius:10px;background:#1f4733;color:#fff;font:800 17px inherit;padding:13px;cursor:pointer;margin-top:8px;}" +
       ".af-admin-logout{background:transparent;border:0;color:#7a766c;font:600 14px inherit;padding:15px;cursor:pointer;}" +
       ".af-admin-who{font-size:12px;color:#7a766c;text-align:right;padding:8px 14px 0;max-width:680px;margin:0 auto;}" +
@@ -152,7 +152,9 @@
       return;
     }
     if (first.status === 403) {
-      gate("관리자 권한이 없어요", "등록된 관리자 계정으로 다시 로그인해주세요.", null, null, true);
+      // 10/18: 아버지 계정이 목록에 없을 때 어떤 이메일로 들어왔는지 보여 줘야 관리자 목록(ADMIN_OWNER_EMAILS)에 넣을 수 있다.
+      var mail = session && session.user && session.user.email || "";
+      gate("관리자 권한이 없어요", (mail ? "로그인한 계정: " + mail + "\n" : "") + "이 계정을 관리자로 등록하거나, 등록된 관리자 계정으로 다시 로그인해주세요.", null, null, true);
     } else {
       gate("관리자 로그인이 필요해요", "한 번 로그인하면 이 휴대폰에서 계속 사용할 수 있어요.", "네이버로 관리자 로그인", login, false);
     }
