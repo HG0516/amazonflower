@@ -441,6 +441,10 @@
   }
   function explainAuthError(provider, code, desc) {
     var d = String(desc || '').toLowerCase();
+    // 네이버 콜백이 붙여 보내는 코드(10/18, api/naver-callback.js)
+    if (code === 'naver_state') return '네이버 로그인 창이 다른 브라우저에서 돌아와 확인하지 못했어요. 지금 이 화면에서 네이버 로그인을 한 번 더 눌러 주세요.';
+    if (code === 'naver_no_email') return '네이버에서 이메일을 받지 못했어요. 네이버 로그인 때 이메일 제공에 동의해 주시거나 다른 방법으로 로그인해 주세요.';
+    if (/^naver_/.test(code) && /not.*(registered|member)|미등록|등록되지/.test(d)) return '네이버 로그인이 아직 심사 전이라 등록된 계정만 로그인돼요. 다른 방법으로 로그인해 주세요.';
     if (code === 'otp_expired' || /expired/.test(d)) return '로그인 링크가 만료됐어요. 한 번 더 눌러 주세요.';
     if (/email/.test(d) && /external provider|not provided|getting user email/.test(d)) return (PROVIDER_NAMES[provider] || '로그인 계정') + '에서 이메일을 받지 못해 계정을 만들지 못했어요. 다른 방법(네이버·구글)으로 로그인해 주세요.';
     if (/verification|not completed|unverified|blocked|not verified/.test(d)) return (PROVIDER_NAMES[provider] || '이') + ' 로그인 앱이 아직 테스트(심사 전) 상태라 등록된 계정만 로그인돼요. 다른 방법으로 로그인해 주세요.';
@@ -476,8 +480,8 @@
     });
     if (!q.error && !q.error_code && !q.error_description) return false;
     var tried = lastTry();
-    var provider = tried ? tried.p : '';
     var code = q.error_code || q.error || '';
+    var provider = tried ? tried.p : (/^naver_/.test(code) ? 'naver' : '');
     var desc = q.error_description || '';
     // 주소에서 오류 꼬리를 떼서 새로고침·공유 때 또 안 뜨게
     try {
@@ -494,7 +498,22 @@
     return true;
   }
 
+  // 카톡·인스타 등 앱 안 브라우저(10/18) — 구글은 여기서 로그인을 막는다(403 disallowed_useragent, 구글 화면이라 우리는 모른다).
+  // 손님 대부분이 카톡 링크로 들어오니, 구글은 바깥 브라우저로 열어 준다.
+  var INAPP_RE = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|everytimeApp|; wv\)/i;
+  function openOutside() {
+    var url = location.href;
+    var ua = navigator.userAgent || '';
+    if (/KAKAOTALK/i.test(ua)) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url); return true; }
+    if (/Android/i.test(ua)) { location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end'; return true; }
+    return false;
+  }
   function login(provider) {
+    if (provider === 'google' && INAPP_RE.test(navigator.userAgent || '')) {
+      if (openOutside()) return;
+      alert('이 앱 안에서는 구글 로그인이 막혀 있어요.\n오른쪽 아래(또는 위) 메뉴의 \'Safari로 열기\'를 누른 뒤 다시 로그인해 주세요.\n카카오·네이버 로그인은 여기서도 돼요.');
+      return;
+    }
     rememberTry(provider);
     // 네이버는 Supabase 미지원 → 백엔드 OAuth 흐름으로(매직링크로 정식 세션 발급)
     if (provider === 'naver') { location.href = '/api/naver-login?return=' + encodeURIComponent(location.pathname + location.search); return; }

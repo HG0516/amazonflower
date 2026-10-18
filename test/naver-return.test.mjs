@@ -59,5 +59,29 @@ test("naver-callback: 쿠키의 자리를 redirect_to 에 붙이고, 수상한 �
   assert.equal(seen[1].options.redirect_to, "https://floweranbu.co.kr");
   const res3 = mockRes();
   await naverCallback({ method: "GET", url: "/api/naver-callback?code=abc&state=other", headers: { cookie: "naver_state=deadbeef" } }, res3);
-  assert.equal(res3.statusCode, 400, "state 가 다르면 여전히 거절");
+  assert.equal(res3.statusCode, 302, "state 가 다르면 세션 없이 사이트로");
+  assert.equal(res3.headers.location, "https://floweranbu.co.kr/#error=naver_state&error_description=state%20mismatch");
+  assert.equal(seen.length, 2, "state 가 다르면 Supabase 를 부르지 않는다");
+}));
+
+// 실패도 사이트로 #error 를 달아 돌려보낸다(10/18) — auth.js 가 이유를 보여 주고 텔레그램에 보고하게.
+test("naver-callback: 실패는 원래 자리 #error 로 돌려보낸다", withEnv({ NAVER_CLIENT_ID: "cid", NAVER_CLIENT_SECRET: "sec", SUPABASE_URL: "https://sb.example", SUPABASE_SERVICE_ROLE_KEY: "svc" }, async () => {
+  globalThis.fetch = async () => { throw new Error("부르면 안 됨"); };
+  const back = "naver_return=%2Fcatalog.html";
+  const r1 = mockRes();
+  await naverCallback({ method: "GET", url: "/api/naver-callback?error=access_denied&error_description=Canceled+By+User&state=deadbeef", headers: { cookie: "naver_state=deadbeef; " + back } }, r1);
+  assert.equal(r1.statusCode, 302);
+  assert.equal(r1.headers.location, "https://floweranbu.co.kr/catalog.html#error=access_denied&error_description=Canceled%20By%20User");
+  const r2 = mockRes();
+  await naverCallback({ method: "GET", url: "/api/naver-callback?code=abc&state=deadbeef", headers: {} }, r2);
+  assert.equal(r2.headers.location, "https://floweranbu.co.kr/#error=naver_state&error_description=state%20cookie%20missing");
+  assert.ok(cookies(r2).some((c) => /^naver_state=; /.test(c)), "쿠키는 지운다");
+  globalThis.fetch = async (url) => String(url).includes("/oauth2.0/token") ? Response.json({ access_token: "t" }) : Response.json({ resultcode: "00", response: { name: "홍" } });
+  const r3 = mockRes();
+  await naverCallback({ method: "GET", url: "/api/naver-callback?code=abc&state=deadbeef", headers: { cookie: "naver_state=deadbeef" } }, r3);
+  assert.match(r3.headers.location, /#error=naver_no_email&/);
+  globalThis.fetch = async () => Response.json({ error: "invalid_request", error_description: "no valid data in session" });
+  const r4 = mockRes();
+  await naverCallback({ method: "GET", url: "/api/naver-callback?code=abc&state=deadbeef", headers: { cookie: "naver_state=deadbeef" } }, r4);
+  assert.match(r4.headers.location, /#error=naver_token&error_description=invalid_request%20no%20valid%20data/);
 }));

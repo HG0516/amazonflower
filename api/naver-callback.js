@@ -18,6 +18,14 @@ function page(res, status, title, sub) {
   );
 }
 
+// 실패는 자체 화면 대신 사이트로 #error=… 를 달아 돌려보낸다(10/18) — auth.js 가 이유를 보여 주고 사장님 텔레그램에 보고한다.
+// 예전엔 이 파일의 오류 화면만 떠서 네이버 실패는 아무도 몰랐다.
+function fail(res, base, ret, code, desc) {
+  res.setHeader("Set-Cookie", ["naver_state=; Path=/; Max-Age=0", "naver_return=; Path=/; Max-Age=0"]);
+  res.setHeader("Location", `${base}${ret || "/"}#error=${encodeURIComponent(code)}&error_description=${encodeURIComponent(desc || "")}`);
+  return res.status(302).end();
+}
+
 export default async function handler(req, res) {
   const CLIENT_ID = process.env.NAVER_CLIENT_ID;
   const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
@@ -28,23 +36,28 @@ export default async function handler(req, res) {
     return page(res, 503, "네이버 로그인 미설정", "관리자에게 문의해주세요.");
   }
 
-  let code = "", state = "";
+  let code = "", state = "", nerr = "", ndesc = "";
   try {
     const u = new URL(req.url, "http://localhost");
     code = u.searchParams.get("code") || "";
     state = u.searchParams.get("state") || "";
+    nerr = u.searchParams.get("error") || "";
+    ndesc = u.searchParams.get("error_description") || "";
   } catch (e) {}
 
-  // CSRF: 쿠키 state 대조
   const cookie = req.headers.cookie || "";
-  const cm = cookie.match(/naver_state=([a-f0-9]+)/);
-  if (!code || !state || !cm || cm[1] !== state) {
-    return page(res, 400, "로그인 검증 실패", "잠시 후 다시 시도해주세요.");
-  }
   // 로그인 전에 있던 자리(naver-login 이 쿠키에 둠) — 사이트 안 경로만 믿는다
   let ret = "";
   try { const rm = cookie.match(/naver_return=([^;]*)/); ret = rm ? decodeURIComponent(rm[1]) : ""; } catch (e) { ret = ""; }
   if (!/^\/(?!\/)[A-Za-z0-9._~\-\/?=&%]{0,200}$/.test(ret) || /^\/api\//.test(ret)) ret = "";
+
+  // 네이버가 돌려준 오류(취소·검수 전 미등록 계정 등)
+  if (nerr) return fail(res, base, ret, nerr === "access_denied" ? "access_denied" : "naver_" + nerr.slice(0, 40), ndesc.slice(0, 200));
+  // CSRF: 쿠키 state 대조. 쿠키가 없으면 대개 로그인 창이 다른 브라우저(앱 전환)에서 돌아온 것.
+  const cm = cookie.match(/naver_state=([a-f0-9]+)/);
+  if (!code || !state || !cm || cm[1] !== state) {
+    return fail(res, base, ret, "naver_state", cm ? "state mismatch" : "state cookie missing");
+  }
 
   try {
     // 1) code → 네이버 access_token
@@ -53,7 +66,7 @@ export default async function handler(req, res) {
       + `&client_secret=${encodeURIComponent(CLIENT_SECRET)}&code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
     const tr = await fetch(tokenUrl);
     const token = await tr.json();
-    if (!token.access_token) return page(res, 502, "네이버 인증 실패", "다시 시도해주세요.");
+    if (!token.access_token) return fail(res, base, ret, "naver_token", String(token.error || "") + " " + String(token.error_description || "").slice(0, 150));
 
     // 2) 프로필(email, name)
     const pr = await fetch("https://openapi.naver.com/v1/nid/me", { headers: { Authorization: `Bearer ${token.access_token}` } });
@@ -61,7 +74,7 @@ export default async function handler(req, res) {
     const r = prof && prof.response;
     const email = r && r.email;
     const name = r && (r.name || r.nickname);
-    if (!email) return page(res, 400, "이메일 동의가 필요해요", "네이버 로그인 시 이메일 제공에 동의해주세요.");
+    if (!email) return fail(res, base, ret, "naver_no_email", "email not provided" + (r ? "" : " / profile " + String(prof && prof.resultcode || "?")));
 
     const sbAdmin = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json" };
 
@@ -78,13 +91,13 @@ export default async function handler(req, res) {
     });
     const glj = await gl.json().catch(() => ({}));
     const actionLink = glj.action_link || (glj.properties && glj.properties.action_link);
-    if (!actionLink) return page(res, 502, "세션 생성 실패", "다시 시도해주세요.");
+    if (!actionLink) return fail(res, base, ret, "naver_session", String(glj.msg || glj.error_description || glj.error || gl.status).slice(0, 150));
 
     // 5) action_link 로 리다이렉트 → 브라우저가 Supabase verify 거쳐 사이트로(#access_token) → auth.js 가 세션 처리
     res.setHeader("Set-Cookie", ["naver_state=; Path=/; Max-Age=0", "naver_return=; Path=/; Max-Age=0"]);
     res.setHeader("Location", actionLink);
     return res.status(302).end();
   } catch (e) {
-    return page(res, 500, "오류가 발생했어요", "잠시 후 다시 시도해주세요.");
+    return fail(res, base, ret, "naver_exception", String(e && e.message || "").slice(0, 150));
   }
 }
