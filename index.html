@@ -394,6 +394,9 @@
   .ac-out.warn { color: #8a5a00; }
   .ac-out.bad { color: #a12d24; }
   .same-btn { display: inline-flex; align-items: center; min-height: 40px; margin: 2px 0 4px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; }
+  /* 성함 칸 위 빠른 채우기 한 줄 — 내 계정 이름(초록) · 받는 분과 같아요(흰색) */
+  .name-quick { display: flex; flex-wrap: wrap; gap: 0 8px; }
+  .same-btn.mine { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); }
   /* 약관 동의 묶음 — 맨 위 '모두 동의', 아래 필수 4개(각각 '보기'로 펼침) */
   .agree { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #f7f7f3; overflow: hidden; }
   .agree input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
@@ -914,10 +917,12 @@
       </div>
     </div>
 
-    <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분과 같아요 — 제가 직접 받아요</button>
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
+    <div class="name-quick">
+      <button type="button" id="senderNameHint" class="same-btn mine" style="display:none;" onclick="afUseAccountName()"></button>
+      <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분과 같아요</button>
+    </div>
     <input type="text" id="senderName" autocomplete="name" enterkeyhint="next" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this);afNameHint()" />
-    <button type="button" id="senderNameHint" class="same-btn" style="display:none;" onclick="afUseAccountName()"></button>
     <label class="fl">연락처 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 도착 확인 사진을 이 번호로 보내드립니다</span></label>
     <input type="tel" id="senderPhone" autocomplete="tel" enterkeyhint="done" placeholder="010-0000-0000" inputmode="tel" oninput="formatPhone(this);clearErr(this)" />
     <div class="ribbon-only">
@@ -1908,7 +1913,7 @@ function afSyncMemberFold(){
 }
 window.addEventListener("af-order-gate", afSyncMemberFold);
 // 로그인 이름(카카오 닉네임 등)은 영어·별명일 수 있는데 리본에 그대로 인쇄된다 → 칸을 미리 채우지 않고
-// 성함 칸 아래 '내 계정 이름 넣기' 버튼으로만 권한다. 손님이 눌러야 들어간다(10/19 형구).
+// 성함 칸 위 '<이름> 넣기' 버튼으로만 권한다. 손님이 눌러야 들어간다(10/19 형구).
 function afAccountName(){
   const user=window.afAuth&&window.afAuth.user; if(!user) return "";
   const m=user.user_metadata||{}; const nm=String(m.full_name||m.name||"").trim();
@@ -1917,7 +1922,7 @@ function afAccountName(){
 function afNameHint(){
   const b=document.getElementById("senderNameHint"), sn=document.getElementById("senderName"); if(!b||!sn) return;
   const nm=afAccountName();
-  if(nm && !sn.value.trim()){ b.textContent="내 계정 이름 넣기 · "+nm; b.style.display=""; } else b.style.display="none";
+  if(nm && !sn.value.trim()){ b.textContent=nm+" 넣기"; b.style.display=""; } else b.style.display="none";
 }
 function afUseAccountName(){
   const sn=document.getElementById("senderName"), nm=afAccountName(); if(!sn||!nm) return;
@@ -2686,7 +2691,7 @@ function afSameAsRecipient(btn){
   var sn=document.getElementById("senderName"), sp=document.getElementById("senderPhone");
   if(sn && rn){ sn.value=rn; order.senderName=rn; if(typeof clearErr==="function") clearErr(sn); }
   if(sp && rp){ sp.value=rp; if(typeof formatPhone==="function") formatPhone(sp); order.senderPhone=sp.value; if(typeof clearErr==="function") clearErr(sp); }
-  try{ syncRibbonLeft(); }catch(_){}
+  try{ syncRibbonLeft(); }catch(_){} try{ afNameHint(); }catch(_){}
   btn.textContent="받는 분과 같게 채웠어요 ✓"; setTimeout(function(){ btn.textContent=label; },2200);
 }
 
