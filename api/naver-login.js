@@ -22,6 +22,8 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     return res.status(503).send("네이버 로그인이 아직 설정되지 않았어요. (NAVER_CLIENT_ID 필요)");
   }
+  let sw = false;
+  try { sw = new URL(req.url, "http://localhost").searchParams.get("switch") === "1"; } catch (e) {}
   const state = crypto.randomBytes(16).toString("hex");
   const redirect = `${base}/api/naver-callback`;
   // 로그인 뒤 돌아갈 자리(10/8) — 사이트 안 경로만(//·외부 주소·/api 거부). 콜백이 쿠키로 받아 redirect_to 에 붙인다.
@@ -35,7 +37,9 @@ export default async function handler(req, res) {
   ]);
   const url = "https://nid.naver.com/oauth2.0/authorize"
     + `?response_type=code&client_id=${encodeURIComponent(CLIENT_ID)}`
-    + `&redirect_uri=${encodeURIComponent(redirect)}&state=${state}`;
+    + `&redirect_uri=${encodeURIComponent(redirect)}&state=${state}`
+    // 계정 바꾸기(10/18, 관리 화면): 네이버가 이미 로그인된 아이디로 그냥 넘기지 않고 아이디·비밀번호를 다시 묻게 한다.
+    + (sw ? "&auth_type=reauthenticate" : "");
   res.setHeader("Location", url);
   res.status(302).end();
 }

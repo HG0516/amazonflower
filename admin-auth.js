@@ -37,7 +37,7 @@
     el.className = "af-admin-gate";
     el.innerHTML = '<div class="af-admin-gate-card"><div style="font-size:44px">🌸</div><h2></h2><p></p>' +
       (button ? '<button class="af-admin-login" type="button"></button>' : "") +
-      (canLogout ? '<button class="af-admin-logout" type="button">다른 계정으로 로그인</button>' : "") + "</div>";
+      (canLogout ? '<button class="af-admin-logout" type="button">네이버 계정 바꾸기</button>' : "") + "</div>";
     el.querySelector("h2").textContent = title;
     el.querySelector("p").textContent = message;
     if (button) {
@@ -61,12 +61,12 @@
     return (document.documentElement.getAttribute("data-admin-provider") || "naver").toLowerCase();
   }
 
-  function login() {
+  function login(switchAccount) {
     if (!client) return location.reload();
     var provider = desiredProvider();
     if (provider === "naver") {
       try { sessionStorage.setItem("af_admin_return", location.pathname + location.search); } catch (_) {}
-      location.href = "/api/naver-login?return=" + encodeURIComponent(location.pathname + location.search);
+      location.href = "/api/naver-login?" + (switchAccount === true ? "switch=1&" : "") + "return=" + encodeURIComponent(location.pathname + location.search);
       return;
     }
     var options = { redirectTo: location.href };
@@ -89,7 +89,7 @@
 
   function logoutAndLogin() {
     if (!client) return location.reload();
-    client.auth.signOut().then(function () { session = null; access = null; login(); });
+    client.auth.signOut().then(function () { session = null; access = null; login(true); });
   }
 
   async function token(forceRefresh) {
@@ -122,7 +122,16 @@
     var el = document.createElement("div");
     el.id = "af-admin-who";
     el.className = "af-admin-who";
-    el.textContent = (access.role === "owner" ? "대표 관리자" : "운영 관리자") + "로 로그인됨 · ";
+    // 10/18 형구: 어느 네이버 계정으로 들어왔는지 보이고, 잘못 들어왔으면 바로 바꿀 수 있게.
+    var mail = session && session.user && session.user.email || "";
+    el.textContent = (access.role === "owner" ? "대표 관리자" : "운영 관리자") + (mail ? " " + mail : "") + "로 로그인됨 · ";
+    var sw = document.createElement("button");
+    sw.type = "button";
+    sw.className = "af-admin-out";
+    sw.textContent = "네이버 계정 바꾸기";
+    sw.onclick = logoutAndLogin;
+    el.appendChild(sw);
+    el.appendChild(document.createTextNode(" · "));
     var out = document.createElement("button");
     out.type = "button";
     out.className = "af-admin-out";
