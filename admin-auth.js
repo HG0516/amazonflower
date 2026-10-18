@@ -23,7 +23,8 @@
       ".af-admin-gate h2{font-size:22px;margin:8px 0;color:#1f1d18}.af-admin-gate p{font-size:15px;line-height:1.65;color:#5a564d;margin:0 0 16px;}" +
       ".af-admin-login,.af-admin-retry{width:100%;min-height:52px;border:0;border-radius:10px;background:#1f4733;color:#fff;font:800 17px inherit;padding:13px;cursor:pointer;margin-top:8px;}" +
       ".af-admin-logout{background:transparent;border:0;color:#7a766c;font:600 14px inherit;padding:15px;cursor:pointer;}" +
-      ".af-admin-who{font-size:12px;color:#7a766c;text-align:right;padding:8px 14px 0;max-width:680px;margin:0 auto;}";
+      ".af-admin-who{font-size:12px;color:#7a766c;text-align:right;padding:8px 14px 0;max-width:680px;margin:0 auto;}" +
+      ".af-admin-out{background:transparent;border:0;color:#1f4733;font:700 12px inherit;text-decoration:underline;padding:6px 2px;cursor:pointer;}";
     document.head.appendChild(style);
   }
 
@@ -75,6 +76,17 @@
     });
   }
 
+  // 10/18 형구: 관리 화면에 로그아웃이 없었다. 로그아웃만 하고 로그인 버튼 화면으로 둔다(바로 다시 로그인하지 않게).
+  function logout() {
+    if (!client) return location.reload();
+    client.auth.signOut().then(function () {
+      session = null; access = null;
+      var w = document.getElementById("af-admin-who");
+      if (w) w.remove();
+      gate("로그아웃했어요", "다시 쓰려면 아래 버튼으로 로그인해주세요.", "네이버로 관리자 로그인", login, false);
+    });
+  }
+
   function logoutAndLogin() {
     if (!client) return location.reload();
     client.auth.signOut().then(function () { session = null; access = null; login(); });
@@ -110,7 +122,13 @@
     var el = document.createElement("div");
     el.id = "af-admin-who";
     el.className = "af-admin-who";
-    el.textContent = (access.role === "owner" ? "대표 관리자" : "운영 관리자") + "로 로그인됨";
+    el.textContent = (access.role === "owner" ? "대표 관리자" : "운영 관리자") + "로 로그인됨 · ";
+    var out = document.createElement("button");
+    out.type = "button";
+    out.className = "af-admin-out";
+    out.textContent = "로그아웃";
+    out.onclick = logout;
+    el.appendChild(out);
     document.body.insertBefore(el, document.body.firstChild);
   }
 
