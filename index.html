@@ -2227,6 +2227,7 @@ function selTier(i, autoOpen){
         <div class="design-desc">${t.desc}</div>
         <div class="design-price" id="designTotal"><b>${t.price.toLocaleString()}원</b></div>
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
+        <a href="/catalog.html" style="display:inline-block;margin-top:8px;font-size:var(--fs-caption);color:var(--ink-soft);text-decoration:underline;">다른 상품 보기 →</a>
         ${afOriginHtml()}
       </div>
     </div>
@@ -3781,6 +3782,7 @@ function selProduct(p){
         <div class="design-desc">${escapeHtml(sizeLine)}</div>
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
+        <a href="/catalog.html" style="display:inline-block;margin-top:8px;font-size:var(--fs-caption);color:var(--ink-soft);text-decoration:underline;">다른 상품 보기 →</a>
         ${afOriginHtml()}
       </div>
     </div>
@@ -3793,19 +3795,16 @@ function selProduct(p){
   updateDesignTotal();
 }
 // 상품을 직접 고른 사람은 '결정한 사람' — 홈 둘러보기 섹션(.home-sect)을 숨겨 주문에 집중시키고
-// 상단 고정 배너에 '선택한 상품 + 다른 상품 보기'만 남긴다. '처음으로'/새로고침 시 전체 복원.
+// 상단 고정 배너도 숨긴다(10/18). '처음으로'/새로고침 시 전체 복원.
 // 한 페이지 구성(아버지 10/5 "한 페이지에 모두"): 상품을 고르면 받는 곳·보내는 분·결제까지 한 번에 다 보인다.
 // 예전엔 받는 곳을 다 채워야 결제 칸이 열렸고 위에 '1/4 · 상품 선택' 진행 표시가 붙어 4단계처럼 보였다.
 // 빠진 칸은 결제 버튼(afValidateOrder)이 한 번에 모아 알려준다.
 function enterOrderMode(labelHtml){
   document.body.classList.add("ordering");
+  // 10/18 아버지: 위에 붙어 따라다니는 '선택한 상품' 상자가 주문서를 가린다 → 주문 중엔 띄우지 않는다.
+  // 고른 상품은 바로 아래 상품 카드에 사진·가격으로 보이고, '다른 상품 보기'는 그 카드 안으로 옮겼다.
   const b=document.getElementById("catalogBanner");
-  if(b){
-    b.innerHTML='<div class="pick-label">선택한 상품</div>'
-      +'<div class="pick-name">'+labelHtml+'</div>'
-      +'<a href="/catalog.html" style="display:inline-block;margin-top:6px;font-size:var(--fs-caption);color:var(--paper);text-decoration:underline;">다른 상품 보기 →</a>';
-    b.classList.remove("hidden");
-  }
+  if(b) b.classList.add("hidden");
   afOpenPayCard();
   if(typeof updateBuyBar==="function") updateBuyBar();
 }
