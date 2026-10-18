@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>꽃안부 — 안부는, 꽃으로</title>
-<meta name="description" content="꽃안부 — 안부를 꽃으로 전합니다. 근조·축하 화환 · 동양란 · 관엽 · 꽃바구니. 부고·청첩장 링크만 보내주세요. 법인 계산서·후불, 전국 당일배송. 1993년부터." />
+<title>꽃안부 · 안부는, 꽃으로</title>
+<meta name="description" content="1993년부터 시흥 한 자리에서 꽃을 만들어 온 꽃안부입니다. 근조·축하 화환, 동양란, 관엽, 꽃바구니를 전국 당일 배송해요. 부고·청첩장 링크만 보내 주셔도 주문할 수 있고, 법인 계산서·후불도 됩니다." />
 <!-- 오픈그래프: 카톡·문자 등에 링크 공유 시 미리보기 카드로 뜸 -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content="꽃안부 — 안부는, 꽃으로" />
-<meta property="og:description" content="부고도 청첩장도, 링크만 보내세요. 화환 · 난 · 관엽 · 꽃바구니 — 법인 계산서·후불 · 전국 당일배송. 회원가입 없이 주문 · 카드·간편결제." />
+<meta property="og:title" content="꽃안부 · 안부는, 꽃으로" />
+<meta property="og:description" content="부고·청첩장 링크만 보내 주세요. 화환·난·관엽·꽃바구니 전국 당일 배송, 회원가입 없이 카드·간편결제로 주문할 수 있어요. 법인 계산서·후불 가능." />
 <meta property="og:image" content="https://floweranbu.co.kr/og_preview.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -315,6 +315,9 @@
   .dt-cell.sel { background: var(--accent); color: #fff !important; }
   .dt-today { position: absolute; bottom: 1px; left: 0; right: 0; text-align: center; font-size: var(--fs-label); font-weight: 700; color: var(--ink-faint); letter-spacing: 0.5px; }
   .dt-cell.sel .dt-today { color: rgba(255,255,255,.9); }
+  .dt-cell.today { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent-deep); font-weight: 700; }
+  .dt-cell.today.sel { color: #fff; }
+  .dt-ev-sub { display: block; font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); margin-top: 2px; }
   .dt-slots-wrap { margin-top: 18px; }
   /* 오늘·내일·모레 빠른 선택 — 경조사 주문 대부분이 이 셋 안이다. 달력은 그 밖의 날짜용. */
   .dt-quick-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
@@ -332,7 +335,7 @@
   /* 자주 보내는 곳 */
   .addrbook { margin: 2px 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
   .addrbook .ab-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
-  .addrbook .ab-title span { font-weight: 400; font-size: var(--fs-caption); color: var(--ink-faint); }
+  .addrbook .ab-title span { display: block; margin-top: 2px; font-weight: 400; font-size: var(--fs-caption); color: var(--ink-faint); }
   .addrbook .ab-list { display: grid; gap: 6px; }
   .addrbook .ab-item { display: flex; align-items: stretch; gap: 6px; }
   .addrbook .ab-pick { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); cursor: pointer; text-align: left; font-family: var(--font-body); }
@@ -440,6 +443,8 @@
   /* ── 배송 요청 + 공동현관 비번 ── */
   .deliv-box { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
   .fl-opt { font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); }
+  /* 칸 이름 아래 한 줄 안내. 이름 옆에 줄표로 붙이던 것을 줄을 바꿔 쓴다(10/19). */
+  .fl-sub { display: block; font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); margin-top: 2px; letter-spacing: 0; }
   .deliv-sel { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239e9a8f' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
   .deliv-sel:focus { outline: none; border-color: var(--accent); }
   .deliv-custom { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); margin-top: 8px; }
@@ -695,12 +700,12 @@
   <!-- 히어로: 대형 실사진 1장(첫 화면 LCP). 오버레이 금지 · 카피는 사진 아래 -->
   <section class="hero home-sect">
     <h1>안부는, 꽃으로</h1>
-    <p class="lede">근조도 축하도, 마음을 담아 정성껏 보내드립니다.</p>
+    <p class="lede">근조도 축하도, 마음을 담아 정성껏 보내 드립니다.</p>
     <!-- 첫 화면 약속 한 줄 — 전화 응대 멘트와 같은 문구를 쓰면 "홈페이지 봤는데요" 통화가 쉬워진다. -->
     <ul class="promise">
       <li><b>시흥 한 자리 33년</b><span>1993년부터 같은 사장님</span></li>
       <li><b>전국 당일 배송</b><span>평일 18시 · 주말 16시까지 주문</span></li>
-      <li><b>도착 사진 문자로</b><span>배송 직후 확인시켜 드립니다</span></li>
+      <li><b>도착 사진 문자로</b><span>배송하고 바로 보내 드려요</span></li>
     </ul>
   </section>
 
@@ -731,7 +736,7 @@
   <section class="home-sect" data-home="ways" id="startWays" style="margin-top:var(--space-sect);">
     <a class="way way-tel" href="tel:1577-2286">
       <span class="way-ic" aria-hidden="true">📞</span>
-      <span class="way-txt"><b>전화로 주문</b><span>1577-2286 · 상품부터 리본 문구까지 같이 정해드려요</span></span>
+      <span class="way-txt"><b>전화로 주문</b><span>1577-2286 · 상품부터 리본 문구까지 같이 정해 드려요</span></span>
     </a>
     <a class="way way-pick" href="/catalog.html">
       <span class="way-ic" aria-hidden="true">🌷</span>
@@ -754,7 +759,7 @@
   </section>
 
   <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
-  <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> — <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 55,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
+  <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 55,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
 
   <!-- 결제 안내 4칸 — 카드·간편결제 / 계좌이체(무통장, 계좌 명시) / 영수증·계산서 / 전화주문 절차.
        결제수단이 6단계 결제 직전에야 보여 "홈피 보고 전화하는 손님"이 계좌를 못 찾던 문제(2026-09-12). -->
@@ -775,7 +780,7 @@
       <div class="pg bank">
         <div class="pg-n">3</div>
         <div class="pg-t">계좌이체 · 무통장입금</div>
-        <div class="pg-d">입금 후 전화나 문자로 <b>입금자명·받는 곳</b>을 알려주시면 바로 준비합니다</div>
+        <div class="pg-d">입금 후 전화나 문자로 <b>입금자명·받는 곳</b>을 알려 주시면 바로 준비합니다</div>
         <div class="pg-acct">
           <div class="no" id="bankAcct">기업은행 169-165982-04-025<small>예금주 (주)아마존</small></div>
           <button type="button" onclick="copyBankAcct(this)">계좌 복사</button>
@@ -791,7 +796,7 @@
       <div class="pg">
         <div class="pg-n">5</div>
         <div class="pg-t">현금영수증</div>
-        <div class="pg-d">계좌이체·무통장 입금은 요청하시면 발급해 드립니다(전화·문자로 번호 알려주세요)</div>
+        <div class="pg-d">계좌이체·무통장 입금은 요청하시면 발급해 드립니다(전화·문자로 번호 알려 주세요)</div>
       </div>
     </div>
   </section>
@@ -823,7 +828,7 @@
         <div class="wedcard-k">Wedding · Since 1993</div>
         <div class="wedcard-h">신부의 부케</div>
         <p class="wedcard-t">30년간 신부들의 부케를 만들어온 어머니가,<br>올해 딸의 결혼식 부케를 직접 엮었습니다.</p>
-        <p class="wedcard-t">내 딸 부케를 만들던 그 마음으로,<br>당신의 부케도 정성껏 만듭니다.</p>
+        <p class="wedcard-t">딸의 부케를 엮던 마음 그대로<br>신부님의 부케를 만듭니다.</p>
         <div class="wedcard-s">토·일 각 1~2건 · 수도권 한정 예약</div>
         <div class="wedcard-cta">웨딩 부케 예약 상담 →</div>
       </div>
@@ -832,7 +837,7 @@
 
   <section class="card hidden" id="prodCard">
     <div class="step-head"><span class="step-num" id="n-prod">1.</span><span class="step-title">상품 고르기</span></div>
-    <div class="step-sub" id="prodSub">친구·지인은 보통 일반형·중급형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요.</div>
+    <div class="step-sub" id="prodSub">친구·지인은 보통·일반1호, 거래처·회사 명의는 스페셜·특대를 많이 고르세요.</div>
     <div class="chips" id="catChips" style="margin-bottom:14px;"></div>
     <div id="recoBox" style="margin-bottom:16px;"></div>
     <div class="price-tabs" id="priceTabs"></div>
@@ -845,10 +850,10 @@
 
   <section class="card hidden" id="confirmCard">
     <div class="step-head"><span class="step-num" id="n-confirm">2.</span><span class="step-title">받는 곳</span></div>
-    <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해주세요. 틀린 곳이 있으면 그 칸만 고치시면 됩니다.</div>
+    <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해 주세요. 틀린 곳은 그 칸만 고치시면 돼요.</div>
     <!-- 부고·청첩장 링크로 받는 곳 자동입력(선택) -->
     <div class="af-linkbar" id="afLinkbar">
-      <div class="af-lb-title">링크로 받는 곳 자동입력 <span>— 부고·청첩장·초대 링크가 있으면 붙여넣으세요 (선택)</span></div>
+      <div class="af-lb-title">부고장·청첩장 링크로 채우기 <span>(선택)</span></div>
       <div class="af-lb-row">
         <input type="text" inputmode="url" placeholder="링크 붙여넣기" oninput="var b=this.nextElementSibling;b.disabled=!this.value.trim();" />
         <button type="button" disabled onclick="afLinkParse()">자동입력</button>
@@ -864,21 +869,21 @@
     <div class="deliv-box">
       <!-- 여태 이 칸이 없었다. 그러면서 배송 요청에는 '배송 전 받는 분께 연락해 주세요'가
            들어 있어서, 손님이 그걸 고르면 연락할 번호가 없었다. -->
-      <label class="fl" id="rpLabel">받는 분 연락처 <span class="fl-opt" id="rpOpt">— 못 만났을 때 연락드립니다</span></label>
+      <label class="fl" id="rpLabel">받는 분 연락처 <span class="fl-opt" id="rpReq"></span><span class="fl-sub" id="rpOpt">못 만나면 이 번호로 연락드려요</span></label>
       <input type="text" id="recipientPhone" class="rcp-input" inputmode="numeric" autocomplete="off"
              placeholder="010-0000-0000" oninput="formatPhone(this);order.recipientPhone=this.value" />
       <label class="fl" style="margin-top:14px;">배송 요청 <span class="fl-opt">(선택)</span></label>
       <select id="delivReq" class="deliv-sel" onchange="onDelivReq(this.value)">
         <option value="">특별한 요청 없음</option>
         <option value="배송 전 받는 분께 연락해 주세요">배송 전 받는 분께 연락해 주세요</option>
-        <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
-        <option value="경비실·프런트에 맡겨주세요">경비실·프런트에 맡겨주세요</option>
+        <option value="문 앞에 놓아주세요">문 앞에 놓아 주세요</option>
+        <option value="경비실·프런트에 맡겨주세요">경비실·프런트에 맡겨 주세요</option>
         <option value="__custom">직접 입력</option>
       </select>
-      <input type="text" id="delivReqCustom" class="deliv-custom hidden" placeholder="배송 요청을 직접 적어주세요" oninput="order.delivReq=this.value" />
+      <input type="text" id="delivReqCustom" class="deliv-custom hidden" placeholder="배송 요청을 직접 적어 주세요" oninput="order.delivReq=this.value" />
       <!-- 화환은 빈소·예식장·매장으로 간다. 거기에 공동현관 비번은 없다 → 화환일 땐 숨긴다. -->
       <div id="entranceBox">
-        <label class="fl" style="margin-top:14px;">공동현관 출입 비밀번호 <span class="fl-opt">— 아파트·오피스텔이면 알려주세요</span></label>
+        <label class="fl" style="margin-top:14px;">공동현관 비밀번호 <span class="fl-sub">아파트·오피스텔이면 적어 주세요</span></label>
         <div class="entrance-row">
           <input type="text" id="entrancePw" class="entrance-pw" placeholder="예) #1234 · 1234*" oninput="order.entrancePw=this.value" />
           <label class="entrance-none"><input type="checkbox" id="entranceNone" onchange="onEntranceNone(this.checked)" /> 없음</label>
@@ -904,7 +909,7 @@
 
   <section class="card hidden" id="senderCard">
     <div class="step-head"><span class="step-num" id="n-send">5.</span><span class="step-title" id="senderTitle">보내는 분 · 리본 문구</span></div>
-    <div class="step-sub" id="senderSub">보내는 분 정보는 직접 입력해주세요. 리본 문구는 자동으로 맞춰드립니다.</div>
+    <div class="step-sub" id="senderSub">보내는 분 정보를 적어 주세요. 리본 문구는 아래에서 고르시면 돼요.</div>
 
     <div class="ribbon-guide ribbon-only">
       <div class="ribbon-photo-placeholder">
@@ -916,28 +921,29 @@
       </div>
       <div class="ribbon-guide-text">
         화환 양쪽에 달리는 리본입니다.<br>
-        <b>왼편</b> 보내는 분 · <b>오른편</b> 인사 문구
+        <b>왼쪽</b> 보내는 분 · <b>오른쪽</b> 인사 문구
       </div>
     </div>
 
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
     <div class="name-quick">
       <button type="button" id="senderNameHint" class="same-btn mine" style="display:none;" onclick="afUseAccountName()"></button>
-      <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분과 같아요</button>
+      <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분 성함 그대로</button>
     </div>
     <input type="text" id="senderName" autocomplete="name" enterkeyhint="next" placeholder="예) 홍길동 · (주)KCC · ○○부 임직원 일동" oninput="syncRibbonLeft();clearErr(this);afNameHint()" />
-    <label class="fl">연락처 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 도착 확인 사진을 이 번호로 보내드립니다</span></label>
+    <label class="fl">연락처 <span class="required-mark">(필수)</span> <span class="fl-sub">도착 사진을 이 번호로 보내 드려요</span></label>
     <input type="tel" id="senderPhone" autocomplete="tel" enterkeyhint="done" placeholder="010-0000-0000" inputmode="tel" oninput="formatPhone(this);clearErr(this)" />
     <div class="ribbon-only">
-      <label class="fl">리본 — 왼편 (보내는 분) <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 비우면 위 성함이 자동으로 들어갑니다</span></label>
+      <label class="fl">리본 왼쪽: 보내는 분 <span class="fl-sub">비워 두면 위 성함이 들어가요</span></label>
       <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
-      <label class="fl">리본 — 오른편 (문구) <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 관계에 맞는 문구를 골라주세요</span></label>
+      <label class="fl">리본 오른쪽: 문구 <span class="fl-sub">어떤 사이인지에 맞춰 골라 주세요</span></label>
       <div class="tone-tabs" id="toneTabs"></div>
       <div class="ribbon-opts" id="ribbonOpts"></div>
-      <input type="text" id="ribbonRight" placeholder="직접 입력도 가능합니다" style="margin-top:8px;" onblur="ribbonCheck()" />
+      <label class="fl" for="ribbonRight">리본에 들어갈 문구 <span class="fl-sub">고른 문구를 고쳐 쓸 수 있어요</span></label>
+      <input type="text" id="ribbonRight" placeholder="직접 적어도 돼요" onblur="ribbonCheck()" />
       <div id="ribbonWarn" class="af-lb-msg err" style="display:none;"></div>
       <div class="ribbon-ask">
-        <label class="fl" style="margin:0 0 6px;">문구가 고민되시면 — 어떤 사이인지 적어주세요</label>
+        <label class="fl" style="margin:0 0 6px;">어떤 사이인지 적으면 문구를 골라 드려요</label>
         <div class="ribbon-ask-row">
           <input type="text" id="ribbonAsk" placeholder="예) 직장 상사 어머님 상 · 거래처 개업" autocomplete="off" enterkeyhint="search"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();ribbonSuggest();}" />
@@ -945,26 +951,26 @@
         </div>
         <div class="ribbon-opts" id="ribbonSug" style="display:none;margin-top:10px;"></div>
       </div>
-      <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">리본 문구가 고민되시면 전화 주세요 — 같이 정해드려요. <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">1577-2286</a></div>
+      <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">문구가 고민되시면 전화 주세요. 같이 정해 드려요. <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">1577-2286</a></div>
     </div>
 
     <!-- 메시지 카드 — 리본이 없는 꽃다발·꽃바구니에만(buildRibbon 이 켜고 끈다). 추가 비용 없음.
          유료 '손글씨 카드'(top_card, 5,000원) 토핑과는 별개 — 그 토핑은 지금 어느 분류에도 안 걸려 있다. -->
     <div class="card-only msgcard" id="msgCardBox" style="display:none;">
-      <label class="fl" for="cardMessage">메시지 카드 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 꽃과 함께 넣어드려요 · 추가 비용 없음</span></label>
+      <label class="fl" for="cardMessage">메시지 카드 <span class="fl-sub">꽃과 함께 넣어 드려요. 추가 비용은 없어요</span></label>
       <div class="mc-choice" role="radiogroup" aria-label="메시지 카드">
         <button type="button" class="mc-btn on" id="mcOn" role="radio" aria-checked="true" onclick="afMsgCard(true)">카드 넣기</button>
         <button type="button" class="mc-btn" id="mcOff" role="radio" aria-checked="false" onclick="afMsgCard(false)">안 넣기</button>
       </div>
       <div id="mcBody">
-        <div class="mc-ex" id="mcEx" aria-label="예시 문구 — 누르면 아래 칸에 들어가요"></div>
-        <textarea id="cardMessage" rows="3" maxlength="150" placeholder="카드에 적을 말을 써 주세요&#10;예) 엄마, 생신 축하드려요. 늘 건강하세요. — 막내 올림" oninput="afMsgCardInput(this)"></textarea>
+        <div class="mc-ex" id="mcEx" aria-label="예시 문구, 누르면 아래 칸에 들어가요"></div>
+        <textarea id="cardMessage" rows="3" maxlength="150" placeholder="카드에 적을 말을 써 주세요&#10;예) 엄마, 생신 축하드려요. 늘 건강하세요. 막내 올림" oninput="afMsgCardInput(this)"></textarea>
         <div class="mc-meta"><span><b id="mcCount">0</b>/150</span></div>
       </div>
     </div>
 
-    <label class="fl" style="margin-top:22px;">사장님께 한 줄 부탁 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 게 있으면 적어주세요 (선택)</span></label>
-    <input type="text" id="senderNote" placeholder="예) 진한 자주색 위주로 · 리본 글자 잘 보이게 · 흰 국화 비중 높게" />
+    <label class="fl" style="margin-top:22px;">사장님께 부탁 <span class="fl-opt">(선택)</span></label>
+    <input type="text" id="senderNote" placeholder="예) 분홍 위주로 · 향이 약한 꽃으로" />
   </section>
 
   <section class="card hidden" id="payCard">
@@ -973,7 +979,7 @@
     <!-- 회원/비회원 — 비회원이 기본값이고, 로그인은 접어서 한 줄로 둔다.
          결제 단계에서 가입을 물으면 이탈한다(Baymard: 포기 사유의 18%가 회원가입 강제). -->
     <details class="af-fold" id="memberFold" style="margin-bottom:12px;">
-      <summary>비회원으로 주문 중 — 로그인하면 2,000원 적립</summary>
+      <summary>비회원으로 주문 중 · 로그인하면 2,000원 적립돼요</summary>
       <div class="member-choice" id="memberChoice" style="margin-top:0;">
         <div class="mc-btns">
           <button type="button" class="mc-btn on" id="mcGuest" onclick="selMember('guest')">
@@ -995,7 +1001,7 @@
 
     <!-- 개인이 기본. 법인(계산서)은 필요한 사람만 펼치게 — 개인 손님이 고민할 선택지를 줄인다. -->
     <details class="af-fold" id="buyerFold" style="margin-bottom:12px;" ontoggle="if(!this.open)selBuyer('personal')">
-      <summary>계산서가 필요하세요? — 법인·단체 주문</summary>
+      <summary>법인·단체 계산서 받기</summary>
       <div class="buyer-tabs" style="margin-top:0;">
         <div class="buyer-tab on" id="buyerPersonal" onclick="selBuyer('personal')">개인</div>
         <div class="buyer-tab" id="buyerCorp" onclick="selBuyer('corp')">법인 · 계산서</div>
@@ -1003,21 +1009,21 @@
     </details>
 
     <div class="corp-box hidden" id="corpBox">
-      <div class="corp-note">계산서 발행을 위해 사업자 정보를 입력해주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 1577-2286).</div>
-      <div class="hidden" id="corpPrefillNote" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;margin:8px 0 2px;">✓ 지난 주문의 사업자 정보를 불러왔어요 — 바뀐 내용이 있으면 수정해주세요.</div>
-      <label class="fl">상호 (회사명) <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 회사명을 치면 사업자번호를 찾아드려요</span></label>
+      <div class="corp-note">계산서를 받으실 사업자 정보를 적어 주세요. 계산서는 (주)아마존 명의로 발행됩니다. 정기 거래처로 등록하시면 다음부터는 링크만 보내셔도 됩니다 (전화 1577-2286).</div>
+      <div class="hidden" id="corpPrefillNote" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;margin:8px 0 2px;">✓ 지난 주문의 사업자 정보를 불러왔어요. 바뀐 게 있으면 고쳐 주세요.</div>
+      <label class="fl">상호 (회사명) <span class="required-mark">(필수)</span> <span class="fl-sub">회사명을 치면 사업자번호를 찾아 드려요</span></label>
       <input type="text" id="corpName" autocomplete="organization" enterkeyhint="next" placeholder="예) (주)KCC · 삼성전자 인사총무팀" oninput="clearErr(this);corpSearchInput(this)" />
       <div id="corpSearchList" class="hidden" style="border:1px solid var(--line);border-radius:var(--radius-sm);margin-top:4px;overflow:hidden;background:var(--paper);"></div>
-      <label class="fl">사업자등록번호 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 숫자만 누르셔도 됩니다</span></label>
+      <label class="fl">사업자등록번호 <span class="required-mark">(필수)</span> <span class="fl-sub">숫자만 누르셔도 돼요</span></label>
       <input type="text" id="corpRegNo" placeholder="000-00-00000" inputmode="numeric" maxlength="12" enterkeyhint="next" oninput="formatBizNo(this);clearErr(this)" />
       <div id="bizStatusNote" class="hidden" style="font-size:var(--fs-caption);font-weight:600;margin:6px 0 2px;"></div>
-      <label class="fl">담당자 이메일 <span class="required-mark">(필수)</span> <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 계산서 받으실 주소</span></label>
+      <label class="fl">담당자 이메일 <span class="required-mark">(필수)</span> <span class="fl-sub">계산서를 받으실 주소예요</span></label>
       <input type="email" id="corpEmail" autocomplete="email" enterkeyhint="done" placeholder="name@company.com" inputmode="email" oninput="clearErr(this)" />
       <!-- 계산서 발행에 꼭 필요한 건 상호·사업자번호·이메일 셋뿐이다. 대표자·사업장주소는
            칸이 보이면 채워야 하는 줄 알고 붙잡히시는 분이 많아 접어둔다(값이 있으면 자동으로 펼침). -->
       <button type="button" id="corpMoreBtn" class="corp-more" onclick="corpMore(true)">대표자·사업장 주소도 적기 (선택) ↓</button>
       <div id="corpMoreBox" class="hidden">
-        <label class="fl">대표자 성함 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택 — 몰라도 됩니다)</span></label>
+        <label class="fl">대표자 성함 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택)</span></label>
         <input type="text" id="corpCeo" enterkeyhint="next" placeholder="홍길동" />
         <label class="fl">사업장 주소 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">(선택)</span></label>
         <input type="text" id="corpAddr" autocomplete="street-address" enterkeyhint="next" placeholder="서울시 ○○구 ○○로 00" />
@@ -1036,7 +1042,7 @@
         <button type="button" class="pm-btn hidden" data-m="bank" onclick="afPickMethod('bank')"><b>무통장입금</b><span>기업은행 169-165982-04-025 (주)아마존</span></button>
       </div>
       <div id="bankExtra" class="pm-extra hidden">
-        <label class="fl" for="depositorName">입금자명 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 보내는 분과 다르면 적어주세요(회사명 등)</span></label>
+        <label class="fl" for="depositorName">입금자명 <span class="fl-sub">보내는 분과 다르면 적어 주세요(회사명 등)</span></label>
         <input type="text" id="depositorName" maxlength="40" placeholder="예) 홍길동 · (주)한빛물산" />
         <label class="fl">현금영수증</label>
         <div class="cr-row">
@@ -1087,10 +1093,10 @@
         <button type="button" class="agree-more" onclick="afAgreeMore(this)" aria-expanded="false">보기</button>
         <div class="agree-desc" hidden>
           주문을 처리하려고 아래 업체에 개인정보 처리를 맡깁니다.<br>
-          · <b>토스페이먼츠</b> — 결제 처리<br>
-          · <b>솔라피(SOLAPI)</b> — 주문 확인·도착 사진 문자 발송<br>
-          · <b>배송 협력 꽃집</b> — 상품 제작·배송 (받는 분 성함·연락처·주소)<br>
-          · <b>Supabase · Vercel</b> — 주문 정보 저장, 사이트 운영<br>
+          · <b>토스페이먼츠</b>: 결제 처리<br>
+          · <b>솔라피(SOLAPI)</b>: 주문 확인·도착 사진 문자 발송<br>
+          · <b>배송 협력 꽃집</b>: 상품 제작·배송 (받는 분 성함·연락처·주소)<br>
+          · <b>Supabase · Vercel</b>: 주문 정보 저장, 사이트 운영<br>
           <a href="/privacy.html#consign" target="_blank" rel="noopener">개인정보처리방침 4번</a>
         </div>
       </div>
@@ -1103,25 +1109,25 @@
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">동의하고 결제하기</button>
     <div class="paychips center" data-paychips="pays" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></div>
     <div class="err hidden" id="payErr"></div>
-    <div class="notice">결제 완료 후 사장님이 주문을 확인하고 준비합니다. 안부가 닿으면 도착 사진을 입력하신 번호로 보내드립니다 — "잘 전했습니다" 보고까지 한 번에 끝나도록.</div>
-    <div class="notice hidden" id="corpNotice">생화는 <b>면세 품목</b>이라 계산서로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내드려요.</div>
+    <div class="notice">결제가 끝나면 사장님이 주문을 확인하고 준비해요. 꽃이 닿으면 도착 사진을 적어 주신 번호로 보내 드려요.</div>
+    <div class="notice hidden" id="corpNotice">생화는 <b>면세 품목</b>이라 계산서로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내 드려요.</div>
   </section>
 
   <!-- 법인(B2B): 개인 동선엔 접힘 한 줄, 총무팀은 탭 한 번. 주문 모드에선 home-sect로 숨김. 푸터 '법인·단체 주문'이 /#corporate 로 연결 -->
   <section class="home-sect" data-home="corp" id="corporate" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
     <details class="af-fold af-fold-corp">
-      <summary>총무·인사팀이세요? — 법인 거래처 (계산서·후불·정찰)</summary>
+      <summary>총무·인사팀이세요? 법인 거래처 안내</summary>
       <div class="story-body" style="margin-top:12px;">
-        거래처 경조사 화환부터 승진·취임 난, 개업 관엽, 명절 일괄 발송까지 —<br>
-        회사의 안부를 한 곳에서 정리해드립니다.<br><br>
+        거래처 경조사 화환, 승진·취임 난, 개업 관엽, 명절 일괄 발송까지<br>
+        한 곳에서 맡아 드립니다.<br><br>
         · 사업자 정보 1회 등록, 이후 주문은 부고·청첩장 링크 전송만<br>
-        · 후불 결제 · <b>계산서 발행</b> — 품의·정산이 깔끔하게<br>
-        · 품의용 <b>견적서</b> — 주문서 맨 아래 결제 칸에서 바로 출력·PDF 저장<br>
+        · 후불 결제, <b>계산서 발행</b><br>
+        · 품의용 <b>견적서</b>는 주문서 맨 아래 결제 칸에서 바로 출력·PDF 저장<br>
         &nbsp;&nbsp;<span style="font-size:var(--fs-caption);color:var(--ink-faint);">생화는 면세 품목이라 계산서로 발행됩니다(배송비 등 과세분은 별도).</span><br>
-        · 전 품목 정찰제 — 품의서 쓰기 편한 가격<br>
-        · 도착 사진 회신 — 보고용 증빙까지 한 번에
+        · 전 품목 정찰제<br>
+        · 도착 사진 회신, 보고용 증빙으로 쓰실 수 있어요
       </div>
-      <a class="catalogue-link" href="tel:1577-2286" style="margin-top:14px;background:var(--paper);">법인 거래처 등록 문의 (전화) — 1577-2286</a>
+      <a class="catalogue-link" href="tel:1577-2286" style="margin-top:14px;background:var(--paper);">법인 거래처 등록 문의 1577-2286</a>
     </details>
   </section>
 
@@ -1131,7 +1137,7 @@
     <div class="reviews-wrap">
       <div class="reviews-label">REVIEWS</div>
       <div class="reviews-title">잘 전했습니다</div>
-      <div class="reviews-sub">주문하신 꽃은 배송 직후 도착 사진으로 확인시켜 드립니다.</div>
+      <div class="reviews-sub">배송하고 바로 도착 사진을 보내 드려요.</div>
       <!-- 큐레이션(2026-07-18): 밝은 것으로 시작 · 근조 1장만 중간 배치 · 종류 골고루 ·
            배경 지저분/세로크롭 잘림 사진 제외 · 새 실배송 사진(축하화환·승진난·꽃다발) 추가. -->
       <div class="reviews-grid">
@@ -1177,9 +1183,9 @@
     <div class="story-label">SINCE 1993</div>
     <div class="story-title">한 자리에서, 33년</div>
     <div class="story-body">
-      1993년 시흥에서 시작한 작은 꽃집 아마존플라워가, 30년이 지나 "꽃안부"라는 이름으로 안부를 전합니다.<br><br>
-      같은 사장님이 같은 자리에서 꽃을 다뤄왔습니다. 거래처의 부고도, 친구의 청첩장도 — 말로 다 못 하는 마음을 꽃으로 대신 전해드릴 수 있도록, 가족이 운영하는 작은 사업입니다.<br><br>
-      한 분, 한 분의 안부가 정성스럽게 닿을 수 있게 — 30년이 지나도 같은 마음입니다.
+      1993년 시흥에서 문을 연 작은 꽃집 아마존플라워가 이제 "꽃안부"라는 이름으로 안부를 전합니다.<br><br>
+      같은 사장님이 같은 자리에서 33년째 꽃을 만들고 있습니다. 거래처의 부고도 친구의 청첩장도, 말로 다 못 하는 마음을 꽃으로 전해 드리는 가족 꽃집입니다.<br><br>
+      한 분 한 분의 안부가 정성껏 닿도록, 처음과 같은 마음으로 만듭니다.
     </div>
   </section>
 
@@ -1309,11 +1315,11 @@ async function pasteFromClipboard(){
     if(txt && txt.trim()){
       document.getElementById("src").value = txt.trim();
     } else {
-      showErr(err,"복사된 내용이 없어요. 먼저 청첩장·부고 링크를 복사해주세요.");
+      showErr(err,"복사된 내용이 없어요. 먼저 청첩장·부고 링크를 복사해 주세요.");
     }
   }catch(e){
     // 클립보드 권한이 없거나 미지원 — 직접 붙여넣기 안내
-    showErr(err,"자동 붙여넣기가 막혀 있어요. 입력칸을 길게 눌러 '붙여넣기'를 선택해주세요.");
+    showErr(err,"자동 붙여넣기가 막혀 있어요. 입력칸을 길게 눌러 '붙여넣기'를 선택해 주세요.");
   }
 }
 
@@ -1374,10 +1380,10 @@ function dtSyncSlot(){   // order.time만 있고 슬롯 미정이면 추론
 function dtHint(slot){
   return ({
     today:"<b>오늘 안</b> 도착을 목표로 배송합니다.",
-    call:"주문을 확인하면 <b>사장님이 전화드려</b> 도착 시간을 맞춰드려요.",
+    call:"주문을 확인하면 <b>사장님이 전화드려</b> 도착 시간을 맞춰 드려요.",
     am:"<b>오후 12시 이전</b> 도착을 목표로 배송합니다.",
     pm:"<b>오후 12시 ~ 6시</b> 도착을 목표로 배송합니다.",
-    custom:"정확한 시간을 골라주세요 — 예식·발인 시간에 맞춰 드립니다."
+    custom:"정확한 시간을 골라 주세요. 예식·발인 시간에 맞춰 드려요."
   })[slot]||"";
 }
 function dtRender(){
@@ -1397,7 +1403,7 @@ function dtRender(){
     var past=cur.getTime()<today.getTime(), isToday=cur.getTime()===today.getTime(), sel=(order.date===iso), dow=cur.getDay();
     var tone=(dow===0?" sun":dow===6?" sat":"");
     if(past){ cells+='<div class="dt-cell past'+tone+'">'+d+'</div>'; }
-    else { cells+='<div class="dt-cell day'+(sel?" sel":"")+tone+'" onclick="dtPick(\''+iso+'\')">'+d+(isToday?'<span class="dt-today">오늘</span>':'')+'</div>'; }
+    else { cells+='<div class="dt-cell day'+(sel?" sel":"")+tone+(isToday?" today":"")+'" onclick="dtPick(\''+iso+'\')"'+(isToday?' title="오늘"':'')+'>'+d+'</div>'; }
   }
   var slots=[["today","당일중"],["am","오전중"],["pm","오후중"],["custom","상세시간"],["call","통화 후 결정"]];
   var slotHtml=slots.map(function(s){return '<button type="button" class="dt-slot'+(order.timeSlot===s[0]?" on":"")+'" onclick="dtSlot(\''+s[0]+'\')">'+s[1]+'</button>';}).join("");
@@ -1441,7 +1447,7 @@ function afEventTimeHtml(){
     || order.type==="funeral" || order.type==="wedding";
   if(!show) return "";
   var v = afToHm(order.eventTime) || "";
-  return '<div class="dt-event"><label for="af_eventTime">'+afEventLabel()+' <span>(알면 적어주세요 — 그 전에 닿게 보내드려요)</span></label>'
+  return '<div class="dt-event"><label for="af_eventTime">'+afEventLabel()+' <span>(선택)</span><small class="dt-ev-sub">알려 주시면 그 전에 닿게 보내 드려요</small></label>'
     + '<input type="time" id="af_eventTime" class="dt-time-input" value="'+v+'" onchange="order.eventTime=this.value" oninput="order.eventTime=this.value"/></div>';
 }
 function dtPick(iso){ order.date=iso; dtRender(); }
@@ -1482,7 +1488,21 @@ function selMember(m){
   if(m==="member" && window.afOpenAuth) window.afOpenAuth();
 }
 // 칸이 비어 있는 주문서(상품·추천·화환)의 2번 안내. 기본 문구 '맞는지 확인'은 지난 주문 다시 담기처럼 채워 온 경우용.
-function afConfirmSubEmpty(){ const c=document.getElementById("confirmSub"); if(c) c.textContent="받는 곳 정보를 입력해 주세요. 부고·청첩장 링크가 있으면 아래에 붙여넣으면 자동으로 채워져요."; }
+function afConfirmSubEmpty(){ const c=document.getElementById("confirmSub"); if(c) c.textContent="받는 곳 정보를 입력해 주세요."; }
+// 칸마다 비어 있을 때 보이는 예시. 장례·결혼·그 밖을 나눠 보여 준다(10/19).
+function afPh(key){
+  const fun=order.type==="funeral", wed=order.type==="wedding";
+  if(key==="address") return "주소 검색을 눌러 주세요";
+  if(key==="recipientName") return fun?"예) 故 김OO":wed?"예) 신랑 김OO":"예) 김민수";
+  if(key==="chiefMourner") return "예) 장남 김OO";
+  if(key==="groomName") return "예) 김OO";
+  if(key==="brideName") return "예) 이OO";
+  if(key==="venue") return fun?"예) OO장례식장":wed?"예) OO웨딩홀":"예) OO빌딩 · OO병원";
+  if(key==="venueDetail") return fun?"예) 3층 특실":wed?"예) 5층 그랜드홀":"예) 3층 301호";
+  return "직접 적어 주세요";
+}
+// 장례 주문의 '받는 분'은 고인 성함이다(부고장 링크도 '故 성함'으로 넘긴다).
+function afRcptLabel(){ return order.type==="funeral"?"고인 성함":"받는 분"; }
 // 자동입력 칸 한 줄 생성 (applyParsed·applyOccasion 공용)
 function afField(key,label,val){
   val = val || "";
@@ -1495,7 +1515,7 @@ function afField(key,label,val){
   }
   if(key==='time'){ return ""; }  // 시간은 달력 위젯의 '도착 시간대'로 통합
   var search = key==='address' ? '<div class="addr-row"><button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button><span class="addr-hint">동·호수는 찾은 뒤 이어서 적어 주세요</span></div>' : '';
-  var ph = key==='address' ? '주소 검색을 눌러 주세요' : '(비어있음 — 직접 입력)';
+  var ph = afPh(key);
   var ekh = key==='address' ? 'next' : (key==='time'?'done':'next');
   return `
     <div class="af-field"><label>${label}</label>
@@ -1545,9 +1565,9 @@ async function runParse(){
   const err=document.getElementById("parseErr"); err.classList.add("hidden");
   const btn=document.getElementById("parseBtn"), load=document.getElementById("parseLoading");
   const val=document.getElementById("src").value.trim();
-  if(!val) return showErr(err,"링크나 내용을 입력해주세요.");
+  if(!val) return showErr(err,"링크나 내용을 입력해 주세요.");
   if(/amazonflower\.vercel\.app/i.test(val) || (isUrl(val) && val.replace(/^https?:\/\//,'').replace(/\/.*$/,'')===location.host)){
-    return showErr(err,"이건 이 사이트 주소예요. 받으신 청첩장·부고 링크나 행사 내용을 넣어주세요.");
+    return showErr(err,"이건 이 사이트 주소예요. 받으신 청첩장·부고 링크나 행사 내용을 넣어 주세요.");
   }
   order.src=val;
   // 링크가 아니면 먼저 사연 기반 추천(생신·기념일·개업·승진 등)을 시도
@@ -1586,11 +1606,11 @@ function applyParsed(r){
   const field=(key,label,val)=>`
     <div class="af-field"><label>${label}</label>
       <div class="af-input-wrap">
-        <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="(비어있음 — 직접 입력)"/>
+        <input type="text" id="af_${key}" value="${escapeAttr(val)}" oninput="order.${key}=this.value" placeholder="${afPh(key)}"/>
         ${val?'<span class="af-auto">자동</span>':''}
       </div>${key==='address'?'<div class="addr-row"><button type="button" class="addr-search-btn" onclick="openPostcode(\'af_address\')">주소 검색</button><span class="addr-hint">동·호수는 찾은 뒤 이어서 적어 주세요</span></div>':''}</div>`;
   let html="";
-  html+=field("recipientName","받는 분",order.recipientName);
+  html+=field("recipientName",afRcptLabel(),order.recipientName);
   if(isWed){ html+=field("groomName","신랑",order.groomName); html+=field("brideName","신부",order.brideName); }
   if(isFun){ html+=field("chiefMourner","상주",order.chiefMourner); }
   html+=field("venue","장소",order.venue);
@@ -1604,8 +1624,8 @@ function applyParsed(r){
   const _cs=document.getElementById("confirmSub");
   const gotAny = !!(order.recipientName||order.venue||order.venueDetail||order.address||order.date||order.time||order.groomName||order.brideName||order.chiefMourner);
   if(_cs) _cs.innerHTML = gotAny
-    ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요 — 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 됩니다.'
-    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b> — 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;">전화 주문(1577-2286)</a>도 편하게 이용하세요.';
+    ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요. 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 돼요.'
+    : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b>. 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;">전화(1577-2286)</a>로 주문하셔도 돼요.';
   const parsedOrderLabel = order.category==="wreath"
     ? (isFun?'근조화환':isWed?'축하화환':'화환')
     : CATALOG[order.category].label;
@@ -1728,7 +1748,7 @@ async function afLinkParse(){
   const input=box.querySelector("input"), btn=box.querySelector("button"), msg=box.querySelector(".af-lb-msg");
   const val=(input.value||"").trim();
   if(!val){ input.focus(); return; }
-  if(/amazonflower\.vercel\.app/i.test(val)){ msg.textContent="이건 이 사이트 주소예요. 받으신 청첩장·부고 링크를 넣어주세요."; msg.className="af-lb-msg err"; return; }
+  if(/amazonflower\.vercel\.app/i.test(val)){ msg.textContent="이건 이 사이트 주소예요. 받으신 청첩장·부고 링크를 넣어 주세요."; msg.className="af-lb-msg err"; return; }
   order.src=val;
   const old=btn.textContent; btn.disabled=true; btn.textContent="읽는 중…"; msg.textContent=""; msg.className="af-lb-msg";
   try{
@@ -1737,10 +1757,10 @@ async function afLinkParse(){
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||"분석 실패");
     afApplyToConfirm(data.result||{});
-    msg.textContent="✓ 받는 곳을 자동으로 채웠어요 — 맞는지 한 번 더 확인해 주세요.";
+    msg.textContent="✓ 받는 곳을 자동으로 채웠어요. 맞는지 한 번 더 확인해 주세요.";
     msg.className="af-lb-msg ok";
   }catch(e){
-    msg.textContent="자동으로 못 읽었어요 — 아래에 직접 입력해 주세요.";
+    msg.textContent="자동으로 못 읽었어요. 아래에 직접 입력해 주세요.";
     msg.className="af-lb-msg err";
   }finally{ btn.disabled=false; btn.textContent=old; }
 }
@@ -1784,15 +1804,15 @@ const WREATH_TIERS = [
   {key:"4", grade:"최고급형", price:129000, desc:"4단 특대형. 거래처·회사 명의에 적합합니다."},
 ];
 const CATALOG = {
-  wreath: { label:"화환", sub:"친구·지인은 보통 일반형, 거래처·회사 명의는 고급형·최고급형을 많이 선택하세요." },
-  orchid: { label:"동양란 · 서양란", sub:"승진·취임·이전에는 동양란, 개업·축하 자리에는 호접란이 잘 어울립니다. 근조 자리에는 흰 호접란으로 보내드립니다.",
+  wreath: { label:"화환", sub:"친구·지인은 보통·일반1호, 거래처·회사 명의는 스페셜·특대를 많이 고르세요." },
+  orchid: { label:"동양란 · 서양란", sub:"승진·취임·이전에는 동양란, 개업·축하 자리에는 호접란이 잘 어울립니다. 근조 자리에는 흰 호접란으로 보내 드립니다.",
     items:[
       {tab:"동양란 기본", nm:"동양란 기본", price:69000, pc:"orchid_o1", cl:"AF-O01", photo:"난/동양란_기본.jpg", desc:"승진·취임·이전 인사에 가장 무난한 동양란입니다."},
       {tab:"동양란 고급", nm:"동양란 고급", price:99000, pc:"orchid_o2", cl:"AF-O02", photo:"난/동양란_고급.jpg", desc:"수형을 갖춘 고급 동양란. 임원·대표 명의에 적합합니다."},
       {tab:"호접란 기본", nm:"서양란(호접란) 기본", price:79000, pc:"orchid_o3", cl:"AF-O03", photo:"난/서양란_기본.jpg", desc:"화사한 호접란. 개업·축하 자리를 밝힙니다. 근조는 흰색으로 제작합니다."},
       {tab:"호접란 고급", nm:"서양란(호접란) 고급", price:119000, pc:"orchid_o4", cl:"AF-O04", photo:"난/서양란_고급.jpg", desc:"대주 호접란. 로비·식장에서 돋보이는 구성입니다."},
     ]},
-  plant: { label:"관엽식물", sub:"개업·이전 선물과 사무실·매장에 두는 관엽입니다. 공간 크기에 맞춰 추천해드립니다.",
+  plant: { label:"관엽식물", sub:"개업·이전 선물과 사무실·매장에 두는 관엽입니다. 공간 크기에 맞춰 추천해 드립니다.",
     items:[
       {tab:"일반형", nm:"관엽식물 일반형", price:59000, pc:"plant_p1", cl:"AF-P01", photo:"관엽/일반형.jpg", desc:"테이블·카운터에 올리는 크기. 금전수 등 키우기 쉬운 수종."},
       {tab:"중급형", nm:"관엽식물 중급형", price:79000, pc:"plant_p2", cl:"AF-P02", photo:"관엽/중급형.jpg", desc:"개업 선물 표준. 해피트리·뱅갈고무나무 등."},
@@ -1817,7 +1837,7 @@ const TOPPINGS = {
   top_ribbon:  {nm:"금박 고급 리본",       price:10000, d:"리본 문구를 금박으로 더 격식 있게"},
   top_pot:     {nm:"도자기 분 업그레이드", price:20000, d:"기본 분 대신 도자기 화분으로"},
   top_plaque:  {nm:"나무 명패",            price:10000, d:"보내는 분 명패 제작 (법인 인기)"},
-  top_wheel:   {nm:"바퀴 화분받침",        price:15000, d:"이동이 편한 바퀴형 받침 — 실내 배치·청소 편리"},
+  top_wheel:   {nm:"바퀴 화분받침",        price:15000, d:"바퀴가 달려 옮기기 쉽고 청소도 편해요"},
   top_lush_p1: {nm:"조금 더 크게",         price:20000, d:"한 단계 큰 수형으로", grp:"lush"},
   top_lush_p2: {nm:"프리미엄",             price:30000, d:"더 크고 고급스러운 수형으로 업그레이드", grp:"lush"},
   top_lush_b1: {nm:"프리미엄",             price:20000, d:"꽃 물량을 한 단계 늘립니다", grp:"lush"},
@@ -2037,7 +2057,7 @@ function renderToppings(){
     return c===want || (order.toppings||[]).includes(c);
   });
   if(!codes.length){ box.innerHTML=""; return; }
-  box.innerHTML = `<div style="font-size:var(--fs-caption);font-weight:700;margin:16px 0 8px;color:var(--ink);">마음 얹기 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 원하시는 만큼만, 정찰가로</span></div>`
+  box.innerHTML = `<div style="font-size:var(--fs-caption);font-weight:700;margin:16px 0 8px;color:var(--ink);">마음 얹기 <span style="display:block;font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">고른 만큼 정해진 가격이 더해져요</span></div>`
     + codes.map(c=>{
       const t=TOPPINGS[c], on=(order.toppings||[]).includes(c);
       return `<div onclick="toggleTopping('${c}')" style="display:flex;align-items:center;gap:10px;border:1px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent-soft)':'transparent'};border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:8px;cursor:pointer;user-select:none;">
@@ -2123,7 +2143,7 @@ function goCat(cat, label){
   window.__presetCat = cat;
   const banner=document.getElementById("catalogBanner");
   if(banner){
-    banner.querySelector("#catalogPick").textContent = label + " — 받는 곳부터 알려주세요";
+    banner.querySelector("#catalogPick").textContent = label;
     banner.classList.remove("hidden");
   }
   // 이미 주문이 진행 중이면(상품 카드가 열려 있으면) 그 자리에서 카테고리만 전환
@@ -2185,7 +2205,7 @@ function renderPriceTabs(){
   if(order.category==="basket"){
     const idxs=basketTierIndexes();
     box.className="price-tabs is-basket";
-    box.innerHTML=`<div class="basket-choice-label"><span>2</span>구성을 골라주세요</div>
+    box.innerHTML=`<div class="basket-choice-label"><span>2</span>구성을 골라 주세요</div>
       <div class="basket-tier-tabs">${idxs.map((i,n)=>{
         const it=items[i];
         return `<button type="button" class="price-tab" data-tier="${i}" onclick="selTier(${i})">
@@ -2214,9 +2234,11 @@ function renderRecoOptions(baseTier){
   if(!box) return;
   const items=getItems(order.category);
   if(items.length<2){ box.innerHTML=""; return; }
+  // 화환은 아래 가격 칸만 남긴다. 추천 두 장의 '가장 인기'는 판매량이 아니라 기본 단계에 붙어 있었다(10/19).
+  if(order.category==="wreath"){ box.innerHTML=""; return; }
   if(order.category==="basket"){
     if(baseTier!=null) basketKind=basketKindFromTier(baseTier);
-    box.innerHTML=`<div class="basket-choice-label"><span>1</span>형태를 골라주세요</div>
+    box.innerHTML=`<div class="basket-choice-label"><span>1</span>형태를 골라 주세요</div>
       <div class="basket-kind-tabs">
         <button type="button" class="basket-kind-btn ${basketKind==='bouquet'?'on':''}" aria-pressed="${basketKind==='bouquet'}" onclick="selBasketKind('bouquet')">
           <b>꽃다발</b><small>손에 들고 전해요</small>
@@ -2234,7 +2256,7 @@ function renderRecoOptions(baseTier){
   if(b>items.length-1){ b=a; a=Math.max(0,a-1); }
   const idxs=[a,b];
   box.innerHTML =
-    `<div style="font-size:var(--fs-caption);font-weight:700;margin:2px 0 9px;color:var(--ink);">추천 상품 <span style="font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">— 많이 고르시는 두 가지예요. 눌러서 고르세요</span></div>
+    `<div style="font-size:var(--fs-caption);font-weight:700;margin:2px 0 9px;color:var(--ink);">추천 상품 <span style="display:block;font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">많이 고르시는 두 가지예요</span></div>
      <div class="reco-options">`
     + idxs.map((i,n)=>{
         const t=items[i];
@@ -2344,7 +2366,7 @@ function renderPayReview(){
   if(AF_EXTRAS.length) rows.push(["함께", AF_EXTRAS.map(function(e){ var p=afProd(e.pc); return escapeHtml(p?p.name:e.pc)+(e.qty>1?" ×"+e.qty:""); }).join(", ")]);
   const place=[order.venue,order.venueDetail].filter(Boolean).join(" ")||order.address||"";
   if(place) rows.push(["받는 곳", escapeHtml(place)]);
-  if(order.recipientName) rows.push(["받는 분", escapeHtml(order.recipientName)]);
+  if(order.recipientName) rows.push([afRcptLabel(), escapeHtml(order.recipientName)]);
   if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
   if(order.category==="basket" && order.price) rows.push(["카드", afCardOn ? (escapeHtml(afMsgCardText())||'<span style="color:var(--ink-faint);">아직 안 적었어요</span>') : "안 넣음"]);
   if(!rows.length){ el.innerHTML=""; return; }
@@ -2405,11 +2427,26 @@ function buildRibbon(){
   document.querySelectorAll(".card-only").forEach(el=>{ el.style.display = noRibbon ? "" : "none"; });
   const sameBtn=document.getElementById("sameAsRcpt"); if(sameBtn) sameBtn.style.display = order.category==="wreath" ? "none" : "";
   if(noRibbon) afMsgCardRender(); else order.cardMessage="";
+  // 리본 예시 사진: 근조는 근조 리본 사진으로(축하 리본 사진이 장례 주문에 뜨던 것, 10/19)
+  const rimg=document.querySelector(".ribbon-photo-placeholder img");
+  if(rimg){
+    const fun=order.type==="funeral";
+    const want=fun?"/photos/products/WC-01_1.jpg":"/photos/안내/리본_예시.jpg";
+    if(rimg.getAttribute("src")!==want){ rimg.style.display=""; if(rimg.nextElementSibling) rimg.nextElementSibling.style.display="none"; rimg.setAttribute("src",want); }
+    rimg.style.objectPosition = fun ? "50% 30%" : "";
+  }
+  // 사장님께 부탁 칸 예시: 상품마다 실제로 많이 받는 부탁으로
+  const sn=document.getElementById("senderNote");
+  if(sn) sn.placeholder =
+      order.category==="wreath" ? (order.type==="funeral" ? "예) 리본 글자 크게 · 흰 국화 많이" : "예) 리본 글자 크게 · 밝은 색 위주로")
+    : order.category==="orchid" ? "예) 흰 호접란으로 · 화분은 밝은 색"
+    : order.category==="plant"  ? "예) 키 큰 걸로 · 햇빛 적은 사무실"
+    : "예) 분홍 위주로 · 향이 약한 꽃으로";
   const st=document.getElementById("senderTitle"), ss=document.getElementById("senderSub");
   if(st) st.textContent = noRibbon ? "보내는 분" : "보내는 분 · 리본 문구";
   if(ss) ss.textContent = noRibbon
-    ? "보내는 분 정보를 입력해주세요. 카드에 적을 말도 아래에 써 주세요."
-    : "보내는 분 정보는 직접 입력해주세요. 리본 문구는 자동으로 맞춰드립니다.";
+    ? "보내는 분 정보를 입력해 주세요. 카드에 적을 말도 아래에 써 주세요."
+    : "보내는 분 정보를 적어 주세요. 리본 문구는 아래에서 고르시면 돼요.";
   if(noRibbon){ order.ribbonLeft=""; order.ribbonRight=""; return; } // 리본 없음 — 값도 비움
   const set = RIBBON[order.type] || RIBBON.general;
   document.getElementById("toneTabs").innerHTML = set.tones.map(([k,label],i)=>
@@ -2457,7 +2494,7 @@ async function ribbonSuggest(){
     const d=await res.json().catch(()=>({}));
     const items=(d && Array.isArray(d.items)) ? d.items : [];
     if(!items.length){
-      box.innerHTML=`<div class="af-lb-msg">문구를 못 골랐어요 — 위 목록에서 고르시거나 전화 주세요.</div>`;
+      box.innerHTML=`<div class="af-lb-msg">문구를 못 골랐어요. 위에서 고르시거나 전화 주세요.</div>`;
       box.style.display=""; return;
     }
     box.innerHTML=items.map(t=>
@@ -2547,7 +2584,7 @@ function afAddrRender(){
   var list=afAddrLoad();
   if(!list.length){ box.classList.add("hidden"); box.innerHTML=""; return; }
   box.classList.remove("hidden");
-  box.innerHTML='<div class="ab-title">자주 보내는 곳 <span>— 누르면 받는 곳이 채워져요</span></div><div class="ab-list">'
+  box.innerHTML='<div class="ab-title">자주 보내는 곳 <span>누르면 받는 곳이 채워져요</span></div><div class="ab-list">'
     + list.map(function(x,i){
         var head = x.recipientName || x.venue || "받는 곳";
         var sub = [x.recipientName ? x.venue : "", x.venueDetail, x.address].filter(Boolean).join(" · ");
@@ -2581,7 +2618,7 @@ var AF_PM_NOTE = {
   card: '아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중에서 고르실 수 있어요.',
   transfer: '아래 버튼을 누르면 <b>토스페이먼츠 계좌이체</b> 창이 열려요.<br>은행을 고르고 이체하면 바로 결제가 끝나고, <b>현금영수증</b>도 그 자리에서 신청돼요.',
   va: '아래 버튼을 누르면 <b>토스페이먼츠</b>에서 이 주문 전용 <b>입금 계좌</b>를 만들어 드려요.<br>24시간 안에 입금하시면 자동으로 확인돼요.',
-  bank: '아래 버튼을 누르면 주문이 접수되고 <b>입금하실 계좌</b>가 나와요.<br>입금 확인은 사장님이 통장을 보고 문자로 알려드려요.'
+  bank: '아래 버튼을 누르면 주문이 접수되고 <b>입금하실 계좌</b>가 나와요.<br>입금 확인은 사장님이 통장을 보고 문자로 알려 드려요.'
 };
 var AF_PM_BTN = { card: "동의하고 결제하기", transfer: "동의하고 계좌이체하기", va: "동의하고 입금 계좌 받기", bank: "동의하고 주문하기" };
 // 결제수단 칩. easy=카드+간편결제(결제 단계 카드 칸), pays=간편결제 셋(결제 버튼 아래),
@@ -2637,7 +2674,7 @@ function afOriginHtml(){
   const body = (order.category==="plant"||order.category==="orchid")
     ? "관엽식물·난은 국내산과 수입산(중국·대만·베트남 등)을 함께 써요."
     : "생화·계절꽃·그린소재는 국내산과 수입산(중국·베트남·콜롬비아 등)을 함께 써요.";
-  return '<details class="origin-mini"><summary>원산지 · 국내산·수입산 혼용</summary><p>'+body+' 꽃 수급에 따라 달라질 수 있고, 받으시는 상품의 포장재·영수증 등에 원산지를 표시해 보내드려요. 나라별 표는 맨 아래 \'원산지 표시\'에 있어요.</p></details>';
+  return '<details class="origin-mini"><summary>원산지 · 국내산·수입산 혼용</summary><p>'+body+' 꽃 수급에 따라 달라질 수 있고, 받으시는 상품의 포장재·영수증 등에 원산지를 표시해 보내 드려요. 나라별 표는 맨 아래 \'원산지 표시\'에 있어요.</p></details>';
 }
 
 // ── 상품 화면 '배송 가능 지역 확인' ──
@@ -2705,7 +2742,7 @@ function afSameAsRecipient(btn){
 // 화면 합계(orderTotal)와 같은 방식: 상품 단가×수량 + 토핑 단가×수량 + 함께 보내는 상품.
 function afOpenQuote(){
   try{ afSyncFormToOrder(); }catch(_){}
-  if(!order.price){ alert("상품을 먼저 골라주세요."); return; }
+  if(!order.price){ alert("상품을 먼저 골라 주세요."); return; }
   var q=order.quantity||1, items=[{ n:order.productLabel||order.productCode||"꽃 상품", c:order.productCode||"", q:q, u:order.price }];
   (order.toppings||[]).forEach(function(c){ var t=TOPPINGS[c]; if(t) items.push({ n:t.nm, c:"", q:q, u:t.price }); });
   AF_EXTRAS.forEach(function(e){ var p=afProd(e.pc); if(p) items.push({ n:p.name, c:p.pc, q:e.qty, u:p.price }); });
@@ -2757,7 +2794,7 @@ function afConfirmNeeds(){
   if(isFuneral && order.date){
     const _now=new Date(), _todayIso=afIsoOf(_now);
     if(order.date===_todayIso && (order.timeSlot==="today" || !order.timeSlot))
-      out.push({tag:"발인", msg:"오늘 도착으로 주문하셨어요. 근조 화환은 발인 전에 닿아야 하니, 발인 시간을 전화로 알려주시면 사장님이 맞춰 보내드립니다. (1577-2286)"});
+      out.push({tag:"발인", msg:"오늘 도착으로 주문하셨어요. 근조 화환은 발인 전에 닿아야 하니, 발인 시간을 전화로 알려 주시면 사장님이 맞춰 보내 드립니다. (1577-2286)"});
     else if(order.date===_todayIso && _now.getHours()>=afCutoffHour(_now))
       out.push({tag:"발인", msg:"오늘 주문 마감 시간이 지났어요. 발인 전에 닿을 수 있는지 사장님이 확인해 연락드립니다."});
   }
@@ -2808,7 +2845,7 @@ function afPlaceMismatch(){
   if(!place) return "";
   const isFuneralProduct = order.type==="funeral";
   if(AF_FUNERAL_PLACE.test(place) && !isFuneralProduct)
-    return "받는 곳이 장례식장으로 보이는데 고르신 상품은 근조가 아니에요. 장례 자리라면 근조화환으로 바꿔주세요.";
+    return "받는 곳이 장례식장으로 보이는데 고르신 상품은 근조가 아니에요. 장례 자리라면 근조화환으로 바꿔 주세요.";
   if(AF_WEDDING_PLACE.test(place) && isFuneralProduct)
     return "받는 곳이 예식장으로 보이는데 고르신 상품은 근조화환이에요. 맞는지 확인해 주세요.";
   return "";
@@ -2843,7 +2880,7 @@ function afRenderConfirmNote(){
   box.innerHTML='<div style="font-weight:700;color:#8a5a18;margin-bottom:5px;">확인이 필요한 주문이에요</div>'
     +'<div style="font-size:var(--fs-caption);color:var(--ink-soft);line-height:1.75;">'
     + needs.map(n=>'· '+escapeHtml(n.msg)).join("<br>")
-    +'<br><br><b>주문은 그대로 받아드립니다.</b> 어려우면 사장님이 연락드린 뒤 전액 환불해 드려요.</div>';
+    +'<br><br><b>주문은 그대로 받아 드립니다.</b> 어려우면 사장님이 연락드린 뒤 전액 환불해 드려요.</div>';
   if(card) card.appendChild(box);
 }
 
@@ -2855,8 +2892,10 @@ function afTuneDelivBox(){
   if(isWreath && order.entrancePw) order.entrancePw="";   // 숨긴 칸의 값이 따라가지 않게
   const opt=document.getElementById("rpOpt");
   if(opt) opt.textContent = isWreath
-    ? "(선택) — 빈소·행사장이면 안 적으셔도 됩니다"
-    : "— 못 만났을 때 연락드립니다";
+    ? "빈소·행사장이면 비워 두셔도 돼요"
+    : "못 만나면 이 번호로 연락드려요";
+  const req=document.getElementById("rpReq");
+  if(req) req.textContent = isWreath ? "(선택)" : "";
 }
 
 /** 화면에 있는 값을 order 로 끌어온다. 검사 직전에 한 번 돌려 DOM과 order 가 어긋나지 않게. */
@@ -2884,27 +2923,27 @@ function afValidateOrder(scope){
   const isFuneral = order.type==="funeral";
   const has=v=>!!String(v||"").trim();
 
-  if(!order.price) add("상품을 먼저 골라주세요.",null,"prodCard");
+  if(!order.price) add("상품을 먼저 골라 주세요.",null,"prodCard");
 
   // 받는 곳 — 주소가 없으면 배달 자체가 불가능하다.
-  if(!has(order.address) && !has(order.venue)) add("받는 곳 주소를 알려주세요.","af_address");
+  if(!has(order.address) && !has(order.venue)) add("받는 곳 주소를 알려 주세요.","af_address");
 
   // 받는 분 — 화환은 빈소·홀이나 상주로도 찾아간다(장례식장 안내데스크가 확인해 준다).
   // 사람에게 직접 가는 꽃다발·관엽·난은 이름이 없으면 건넬 수가 없다.
   if(isWreath){
     if(!has(order.recipientName) && !has(order.venueDetail) && !has(order.chiefMourner))
-      add(isFuneral?"받는 분(고인 성함)이나 빈소·홀 중 하나는 알려주세요.":"받는 분이나 홀 중 하나는 알려주세요.","af_recipientName");
+      add(isFuneral?"고인 성함이나 빈소·홀 중 하나는 알려 주세요.":"받는 분이나 홀 중 하나는 알려 주세요.","af_recipientName");
   }else{
-    if(!has(order.recipientName)) add("받는 분 성함을 알려주세요.","af_recipientName");
-    if(!has(order.recipientPhone)) add("받는 분 연락처를 알려주세요 — 못 만났을 때 연락드립니다.","recipientPhone");
+    if(!has(order.recipientName)) add("받는 분 성함을 알려 주세요.","af_recipientName");
+    if(!has(order.recipientPhone)) add("받는 분 연락처를 알려 주세요. 못 만나면 연락드려요.","recipientPhone");
   }
 
   // 받는 날짜 — 달력은 지난 날을 막지만 링크 자동입력·재주문은 order.date 에 직접 값을 넣는다.
   if(!has(order.date)){
-    add("받는 날짜를 골라주세요.",null);
+    add("받는 날짜를 골라 주세요.",null);
   }else{
     const todayIso=afIsoOf(new Date());
-    if(order.date < todayIso) add("지난 날짜로는 보낼 수 없어요. 날짜를 다시 골라주세요.",null);
+    if(order.date < todayIso) add("지난 날짜로는 보낼 수 없어요. 날짜를 다시 골라 주세요.",null);
     else if(order.date === todayIso){
       const now=new Date(), cut=afCutoffHour(now);
       if(now.getHours() >= cut)
@@ -2913,22 +2952,22 @@ function afValidateOrder(scope){
   }
 
   // 도착 시간 — 기본값이 비어 있어 아무것도 안 고르고 넘어갈 수 있었다.
-  if(!has(order.timeSlot) && !has(order.time)) add("도착 시간을 골라주세요.",null);
+  if(!has(order.timeSlot) && !has(order.time)) add("도착 시간을 골라 주세요.",null);
   // 축하 화환의 '당일중'은 막지 않는다. 사장님이 가능한지 확인해 보고 안 되면 환불하는 쪽이
   // 실제 운영에 맞다 → afConfirmNeeds() 가 '확정 필요'로 안내한다.
 
   if(scope==="delivery") return errs;
 
   // 보내는 분
-  if(!has(order.senderName)) add("보내는 분 성함을 입력해주세요.","senderName","senderCard");
-  if(!has(order.senderPhone)) add("연락처를 입력해주세요.","senderPhone","senderCard");
+  if(!has(order.senderName)) add("보내는 분 성함을 입력해 주세요.","senderName","senderCard");
+  if(!has(order.senderPhone)) add("연락처를 입력해 주세요.","senderPhone","senderCard");
   // 메시지 카드 — '카드 넣기'인데 비어 있으면 빈 카드가 간다.
   if(order.category==="basket" && afCardOn && !afMsgCardText())
     add("메시지 카드에 적을 말을 써 주세요. 카드가 필요 없으면 '안 넣기'를 눌러 주세요.","cardMessage","senderCard");
   // 약관 — 둘 이상 빠졌으면 '모두 동의' 한 줄로(네 줄을 늘어놓지 않는다)
   const missAgree=AF_AGREE.filter(a=>{ const el=document.getElementById(a[0]); return el && !el.checked; });
-  if(missAgree.length>=2) add("결제 전에 약관에 동의해주세요 — '아래 내용에 모두 동의합니다'를 눌러 주세요.","allAgree","payCard");
-  else if(missAgree.length===1) add(missAgree[0][1]+"에 동의해주세요. (필수)",missAgree[0][0],"payCard");
+  if(missAgree.length>=2) add("결제 전에 약관에 동의해 주세요. '아래 내용에 모두 동의합니다'를 누르시면 돼요.","allAgree","payCard");
+  else if(missAgree.length===1) add(missAgree[0][1]+"에 동의해 주세요. (필수)",missAgree[0][0],"payCard");
   return errs;
 }
 
@@ -2998,16 +3037,16 @@ async function requestPay(){
     order.corpCeo=document.getElementById("corpCeo").value.trim();
     order.corpAddr=document.getElementById("corpAddr").value.trim();
     order.corpEmail=document.getElementById("corpEmail").value.trim();
-    if(!order.corpName){ markErr(document.getElementById("corpName")); return showErr(err,"계산서 발행을 위해 상호(회사명)를 입력해주세요."); }
-    if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호를 정확히 입력해주세요. (예: 000-00-00000)"); }
-    if(!bizNoValid(order.corpRegNo)){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호가 올바르지 않아요. 숫자를 다시 확인해주세요."); }
-    if(bizCheckState.no===order.corpRegNo.replace(/\D/g,"") && bizCheckState.status==="미등록"){ markErr(document.getElementById("corpRegNo")); return showErr(err,"국세청에 등록되지 않은 사업자등록번호예요. 다시 확인해주세요."); }
-    if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)){ markErr(document.getElementById("corpEmail")); return showErr(err,"계산서를 받으실 이메일을 정확히 입력해주세요."); }
+    if(!order.corpName){ markErr(document.getElementById("corpName")); return showErr(err,"계산서 발행을 위해 상호(회사명)를 입력해 주세요."); }
+    if(!/^\d{3}-?\d{2}-?\d{5}$/.test(order.corpRegNo.replace(/\s/g,""))){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호를 정확히 입력해 주세요. (예: 000-00-00000)"); }
+    if(!bizNoValid(order.corpRegNo)){ markErr(document.getElementById("corpRegNo")); return showErr(err,"사업자등록번호가 올바르지 않아요. 숫자를 다시 확인해 주세요."); }
+    if(bizCheckState.no===order.corpRegNo.replace(/\D/g,"") && bizCheckState.status==="미등록"){ markErr(document.getElementById("corpRegNo")); return showErr(err,"국세청에 등록되지 않은 사업자등록번호예요. 다시 확인해 주세요."); }
+    if(!order.corpEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(order.corpEmail)){ markErr(document.getElementById("corpEmail")); return showErr(err,"계산서를 받으실 이메일을 정확히 입력해 주세요."); }
     // 검증 통과한 사업자 정보는 이 기기에 저장 — 다음 주문 때 자동 채움
     try{ localStorage.setItem("af_corp", JSON.stringify({name:order.corpName,regNo:order.corpRegNo,ceo:order.corpCeo,addr:order.corpAddr,email:order.corpEmail})); }catch(_e){}
   }
 
-  if(!payment) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
+  if(!payment) return showErr(err,"결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.");
 
   // 유입 채널(UTM)을 주문에 실어 보냄 — 채널별 주문수 집계용(30일 이내 마지막 유입 기준)
   try{
@@ -3031,7 +3070,7 @@ async function requestPay(){
     // 무통장입금 — 토스를 거치지 않는다. 서버가 금액·배송정보를 다시 계산하고 입금 대기로 저장한다.
     const crType=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
     const crNo=(document.getElementById("cashReceiptNo")||{}).value||"";
-    if(crType && crNo.replace(/\D/g,"").length<10){ return showErr(err,"현금영수증 번호(휴대폰 또는 사업자등록번호)를 적어주세요."); }
+    if(crType && crNo.replace(/\D/g,"").length<10){ return showErr(err,"현금영수증 번호(휴대폰 또는 사업자등록번호)를 적어 주세요."); }
     const bankOrder={...order, depositorName:((document.getElementById("depositorName")||{}).value||order.senderName||"").trim(),
       cashReceiptType:crType, cashReceiptNo:crNo.replace(/\D/g,"")};
     if(payBtn){ payBtn.disabled=true; payBtn.textContent="주문을 접수하는 중…"; }
@@ -3057,7 +3096,7 @@ async function requestPay(){
     const prepRes=await fetch("/api/confirm-payment",{method:"POST",headers:prepH,
       body:JSON.stringify({action:"prepare",orderId,amount:payAmount,order})});
     const prep=await prepRes.json().catch(()=>({}));
-    if(!prepRes.ok) throw new Error(prep.error||"주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+    if(!prepRes.ok) throw new Error(prep.error||"주문을 안전하게 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     try{ sessionStorage.setItem("af_"+orderId, JSON.stringify(order)); }catch(_){}
     if(payBtn) payBtn.textContent="결제창 여는 중…";
     const common={
@@ -3136,7 +3175,7 @@ async function handleRedirect(){
     }catch(e){
       document.querySelector(".wrap").innerHTML=`<section class="card"><div class="step-head"><span class="step-title">결제 확인 오류</span></div>
         <p class="err">${escapeHtml(e.message)}</p>
-        <p class="hint">결제가 출금됐는데 이 화면이 보이면 꽃안부(1577-2286)로 주문번호 <b>${escapeHtml(orderId||"")}</b>를 알려주세요.</p>
+        <p class="hint">결제가 출금됐는데 이 화면이 보이면 꽃안부(1577-2286)로 주문번호 <b>${escapeHtml(orderId||"")}</b>를 알려 주세요.</p>
         <button class="btn" onclick="location.reload()" style="margin-top:14px;">결제 다시 확인</button>
         <button class="btn btn-ghost" onclick="location.href='/'" style="margin-top:8px;">처음으로</button></section>`;
     }
@@ -3274,8 +3313,8 @@ window.afSaveAnnivDone=function(label,month,day,recipient){
   if(!sb||!u){ if(card) card.innerHTML='<div style="font-size:var(--fs-caption);color:var(--ink-soft);">로그인 정보를 찾지 못했어요. 마이(오른쪽 위)에서 직접 등록할 수 있어요.</div>'; return; }
   sb.from("anniversaries").insert({user_id:u.id,label:label,month:month,day:day,recipient:recipient||null}).then(res=>{
     if(card) card.innerHTML = res.error
-      ? '<div style="font-size:var(--fs-caption);color:var(--ink-soft);">저장하지 못했어요. 마이(오른쪽 위)에서 직접 등록해주세요.</div>'
-      : '<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">기념일로 저장했어요 — 내년에는 일주일 전에 알려드릴게요.</div>';
+      ? '<div style="font-size:var(--fs-caption);color:var(--ink-soft);">저장하지 못했어요. 마이(오른쪽 위)에서 직접 등록해 주세요.</div>'
+      : '<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">기념일로 저장했어요. 내년에는 일주일 전에 알려 드릴게요.</div>';
   }).catch(()=>{});
 };
 function renderDone(data,o){
@@ -3298,9 +3337,9 @@ function renderDone(data,o){
   }catch(_e){}
   const p=data.payment||{};
   const reconciliationNote = data.manualRecovery
-    ? `<div style="background:#fff0ef;border:1px solid #c84b45;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#7d211d;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 1577-2286으로 알려주세요. 입력하신 주문 정보는 이 기기에 보관했습니다.</div>`
+    ? `<div style="background:#fff0ef;border:1px solid #c84b45;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#7d211d;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐지만 주문 확인이 필요합니다.</b><br>주문번호를 보관하고 지금 1577-2286으로 알려 주세요. 입력하신 주문 정보는 이 기기에 보관했습니다.</div>`
     : (data.needsReconciliation
-      ? `<div style="background:#fff7e5;border:1px solid #d29b31;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#6f4a08;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요. 필요하면 1577-2286으로 알려주세요.</div>`
+      ? `<div style="background:#fff7e5;border:1px solid #d29b31;border-radius:var(--radius);padding:12px 14px;margin-top:12px;text-align:left;color:#6f4a08;font-size:var(--fs-caption);line-height:1.7;"><b>결제는 정상 완료됐습니다.</b><br>주문 저장을 자동으로 다시 확인하고 있어요. 주문번호를 보관해 주세요. 필요하면 1577-2286으로 알려 주세요.</div>`
       : "");
   const place=[o.venue,o.venueDetail].filter(Boolean).join(" ");
   const isCorp = o.buyerType==="corp";
@@ -3311,7 +3350,7 @@ function renderDone(data,o){
   const annivCard = (user && dm && !isFuneral) ? `
       <div id="annivDoneCard" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">이 날을 기념일로 저장할까요?</div>
-        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일, 일주일 전에 미리 알려드려요.</div>
+        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일, 일주일 전에 미리 알려 드려요.</div>
         <button class="btn" style="width:100%;" onclick="afSaveAnnivDone('${escapeAttr(afAnnivLabel(o))}',${Number(dm[2])},${Number(dm[3])},'${escapeAttr(o.recipientName||"")}')">저장하기 (한 번이면 끝)</button>
         ${afYearlyCal(o,dm)}
       </div>` : "";
@@ -3320,7 +3359,7 @@ function renderDone(data,o){
   const guestAnniv = (!user && dm && !isFuneral) ? `
       <div style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
         <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">내년 이맘때, 잊지 않으시게</div>
-        <div style="font-size:var(--fs-caption);color:var(--ink-soft);">가입 없이 손님 폰 캘린더에 넣어드려요. 매년 ${Number(dm[2])}월 ${Number(dm[3])}일 일주일 전에 알려줍니다.</div>
+        <div style="font-size:var(--fs-caption);color:var(--ink-soft);">가입 없이 손님 폰 캘린더에 넣어 드려요. 매년 ${Number(dm[2])}월 ${Number(dm[3])}일 일주일 전에 알려 줍니다.</div>
         ${afYearlyCal(o,dm)}
       </div>` : "";
   const memberCard = user ? annivCard : (guestAnniv + `
@@ -3331,7 +3370,7 @@ function renderDone(data,o){
       </div>`);
   const surveyCard = `
       <div id="surveyCard" style="border:1px dashed var(--line);border-radius: var(--radius);padding:12px 14px;margin-top:12px;text-align:left;">
-        <div style="font-size:var(--fs-caption);font-weight:700;color:var(--ink);margin-bottom:8px;">꽃안부를 어떻게 알고 오셨어요? <span style="font-weight:400;color:var(--ink-faint);">(한 번만 눌러주세요)</span></div>
+        <div style="font-size:var(--fs-caption);font-weight:700;color:var(--ink);margin-bottom:8px;">꽃안부를 어떻게 알고 오셨어요? <span style="font-weight:400;color:var(--ink-faint);">(한 번만 눌러 주세요)</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${["검색","지인","전단·현수막","기타"].map(v=>`<button onclick="afSurvey('${v}','${escapeAttr(p.orderId||"")}')" style="flex:1;min-width:70px;min-height:48px;border:1px solid var(--line);background:#fff;border-radius: var(--radius);font-size:14px;font-family:var(--font-body);color:var(--ink);cursor:pointer;">${v}</button>`).join("")}
         </div>
@@ -3358,7 +3397,7 @@ function renderDone(data,o){
         ${dep.depositorName?`<div>입금자명 <b>${escapeHtml(dep.depositorName)}</b></div>`:""}
         ${dep.dueAt?`<div>기한 <b>${escapeHtml(_fmtDue(dep.dueAt))}</b></div>`:""}
       </div>
-      <div class="dep-note">${dep.kind==="va"?"이 계좌로 입금하시면 자동으로 확인돼요.":"입금하시면 사장님이 통장을 확인하고 문자로 알려드려요."} 입금이 확인되면 그때부터 만들기 시작합니다.${_today?" <b>오늘 배송은 입금이 늦어지면 어려울 수 있어 전화드릴게요.</b>":""}</div>
+      <div class="dep-note">${dep.kind==="va"?"이 계좌로 입금하시면 자동으로 확인돼요.":"입금하시면 사장님이 통장을 확인하고 문자로 알려 드려요."} 입금이 확인되면 그때부터 만들기 시작합니다.${_today?" <b>오늘 배송은 입금이 늦어지면 어려울 수 있어 전화드릴게요.</b>":""}</div>
     </div>` : "";
   const timelineHtml = `<div style="display:flex;gap:4px;margin:16px 0 4px;">
       ${[[ "1", dep ? "입금 대기" : "주문 접수",1],["2","사장님 제작",0],["3","배송·도착사진",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("")}
@@ -3377,8 +3416,8 @@ function renderDone(data,o){
   document.querySelector(".wrap").innerHTML=`
     <section class="card" style="text-align:center;">
       <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
-      <div class="step-title" style="margin:6px 0;">${dep ? "주문이 접수됐어요 — 입금해 주세요" : "주문이 완료되었습니다"}</div>
-      <p style="color:var(--ink-soft);margin-bottom:4px;">${dep ? "아래 계좌로 입금이 확인되면 사장님이 직접 만들어 보냅니다." : "사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내드려요."}</p>
+      <div class="step-title" style="margin:6px 0;">${dep ? "주문이 접수됐어요. 입금해 주세요" : "주문이 완료되었습니다"}</div>
+      <p style="color:var(--ink-soft);margin-bottom:4px;">${dep ? "아래 계좌로 입금이 확인되면 사장님이 직접 만들어 보냅니다." : "사장님이 확인 후 직접 만들어 보냅니다.<br>안부가 닿으면 도착 사진을 보내 드려요."}</p>
       ${depositBox}
       ${reconciliationNote}
       ${timelineHtml}
@@ -3392,7 +3431,7 @@ function renderDone(data,o){
         ${o.date?`<div>일시: ${escapeHtml(o.date)} ${escapeHtml(o.time||"")}</div>`:""}
       </div>
       <div style="margin-top:12px;background:#fff;border:1px dashed var(--accent);border-radius: var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
-        <div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">주문번호 — 문의하실 때 이 번호를 알려주세요</div><div style="font-size:19px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
+        <div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">주문번호 (문의하실 때 알려 주세요)</div><div style="font-size:19px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
         <button onclick="try{navigator.clipboard.writeText('${orderId}');this.textContent='복사됨 ✓';}catch(e){}" style="min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;font-size:14px;cursor:pointer;white-space:nowrap;">복사</button>
       </div>
       ${smsNote}
@@ -3406,7 +3445,7 @@ function renderDone(data,o){
       ${isCorp?`
       <div style="background:transparent;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;text-align:left;font-size:var(--fs-caption);line-height:1.8;">
         <div style="font-size:var(--fs-caption);letter-spacing:1px;color:var(--ink-faint);margin-bottom:4px;">다음 주문은 더 빠르게</div>
-        <div style="color:var(--ink-soft);">다음 주문도 같은 사업자 정보로 빠르게 진행하실 수 있어요. 정기 거래처 등록(후불·월 정산)은 1577-2286 으로 문의해주세요.</div>
+        <div style="color:var(--ink-soft);">다음 주문도 같은 사업자 정보로 빠르게 진행하실 수 있어요. 정기 거래처 등록(후불·월 정산)은 1577-2286 으로 문의해 주세요.</div>
       </div>`:""}
       ${upsellHtml(o)}
       ${memberCard}
@@ -3528,13 +3567,13 @@ function scheduleBizCheck(digits){
       bizCheckState={no:digits,status:r.status||""};
       if(!note) return;
       if(r.statusCode==="01"){
-        note.textContent="✓ 국세청 확인 — 정상 사업자입니다.";
+        note.textContent="✓ 국세청에서 정상 사업자로 확인됐어요.";
         note.style.color="var(--accent-deep)";
       }else if(!r.registered){
-        note.textContent="⚠️ 국세청에 등록되지 않은 번호예요. 숫자를 다시 확인해주세요.";
+        note.textContent="⚠️ 국세청에 등록되지 않은 번호예요. 숫자를 다시 확인해 주세요.";
         note.style.color="#b3261e";
       }else{
-        note.textContent="⚠️ 국세청 조회 결과 "+r.status+(r.endDate?"("+r.endDate.slice(0,4)+"."+r.endDate.slice(4,6)+"."+r.endDate.slice(6)+")":"")+"로 확인돼요. 계산서 발행이 어려울 수 있으니 번호를 확인해주세요.";
+        note.textContent="⚠️ 국세청 조회 결과 "+r.status+(r.endDate?"("+r.endDate.slice(0,4)+"."+r.endDate.slice(4,6)+"."+r.endDate.slice(6)+")":"")+"로 확인돼요. 계산서 발행이 어려울 수 있으니 번호를 확인해 주세요.";
         note.style.color="#8a6d00";
       }
       note.classList.remove("hidden");
@@ -3681,7 +3720,7 @@ const POLICY = {
     "· 꽃은 생물이기 때문에 제작/출고된 제품은 교환과 환불이 불가능합니다.\n"+
     "· 고객님의 단순 변심이나 배송지 정보 오류로 인한 취소·교환은 어렵습니다. 미리 한 번 더 확인 부탁드립니다.\n"+
     "· 꽃의 특성상 계절과 지역에 따라 기존 제품 사진과 다를 수 있습니다. 이 사유로는 취소·교환·환불이 불가능합니다.\n"+
-    "· 상품에 명백한 하자(파손, 주문과 다른 상품 등)가 있는 경우, 사진 확인 후 재배송 또는 환불해드립니다.\n"+
+    "· 상품에 명백한 하자(파손, 주문과 다른 상품 등)가 있는 경우, 사진 확인 후 재배송 또는 환불해 드립니다.\n"+
     "\n"+
     "[ 주문 취소 ]\n"+
     "· 화환 제작 전(주문 접수 후 사장님 확인 전)에는 전액 환불이 가능합니다.\n"+
@@ -3692,7 +3731,7 @@ const POLICY = {
     "· 수집 목적: 주문 처리, 배송, 도착 확인 사진 발송, 계산서 발행\n"+
     "· 보유 기간: 관련 법령에 따라 보관 후 파기\n"+
     "· 입력하신 정보는 주문 처리 목적으로만 사용되며, 제3자에게 제공되지 않습니다.\n"+
-    "· 자세한 사항은 전화로 문의해주세요."],
+    "· 자세한 사항은 전화로 문의해 주세요."],
 };
 function showPolicy(key){
   const [title,body]=POLICY[key];
@@ -3703,7 +3742,7 @@ function showPolicy(key){
 
 function shareSite(){
   const url=location.origin;
-  const text="안부는, 꽃으로 — 꽃안부 (1993년부터)";
+  const text="꽃안부 · 안부는, 꽃으로 (1993년부터)";
   if(navigator.share){ navigator.share({title:"꽃안부",text,url}).catch(()=>{}); }
   else { navigator.clipboard?.writeText(url); alert("링크가 복사되었습니다.\n"+url); }
 }
@@ -3750,11 +3789,11 @@ window.afReorder = function(o){
       category:productOrderCat(Pnew), toppings:[],
     });
     document.getElementById("afFields").innerHTML =
-      afField("recipientName","받는 분",order.recipientName)
+      afField("recipientName",afRcptLabel(),order.recipientName)
       + afField("address","받는 곳 주소",order.address)
       + afField("date","받는 날짜",order.date)
       + afField("time","받는 시간",order.time);
-    document.getElementById("typePill").innerHTML = '<span class="type-pill">지난 주문 다시 담기 — 확인 후 결제하세요</span>';
+    document.getElementById("typePill").innerHTML = '<span class="type-pill">지난 주문 다시 담기 · 확인하고 결제해 주세요</span>';
     document.getElementById("confirmCard").classList.remove("hidden");
     document.getElementById("sideCard").classList.add("hidden");
     renumber(false);
@@ -3765,12 +3804,12 @@ window.afReorder = function(o){
     const cc=document.getElementById("catChips"); if(cc) cc.innerHTML="";
     const rb=document.getElementById("recoBox"); if(rb) rb.innerHTML="";
     selProduct(Pnew);
-    enterOrderMode('지난 주문 다시 담기 — 확인 후 결제');
+    enterOrderMode('지난 주문 다시 담기 · 확인하고 결제');
     scrollTo("prodCard");
     return;
   }
   const cat = categoryFromPc(pc);
-  if(!cat){ alert("이 주문은 다시 담기가 어려워요. 상품을 직접 골라주세요."); return; }
+  if(!cat){ alert("이 주문은 다시 담기가 어려워요. 상품을 직접 골라 주세요."); return; }
   let type = o.order_type || "unknown";
   if(cat==="wreath"){
     if(pc.indexOf("condolence")===0) type = "funeral";
@@ -3785,18 +3824,18 @@ window.afReorder = function(o){
     category:cat, toppings:[],
   });
   document.getElementById("afFields").innerHTML =
-    afField("recipientName","받는 분",order.recipientName)
+    afField("recipientName",afRcptLabel(),order.recipientName)
     + afField("address","받는 곳 주소",order.address)
     + afField("date","받는 날짜",order.date)
     + afField("time","받는 시간",order.time);
-  document.getElementById("typePill").innerHTML = '<span class="type-pill">지난 주문 다시 담기 — 확인 후 결제하세요</span>';
+  document.getElementById("typePill").innerHTML = '<span class="type-pill">지난 주문 다시 담기 · 확인하고 결제해 주세요</span>';
   document.getElementById("confirmCard").classList.remove("hidden");
   document.getElementById("sideCard").classList.add("hidden");
   renumber(false);
   document.getElementById("prodCard").classList.remove("hidden");
   document.getElementById("senderCard").classList.remove("hidden");
   buildRibbon();
-  enterOrderMode('지난 주문 다시 담기 — 확인 후 결제');
+  enterOrderMode('지난 주문 다시 담기 · 확인하고 결제');
   const items=getItems(cat);
   let idx=items.findIndex(it=>it.pc===pc);
   const reorderTier=idx>=0?idx:defaultTierForCategory(cat);
@@ -3807,7 +3846,7 @@ window.afReorder = function(o){
   if(idx<0){
     // 단종/구성변경된 상품은 무음 대체 금지 — 엉뚱한 금액 결제를 막고 직접 고르게 한다.
     order.productCode=""; order.price=0;
-    alert("예전에 주문하신 상품이 지금은 판매하지 않아요(구성이 바뀌었어요).\n비슷한 상품을 직접 골라 확인 후 결제해주세요.");
+    alert("예전에 주문하신 상품이 지금은 판매하지 않아요(구성이 바뀌었어요).\n비슷한 상품을 직접 골라 확인 후 결제해 주세요.");
     scrollTo("prodCard");
     return;
   }
@@ -3990,15 +4029,17 @@ function handleProductParam(){
   // 손님이 주소 칸에 호실을 우겨넣거나 요청사항에 적어야 했다(원장·링크 흐름에는 있던 칸).
   const isWreathProd = (P.cat==="condolence"||P.cat==="congrats");
   document.getElementById("afFields").innerHTML =
-    afField("recipientName","받는 분")
+    afField("recipientName",afRcptLabel())
     + (P.cat==="condolence" ? afField("chiefMourner","상주") : "")
     + (isWreathProd ? afField("venue","장소") : "")
     + (isWreathProd ? afField("venueDetail", P.cat==="condolence"?"빈소 · 홀":"홀") : "")
     + afField("address","받는 곳 주소")
     + afField("date","받는 날짜")
     + afField("time","받는 시간");
+  const ps=document.getElementById("prodSub");
+  if(ps && CATALOG[order.category]) ps.textContent = CATALOG[order.category].sub;
   const tp=document.getElementById("typePill");
-  if(tp) tp.innerHTML='<span class="type-pill">'+escapeHtml(P.name+(P.subtitle?" · "+P.subtitle:""))+' '+P.price.toLocaleString()+'원 — 받는 곳부터 알려주세요</span>';
+  if(tp) tp.innerHTML="";   // 1번에서 고른 상품을 한 번 더 말하던 검은 상자는 버튼처럼 보여 뺐다(10/19)
   document.getElementById("confirmCard").classList.remove("hidden");
   afConfirmSubEmpty();
   if(P.cat==="congrats"){ showCongratsOccasion(); }   // 축하화환 상품: 결혼/개업 자리 먼저 묻기
@@ -4043,7 +4084,7 @@ async function handleCorpParam(){
     if(rn && c.regno){ rn.value=c.regno; if(typeof formatBizNo==="function") formatBizNo(rn); }
     set("corpCeo",c.ceo); set("corpAddr",c.addr); set("corpEmail",c.email);
     const note=document.getElementById("corpPrefillNote");
-    if(note){ note.textContent="✓ "+c.name+" 거래처로 확인했어요 — 계산서 정보는 그대로 두시면 됩니다."; note.classList.remove("hidden"); }
+    if(note){ note.textContent="✓ "+c.name+" 거래처로 확인했어요. 계산서 정보는 그대로 두시면 돼요."; note.classList.remove("hidden"); }
   }catch(_e){}
 }
 
@@ -4079,10 +4120,9 @@ function handleWorderParam(){
   if(/^[A-Za-z0-9]{6,12}$/.test(_cid)) order.sourceUrl = location.origin+"/c/"+_cid+(/^[A-Za-z0-9_-]{1,30}$/.test(_ref)?"?ref="+_ref:"");
   const _witems=getItems("wreath");
   const tier=Math.max(0, Math.min(Math.max(0,_witems.length-1), parseInt(q.get("tier"),10)||0));
-  document.getElementById("typePill").innerHTML =
-    '<span class="type-pill '+(isFun?'t-fun':'')+'">'+(isFun?'장례식 · 근조화환':'축하화환')+'</span>';
+  document.getElementById("typePill").innerHTML = "";   // '장례식 · 근조화환' 상자도 같은 이유로 뺐다(10/19)
   document.getElementById("afFields").innerHTML =
-    afField("recipientName","받는 분",order.recipientName)
+    afField("recipientName",afRcptLabel(),order.recipientName)
     + (isFun?afField("chiefMourner","상주",order.chiefMourner):"")
     + afField("venue","장소",order.venue)
     + afField("venueDetail",isFun?"빈소 · 홀":"홀",order.venueDetail)
@@ -4117,7 +4157,7 @@ function handleCatalogParam(){
   if(banner){
     const catLabel = ccat && CATALOG[ccat] && ccat!=="wreath" ? CATALOG[ccat].label
       : (ctype==="funeral"?"근조화환":ctype==="wedding"?"축하화환":"화환");
-    const label=catLabel+(cprice?" "+Number(cprice).toLocaleString()+"원":"")+" — 받는 곳부터 알려주세요";
+    const label=catLabel+(cprice?" "+Number(cprice).toLocaleString()+"원":"");
     banner.querySelector("#catalogPick").textContent=label;
     banner.classList.remove("hidden");
   }
