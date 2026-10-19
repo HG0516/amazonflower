@@ -705,6 +705,8 @@
   .qs-ex button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .qs-call { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; margin-top: 18px; border-radius: var(--radius-lg); background: var(--accent-soft); color: var(--accent-deep); font-size: 14.5px; text-decoration: none; }
   .qs-call b { font-family: var(--font-display); font-size: 17px; }
+  /* PC 두 칸(PC-A)에서만 쓰는 것 — 휴대폰에선 숨김 */
+  .hdr-menu, .qs-pc, .qs-p { display: none; }
 
   /* ─── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ─── */
   @media (min-width: 1000px) {
@@ -732,6 +734,60 @@
     .start-bar { max-width: 680px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 12px 12px 0 0; }
     .qs-ov { align-items: center; }
     .qs-sheet { max-width: 520px; border-radius: 18px; padding-bottom: 24px; }
+
+    /* PC-A(10/19 형구): 홈은 두 칸. 왼쪽 상품, 오른쪽에 시작 칸이 따라 내려온다.
+       시작 칸은 휴대폰 시트(#qsSheet)를 본문 오른쪽 여백(408px)에 세운 것이라 붙여넣기·시작 동작이 같다.
+       주문 중(body.ordering)과 관리자가 '붙여넣기'를 숨긴 때(af-start-on 없음)는 예전 680px 한 칸 그대로. */
+    body.af-start-on:not(.ordering) .wrap { max-width: 1216px; position: relative; padding-right: 408px; }
+    body.af-start-on:not(.ordering) header { margin-right: -408px; }
+    body.af-start-on:not(.ordering) .hdr-menu { display: flex; flex: 1; min-width: 0; gap: 22px; margin-left: 36px; }
+    .hdr-menu a { padding: 10px 0; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; white-space: nowrap; }
+    .hdr-menu a:hover { color: var(--accent); }
+    .hdr-menu a.on { color: var(--accent); font-weight: 800; }
+    body.af-start-on:not(.ordering) .af-bn,
+    body.af-start-on:not(.ordering) .start-bar,
+    body.af-start-on:not(.ordering) .trust-row { display: none; }
+    body.af-start-on:not(.ordering), body.af-start-on.af-nav-on:not(.ordering) { padding-bottom: 0; }
+    body.af-start-on:not(.ordering) [data-home="occ"] .occ-title { font-size: 22px; font-weight: 800; margin: 4px 0 12px; }
+    body.af-start-on:not(.ordering) .hg-chip { min-height: 38px; padding: 0 18px; font-size: 15px; }
+    body.af-start-on:not(.ordering) .hg-grid { gap: 20px 16px; margin-top: 16px; }
+    body.af-start-on:not(.ordering) .hg-nm { margin-top: 9px; font-size: 16px; }
+    body.af-start-on:not(.ordering) .hg-pr { font-size: 17px; }
+    body.af-start-on:not(.ordering) .qs-ov { display: block; position: absolute; inset: auto; top: var(--aside-top, 110px); right: 28px; bottom: 30px; width: 348px; z-index: 5; background: none; }
+    body.af-start-on.qs-open:not(.ordering) { overflow: visible; }
+    body.af-start-on:not(.ordering) .qs-sheet { position: sticky; top: calc(var(--hdr-h, 80px) + 16px); display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; max-width: none; max-height: calc(100vh - var(--hdr-h, 80px) - 32px); margin: 0; padding: 24px; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 24px rgba(31,29,24,.05); }
+    body.af-start-on:not(.ordering) .qs-sheet > * { grid-column: 1 / -1; }
+    body.af-start-on:not(.ordering) .qs-in { display: contents; }
+    body.af-start-on:not(.ordering) .qs-x,
+    body.af-start-on:not(.ordering) .qs-or,
+    body.af-start-on:not(.ordering) .qs-call,
+    body.af-start-on:not(.ordering) .qs-m { display: none; }
+    body.af-start-on:not(.ordering) .qs-p { display: inline; }
+    body.af-start-on:not(.ordering) .qs-pc { display: block; }
+    body.af-start-on:not(.ordering) .qs-t { order: 1; padding-right: 0; }
+    body.af-start-on:not(.ordering) .qs-s { order: 2; margin: 6px 0 16px; font-size: 14px; }
+    body.af-start-on:not(.ordering) .qs-lbl { order: 3; margin-bottom: 6px; font-size: 13px; }
+    body.af-start-on:not(.ordering) #src { order: 4; grid-column: 1 / -1; height: 48px; border: 1.5px solid var(--accent); border-radius: 10px; font-size: 15px; }
+    body.af-start-on:not(.ordering) #pasteBtn { order: 5; grid-column: 1; min-height: 46px; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font-size: 15px; font-weight: 700; }
+    body.af-start-on:not(.ordering) #pasteBtn svg { width: 16px; height: 16px; }
+    body.af-start-on:not(.ordering) #parseBtn { order: 6; grid-column: 2; width: auto; min-height: 46px; margin-top: 10px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-size: 15px; }
+    body.af-start-on:not(.ordering) .qs-pc-hint { order: 7; margin-top: 8px; font-size: 12.5px; color: var(--ink-faint); }
+    body.af-start-on:not(.ordering) #parseLoading,
+    body.af-start-on:not(.ordering) #parseErr { order: 8; }
+    body.af-start-on:not(.ordering) .qs-ex { order: 9; margin-top: 12px; }
+    body.af-start-on:not(.ordering) .qs-pc-tel { order: 10; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    body.af-start-on:not(.ordering) .qs-facts { order: 11; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .qp-k { font-size: 13px; font-weight: 700; color: var(--ink-faint); }
+    .qp-tel { display: block; margin-top: 2px; font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--accent-deep); text-decoration: none; }
+    .qp-s { margin-top: 2px; font-size: 13.5px; color: var(--ink-faint); }
+    .qs-facts li { display: flex; gap: 8px; font-size: 13.5px; line-height: 1.4; color: var(--ink); }
+    .qs-facts svg { flex: none; margin-top: 1px; color: var(--accent); }
+    .qs-facts b { margin-right: 4px; font-weight: 700; }
+  }
+  /* PC 좁은 창(1000~1199px): 메뉴 8개가 머리 한 줄에 들어가게 */
+  @media (min-width: 1000px) and (max-width: 1199px) {
+    body.af-start-on:not(.ordering) .hdr-menu { gap: 14px; margin-left: 20px; }
+    .hdr-menu a { font-size: 14px; }
   }
 </style>
 </head>
@@ -744,6 +800,18 @@
         <div class="brand">꽃안부</div>
         <div class="brand-sub">SINCE 1993</div>
       </div>
+      <!-- PC(1000px 이상) 홈에서만 보이는 메뉴(10/19 형구 PC-A). PC 에선 하단 탭 대신 이 줄을 쓴다.
+           휴대폰·주문 중엔 숨는다. 분류 주소는 catalog.html 의 AXES 키와 같아야 한다. -->
+      <nav class="hdr-menu" aria-label="메뉴">
+        <a class="on" href="/" aria-current="page">홈</a>
+        <a href="/catalog.html">전체상품</a>
+        <a href="/catalog.html?cat=condolence">근조화환</a>
+        <a href="/catalog.html?cat=congrats">축하화환</a>
+        <a href="/catalog.html?cat=basket">꽃다발·꽃바구니</a>
+        <a href="/catalog.html?cat=orchid">난</a>
+        <a href="/catalog.html?cat=plant">관엽</a>
+        <a href="/order-lookup.html" onclick="return afMyOrders()">내 주문</a>
+      </nav>
       <div class="hdr-r">
         <!-- 가입·로그인 버튼(auth.js 칩) 자리. 홈에선 오른쪽 아래에 떠 있지 않고 전화번호 옆에 붙는다(10/19 형구 A-2).
              떠 있던 칩이 시작 바·하단 탭과 겹쳐서 옮겼다. 다른 페이지는 예전처럼 떠 있다. -->
@@ -822,13 +890,14 @@
       <button type="button" class="qs-x" aria-label="닫기" onclick="afCloseStart()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       <h2 class="qs-t" id="qsTitle">링크 넣고 바로 시작</h2>
       <p class="qs-s">부고·청첩장 링크를 붙여넣으면 장소와 날짜를 주문서에 채워 드려요.</p>
-      <button type="button" class="qs-big" id="pasteBtn" onclick="afPasteAndGo()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>복사한 링크 붙여넣기</button>
+      <button type="button" class="qs-big" id="pasteBtn" onclick="afPasteAndGo()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg><span><span class="qs-m">복사한 링크 </span>붙여넣기</span></button>
       <div class="qs-or">링크가 없으면</div>
-      <label class="qs-lbl" for="src">보낼 일을 적어 주세요</label>
+      <label class="qs-lbl" for="src"><span class="qs-m">보낼 일을 적어 주세요</span><span class="qs-p">링크 또는 보낼 일</span></label>
       <div class="qs-in">
         <input id="src" type="text" placeholder="예) 어머니 칠순" enterkeyhint="go" onkeydown="if(event.key==='Enter'){event.preventDefault();runParse();}">
         <button type="button" class="qs-go" id="parseBtn" onclick="runParse()">시작</button>
       </div>
+      <p class="qs-pc qs-pc-hint">복사한 링크는 이 칸에 바로 붙여넣어도 돼요</p>
       <div class="qs-ex">
         <button type="button" onclick="afStartEx(this)">어머니 칠순</button>
         <button type="button" onclick="afStartEx(this)">거래처 개업</button>
@@ -838,6 +907,14 @@
       <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
       <div class="err hidden" id="parseErr"></div>
       <a class="qs-call" href="tel:1577-2286"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>전화가 편하시면 <b>1577-2286</b></a>
+      <!-- PC 오른쪽 칸에만 보이는 전화·약속(10/19 PC-A). 휴대폰에선 머리 아래 한 줄이 같은 말을 한다. -->
+      <div class="qs-pc qs-pc-tel"><div class="qp-k">전화로 주문</div><a class="qp-tel" href="tel:1577-2286">1577-2286</a><div class="qp-s">상품부터 리본 문구까지 같이 정해 드려요</div></div>
+      <ul class="qs-pc qs-facts">
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>시흥 한 자리 33년</b>1993년부터 같은 사장님</span></li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>전국 당일 배송</b>평일 18시 · 주말 16시까지 주문</span></li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>도착 사진</b>배송하고 바로 보내 드려요</span></li>
+        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>전 품목 정찰제</b>회원가입 없이 주문</span></li>
+      </ul>
     </section>
   </div>
 
@@ -2226,6 +2303,7 @@ function renderBest(){
 // 홈 첫 화면 상품 칸(10/19 형구 A-2). '전체'는 관리자가 고른 대표 상품(최대 3) 다음에 종류마다 가장 싼 것 하나씩,
 // 칩을 누르면 그 종류를 싼 순서로 6개. 품절·사진 없는 상품은 뺀다. 누르면 ?pc= 개별상품 주문으로 간다.
 const HOME_CATS = { condolence:"근조화환", congrats:"축하화환", basket:"꽃바구니", orchid:"난", bouquet:"꽃다발", plant:"관엽식물" };
+const AF_PC_MQ = window.matchMedia ? window.matchMedia("(min-width: 1000px)") : null;   // PC 두 칸(PC-A) 기준 폭. CSS @media 와 같은 값
 let afHomeSel = "";
 function afHomeName(p){
   const nm=String(p.name||"");
@@ -2238,19 +2316,21 @@ function afRenderHomeGrid(){
   const ok=p=>p && p.status!=="품절" && (p.photos||[]).length;
   const all=(window.PRODUCTS||[]).filter(ok);
   const cheapest=a=>a.slice().sort((x,y)=>x.price-y.price);
+  // 휴대폰 6개(2칸×3줄), PC 9개(3칸×3줄). 전체 탭은 대표 상품 뒤에 분류마다 싼 것부터 돌아가며 채운다.
+  const n=AF_PC_MQ && AF_PC_MQ.matches ? 9 : 6;
   let list;
-  if(afHomeSel) list=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,6);
+  if(afHomeSel) list=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,n);
   else {
     list=(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).slice(0,3);
-    Object.keys(HOME_CATS).forEach(c=>{
-      if(list.length>=6) return;
+    for(let r=0; r<3 && list.length<n; r++) Object.keys(HOME_CATS).forEach(c=>{
+      if(list.length>=n) return;
       const p=cheapest(all.filter(q=>q.cat===c && !list.includes(q)))[0];
       if(p) list.push(p);
     });
   }
   el.innerHTML=list.map((p,i)=>{
     const nm=escapeHtml(afHomeName(p)), tall=(p.cat==="condolence"||p.cat==="congrats")?' class="tall"':'';
-    return `<a class="hg-card" href="/?pc=${encodeURIComponent(p.pc)}"><div class="hg-ph"><img${tall} src="${escapeHtml(p.photos[0])}" alt="${nm}" loading="${i<4?"eager":"lazy"}" onerror="this.style.display='none'"></div><div class="hg-nm">${nm}</div><div class="hg-pr">${p.price.toLocaleString()}원</div></a>`;
+    return `<a class="hg-card" href="/?pc=${encodeURIComponent(p.pc)}"><div class="hg-ph"><img${tall} src="${escapeHtml(p.photos[0])}" alt="${nm}" loading="${i<n-3?"eager":"lazy"}" onerror="this.style.display='none'"></div><div class="hg-nm">${nm}</div><div class="hg-pr">${p.price.toLocaleString()}원</div></a>`;
   }).join("");
   const more=document.getElementById("homeMore");
   if(more){
@@ -2266,8 +2346,18 @@ function afHomeCat(cat){ afHomeSel=HOME_CATS[cat]?cat:""; afRenderHomeGrid(); }
 
 // 시작 시트(10/19 A-2) — 아래 고정 바를 누르면 열린다. 붙여넣기 버튼은 열면서 바로 읽기까지.
 // 주문으로 넘어가면(enterOrderMode) 닫는다. 아이폰 키보드가 시트를 가리지 않게 visualViewport 만큼 올린다.
+// PC(1000px 이상) 홈에선 시트가 오른쪽 칸으로 늘 떠 있어서(PC-A) 열지 않고 입력 칸에 커서만 둔다.
+function afIsPC(){
+  const b=document.body;
+  return !!(AF_PC_MQ && AF_PC_MQ.matches) && b.classList.contains("af-start-on") && !b.classList.contains("ordering");
+}
 function afOpenStart(paste){
   const ov=document.getElementById("qsSheet"); if(!ov) return;
+  if(afIsPC()){
+    if(paste) afPasteAndGo();
+    else { const s=document.getElementById("src"); if(s) s.focus({preventScroll:true}); }
+    return;
+  }
   ov.classList.add("open"); document.body.classList.add("qs-open");
   afFitStart();
   if(paste) afPasteAndGo();
@@ -2279,6 +2369,7 @@ function afCloseStart(){
 }
 function afFitStart(){
   const sh=document.getElementById("quickStart"), vv=window.visualViewport; if(!sh) return;
+  if(afIsPC()){ sh.style.marginBottom=""; sh.style.maxHeight=""; return; }
   const kb=vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
   sh.style.marginBottom=kb ? kb+"px" : "";
   sh.style.maxHeight=vv ? Math.round(vv.height-24)+"px" : "";
@@ -2294,6 +2385,25 @@ function afStartEx(btn){
   const s=document.getElementById("src"); if(!s) return;
   s.value=btn.textContent.trim(); runParse();
 }
+// PC 머리 메뉴 '내 주문' — 하단 탭(bottom-nav.js goMyOrders)과 같게: 로그인했으면 계정 시트, 아니면 주문 조회.
+function afMyOrders(){
+  if(window.afAuth && window.afAuth.user && typeof window.afOpenAuth==="function"){ window.afOpenAuth(); return false; }
+  return true;
+}
+// PC↔휴대폰 폭이 바뀌면 시트 성격(떠 있는 칸↔아래 시트)과 상품 개수를 맞춘다.
+function afSyncPC(){
+  const sh=document.getElementById("quickStart"), s=document.getElementById("src"); if(!sh) return;
+  const pc=!!(AF_PC_MQ && AF_PC_MQ.matches);
+  if(pc){ sh.setAttribute("role","region"); sh.removeAttribute("aria-modal"); }
+  else { sh.setAttribute("role","dialog"); sh.setAttribute("aria-modal","true"); }
+  if(s) s.placeholder=pc ? "링크 붙여넣기 또는 '어머니 칠순'" : "예) 어머니 칠순";
+  afFitStart();
+}
+if(AF_PC_MQ){
+  const onMQ=()=>{ afSyncPC(); afRenderHomeGrid(); };
+  if(AF_PC_MQ.addEventListener) AF_PC_MQ.addEventListener("change", onMQ); else if(AF_PC_MQ.addListener) AF_PC_MQ.addListener(onMQ);
+}
+afSyncPC();
 
 function goCat(cat, label){
   window.__presetCat = cat;
@@ -4450,6 +4560,9 @@ document.addEventListener("DOMContentLoaded", function(){
   function measure(){
     var h = document.querySelector("header");
     if(h) document.documentElement.style.setProperty("--hdr-h", Math.round(h.getBoundingClientRect().height) + "px");
+    // PC 오른쪽 시작 칸(PC-A)이 상품 칸 첫 줄과 같은 높이에서 시작하게. 시즌 띠가 머리 위에 붙어도 맞는다.
+    var w = document.querySelector(".wrap"), hero = document.querySelector(".hero");
+    if(w && hero) document.documentElement.style.setProperty("--aside-top", Math.round(hero.getBoundingClientRect().bottom - w.getBoundingClientRect().top + 14) + "px");
   }
   window.addEventListener("load", measure);
   window.addEventListener("resize", measure);
