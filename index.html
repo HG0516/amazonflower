@@ -655,6 +655,57 @@
   #stepBar .sb-dots i.on { opacity: 1; }
   #stepBar .sb-txt { font-size: var(--fs-caption); font-weight: 700; }
 
+  /* ── 홈 A-2(10/19 형구): 머리에 가입 버튼, 첫 화면에 상품, 아래 고정 시작 바 ── */
+  .hdr-r { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+  .hdr-auth:empty { display: none; }
+  .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .hero { padding: 10px 0 0; }
+  .trust-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 14px; font-size: var(--fs-caption); line-height: 1.5; color: var(--ink-soft); word-break: keep-all; }
+  .trust-row b { color: var(--accent-deep); font-weight: 700; margin-right: 4px; }
+  .hg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hg-chip { min-height: 36px; padding: 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--paper); font-family: var(--font-body); font-size: var(--fs-sub); font-weight: 600; color: var(--ink); cursor: pointer; }
+  .hg-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .hg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; margin-top: 12px; }
+  .hg-card { display: block; min-width: 0; color: inherit; text-decoration: none; }
+  .hg-ph { aspect-ratio: 1 / 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line-soft); }
+  .hg-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hg-ph img.tall { object-position: 50% 28%; }
+  .hg-nm { margin-top: 7px; font-size: var(--fs-sub); font-weight: 600; line-height: 1.35; color: var(--ink); word-break: keep-all; }
+  .hg-pr { font-size: var(--fs-body); font-weight: 800; line-height: 1.35; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
+  .hg-more { display: block; margin-top: 14px; padding: 12px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); font-size: var(--fs-sub); font-weight: 700; text-decoration: none; }
+  /* 시작 바 — 하단 탭(56px) 바로 위. 주문 중(body.ordering)엔 .home-sect 라 같이 숨는다. */
+  .start-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 84; display: flex; gap: 8px; padding: 7px 12px calc(7px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-top: 1px solid var(--line); box-shadow: 0 -6px 16px rgba(31,29,24,.06); }
+  body.af-nav-on .start-bar { bottom: calc(56px + env(safe-area-inset-bottom,0px)); padding-bottom: 7px; }
+  body.af-pwa-open .start-bar { display: none; }
+  body.af-start-on:not(.ordering) { padding-bottom: calc(70px + env(safe-area-inset-bottom,0px)); }
+  body.af-start-on.af-nav-on:not(.ordering) { padding-bottom: calc(124px + env(safe-area-inset-bottom,0px)); }
+  .sb-field { flex: 1; min-width: 0; min-height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--ink); font-family: var(--font-body); text-align: left; cursor: pointer; }
+  .sb-field svg { flex: none; color: var(--accent); }
+  .sb-txt { display: block; min-width: 0; }
+  .sb-f1 { display: block; font-size: var(--fs-caption); font-weight: 700; line-height: 1.3; color: var(--accent-deep); }
+  .sb-f2 { display: block; font-size: var(--fs-label); line-height: 1.3; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-paste { flex: none; width: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 0; border-radius: var(--radius-lg); background: var(--accent); color: #fff; font-family: var(--font-body); font-size: 13.5px; font-weight: 700; line-height: 1.2; cursor: pointer; }
+  .sb-field:active, .sb-paste:active { transform: scale(.98); }
+  .qs-ov { position: fixed; inset: 0; z-index: 9000; display: none; align-items: flex-end; justify-content: center; background: rgba(20,20,15,.48); }
+  .qs-ov.open { display: flex; }
+  body.qs-open { overflow: hidden; }
+  .qs-sheet { position: relative; width: 100%; max-width: 560px; max-height: calc(100% - 24px); overflow-y: auto; padding: 22px 20px calc(22px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.18); }
+  .qs-x { position: absolute; right: 8px; top: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--ink-faint); cursor: pointer; }
+  .qs-t { padding-right: 40px; font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1.4; color: var(--accent-deep); }
+  .qs-s { margin-top: 6px; font-size: var(--fs-caption); line-height: 1.55; color: var(--ink-soft); word-break: keep-all; }
+  .qs-big { width: 100%; min-height: 54px; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: var(--radius-lg); background: var(--accent); color: #fff; font-family: var(--font-body); font-size: 16px; font-weight: 800; cursor: pointer; }
+  .qs-or { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 13px; color: var(--ink-faint); }
+  .qs-or::before, .qs-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .qs-lbl { display: block; margin-bottom: 8px; font-size: var(--fs-caption); font-weight: 700; color: var(--ink); }
+  .qs-in { display: flex; gap: 8px; }
+  .qs-in input { flex: 1; min-width: 0; height: 50px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 16px; }
+  .qs-go { flex: none; width: 76px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent); font-family: var(--font-body); font-size: 15px; font-weight: 800; cursor: pointer; }
+  .qs-go:disabled { opacity: .5; }
+  .qs-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .qs-ex button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .qs-call { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; margin-top: 18px; border-radius: var(--radius-lg); background: var(--accent-soft); color: var(--accent-deep); font-size: 14.5px; text-decoration: none; }
+  .qs-call b { font-family: var(--font-display); font-size: 17px; }
+
   /* ─── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ─── */
   @media (min-width: 1000px) {
     body {
@@ -676,37 +727,42 @@
        흰 공백이 생긴다 → aspect-ratio 그대로 두어 모바일·데스크톱 동일하게 꽉 차게. */
     .cat-grid .cat-photo { height: auto; }
     .reviews-grid { grid-template-columns: repeat(3, 1fr); }
+    /* 홈 A-2: 본문 680px 에선 상품 3칸, 시작 바는 주문바처럼 본문 폭 안에, 시트는 가운데 */
+    .hg-grid { grid-template-columns: repeat(3, 1fr); gap: 18px 14px; }
+    .start-bar { max-width: 680px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 12px 12px 0 0; }
+    .qs-ov { align-items: center; }
+    .qs-sheet { max-width: 520px; border-radius: 18px; padding-bottom: 24px; }
   }
 </style>
 </head>
-<body>
+<body class="af-start-on">
 <div class="wrap">
 
   <header>
     <div class="hdr-row">
       <div class="hdr-brand">
         <div class="brand">꽃안부</div>
-        <div class="brand-sub">안부는, 꽃으로 · SINCE 1993</div>
+        <div class="brand-sub">SINCE 1993</div>
       </div>
-      <!-- 전화 주문이 다수인 손님층 — 대표번호를 첫 화면 고정 위치에 둔다(벤치마크 9곳 중 8곳).
-           예전엔 자동주문 박스 안·푸터·하단네비로 흩어져 있어 고령 손님이 찾기 어려웠다. -->
-      <a class="hdr-tel" href="tel:1577-2286">
-        <span class="ht-num">1577-2286</span>
-        <span class="ht-sub" id="hdrTelHours">전화 주문 · 상담</span>
-      </a>
+      <div class="hdr-r">
+        <!-- 가입·로그인 버튼(auth.js 칩) 자리. 홈에선 오른쪽 아래에 떠 있지 않고 전화번호 옆에 붙는다(10/19 형구 A-2).
+             떠 있던 칩이 시작 바·하단 탭과 겹쳐서 옮겼다. 다른 페이지는 예전처럼 떠 있다. -->
+        <span class="hdr-auth" id="hdrAuthSlot"></span>
+        <!-- 전화 주문이 다수인 손님층 — 대표번호를 첫 화면 고정 위치에 둔다(벤치마크 9곳 중 8곳).
+             예전엔 자동주문 박스 안·푸터·하단네비로 흩어져 있어 고령 손님이 찾기 어려웠다. -->
+        <a class="hdr-tel" href="tel:1577-2286">
+          <span class="ht-num">1577-2286</span>
+          <span class="ht-sub" id="hdrTelHours">전화 주문 · 상담</span>
+        </a>
+      </div>
     </div>
   </header>
 
-  <!-- 히어로: 대형 실사진 1장(첫 화면 LCP). 오버레이 금지 · 카피는 사진 아래 -->
+  <!-- 첫 화면은 상품부터(10/19 형구 A-2). 예전 큰 제목·약속 3줄은 머리 아래 한 줄로 줄였다.
+       .hero 는 관리자 시즌 띠가 이 뒤에 붙는 자리라 이름을 남긴다. 제목은 검색용으로만 둔다. -->
   <section class="hero home-sect">
-    <h1>안부는, 꽃으로</h1>
-    <p class="lede">근조도 축하도, 마음을 담아 정성껏 보내 드립니다.</p>
-    <!-- 첫 화면 약속 한 줄 — 전화 응대 멘트와 같은 문구를 쓰면 "홈페이지 봤는데요" 통화가 쉬워진다. -->
-    <ul class="promise">
-      <li><b>시흥 한 자리 33년</b><span>1993년부터 같은 사장님</span></li>
-      <li><b>전국 당일 배송</b><span>평일 18시 · 주말 16시까지 주문</span></li>
-      <li><b>도착 사진 문자로</b><span>배송하고 바로 보내 드려요</span></li>
-    </ul>
+    <h1 class="vh">안부는, 꽃으로</h1>
+    <div class="trust-row"><span><b>시흥 33년</b>같은 사장님</span><span><b>오늘 도착</b>평일 18시 · 주말 16시까지 주문</span></div>
   </section>
 
   <section class="card hidden" id="catalogBanner" style="position:sticky;top:calc(var(--hdr-h, 56px) + 6px);z-index:10;">
@@ -715,17 +771,21 @@
   </section>
 
   <!-- 상황(용도) 진입 — 사건명 6개. 감정어("멋진 도약" 등)는 고령 손님에게 모호해 쓰지 않는다.
-       예전엔 아래 카테고리 2×2와 같은 곳으로 가는 문이 두 벌이었다 → 카테고리는 전체상품 탭으로 일원화. -->
-  <section class="home-sect" data-home="occ" style="margin-top:var(--space-sect);">
+       10/19 형구 A-2: 동그라미 6칸은 전체상품으로 넘어가기만 해서 첫 화면에 꽃이 안 보였다 →
+       칩으로 바꾸고 바로 아래에 상품 사진을 깐다. 칩을 누르면 페이지를 안 넘기고 그 자리에서 바뀐다. -->
+  <section class="home-sect" data-home="occ" style="margin-top:14px;">
     <div class="occ-title">무슨 일로 보내세요?</div>
-    <div class="occ-row">
-      <div class="occ" onclick="goCatalog('condolence')"><div class="ic"><img src="/photos/products/WC-02_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">부고</div></div>
-      <div class="occ" onclick="goCatalog('plant')"><div class="ic"><img src="/photos/products/PL-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">개업</div></div>
-      <div class="occ" onclick="goCatalog('orchid')"><div class="ic"><img src="/photos/products/OR-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">승진·취임</div></div>
-      <div class="occ" onclick="goCatalog('congrats')"><div class="ic"><img src="/photos/products/WG-04_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">결혼</div></div>
-      <div class="occ" onclick="goCatalog('basket')"><div class="ic"><img src="/photos/products/BQ-001_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">생신·회갑</div></div>
-      <div class="occ" onclick="goCatalog('bouquet')"><div class="ic"><img src="/photos/products/BQ-009_1.jpg" alt="" loading="lazy" onerror="this.style.display='none'"></div><div class="ol">병문안</div></div>
+    <div class="hg-chips" id="homeChips">
+      <button type="button" class="hg-chip on" data-cat="" aria-pressed="true" onclick="afHomeCat('')">전체</button>
+      <button type="button" class="hg-chip" data-cat="condolence" aria-pressed="false" onclick="afHomeCat('condolence')">부고</button>
+      <button type="button" class="hg-chip" data-cat="plant" aria-pressed="false" onclick="afHomeCat('plant')">개업</button>
+      <button type="button" class="hg-chip" data-cat="orchid" aria-pressed="false" onclick="afHomeCat('orchid')">승진·취임</button>
+      <button type="button" class="hg-chip" data-cat="congrats" aria-pressed="false" onclick="afHomeCat('congrats')">결혼</button>
+      <button type="button" class="hg-chip" data-cat="basket" aria-pressed="false" onclick="afHomeCat('basket')">생신·회갑</button>
+      <button type="button" class="hg-chip" data-cat="bouquet" aria-pressed="false" onclick="afHomeCat('bouquet')">병문안</button>
     </div>
+    <div class="hg-grid" id="homeGrid"></div>
+    <a class="hg-more" id="homeMore" href="/catalog.html">전체 상품 보기 →</a>
   </section>
 
   <!-- 전화 주문 CTA는 아래 '자동주문' 박스 안내문(전화가 편하시면…)과 하단 네비 전화 버튼으로
@@ -744,19 +804,42 @@
     </a>
   </section>
 
-  <section class="card home-sect" data-home="paste" id="quickStart" style="margin-top:12px;padding:15px 16px;background:var(--accent-soft);border:1px solid var(--accent);">
-    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--accent-deep);margin-bottom:8px;">청첩장·부고 링크가 있으면 붙여넣기</div>
-    <div style="display:flex;gap:8px;">
-      <input id="src" type="text" placeholder="링크 붙여넣기 또는 '어머니 칠순'" style="flex:1;min-width:0;font-size:15px;font-family:var(--font-body);padding:12px 13px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;color:var(--ink);">
-      <button class="btn" id="parseBtn" onclick="runParse()" style="width:auto;flex:0 0 auto;padding:12px 18px;min-height:48px;">시작</button>
-    </div>
-    <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <button class="btn-mini" id="pasteBtn" onclick="pasteFromClipboard()">붙여넣기</button>
-      <span style="font-size:var(--fs-caption);color:var(--ink-faint);">링크 없으면 보낼 일을 적어도 돼요</span>
-    </div>
-    <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
-    <div class="err hidden" id="parseErr"></div>
-  </section>
+  <!-- 링크로 바로 시작(10/19 형구 A-2). 예전엔 본문 중간 상자라 스크롤해야 보였다 → 하단 탭 위 고정 바로 두고,
+       누르면 아래에서 시트가 열린다. 붙여넣기를 누르면 시트를 열면서 바로 읽기까지 한다.
+       data-home="paste" 는 바에 둔다(관리자 '부고·청첩장 붙여넣기' 숨김과 주문 중 숨김이 바에 걸리게). -->
+  <div class="start-bar home-sect" data-home="paste" id="startBar">
+    <button type="button" class="sb-field" onclick="afOpenStart()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <span class="sb-txt"><span class="sb-f1">링크 넣고 바로 시작</span><span class="sb-f2">링크 없으면 보낼 일을 적어도 돼요</span></span>
+    </button>
+    <button type="button" class="sb-paste" onclick="afOpenStart(true)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+      붙여넣기
+    </button>
+  </div>
+  <div class="qs-ov" id="qsSheet" onclick="if(event.target===this)afCloseStart()">
+    <section class="qs-sheet" id="quickStart" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
+      <button type="button" class="qs-x" aria-label="닫기" onclick="afCloseStart()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <h2 class="qs-t" id="qsTitle">링크 넣고 바로 시작</h2>
+      <p class="qs-s">부고·청첩장 링크를 붙여넣으면 장소와 날짜를 주문서에 채워 드려요.</p>
+      <button type="button" class="qs-big" id="pasteBtn" onclick="afPasteAndGo()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>복사한 링크 붙여넣기</button>
+      <div class="qs-or">링크가 없으면</div>
+      <label class="qs-lbl" for="src">보낼 일을 적어 주세요</label>
+      <div class="qs-in">
+        <input id="src" type="text" placeholder="예) 어머니 칠순" enterkeyhint="go" onkeydown="if(event.key==='Enter'){event.preventDefault();runParse();}">
+        <button type="button" class="qs-go" id="parseBtn" onclick="runParse()">시작</button>
+      </div>
+      <div class="qs-ex">
+        <button type="button" onclick="afStartEx(this)">어머니 칠순</button>
+        <button type="button" onclick="afStartEx(this)">거래처 개업</button>
+        <button type="button" onclick="afStartEx(this)">승진 축하</button>
+        <button type="button" onclick="afStartEx(this)">병문안</button>
+      </div>
+      <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
+      <div class="err hidden" id="parseErr"></div>
+      <a class="qs-call" href="tel:1577-2286"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>전화가 편하시면 <b>1577-2286</b></a>
+    </section>
+  </div>
 
   <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
   <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 55,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
@@ -1901,6 +1984,7 @@ async function loadLiveCatalog(){
       }
     }
     try{ renderToppings(); }catch(_){}
+    try{ afRenderHomeGrid(); }catch(_){}   // 라이브로 붙은 신규상품도 홈 상품 칸에
     const pc0=new URLSearchParams(location.search).get("pc");
     if(pc0 && /^CU-\d{4}$/.test(pc0)){ try{ handleProductParam(); }catch(_){} }  // CU- 딥링크 레이스 차단
   }catch(e){ /* 라이브 실패 → 정적 그대로 */ }
@@ -2139,6 +2223,78 @@ function renderBest(){
 }
 // 사장님 추천은 세로 2열 그리드(2026-09). 가로 자동 흐름(마퀴)과 좌우 화살표는 제거했다.
 
+// 홈 첫 화면 상품 칸(10/19 형구 A-2). '전체'는 관리자가 고른 대표 상품(최대 3) 다음에 종류마다 가장 싼 것 하나씩,
+// 칩을 누르면 그 종류를 싼 순서로 6개. 품절·사진 없는 상품은 뺀다. 누르면 ?pc= 개별상품 주문으로 간다.
+const HOME_CATS = { condolence:"근조화환", congrats:"축하화환", basket:"꽃바구니", orchid:"난", bouquet:"꽃다발", plant:"관엽식물" };
+let afHomeSel = "";
+function afHomeName(p){
+  const nm=String(p.name||"");
+  if(p.cat==="condolence"||p.cat==="congrats") return nm.replace(/^(근조|축하)\s+/,"$1화환 ");
+  if((p.cat==="basket"||p.cat==="bouquet") && p.sub && nm.indexOf(p.sub)<0) return p.sub+" "+nm;
+  return nm;
+}
+function afRenderHomeGrid(){
+  const el=document.getElementById("homeGrid"); if(!el) return;
+  const ok=p=>p && p.status!=="품절" && (p.photos||[]).length;
+  const all=(window.PRODUCTS||[]).filter(ok);
+  const cheapest=a=>a.slice().sort((x,y)=>x.price-y.price);
+  let list;
+  if(afHomeSel) list=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,6);
+  else {
+    list=(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).slice(0,3);
+    Object.keys(HOME_CATS).forEach(c=>{
+      if(list.length>=6) return;
+      const p=cheapest(all.filter(q=>q.cat===c && !list.includes(q)))[0];
+      if(p) list.push(p);
+    });
+  }
+  el.innerHTML=list.map((p,i)=>{
+    const nm=escapeHtml(afHomeName(p)), tall=(p.cat==="condolence"||p.cat==="congrats")?' class="tall"':'';
+    return `<a class="hg-card" href="/?pc=${encodeURIComponent(p.pc)}"><div class="hg-ph"><img${tall} src="${escapeHtml(p.photos[0])}" alt="${nm}" loading="${i<4?"eager":"lazy"}" onerror="this.style.display='none'"></div><div class="hg-nm">${nm}</div><div class="hg-pr">${p.price.toLocaleString()}원</div></a>`;
+  }).join("");
+  const more=document.getElementById("homeMore");
+  if(more){
+    more.href="/catalog.html"+(afHomeSel?"?cat="+encodeURIComponent(afHomeSel):"");
+    more.textContent=(afHomeSel?HOME_CATS[afHomeSel]+" 전부 보기":"전체 상품 보기")+" →";
+  }
+  document.querySelectorAll("#homeChips .hg-chip").forEach(b=>{
+    const on=(b.dataset.cat||"")===afHomeSel;
+    b.classList.toggle("on",on); b.setAttribute("aria-pressed",on?"true":"false");
+  });
+}
+function afHomeCat(cat){ afHomeSel=HOME_CATS[cat]?cat:""; afRenderHomeGrid(); }
+
+// 시작 시트(10/19 A-2) — 아래 고정 바를 누르면 열린다. 붙여넣기 버튼은 열면서 바로 읽기까지.
+// 주문으로 넘어가면(enterOrderMode) 닫는다. 아이폰 키보드가 시트를 가리지 않게 visualViewport 만큼 올린다.
+function afOpenStart(paste){
+  const ov=document.getElementById("qsSheet"); if(!ov) return;
+  ov.classList.add("open"); document.body.classList.add("qs-open");
+  afFitStart();
+  if(paste) afPasteAndGo();
+}
+function afCloseStart(){
+  const ov=document.getElementById("qsSheet"); if(!ov || !ov.classList.contains("open")) return;
+  ov.classList.remove("open"); document.body.classList.remove("qs-open");
+  const s=document.getElementById("src"); if(s && document.activeElement===s) s.blur();
+}
+function afFitStart(){
+  const sh=document.getElementById("quickStart"), vv=window.visualViewport; if(!sh) return;
+  const kb=vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
+  sh.style.marginBottom=kb ? kb+"px" : "";
+  sh.style.maxHeight=vv ? Math.round(vv.height-24)+"px" : "";
+}
+if(window.visualViewport){ visualViewport.addEventListener("resize", afFitStart); visualViewport.addEventListener("scroll", afFitStart); }
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") afCloseStart(); });
+async function afPasteAndGo(){
+  await pasteFromClipboard();
+  const err=document.getElementById("parseErr"), s=document.getElementById("src");
+  if(err.classList.contains("hidden") && s.value.trim()) runParse();
+}
+function afStartEx(btn){
+  const s=document.getElementById("src"); if(!s) return;
+  s.value=btn.textContent.trim(); runParse();
+}
+
 function goCat(cat, label){
   window.__presetCat = cat;
   const banner=document.getElementById("catalogBanner");
@@ -2152,8 +2308,7 @@ function goCat(cat, label){
     scrollTo("prodCard");
     return;
   }
-  document.getElementById("quickStart").scrollIntoView({behavior:"smooth",block:"start"});
-  setTimeout(()=>document.getElementById("src").focus({preventScroll:true}),400);
+  afOpenStart();
 }
 
 function getItems(cat){
@@ -3913,6 +4068,7 @@ function selProduct(p){
 // 예전엔 받는 곳을 다 채워야 결제 칸이 열렸고 위에 '1/4 · 상품 선택' 진행 표시가 붙어 4단계처럼 보였다.
 // 빠진 칸은 결제 버튼(afValidateOrder)이 한 번에 모아 알려준다.
 function enterOrderMode(labelHtml){
+  if(typeof afCloseStart==="function") afCloseStart();   // 시작 시트에서 넘어왔으면 닫고 주문서로
   document.body.classList.add("ordering");
   // 10/18 아버지: 위에 붙어 따라다니는 '선택한 상품' 상자가 주문서를 가린다 → 주문 중엔 띄우지 않는다.
   // 고른 상품은 바로 아래 상품 카드에 사진·가격으로 보이고, '다른 상품 보기'는 그 카드 안으로 옮겼다.
@@ -4167,16 +4323,14 @@ function handleCatalogParam(){
   if(ccat && CATALOG[ccat]) window.__presetCat=ccat;
   cleanUrl();
   // 카탈로그에서 '주문하기'로 넘어온 사람은 이미 결정한 사람 — 첫 화면이 아니라
-  // 받는 곳 입력 카드에 바로 착지시킨다 (애니메이션 없이 즉시).
-  setTimeout(()=>{
-    const sc=document.getElementById("quickStart");
-    if(sc){ sc.scrollIntoView({behavior:"instant",block:"start"}); document.getElementById("src")?.focus({preventScroll:true}); }
-  },50);
+  // 링크 넣는 시작 시트를 바로 열어 둔다(10/19 A-2: 예전엔 본문 링크 상자로 스크롤했다).
+  setTimeout(()=>afOpenStart(),50);
 }
 
 afBootCart();              // /?cart=1 → 첫 상품 딥링크로 바꾸고 나머지를 함께 보내는 상품으로
 handleRedirect();
 renderBest();
+afRenderHomeGrid();
 handleProductParam();
 handleWorderParam();
 afApplyPendingRestore();   // 상품·카드 골격이 세워진 뒤에 저장해 둔 값을 얹는다
@@ -4198,6 +4352,7 @@ window.addEventListener("hashchange",function(){ if(location.hash==="#corporate"
   if(!s) return;
   const el=document.getElementById("src"); if(!el) return;
   el.value=s; cleanUrl();
+  afOpenStart();   // 읽는 중·실패 문구가 시트 안에 있어서 열어 둔다(성공하면 주문서로 넘어가며 닫힌다)
   if(typeof runParse==="function") setTimeout(runParse, 60);
 })();
 // UTM 유입 기록은 footer.js 로 일원화(전 페이지 공통) — 여기 있던 중복 구현 제거.
@@ -4265,7 +4420,8 @@ window.afApplyHome=function(v){
   });
   document.querySelectorAll("[data-home].home-off").forEach(function(el){ el.classList.remove("home-off"); });
   (v.hidden||[]).forEach(function(k){ var el=sec(k); if(el) el.classList.add("home-off"); });
-  if(Array.isArray(v.featured) && v.featured.length){ window.AF_HOME_FEATURED=v.featured; try{ renderBest(); }catch(_){} }
+  document.body.classList.toggle("af-start-on", (v.hidden||[]).indexOf("paste")<0);   // 시작 바를 숨기면 그 자리 여백도 뺀다
+  if(Array.isArray(v.featured) && v.featured.length){ window.AF_HOME_FEATURED=v.featured; try{ renderBest(); afRenderHomeGrid(); }catch(_){} }
   var b=v.banner||{}, old=document.getElementById("af-home-banner"); if(old) old.remove();
   var now=new Date(Date.now()+9*3600000).toISOString().slice(0,10);   // 한국 날짜
   if(b.on && b.text && (!b.from || now>=b.from) && (!b.to || now<=b.to)){

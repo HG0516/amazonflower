@@ -87,6 +87,10 @@
       + 'body.af-nav-on .af-auth-chip{bottom:calc(70px + env(safe-area-inset-bottom,0px));}'
       + 'body.ordering .af-auth-chip{display:none;}' // 주문 진행 중엔 숨김(주문바와 충돌 방지)
       + '.af-auth-chip:active{opacity:.85;}'
+      // 홈은 머리 전화번호 옆 자리(#hdrAuthSlot)에 붙는다(10/19 형구 A-2) — 떠 있던 칩이 시작 바·하단 탭과 겹쳤다.
+      + '.af-auth-chip.af-auth-chip--hdr{position:static;display:block;min-height:44px;line-height:42px;padding:0 10px;max-width:120px;'
+      + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-color:#c9dccd;border-radius:6px;background:#e8f1ea;color:#14311f;'
+      + 'font-size:13px;font-weight:800;box-shadow:none;}'
       + '.af-auth-ov{position:fixed;inset:0;z-index:10002;background:rgba(31,29,24,.55);display:none;'
       + 'align-items:flex-end;justify-content:center;}'
       + '.af-auth-sheet{background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));'
@@ -112,7 +116,9 @@
       chip.id = 'af-auth-chip';
       chip.className = 'af-auth-chip';
       chip.type = 'button';
-      document.body.appendChild(chip);
+      var slot = document.getElementById('hdrAuthSlot');   // 홈: 머리 전화번호 옆, 그 밖의 페이지: 오른쪽 아래에 뜬다
+      if (slot) { chip.className += ' af-auth-chip--hdr'; slot.appendChild(chip); }
+      else document.body.appendChild(chip);
     }
     return chip;
   }
