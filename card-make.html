@@ -63,7 +63,7 @@
   .gal-mk div { position: relative; width: 72px; height: 72px; }
   .gal-mk img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; }
   .gal-mk .no { position: absolute; left: 4px; bottom: 4px; padding: 0 6px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; line-height: 18px; }
-  .gl-pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .gl-pills { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin-top: 10px; }
   .gl-pills button { padding: 10px 4px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; font: inherit; font-size: 13.5px; cursor: pointer; }
   .gl-pills button.on { border-color: var(--accent); background: #e8f1ea; color: var(--accent); font-weight: 700; }
   .gl-pills button i { display: block; height: 22px; margin: 0 auto 4px; width: 40px; font-style: normal; }
@@ -281,6 +281,10 @@
         <div class="themes" id="thW">
           <button type="button" class="th on" data-t="classic"><div class="mini" style="background:linear-gradient(135deg,#d9c8b4,#b9a58e);color:#fff;"><div class="mn" style="font-size:16px;letter-spacing:2px;">민준 · 서연</div><div style="font-size:10px;margin-top:4px;letter-spacing:2px;">WEDDING</div></div><div class="nm">클래식 <span>사진 크게</span></div></button>
           <button type="button" class="th" data-t="flower"><div class="mini" style="background:#fbf6f4;color:#4a3a3a;"><div class="mn" style="font-size:16px;">민준 <span style="color:#c98f88">&amp;</span> 서연</div><div style="width:46px;height:26px;margin-top:6px;border-radius:23px 23px 6px 6px;background:#f1dcd7;"></div></div><div class="nm">플라워 <span>꽃집이 만든 티</span></div></button>
+          <button type="button" class="th" data-t="white"><div class="mini" style="background:#fff;color:#222;"><div style="font:600 8px sans-serif;letter-spacing:2px;color:#999;">WEDDING INVITATION</div><div class="mn" style="font-size:15px;margin-top:6px;">민준 · 서연</div><div style="width:40px;border-top:1px solid #ddd;margin-top:6px;"></div></div><div class="nm">미니멀 <span>깔끔한 흰색</span></div></button>
+          <button type="button" class="th" data-t="hanji"><div class="mini" style="background:#f3ead8;color:#3b2a1e;"><div style="width:28px;height:28px;border-radius:50%;background:#a8322a;color:#f7e9c9;font-size:16px;line-height:28px;">囍</div><div class="mn" style="font-size:15px;margin-top:6px;">민준 · 서연</div></div><div class="nm">전통 <span>한지·囍</span></div></button>
+          <button type="button" class="th" data-t="night"><div class="mini" style="background:#141414;color:#f3e6c8;"><div style="border:1px solid #b89a63;padding:8px 14px;"><div style="font:600 7px sans-serif;letter-spacing:2px;color:#b89a63;">THE WEDDING OF</div><div class="mn" style="font-size:14px;margin-top:4px;">민준 <span style="color:#b89a63">&amp;</span> 서연</div></div></div><div class="nm">블랙 골드 <span>고급스럽게</span></div></button>
+          <button type="button" class="th" data-t="pastel"><div class="mini" style="background:radial-gradient(circle at 15% 25%,#f6dbe8 0 22%,transparent 23%),radial-gradient(circle at 88% 15%,#dfe6fb 0 26%,transparent 27%),#fbf8ff;color:#4b4560;"><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f3d6e4,#d9e0f8);box-shadow:0 0 0 3px #fff;"></div><div class="mn" style="font-size:15px;margin-top:6px;">민준 <span style="color:#e59ab8">♥</span> 서연</div></div><div class="nm">파스텔 <span>부드럽게</span></div></button>
         </div>
         <label>대표 사진 <small>(선택 — 휴대폰 사진을 바로 올려요)</small></label>
         <div class="two" style="align-items:center;">
@@ -293,6 +297,8 @@
           <button type="button" data-gl="s" class="on"><i style="background:linear-gradient(90deg,#cfc6b8 0 62%,transparent 62% 68%,#e2dbd0 68%);border-radius:4px;"></i>옆으로 넘기기</button>
           <button type="button" data-gl="g"><i style="background:repeating-linear-gradient(90deg,#cfc6b8 0 12px,transparent 12px 14px);border-radius:3px;"></i>바둑판</button>
           <button type="button" data-gl="l"><i style="background:repeating-linear-gradient(180deg,#cfc6b8 0 9px,transparent 9px 11px);width:24px;border-radius:3px;"></i>크게 이어서</button>
+          <button type="button" data-gl="f"><i style="background:linear-gradient(90deg,#cfc6b8,#efe9e0);width:26px;border-radius:3px;"></i>저절로 넘어가기</button>
+          <button type="button" data-gl="p"><i style="width:30px;background:linear-gradient(#fff,#fff) 3px 3px/11px 11px no-repeat,linear-gradient(#fff,#fff) 16px 6px/11px 11px no-repeat,#cfc6b8;border-radius:2px;transform:rotate(-4deg);"></i>폴라로이드</button>
         </div>
         <p class="hint" id="galHint" style="display:none">사진을 누르면 자르기·순서 바꾸기·대표 사진으로 하기를 할 수 있어요.</p>
         <button type="button" class="addr-btn" style="margin-top:8px;width:100%" id="galBtn" onclick="document.getElementById('galFile').click()">사진 고르기 (여러 장)</button><input type="file" id="galFile" accept="image/*" multiple class="hide">
@@ -645,7 +651,7 @@ function fill(d){
     ["name","age","died","venue","room","tel","addr","burial","outDate","out","msg"].forEach(function(k){ $("f_"+k).value=d[k]||""; });
     $("mList").innerHTML=""; (d.m||[]).forEach(function(x){ addM(x.r,x.n); }); if(!(d.m||[]).length) addM("장남");
   }else{
-    TW=d.theme==="flower"?"flower":"classic"; setTheme("thW",TW);
+    TW=["flower","white","hanji","night","pastel"].indexOf(d.theme)>=0?d.theme:"classic"; setTheme("thW",TW);
     ["g","b","gp","bp","date","time","venue","hall","addr","park","photo","msg"].forEach(function(k){ $("w_"+k).value=d[k]||""; });
     showPhotoPv(d.photo||"");
     GAL=(d.gal||[]).slice(0,8); GL=d.gl||"s"; drawGal();
