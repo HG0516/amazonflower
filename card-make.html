@@ -56,6 +56,9 @@
   .rowm { display: grid; grid-template-columns: 96px 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; }
   .rowa { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: #fbfaf7; position: relative; }
   .rowa .full { grid-column: 1 / -1; }
+  .rowa .side, .w-acc { display: none; }
+  #aList.is-w .rowa .side { display: block; grid-column: 1 / -1; }
+  .is-w-mode .w-acc { display: block; }
   .gal-mk { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
   .gal-mk div { position: relative; width: 64px; height: 64px; }
   .gal-mk img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; display: block; }
@@ -272,6 +275,8 @@
       <p class="hint">계좌는 받는 화면에서 접혀 있다가 눌러야 보여요.</p>
       <div id="aList"></div>
       <button type="button" class="add" onclick="addA();preview()">＋ 계좌 추가</button>
+      <button type="button" class="add w-acc" onclick="addFamilyA()">＋ 신랑·신부·혼주 6칸 한 번에</button>
+      <p class="hint">'국민 123-456-789 홍길동'처럼 통째로 붙여넣으면 은행·계좌·이름이 나눠 들어가요.</p>
     </section>
 
     <section class="sec">
@@ -328,6 +333,7 @@ function mode(k){
   if(EDIT && MG && MG.data && k!==MG.data.k){ toast("보낸 안내는 종류를 바꿀 수 없어요 — '새로 만들기'를 눌러 주세요"); return; }
   K=k; $("tF").classList.toggle("on",k==="f"); $("tW").classList.toggle("on",k==="w");
   $("fF").classList.toggle("hide",k!=="f"); $("fW").classList.toggle("hide",k!=="w");
+  $("aList").classList.toggle("is-w", k==="w"); document.body.classList.toggle("is-w-mode", k==="w");
   $("nAcc").textContent = k==="f" ? "5" : "4"; $("nWr").textContent = k==="f" ? "6" : "5";
   $("wrTx").innerHTML = k==="f"
     ? '화환 보내기 칸 보이기<small>꽃안부가 빈소로 보내드려요. 끄면 \'화환은 정중히 사양합니다\'로 보여요.</small>'
@@ -354,12 +360,33 @@ function addM(r,n){ var d=document.createElement("div"); d.className="rowm";
   d.querySelector("input").value=n||"";
   d.querySelector(".x").onclick=function(){ d.remove(); preview(); };
   $("mList").appendChild(d); }
-function addA(who,bank,no){ var d=document.createElement("div"); d.className="rowa";
+function addA(who,bank,no,kp,side){ var d=document.createElement("div"); d.className="rowa";
   var banks = bank && BANKS.indexOf(bank)<0 ? BANKS.concat([bank]) : BANKS;
-  d.innerHTML='<input placeholder="누구 (예: 장남 김민준)" class="full"><select><option value="">은행</option>'+banks.map(function(b){ return '<option>'+esc(b)+'</option>'; }).join("")+'</select><input placeholder="계좌번호" inputmode="numeric"><input placeholder="카카오페이 송금 링크 (선택) qr.kakaopay.com/…" class="full" inputmode="url"><button type="button" class="x" aria-label="빼기">✕</button>';
-  var ins=d.querySelectorAll("input"); ins[0].value=who||""; ins[1].value=no||""; ins[2].value=arguments[3]||""; d.querySelector("select").value=bank||"";
+  d.innerHTML='<select class="side"><option value="g">신랑 측</option><option value="b">신부 측</option></select><input placeholder="누구 (예: 장남 김민준)" class="full"><select class="bank"><option value="">은행</option>'+banks.map(function(b){ return '<option>'+esc(b)+'</option>'; }).join("")+'</select><input placeholder="계좌번호" inputmode="numeric"><input placeholder="카카오페이 송금 링크 (선택) qr.kakaopay.com/…" class="full" inputmode="url"><button type="button" class="x" aria-label="빼기">✕</button>';
+  var ins=d.querySelectorAll("input"); ins[0].value=who||""; ins[1].value=no||""; ins[2].value=kp||""; d.querySelector(".bank").value=bank||""; d.querySelector(".side").value=side==="b"?"b":"g";
+  // 통째로 붙여넣기: '국민 123-456-789 홍길동' → 은행·계좌·이름(누구 칸이 비어 있을 때만)
+  ins[1].addEventListener("paste", function(){ setTimeout(function(){ splitAcc(d); preview(); }, 0); });
   d.querySelector(".x").onclick=function(){ d.remove(); preview(); };
   $("aList").appendChild(d); }
+// 계좌 붙여넣기 나누기 — 은행 이름이 들어 있으면 고르고, 숫자·- 덩어리는 계좌, 남는 한글 2~4자는 예금주
+function splitAcc(row){
+  var ins=row.querySelectorAll("input"), raw=ins[1].value;
+  var bank=BANKS.filter(function(b){ return raw.indexOf(b)>=0; }).sort(function(a,b){ return b.length-a.length; })[0]||"";
+  var no=(raw.match(/\d[\d\s-]{5,}\d/)||[""])[0].replace(/\s+/g,"");
+  if(!no) return;
+  var rest=raw.replace(bank,"").replace(/\d[\d\s-]{5,}\d/,"").replace(/은행|뱅크|예금주|계좌|[:()\[\],/]/g," ").trim();
+  var name=(rest.match(/[가-힣]{2,4}/)||[""])[0];
+  if(bank) row.querySelector(".bank").value=bank;
+  ins[1].value=no;
+  if(name && !ins[0].value.trim()) ins[0].value=name;
+}
+// 청첩장 계좌 6칸(신랑·아버지·어머니 / 신부·아버지·어머니). 이미 적은 칸은 그대로 두고 빈 칸만 지운다.
+function addFamilyA(){
+  [].forEach.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"); if(!i[0].value.trim() && !i[1].value.trim() && !i[2].value.trim()) r.remove(); });
+  var g=v("w_g"), b=v("w_b");
+  [["신랑 "+g,"g"],["신랑 아버지","g"],["신랑 어머니","g"],["신부 "+b,"b"],["신부 아버지","b"],["신부 어머니","b"]].forEach(function(x){ addA(x[0].trim(),"","","",x[1]); });
+  preview();
+}
 addM("장남"); addM("장녀"); addA();
 
 // ── 이름으로 찾기(장례식장·장지) ──
@@ -418,7 +445,7 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ ret
 function v(id){ return String(($(id)||{}).value||"").trim(); }
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
 function data(){
-  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"), a={ who:i[0].value.trim(), bank:r.querySelector("select").value, no:i[1].value.trim() }; var kp=i[2].value.trim(); if(/qr\.kakaopay\.com\//.test(kp)) a.kp=kp.replace(/^(?!https:\/\/)/,"https://"); return a; }).filter(function(a){ return a.no||a.kp; });
+  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"), a={ who:i[0].value.trim(), bank:r.querySelector(".bank").value, no:i[1].value.trim() }; if(K==="w") a.s=r.querySelector(".side").value; var kp=i[2].value.trim(); if(/qr\.kakaopay\.com\//.test(kp)) a.kp=kp.replace(/^(?!https:\/\/)/,"https://"); return a; }).filter(function(a){ return a.no||a.kp; });
   var d;
   if(K==="f"){
     d={ k:"f", theme:TF, name:v("f_name"), age:v("f_age"), died:v("f_died"), rel:REL,
@@ -526,7 +553,7 @@ function fill(d){
     GAL=(d.gal||[]).slice(0,8); drawGal();
   }
   if(d.ref) REF=d.ref;
-  $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp); }); if(!(d.acc||[]).length) addA();
+  $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp,a.s); }); if(!(d.acc||[]).length) addA();
   $("wreathOn").checked=!d.noWreath; $("cmOn").checked=!d.noComment; $("rsvpOn").checked=!d.noRsvp;
   preview();
 }

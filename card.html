@@ -33,6 +33,13 @@
   .mourners b { display: inline-block; min-width: 48px; font-weight: 500; opacity: .6; font-size: 13.5px; }
   details.accts summary { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 0 6px; font-family: "Noto Sans KR", sans-serif; }
   .maps.cal { margin-top: 8px; }
+  .accts-h { margin-top: 18px; font-size: 14px; font-weight: 700; font-family: "Noto Sans KR", sans-serif; text-align: center; }
+  details.accts.grp { margin-top: 8px; border: 1px solid rgba(0,0,0,.1); border-radius: 12px; padding: 0 12px 10px; background: rgba(255,255,255,.6); }
+  details.accts.grp summary { padding: 13px 0 4px; display: flex; gap: 6px; list-style: none; }
+  details.accts.grp summary::-webkit-details-marker { display: none; }
+  details.accts.grp summary span { opacity: .55; font-weight: 600; }
+  details.accts.grp summary::after { content: "펼치기"; margin-left: auto; font-size: 12.5px; font-weight: 600; opacity: .55; }
+  details.accts.grp[open] summary::after { content: "접기"; }
   .acct-b { display: flex; gap: 6px; flex-shrink: 0; }
   .acct .kp { border-radius: 8px; padding: 7px 10px; font-size: 12.5px; font-weight: 700; background: #ffeb00; color: #191600; text-decoration: none; white-space: nowrap; }
   .dday { display: inline-block; margin-top: 8px; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.85); color: #4a3a3a; font-size: 13px; font-weight: 700; font-family: "Noto Sans KR", sans-serif; }
@@ -202,11 +209,20 @@ document.addEventListener("click",function(ev){
 });
 function acctsHtml(list){
   list=(list||[]).filter(function(a){ return a && (a.no||a.kp); }); if(!list.length) return "";
-  return '<details class="accts"'+(list.length<=2?' open':'')+'><summary>마음 전하실 곳 ('+list.length+')</summary>'
-    + list.map(function(a){ var t=[a.who,a.bank,a.no].filter(Boolean).join(" ");
+  // 청첩장은 신랑 측·신부 측을 따로 접어 둔다(모바일 청첩장에서 흔한 모양, 10/20)
+  var g=list.filter(function(a){ return a.s==="g"; }), b=list.filter(function(a){ return a.s==="b"; });
+  if(g.length || b.length){
+    var rest=list.filter(function(a){ return a.s!=="g" && a.s!=="b"; });
+    return '<div class="accts-h">마음 전하실 곳</div>'
+      + (g.length?acctGroup("신랑 측", g):"") + (b.length?acctGroup("신부 측", b):"") + (rest.length?acctGroup("함께", rest):"");
+  }
+  return '<details class="accts"'+(list.length<=2?' open':'')+'><summary>마음 전하실 곳 ('+list.length+')</summary>'+acctRows(list)+'</details>';
+}
+function acctGroup(t, list){ return '<details class="accts grp"><summary>'+esc(t)+' 계좌번호 <span>'+list.length+'</span></summary>'+acctRows(list)+'</details>'; }
+function acctRows(list){
+  return list.map(function(a){ var t=[a.who,a.bank,a.no].filter(Boolean).join(" ");
         var kp=/^https:\/\/qr\.kakaopay\.com\/[A-Za-z0-9_-]+$/.test(a.kp||"") ? '<a class="kp" href="'+esc(a.kp)+'" target="_blank" rel="noopener">카카오페이</a>' : "";
-        return '<div class="acct"><span>'+esc(t||a.who||"")+'</span><span class="acct-b">'+kp+(a.no?'<button data-copy="'+esc((a.bank||"")+" "+a.no)+'">복사</button>':'')+'</span></div>'; }).join("")
-    + '</details>';
+        return '<div class="acct"><span>'+esc(t||a.who||"")+'</span><span class="acct-b">'+kp+(a.no?'<button data-copy="'+esc((a.bank||"")+" "+a.no)+'">복사</button>':'')+'</span></div>'; }).join("");
 }
 function orderUrl(p){
   if(STATE.server) p.cid=STATE.id;                 // 어느 안내에서 온 주문인지(원문 링크로 남는다)
