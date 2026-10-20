@@ -224,6 +224,14 @@
     {
       "source": "/bugo",
       "destination": "/bugo.html"
+    },
+    {
+      "source": "/my",
+      "destination": "/my.html"
+    },
+    {
+      "source": "/ask",
+      "destination": "/ask.html"
     }
   ]
 }

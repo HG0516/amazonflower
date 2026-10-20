@@ -338,6 +338,75 @@ export default async function handler(req, res) {
 
     // ── 거래처: 월말 정산 요청 → 사장님 텔레그램 (corp.html, 10/20) ──
     // body: {action:"corpmonth", regno, token, month:"2026-10"} — 그 달 주문을 서버에서 다시 세어 건수·합계를 알린다(손님이 보낸 숫자는 안 믿는다).
+    // ── 챙길 사람 수첩 (my.html, 10/20) ──
+    // body: {action:"lunar", items:[{m,d}], y0:2026, n:10} → {ok, dates:[["2026-10-26",…],…]} 음력 날짜를 해마다 양력으로(D-day·달력 파일용)
+    // body: {action:"askmake", at:<로그인 토큰>} → {ok, u, t} '생일 알려줘' 링크 열쇠(회원 id 를 서버 비밀로 서명, 표를 새로 안 만든다)
+    // body: {action:"askreply", u, t, from, name, month, day, lunar, addr, phone} → {ok, id, dk} 받은 사람이 적은 생일을 그 회원 수첩에 넣는다
+    // body: {action:"askdel", id, dk} → {ok} 적어 준 사람이 자기 기기에서 지운다
+    if (early && /^(lunar|askmake|askreply|askdel)$/.test(String(early.action || ""))) {
+      if (early.action === "lunar") {
+        const KLC = (await import("korean-lunar-calendar")).default;
+        const items = Array.isArray(early.items) ? early.items.slice(0, 100) : [];
+        const y0 = Math.max(2000, Math.min(2100, Math.trunc(Number(early.y0)) || new Date().getFullYear()));
+        const n = Math.max(1, Math.min(12, Math.trunc(Number(early.n)) || 2));
+        const dates = items.map((x) => {
+          const out = [];
+          for (let y = y0; y < y0 + n; y++) {
+            try {
+              const c = new KLC();
+              // 그해 음력 날짜가 없으면(작은달 30일) 29일로 당긴다
+              if (!c.setLunarDate(y, Math.trunc(Number(x.m)), Math.trunc(Number(x.d)), false) && !c.setLunarDate(y, Math.trunc(Number(x.m)), Math.trunc(Number(x.d)) - 1, false)) { out.push(""); continue; }
+              const s = c.getSolarCalendar();
+              out.push(`${s.year}-${String(s.month).padStart(2, "0")}-${String(s.day).padStart(2, "0")}`);
+            } catch { out.push(""); }
+          }
+          return out;
+        });
+        return res.status(200).json({ ok: true, dates });
+      }
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      const URL_ = process.env.SUPABASE_URL, KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!SECRET || !URL_ || !KEY_) return res.status(503).json({ error: "설정이 필요합니다." });
+      const hdr = { apikey: KEY_, Authorization: `Bearer ${KEY_}` };
+      const sign = (s) => crypto.createHmac("sha256", SECRET).update(s).digest("hex").slice(0, 24);
+      const same = (x, y) => { const a = Buffer.from(String(x || "")), b = Buffer.from(String(y || "")); return a.length === b.length && crypto.timingSafeEqual(a, b); };
+      const str = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
+      try {
+        if (early.action === "askmake") {
+          const r = await fetch(`${URL_}/auth/v1/user`, { headers: { apikey: KEY_, Authorization: `Bearer ${String(early.at || "")}` } });
+          const u = r.ok ? await r.json().catch(() => null) : null;
+          if (!u || !u.id) return res.status(401).json({ error: "로그인이 필요해요." });
+          return res.status(200).json({ ok: true, u: u.id, t: sign("ask:" + u.id) });
+        }
+        if (early.action === "askdel") {
+          const id = String(early.id || "");
+          if (!/^[0-9a-f-]{36}$/.test(id) || !same(early.dk, sign("askdel:" + id))) return res.status(401).json({ error: "지울 수 없어요." });
+          const d = await fetch(`${URL_}/rest/v1/anniversaries?id=eq.${id}`, { method: "DELETE", headers: hdr });
+          return res.status(d.ok ? 200 : 502).json(d.ok ? { ok: true } : { error: "잠시 후 다시 시도해 주세요." });
+        }
+        // askreply
+        const uid = String(early.u || "");
+        if (!/^[0-9a-f-]{36}$/.test(uid) || !same(early.t, sign("ask:" + uid))) return res.status(401).json({ error: "링크가 올바르지 않아요." });
+        const name = str(early.name, 20), month = Math.trunc(Number(early.month)), day = Math.trunc(Number(early.day));
+        if (!name || !(month >= 1 && month <= 12) || !(day >= 1 && day <= 31)) return res.status(400).json({ error: "이름과 생일을 적어 주세요." });
+        // 한 링크로 수첩이 넘치지 않게(회원 한 명당 300칸)
+        const cnt = await fetch(`${URL_}/rest/v1/anniversaries?user_id=eq.${uid}&select=id`, { headers: { ...hdr, Prefer: "count=exact", Range: "0-0" } });
+        const total = Number(String(cnt.headers.get("content-range") || "").split("/")[1]) || 0;
+        if (total >= 300) return res.status(429).json({ error: "수첩이 가득 찼어요." });
+        const base = { user_id: uid, recipient: name, label: "생일", month, day, cal_type: early.lunar ? "lunar" : "solar" };
+        const extra = { addr: str(early.addr, 120), phone: str(early.phone, 20).replace(/[^0-9-]/g, ""), via: "ask" };
+        const ins = (row) => fetch(`${URL_}/rest/v1/anniversaries`, { method: "POST", headers: { ...hdr, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(row) });
+        let r = await ins({ ...base, ...extra });
+        if (!r.ok) r = await ins(base);   // 칸 늘리는 SQL(supabase-anniv-people.sql) 전이면 주소·전화 없이
+        if (!r.ok) return res.status(502).json({ error: "잠시 후 다시 시도해 주세요." });
+        const row = (await r.json().catch(() => []))[0] || {};
+        return res.status(200).json({ ok: true, id: row.id, dk: row.id ? sign("askdel:" + row.id) : "" });
+      } catch (e) {
+        console.error(early.action + " error:", e && e.message);
+        return res.status(502).json({ error: "잠시 후 다시 시도해 주세요." });
+      }
+    }
+
     // ── 거래처: 직원 생일 명단 (corp.html, 10/20) ──
     // body: {action:"corpbd", regno, token, mode:"list"} → {ok, rows}
     //       {action:"corpbd", regno, token, mode:"save", rows:[{name,month,day,lunar,addr,phone,budget,msg}]} → 그 거래처 명단을 통째로 바꾼다.

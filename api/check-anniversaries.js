@@ -1,5 +1,5 @@
 // api/check-anniversaries.js
-// 기념일 D-7 웹푸시 — 7일 뒤가 기념일인 회원에게 푸시 발송.
+// 기념일 웹푸시 — 7일 뒤·내일이 기념일인 회원에게 푸시 발송(하루 전은 10/20 챙길 사람 수첩에서 더함).
 // Supabase pg_cron 이 하루 1회(예: 매일 09:00 KST) Authorization: Bearer <CRON_SECRET> 로 호출한다.
 // (check-deadlines.js 와 동일한 보호·호출 방식)
 
@@ -39,33 +39,37 @@ export default async function handler(req, res) {
   webpush.setVapidDetails("mailto:hghdec@gmail.com", VAPID_PUBLIC, VAPID_PRIVATE);
   const sb = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
 
-  // 한국시간 기준 '7일 뒤'의 월/일과 '오늘'(중복발송 방지 키)
+  // 한국시간 기준 '오늘'(중복발송 방지 키)
   const kstNow = new Date(Date.now() + 9 * 3600000);
-  const kst7 = new Date(kstNow.getTime() + 7 * 86400000);
-  const m = kst7.getUTCMonth() + 1;
-  const day = kst7.getUTCDate();
   const todayStr = `${kstNow.getUTCFullYear()}-${String(kstNow.getUTCMonth() + 1).padStart(2, "0")}-${String(kstNow.getUTCDate()).padStart(2, "0")}`;
+  // N일 뒤의 양력 월/일과, 그날을 음력으로 바꾼 월/일(음력 기념일도 올해 해당 양력일에 알림)
+  const target = (n) => {
+    const t = new Date(kstNow.getTime() + n * 86400000);
+    const o = { m: t.getUTCMonth() + 1, day: t.getUTCDate(), lm: null, ld: null };
+    try {
+      const cal = new KoreanLunarCalendar();
+      cal.setSolarDate(t.getUTCFullYear(), o.m, o.day);
+      const lu = cal.getLunarCalendar();
+      if (lu && lu.month && lu.day) { o.lm = lu.month; o.ld = lu.day; }
+    } catch (e) { /* 변환 실패 → 양력만 매칭(안전) */ }
+    return o;
+  };
+  const t7 = target(7), t1 = target(1);
+  const { m, day, lm, ld } = t7;
 
-  // D-7 양력날짜(m,day)를 음력으로도 환산(lm,ld) → 음력 기념일도 올해 해당 양력일에 알림
-  let lm = null, ld = null;
-  try {
-    const cal = new KoreanLunarCalendar();
-    cal.setSolarDate(kst7.getUTCFullYear(), m, day);
-    const lu = cal.getLunarCalendar();
-    if (lu && lu.month && lu.day) { lm = lu.month; ld = lu.day; }
-  } catch (e) { /* 변환 실패 → 양력만 매칭(안전) */ }
-
-  // D-7 기념일 (오늘 이미 보낸 건 제외). 양력 + 음력 둘 다 매칭.
+  // 7일 전과 하루 전(10/20 챙길 사람 수첩). 오늘 이미 보낸 건 빼고, 양력·음력 둘 다 매칭.
   let annivs = [];
   try {
-    const dateFilter = (lm && ld)
-      ? `or(and(cal_type.eq.solar,month.eq.${m},day.eq.${day}),and(cal_type.eq.lunar,month.eq.${lm},day.eq.${ld}))`
-      : `and(cal_type.eq.solar,month.eq.${m},day.eq.${day})`;
-    const url = `${SUPABASE_URL}/rest/v1/anniversaries?select=id,user_id,label,recipient,notified_on,cal_type`
-      + `&and=(${dateFilter},or(notified_on.is.null,notified_on.neq.${todayStr}))`;
-    const r = await fetch(url, { headers: sb });
-    if (!r.ok) return res.status(502).json({ error: "anniv query failed", detail: await r.text().catch(() => "") });
-    annivs = await r.json();
+    for (const [n, t] of [[7, t7], [1, t1]]) {
+      const dateFilter = (t.lm && t.ld)
+        ? `or(and(cal_type.eq.solar,month.eq.${t.m},day.eq.${t.day}),and(cal_type.eq.lunar,month.eq.${t.lm},day.eq.${t.ld}))`
+        : `and(cal_type.eq.solar,month.eq.${t.m},day.eq.${t.day})`;
+      const url = `${SUPABASE_URL}/rest/v1/anniversaries?select=id,user_id,label,recipient,notified_on,cal_type`
+        + `&and=(${dateFilter},or(notified_on.is.null,notified_on.neq.${todayStr}))`;
+      const r = await fetch(url, { headers: sb });
+      if (!r.ok) return res.status(502).json({ error: "anniv query failed", detail: await r.text().catch(() => "") });
+      for (const a of await r.json()) annivs.push({ ...a, n });
+    }
   } catch (e) {
     return res.status(502).json({ error: "anniv query exception", detail: e.message });
   }
@@ -79,17 +83,19 @@ export default async function handler(req, res) {
       if (sr.ok) subs = await sr.json();
     } catch (e) { /* skip */ }
 
-    const who = a.recipient ? `${a.recipient}님 ` : "";
+    // 수첩은 recipient=누구, label=무슨 날로 따로 적는다. 예전 행은 label 에 '어머니 생신'이 다 들어 있다.
+    const name = a.recipient && !String(a.label || "").includes(a.recipient) ? `${a.recipient} ${a.label}` : a.label;
+    const when = a.n === 1 ? "내일이에요" : "7일 전이에요";
     const memorial = isMemorial(a.label);
     const payload = JSON.stringify({
       // 기일·제사에는 판촉 문구를 붙이지 않는다. 라벨이 자유 입력이라 '아버지 기일'을 적어둔
       // 사람에게 '올해도 꽃으로 안부 전해보세요'가 그대로 나가면 되돌릴 수 없는 결례가 된다.
       title: memorial ? "🌿 꽃안부 알림" : "🌸 꽃안부 기념일 알림",
       body: memorial
-        ? `${a.label} 7일 전입니다.`
-        : `${a.label} 7일 전이에요. ${who}올해도 꽃으로 안부 전해보세요.`,
-      url: "/",
-      tag: "anniv-" + a.id,
+        ? `${name} ${a.n === 1 ? "내일입니다." : "7일 전입니다."}`
+        : `${name} ${when}. ${a.n === 1 ? "오늘 주문하면 내일 도착해요." : "올해도 꽃으로 안부 전해보세요."}`,
+      url: "/my?tab=people",
+      tag: "anniv-" + a.id + "-" + a.n,
     });
 
     for (const s of subs) {

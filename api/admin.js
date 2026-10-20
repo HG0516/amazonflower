@@ -705,7 +705,7 @@ export default async function handler(req, res) {
           "입금 확인은 9시~19시에 합니다.",
           "",
         ]),
-        `주문 조회: ${ORIGIN}/order-lookup.html?o=${encodeURIComponent(oid)}`,
+        `주문 조회: ${ORIGIN}/my?o=${encodeURIComponent(oid)}`,
         "문의 1577-2286",
       ].join("\n");
       return res.status(200).json({ ok: true, orderId: oid, customerNote });

@@ -61,7 +61,8 @@ h1{margin:18px 0 6px;font-size:25px;line-height:1.35}.lead{margin:0;color:var(--
 .grid img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}.grid span{display:block;padding:8px 10px;font-size:14px}.grid b{display:block;font-size:15px}
 h2{margin:26px 0 4px;font-size:18px}ul.q{margin:6px 0 0;padding-left:18px;color:var(--soft)}
 .near{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.near a{padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--paper);font-size:14px;text-decoration:none;color:var(--ink)}
-.foot{margin-top:30px;font-size:13px;color:var(--faint)}`;
+.foot{margin-top:30px;font-size:13px;color:var(--faint)}
+.bugo{display:block;margin-top:10px;padding:13px 16px;border-radius:14px;background:#26241f;color:#f3f0e8;text-align:center;font-size:15px;font-weight:700;text-decoration:none}`;
 
 function head(title, desc, canon, extra = "") {
   return `<!doctype html>
@@ -104,6 +105,7 @@ ${h.r ? `<dt>빈소</dt><dd>${esc(h.r)}개</dd>` : ""}
 <dt>배송</dt><dd>평일 18시 · 주말 16시까지 주문하면 오늘 도착해요. ${esc(fee)}</dd>
 </dl></div>
 <a class="go" href="${esc(orderUrl(h))}">${esc(ro(h.n))} 근조화환 보내기<small>${won(from)}부터 · 도착하면 사진으로 알려 드려요</small></a>
+<a class="bugo" href="/bugo/make?${esc(new URLSearchParams({ venue: h.n, ref: "funeral-page" }).toString())}">유족이신가요? ${esc(ro(h.n))} 부고장 무료로 만들기</a>
 <h2>근조화환</h2>
 <div class="grid">${wreaths.map((p) => `<a href="/catalog.html?item=${encodeURIComponent(p.pc)}"><img src="${esc(p.photos[0])}" alt="${esc(p.name)}" loading="lazy" width="320" height="320"><span><b>${won(p.price)}</b>${esc(p.name)}</span></a>`).join("")}</div>
 <h2>자주 묻는 것</h2>

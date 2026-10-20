@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>생일 알려 주기 — 꽃안부</title>
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="생일을 물어봐요">
+<meta property="og:description" content="적어 주시면 링크를 보낸 분만 볼 수 있어요.">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/a11y.css">
+<style>
+  /* '생일 알려줘' 링크를 받은 사람이 여는 화면(10/20, 챙길 사람 수첩). 로그인 없이 적는다.
+     링크의 u·t 는 서버가 회원 id 를 서명한 것(/api/parse-url askmake). 적은 건 그 회원 수첩(anniversaries)에만 들어간다. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 28px 20px 60px; }
+  .brand { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  .hero { text-align: center; margin: 28px 0 18px; }
+  .hero .ic { font-size: 44px; line-height: 1; }
+  h1 { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin: 10px 0 4px; word-break: keep-all; }
+  .sub { font-size: var(--fs-sub); color: var(--ink-soft); margin: 0; word-break: keep-all; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 18px; }
+  label.fl { display: block; font-size: var(--fs-sub); font-weight: 700; margin: 14px 0 6px; }
+  label.fl:first-of-type { margin-top: 0; }
+  label.fl .hint { font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); }
+  input, select { width: 100%; font-size: 17px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fcfbf8; color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .duo { display: grid; grid-template-columns: 1fr 1fr 1.1fr; gap: 6px; }
+  .seg2 { display: flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .seg2 button { flex: 1; border: 0; background: #fcfbf8; font: inherit; font-size: 15px; cursor: pointer; color: var(--ink-soft); }
+  .seg2 button.on { background: var(--accent); color: #fff; font-weight: 700; }
+  .btn { width: 100%; min-height: 54px; margin-top: 18px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 17px; font-weight: 800; font-family: var(--font-body); cursor: pointer; }
+  .btn:disabled { opacity: .55; }
+  .btn.g { background: var(--paper); color: var(--ink-soft); border: 1px solid var(--line); font-size: 15px; min-height: 46px; }
+  .err { display: none; margin-top: 12px; color: var(--danger); font-size: var(--fs-sub); }
+  .err.on { display: block; }
+  .foot { margin-top: 16px; font-size: var(--fs-caption); color: var(--ink-faint); text-align: center; line-height: 1.7; word-break: keep-all; }
+  .foot a { color: var(--accent-deep); font-weight: 700; }
+  .ok { text-align: center; }
+  .ok b { display: block; font-size: 19px; margin-bottom: 4px; }
+</style>
+<script src="/supabase-config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="/">꽃안부</a>
+  <div class="hero"><div class="ic" aria-hidden="true">🎂</div><h1 id="h"></h1><p class="sub" id="s"></p></div>
+
+  <div class="card" id="form">
+    <label class="fl" for="nm">이름</label>
+    <input id="nm" maxlength="20" autocomplete="name" placeholder="예: 박서연">
+    <label class="fl">생일</label>
+    <div class="duo"><select id="m" aria-label="월"></select><select id="d" aria-label="일"></select>
+      <div class="seg2" id="cal"><button type="button" class="on" data-v="0">양력</button><button type="button" data-v="1">음력</button></div></div>
+    <label class="fl" for="ad">받을 주소 <span class="hint">(선택) 적으면 꽃이 바로 와요</span></label>
+    <input id="ad" maxlength="120" autocomplete="street-address" placeholder="예: 서울 성동구 ○○로 12, 101동 1004호">
+    <button class="btn" id="go">알려 주기</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</div>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var q = new URLSearchParams(location.search);
+  var U = q.get("u") || "", T = q.get("t") || "", N = (q.get("n") || "").slice(0, 12) || "친구";
+  var DONE_KEY = "af_ask_done";
+  $("h").textContent = N + "님이 생일을 물어봐요";
+  $("s").textContent = "적어 주시면 " + N + "님 꽃안부 수첩에 들어가요.";
+  $("foot").innerHTML = "적은 내용은 " + N.replace(/[<>&"]/g, "") + "님에게만 보여요. 이 기기에서 언제든 지울 수 있어요.<br><a href=\"/\">꽃안부</a> · 1993년부터 꽃 배달";
+  var mo = "", dy = "";
+  for (var i = 1; i <= 12; i++) mo += '<option value="' + i + '">' + i + "월</option>";
+  for (var j = 1; j <= 31; j++) dy += '<option value="' + j + '">' + j + "일</option>";
+  $("m").innerHTML = mo; $("d").innerHTML = dy;
+  $("cal").onclick = function (e) { var b = e.target.closest("button"); if (!b) return; this.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); };
+  function err(t) { $("err").textContent = t; $("err").classList.add("on"); }
+  function post(body) {
+    return fetch("/api/parse-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }); });
+  }
+  function done(rec) {
+    $("form").innerHTML = '<div class="ok"><b>' + N.replace(/[<>&"]/g, "") + "님께 알려 드렸어요</b>"
+      + '<p class="sub">' + rec.m + "월 " + rec.d + "일" + (rec.l ? " (음력)" : "") + "</p>"
+      + (rec.id ? '<button type="button" class="btn g" id="del">적은 것 지우기</button>' : "") + "</div>";
+    if ($("del")) $("del").onclick = function () {
+      if (!confirm("지우면 " + N + "님 수첩에서도 사라져요. 지울까요?")) return;
+      post({ action: "askdel", id: rec.id, dk: rec.dk }).then(function (j) {
+        if (!j.ok) { alert(j.error || "지우지 못했어요."); return; }
+        try { localStorage.removeItem(DONE_KEY + ":" + U); } catch (_e) {}
+        $("form").innerHTML = '<div class="ok"><b>지웠어요</b></div>';
+      });
+    };
+  }
+  if (!/^[0-9a-f-]{36}$/.test(U) || !T) { $("form").innerHTML = '<div class="ok"><b>링크가 잘렸어요</b><p class="sub">받은 링크 전체를 다시 눌러 주세요.</p></div>'; return; }
+  try { var prev = JSON.parse(localStorage.getItem(DONE_KEY + ":" + U) || "null"); if (prev && prev.id) { done(prev); return; } } catch (_e) {}
+  $("go").onclick = function () {
+    $("err").classList.remove("on");
+    var name = $("nm").value.trim();
+    if (!name) { err("이름을 적어 주세요."); $("nm").focus(); return; }
+    var lunar = $("cal").querySelector(".on").getAttribute("data-v") === "1";
+    var rec = { m: +$("m").value, d: +$("d").value, l: lunar };
+    var b = this; b.disabled = true; b.textContent = "보내는 중…";
+    post({ action: "askreply", u: U, t: T, name: name, month: rec.m, day: rec.d, lunar: lunar, addr: $("ad").value.trim() })
+      .then(function (j) {
+        if (!j.ok) { err(j.error || "잠시 후 다시 해 주세요."); return; }
+        rec.id = j.id; rec.dk = j.dk;
+        try { localStorage.setItem(DONE_KEY + ":" + U, JSON.stringify(rec)); } catch (_e) {}
+        done(rec);
+      })
+      .catch(function () { err("잠시 후 다시 해 주세요."); })
+      .then(function () { b.disabled = false; b.textContent = "알려 주기"; });
+  };
+})();
+</script>
+</body>
+</html>

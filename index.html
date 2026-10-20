@@ -35,8 +35,8 @@
 <!-- pwa-install.js('홈 화면에 추가' 배너) 제거 — 홈 배너와 겹침 + 추후 네이티브 앱 출시 예정(2026-07-18).
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
-<script src="/footer.js?v=20261020c" defer></script>
-<script src="/bottom-nav.js?v=20261020" defer></script>
+<script src="/footer.js?v=20261020d" defer></script>
+<script src="/bottom-nav.js?v=20261020d" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
 <script src="/meanings.js" defer></script>
@@ -54,7 +54,7 @@
 <!-- 로그인 (Supabase Auth: 카카오·구글). 키 설정은 SETUP-AUTH.md 참조 -->
 <script src="/supabase-config.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-<script src="/auth.js" defer></script>
+<script src="/auth.js?v=20261020d" defer></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
@@ -813,6 +813,14 @@
     .hdr-menu a { padding: 10px 0; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; white-space: nowrap; }
     .hdr-menu a:hover { color: var(--accent); }
     .hdr-menu a.on { color: var(--accent); font-weight: 800; }
+    .hm-dd { position: relative; display: flex; }
+    .hm-dd-b { padding: 10px 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; white-space: nowrap; }
+    .hm-dd-b span { font-size: 11px; color: var(--ink-faint); }
+    .hm-dd-p { display: none; position: absolute; top: 100%; left: -14px; z-index: 60; min-width: 250px; padding: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+    .hm-dd:hover .hm-dd-p, .hm-dd:focus-within .hm-dd-p { display: block; }
+    .hm-dd-p a { display: block; padding: 9px 12px; border-radius: var(--radius); }
+    .hm-dd-p a:hover { background: var(--line-soft); color: var(--ink); }
+    .hm-dd-p small { display: block; font-size: 12.5px; font-weight: 400; color: var(--ink-faint); }
     body.af-start-on:not(.ordering) .af-bn,
     body.af-start-on:not(.ordering) .start-bar,
     body.af-start-on:not(.ordering) .trust-row { display: none; }
@@ -870,7 +878,7 @@
   /* PC 좁은 창(1000~1199px): 메뉴 8개가 머리 한 줄에 들어가게 */
   @media (min-width: 1000px) and (max-width: 1199px) {
     body.af-start-on:not(.ordering) .hdr-menu { gap: 14px; margin-left: 20px; }
-    .hdr-menu a { font-size: 14px; }
+    .hdr-menu a, .hm-dd-b { font-size: 14px; }
   }
 </style>
 </head>
@@ -893,7 +901,16 @@
         <a href="/catalog.html?cat=basket">꽃다발·꽃바구니</a>
         <a href="/catalog.html?cat=orchid">난</a>
         <a href="/catalog.html?cat=plant">관엽</a>
-        <a href="/order-lookup.html" onclick="return afMyOrders()">내 주문</a>
+        <!-- 부고장·청첩장(10/20 형구 이름 결정) — 무료라는 말은 펼친 안에만 -->
+        <div class="hm-dd">
+          <button type="button" class="hm-dd-b" aria-haspopup="true">부고장·청첩장 <span aria-hidden="true">▾</span></button>
+          <div class="hm-dd-p" role="menu">
+            <a role="menuitem" href="/bugo">부고장<small>장례식장·계좌·조문 글, 무료</small></a>
+            <a role="menuitem" href="/wedding-card">모바일 청첩장<small>사진·디자인·참석 여부, 무료</small></a>
+            <a role="menuitem" href="/bugo/make?ty=t">감사 인사장<small>장례·결혼식 뒤 고마움 전하기</small></a>
+          </div>
+        </div>
+        <a href="/my">주문·배송 조회</a>
       </nav>
       <div class="hdr-r">
         <!-- 가입·로그인 버튼(auth.js 칩) 자리. 홈에선 오른쪽 아래에 떠 있지 않고 전화번호 옆에 붙는다(10/19 형구 A-2).
@@ -2619,11 +2636,6 @@ function afStartEx(btn){
   const s=document.getElementById("src"); if(!s) return;
   s.value=btn.textContent.trim(); runParse();
 }
-// PC 머리 메뉴 '내 주문' — 하단 탭(bottom-nav.js goMyOrders)과 같게: 로그인했으면 계정 시트, 아니면 주문 조회.
-function afMyOrders(){
-  if(window.afAuth && window.afAuth.user && typeof window.afOpenAuth==="function"){ window.afOpenAuth(); return false; }
-  return true;
-}
 // PC↔휴대폰 폭이 바뀌면 시트 성격(떠 있는 칸↔아래 시트)과 상품 개수를 맞춘다.
 function afSyncPC(){
   const sh=document.getElementById("quickStart"), s=document.getElementById("src"); if(!sh) return;
@@ -3845,15 +3857,20 @@ function afYearlyCal(o,dm){
   }, "매년 알림으로 넣기 (5년치, 일주일 전 알림)");
 }
 
+// 받는 분 주소·연락처도 같이(챙길 사람 수첩, 10/20). renderDone 이 AF_ANNIV_EXTRA 에 넣어 둔다.
+// 칸 늘리는 SQL(supabase-anniv-people.sql) 전이면 주소 없이 다시 저장한다.
 window.afSaveAnnivDone=function(label,month,day,recipient){
   const a=window.afAuth||{}; const sb=a.client, u=a.user;
   const card=document.getElementById("annivDoneCard");
-  if(!sb||!u){ if(card) card.innerHTML='<div style="font-size:var(--fs-caption);color:var(--ink-soft);">로그인 정보를 찾지 못했어요. 마이(오른쪽 위)에서 직접 등록할 수 있어요.</div>'; return; }
-  sb.from("anniversaries").insert({user_id:u.id,label:label,month:month,day:day,recipient:recipient||null}).then(res=>{
-    if(card) card.innerHTML = res.error
-      ? '<div style="font-size:var(--fs-caption);color:var(--ink-soft);">저장하지 못했어요. 마이(오른쪽 위)에서 직접 등록해 주세요.</div>'
-      : '<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">기념일로 저장했어요. 내년에는 일주일 전에 알려 드릴게요.</div>';
-  }).catch(()=>{});
+  const done=(ok)=>{ if(card) card.innerHTML = ok
+      ? '<div style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:700;">챙길 사람 수첩에 저장했어요. 내년에는 일주일 전에 알려 드릴게요.</div><a href="/my?tab=people" style="display:inline-block;margin-top:6px;font-size:var(--fs-caption);font-weight:700;color:var(--accent-deep);">수첩 보기 →</a>'
+      : '<div style="font-size:var(--fs-caption);color:var(--ink-soft);">저장하지 못했어요. <a href="/my?tab=people">내 정보 › 챙길 사람</a>에서 직접 적어 주세요.</div>'; };
+  if(!sb||!u){ done(false); return; }
+  const base={user_id:u.id,label:label,month:month,day:day,recipient:recipient||null};
+  const ex=window.AF_ANNIV_EXTRA||{};
+  const extra=Object.assign({},base,{addr:ex.addr||"",phone:ex.phone||""});
+  sb.from("anniversaries").insert(extra).then(res=> res.error ? sb.from("anniversaries").insert(base) : res)
+    .then(res=>done(!res.error)).catch(()=>done(false));
 };
 function renderDone(data,o){
   // 완료 화면에서는 주문 모드·하단 주문바 종료
@@ -3885,10 +3902,11 @@ function renderDone(data,o){
   // 기념일 원탭: 로그인 + 날짜 있음 + 근조 아님(기일 저장 권유는 결례)
   const isFuneral = o.type==="funeral" || /^condolence|^WC-/.test(o.productCode||"");
   const dm=String(o.date||"").replace(/[.\/]/g,"-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  window.AF_ANNIV_EXTRA={ addr:[o.address,place].filter(Boolean).join(" ").slice(0,120), phone:String(o.recipientPhone||"").replace(/[^0-9-]/g,"").slice(0,20) };
   const annivCard = (user && dm && !isFuneral) ? `
       <div id="annivDoneCard" style="background:var(--accent-soft);border:1px solid var(--accent);border-radius: var(--radius);padding:14px 16px;margin-top:12px;text-align:left;">
-        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">이 날을 기념일로 저장할까요?</div>
-        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일, 일주일 전에 미리 알려 드려요.</div>
+        <div style="font-weight:700;color:var(--accent-deep);margin-bottom:6px;">챙길 사람 수첩에 저장할까요?</div>
+        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;">내년 ${Number(dm[2])}월 ${Number(dm[3])}일 일주일 전에 알려 드려요. 받는 분 주소도 같이 저장돼서 그때 바로 보낼 수 있어요.</div>
         <button class="btn" style="width:100%;" onclick="afSaveAnnivDone('${escapeAttr(afAnnivLabel(o))}',${Number(dm[2])},${Number(dm[3])},'${escapeAttr(o.recipientName||"")}')">저장하기 (한 번이면 끝)</button>
         ${afYearlyCal(o,dm)}
       </div>` : "";
@@ -3989,14 +4007,14 @@ function renderDone(data,o){
       ${memberCard}
       ${surveyCard}
       <div class="share-row">
-        <a class="btn btn-ghost" href="/order-lookup.html?o=${orderId}">주문 조회</a>
+        <a class="btn btn-ghost" href="/my?o=${orderId}">주문 조회</a>
         <button class="btn btn-ghost" onclick="shareSite()">친구에게 알리기</button>
       </div>
       ${sameFlowerBtn}
       <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft);font-size:var(--fs-caption);color:var(--ink-faint);line-height:1.7;">
         문의 · 1577-2286 · 사장님께 직접 연락하실 수 있습니다.<br>
-        나중에 다시 보시려면 하단 <b>내 주문</b>에서 주문번호와 연락처 뒷 4자리를 넣으시면 됩니다.
+        나중에 다시 보시려면 하단 <b>내 정보</b>에서 주문번호와 연락처 뒷 4자리를 넣으시면 됩니다.
       </div>
     </section>`;
 }
@@ -4753,7 +4771,7 @@ function refreshReorderBanner(user){
 window.afReorderLocal=function(){ try{ var lo=JSON.parse(localStorage.getItem("af_last_order")||"null"); if(lo && window.afReorder) window.afReorder(lo); }catch(_e){} };
 document.addEventListener("af-auth-change",function(e){ refreshReorderBanner(e.detail&&e.detail.user); });
 refreshReorderBanner((window.afAuth&&window.afAuth.user)||null);
-// 문자·알림톡 링크(/?reorder=1)로 온 경우: 내 주문 시트를 바로 연다(비로그인이면 로그인 시트)
+// 문자·알림톡 링크(/?reorder=1)로 온 경우: 내 정보(/my)를 바로 연다(비로그인이면 로그인 시트)
 (function handleReorderParam(){
   if(!new URLSearchParams(location.search).get("reorder")) return;
   cleanUrl();

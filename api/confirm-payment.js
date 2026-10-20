@@ -254,7 +254,7 @@ function buildCustomerMessage(order, payment) {
   // 주문 상태·영수증을 손님이 스스로 다시 볼 수 있는 길. 완료 화면을 닫으면
   // 전화로 물어야 했던 것을 이 링크 한 줄이 대신한다(연락처 뒷 4자리로 본인 확인).
   const _base = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
-  L.push(`주문 조회: ${_base}/order-lookup.html?o=${encodeURIComponent(payment.orderId || "")}`);
+  L.push(`주문 조회: ${_base}/my?o=${encodeURIComponent(payment.orderId || "")}`);
   L.push("문의 1577-2286");
   return L.join("\n");
 }

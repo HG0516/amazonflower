@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>내 정보 — 꽃안부</title>
+<meta name="description" content="주문·배송 조회, 챙길 사람 생일·기념일, 내가 만든 부고장·청첩장을 한 곳에서 봐요.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/a11y.css">
+<style>
+  /* 내 정보(10/20 형구 A안) — 하단 탭 '내 정보'와 PC 메뉴 '주문·배송 조회'가 여기로 온다.
+     탭 3개: 주문·배송 / 챙길 사람 / 내 안내장. 로그인 안 했으면 주문·배송 탭이 곧 주문번호 조회(예전 order-lookup.html).
+     예전 계정 시트(auth.js)의 적립금·기념일·지난 주문을 이 페이지로 옮겼다. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 20px 80px; }
+  header { position: sticky; top: 0; z-index: 30; background: var(--bg); border-bottom: 1px solid var(--line-soft); margin: 0 -20px; padding: 14px 20px 10px; }
+  .hdr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); text-decoration: none; }
+  .hdr-tel { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; min-height: 48px; justify-content: center; padding: 4px 10px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--paper); text-decoration: none; }
+  .hdr-tel .ht-num { font-family: var(--font-display); font-size: var(--fs-price); font-weight: 800; color: var(--accent-deep); white-space: nowrap; }
+  .hdr-tel .ht-sub { font-size: var(--fs-label); color: var(--ink-faint); white-space: nowrap; }
+  /* 계정 상단에 떠 있는 로그인 칩은 이 페이지에선 안 띄운다(이름 줄이 그 일을 한다) */
+  .af-auth-chip { display: none !important; }
+  h1 { font-family: var(--font-display); font-size: var(--fs-h2); font-weight: 700; margin: 22px 0 4px; }
+  h2 { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin: 18px 0 4px; }
+  .sub { font-size: var(--fs-sub); color: var(--ink-soft); margin: 0 0 14px; word-break: keep-all; }
+  .me { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; }
+  .me .av { width: 46px; height: 46px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-deep); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 19px; flex: 0 0 auto; }
+  .me .nm { font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1.3; }
+  .me .em { font-size: var(--fs-caption); color: var(--ink-faint); word-break: break-all; }
+  .me .out { margin-left: auto; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .pts { display: inline-flex; gap: 6px; align-items: center; margin: 6px 0 2px; padding: 5px 12px; border-radius: 999px; background: #eef5ef; color: #14311f; font-size: 13.5px; font-weight: 700; }
+  .promo { margin: 18px 0 4px; padding: 14px 16px; border: 1px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); }
+  .promo b { display: block; font-size: 15.5px; }
+  .promo p { margin: 2px 0 10px; font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; }
+  .promo button { width: 100%; min-height: 48px; border: 0; border-radius: var(--radius); background: #FEE500; color: #191600; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+  /* 탭 */
+  .tabs { position: sticky; top: 73px; z-index: 20; display: grid; grid-template-columns: repeat(3, 1fr); margin: 16px -20px 0; padding: 0 20px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .tabs button { min-height: 48px; border: 0; background: none; font: inherit; font-size: 15.5px; font-weight: 700; color: var(--ink-faint); border-bottom: 3px solid transparent; cursor: pointer; }
+  .tabs button[aria-selected="true"] { color: var(--accent-deep); border-bottom-color: var(--accent); }
+  .pane[hidden] { display: none; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 18px; }
+  label.fl { display: block; font-size: var(--fs-sub); font-weight: 700; color: var(--ink); margin: 14px 0 6px; }
+  label.fl:first-of-type { margin-top: 0; }
+  label.fl .hint { font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); }
+  input, select, textarea { width: 100%; font-size: 17px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fcfbf8; color: var(--ink); }
+  textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .btn { width: 100%; min-height: 54px; margin-top: 18px; padding: 15px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 17px; font-weight: 800; font-family: var(--font-body); cursor: pointer; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .err { display: none; margin-top: 14px; padding: 13px 15px; background: var(--danger-soft, #f7e9e7); border: 1px solid var(--danger); border-radius: var(--radius); color: var(--danger); font-size: var(--fs-sub); line-height: 1.6; }
+  .err.on { display: block; }
+  .err a { color: var(--danger); font-weight: 700; }
+  /* 주문 조회 결과(예전 order-lookup.html 그대로) */
+  .res { margin-top: 18px; }
+  .res-head { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; padding: 18px; }
+  .res-oid { font-size: var(--fs-caption); color: var(--ink-faint); }
+  .res-prod { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-top: 2px; word-break: keep-all; }
+  .res-amt { font-size: var(--fs-price); font-weight: 800; color: var(--accent-deep); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .tl { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0; padding: 18px 12px 16px; background: var(--paper); border: 1px solid var(--line); border-top: 1px dashed var(--line); }
+  .tl li { position: relative; text-align: center; font-size: var(--fs-caption); font-weight: 700; color: var(--ink-faint); padding-top: 16px; word-break: keep-all; }
+  .tl li::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--line); }
+  .tl li:first-child::before { border-radius: 2px 0 0 2px; }
+  .tl li:last-child::before { border-radius: 0 2px 2px 0; }
+  .tl li.done::before, .tl li.now::before { background: var(--accent); }
+  .tl li::after { content: ""; position: absolute; top: -4px; left: calc(50% - 5px); width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
+  .tl li.done::after { background: var(--accent); }
+  .tl li.now::after { background: var(--paper); border: 3px solid var(--accent); }
+  .tl li.now { color: var(--accent-deep); }
+  .tl li small { display: block; font-weight: 400; color: var(--ink-faint); font-size: var(--fs-label); margin-top: 1px; }
+  .tl.canceled li::before, .tl.canceled li::after { background: var(--line) !important; border-color: var(--line) !important; }
+  .rows { background: var(--paper); border: 1px solid var(--line); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 4px 18px 16px; }
+  .row { display: grid; grid-template-columns: 76px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line-soft); font-size: var(--fs-sub); }
+  .row:first-child { border-top: none; }
+  .row .k { color: var(--ink-faint); font-size: var(--fs-caption); padding-top: 2px; }
+  .row .v { color: var(--ink); word-break: keep-all; }
+  .banner { margin-top: 12px; padding: 14px 16px; border-radius: var(--radius); font-size: var(--fs-sub); line-height: 1.65; word-break: keep-all; }
+  .banner.ok { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent-deep); }
+  .banner.warn { background: #fff7e5; border: 1px solid var(--gold); color: #6f4a08; }
+  .banner.off { background: #f7f7f3; border: 1px solid var(--line); color: var(--ink-soft); }
+  .acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .acts a, .acts button { flex: 1 1 140px; min-height: 50px; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--paper); color: var(--ink); font-size: var(--fs-sub); font-weight: 700; font-family: var(--font-body); text-decoration: none; cursor: pointer; }
+  .acts .primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .foot-note { margin-top: 16px; font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.7; text-align: center; word-break: keep-all; }
+  .foot-note a { color: var(--accent-deep); font-weight: 700; white-space: nowrap; }
+  /* 회원 주문 목록 */
+  .sec-h { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 8px; font-size: 14px; font-weight: 800; color: var(--ink-soft); }
+  .sec-h small { font-weight: 400; color: var(--ink-faint); font-size: 12.5px; }
+  .ord { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; }
+  .ord .t { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .ord .p { font-size: 16px; font-weight: 800; word-break: keep-all; }
+  .ord .w { font-size: 13.5px; color: var(--ink-soft); margin-top: 2px; word-break: keep-all; }
+  .ord .b { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
+  .ord .amt { font-weight: 800; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
+  .ord img { width: 100%; border-radius: var(--radius); margin-top: 10px; display: none; }
+  .ord .ph { font-size: 13px; color: var(--accent-deep); font-weight: 700; margin-top: 6px; }
+  .badge { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .sbtn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: var(--radius); font: inherit; font-size: 14px; font-weight: 700; padding: 8px 14px; cursor: pointer; text-decoration: none; white-space: nowrap; }
+  .sbtn.o { background: var(--paper); color: var(--accent-deep); }
+  .sbtn.g { background: var(--paper); color: var(--ink-soft); border-color: var(--line); }
+  details.more { margin-top: 18px; }
+  details.more > summary { cursor: pointer; font-size: 14.5px; font-weight: 700; color: var(--ink-soft); padding: 10px 0; }
+  .empty { padding: 22px 16px; text-align: center; color: var(--ink-faint); font-size: 14px; background: var(--paper); border: 1px dashed var(--line); border-radius: var(--radius-lg); word-break: keep-all; }
+  /* 챙길 사람 */
+  .pp { display: flex; gap: 12px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 8px; }
+  .pp .av { width: 40px; height: 40px; border-radius: 50%; background: #f4ece0; color: #8a5a2b; display: flex; align-items: center; justify-content: center; font-weight: 800; flex: 0 0 auto; }
+  .pp.mem .av { background: #eceae4; color: #5a564d; }
+  .pp .tx { flex: 1; min-width: 0; }
+  .pp .nm { font-weight: 800; font-size: 15.5px; word-break: keep-all; }
+  .pp .dt { font-size: 13px; color: var(--ink-soft); word-break: keep-all; }
+  .pp .dd { font-weight: 800; font-size: 14px; color: var(--ink-faint); white-space: nowrap; }
+  .pp.soon { border-color: var(--accent); }
+  .pp.soon .dd { color: #b04a2a; }
+  .pp .ac { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .pp .ac .sbtn { font-size: 13px; padding: 6px 11px; }
+  .lu { font-size: 11px; font-weight: 700; color: #8a5a2b; background: #f7efe3; border-radius: 4px; padding: 0 4px; margin-right: 3px; }
+  .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .tools button { min-height: 50px; border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); font: inherit; font-size: 14.5px; font-weight: 700; color: var(--ink); cursor: pointer; padding: 8px; word-break: keep-all; }
+  .tools button.main { grid-column: 1 / -1; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 16px; }
+  .note { margin-top: 14px; padding: 12px 14px; border-radius: var(--radius); background: #f7f4ee; font-size: 13px; color: var(--ink-soft); line-height: 1.65; word-break: keep-all; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 7px 13px; font: inherit; font-size: 14.5px; cursor: pointer; color: var(--ink); }
+  .chips button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr 1.1fr; gap: 6px; }
+  .seg2 { display: flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .seg2 button { flex: 1; border: 0; background: #fcfbf8; font: inherit; font-size: 15px; cursor: pointer; color: var(--ink-soft); }
+  .seg2 button.on { background: var(--accent); color: #fff; font-weight: 700; }
+  .addbox { margin-top: 12px; }
+  .addbox .row2 { display: flex; gap: 8px; margin-top: 16px; }
+  .addbox .row2 .btn { margin-top: 0; }
+  .addbox .row2 .btn.g { flex: 0 0 96px; background: var(--paper); color: var(--ink-soft); border: 1px solid var(--line); }
+  .pv { margin-top: 10px; font-size: 13.5px; color: var(--ink-soft); }
+  .pv div { padding: 4px 0; border-bottom: 1px dashed var(--line-soft); }
+  .pv .bad { color: var(--danger); }
+  /* 내 안내장 */
+  .cd { display: flex; gap: 10px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 8px; }
+  .cd .k { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 4px; background: #2b2b2b; color: #fff; white-space: nowrap; }
+  .cd .k.w { background: #f6dfe4; color: #8a2e44; }
+  .cd .k.t { background: #e9efe9; color: #1f4733; }
+  .cd .tx { flex: 1; min-width: 0; }
+  .cd .nm { font-weight: 700; font-size: 15px; word-break: keep-all; }
+  .cd .dt { font-size: 12.5px; color: var(--ink-faint); }
+  .mk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .mk a { display: flex; align-items: center; justify-content: center; min-height: 50px; border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); font-size: 14.5px; font-weight: 700; color: var(--ink); text-decoration: none; text-align: center; word-break: keep-all; padding: 6px; }
+  .admin { margin-top: 14px; }
+  @media (min-width: 1000px) {
+    body { background: var(--bg-desk); }
+    .wrap { background: var(--paper); box-shadow: 0 0 0 1px var(--line-soft); padding: 0 28px 40px; min-height: 100vh; }
+    header { margin: 0 -28px; padding-left: 28px; padding-right: 28px; }
+    .tabs { margin: 16px -28px 0; padding: 0 28px; background: var(--paper); }
+    .card, .ord, .pp, .cd, .tools button, .mk a { background: #fcfbf8; }
+  }
+  @media (max-width: 380px) { .hdr-tel .ht-num { font-size: 17px; } .tools { grid-template-columns: 1fr; } }
+</style>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js?v=20261020d"></script>
+<script src="/footer.js?v=20261020d" defer></script>
+<script src="/bottom-nav.js?v=20261020d" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="hdr-row">
+      <a class="brand" href="/">꽃안부</a>
+      <a class="hdr-tel" href="tel:1577-2286">
+        <span class="ht-num">1577-2286</span>
+        <span class="ht-sub">전화 주문 · 상담</span>
+      </a>
+    </div>
+  </header>
+
+  <div id="who"></div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tb-orders" aria-controls="p-orders" data-tab="orders">주문·배송</button>
+    <button type="button" role="tab" id="tb-people" aria-controls="p-people" data-tab="people">챙길 사람</button>
+    <button type="button" role="tab" id="tb-cards" aria-controls="p-cards" data-tab="cards">내 안내장</button>
+  </div>
+
+  <!-- 주문·배송 -->
+  <section class="pane" id="p-orders" role="tabpanel" aria-labelledby="tb-orders">
+    <div id="myOrders"></div>
+    <div id="lookWrap">
+      <h1 id="lookH">주문·배송 조회</h1>
+      <p class="sub">주문번호와 연락처 뒷 4자리를 넣으면 지금 어디까지 왔는지 보여드려요. 회원가입은 필요 없습니다.</p>
+      <div class="card" id="form">
+        <label class="fl" for="oid">주문번호 <span class="hint">— 주문 후 받으신 문자에 있어요</span></label>
+        <input id="oid" type="text" inputmode="latin" autocapitalize="characters" autocomplete="off" placeholder="예: AF20260916-3K7Q" enterkeyhint="next">
+        <label class="fl" for="ph">연락처 뒷 4자리 <span class="hint">— 주문하신 분 휴대폰</span></label>
+        <input id="ph" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000" enterkeyhint="search">
+        <button class="btn" id="go">주문 찾기</button>
+        <div class="err" id="err"></div>
+      </div>
+      <div class="res" id="res" hidden></div>
+      <p class="foot-note">주문번호를 잃어버리셨어도 괜찮아요.<br><a href="tel:1577-2286">1577-2286</a> 으로 전화 주시면 찾아드립니다.</p>
+    </div>
+  </section>
+
+  <!-- 챙길 사람 -->
+  <section class="pane" id="p-people" role="tabpanel" aria-labelledby="tb-people" hidden>
+    <div id="ppBody"></div>
+  </section>
+
+  <!-- 내 안내장 -->
+  <section class="pane" id="p-cards" role="tabpanel" aria-labelledby="tb-cards" hidden>
+    <div class="sec-h">내가 만든 부고장·청첩장 <small>이 기기에서 만든 것</small></div>
+    <div id="cdList"></div>
+    <div class="mk">
+      <a href="/bugo/make">부고장 만들기</a>
+      <a href="/wedding-card/make">청첩장 만들기</a>
+      <a href="/bugo/make?ty=t">감사 인사장</a>
+    </div>
+    <p class="foot-note">고치는 열쇠는 만든 기기에만 있어요. 다른 폰에서 고치려면 만들 때 받은 '고칠 때 쓰는 링크'를 여세요.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+  var won = function (n) { return Number(n || 0).toLocaleString() + "원"; };
+  var WD = ["일", "월", "화", "수", "목", "금", "토"];
+  var A = function () { return window.afAuth || null; };
+  var SB = function () { return A() && A().client; };
+  var USER = null;
+
+  // ── 탭 ──
+  var TABS = ["orders", "people", "cards"];
+  function setTab(t, push) {
+    if (TABS.indexOf(t) < 0) t = "orders";
+    TABS.forEach(function (k) {
+      $("tb-" + k).setAttribute("aria-selected", k === t ? "true" : "false");
+      $("p-" + k).hidden = k !== t;
+    });
+    if (push) { try { history.replaceState(null, "", "/my" + (t === "orders" ? "" : "?tab=" + t)); } catch (_e) {} }
+    if (t === "cards") drawCards();
+  }
+  document.querySelector(".tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tab]"); if (b) setTab(b.getAttribute("data-tab"), true);
+  });
+
+  // ── 위쪽: 이름·적립금 / 로그인 권유 ──
+  function drawWho() {
+    var a = A();
+    if (!USER) {
+      $("who").innerHTML = '<div class="promo"><b>로그인하면 더 편해요</b>'
+        + '<p>지난 주문을 그대로 다시 보내고, 챙길 분 생일·기념일을 일주일 전에 알려 드려요. 가입하면 2,000원을 드려요.</p>'
+        + '<button type="button" id="loginBtn">로그인 · 가입</button></div>';
+      $("loginBtn").onclick = function () { if (a && a.login) a.login(); else alert("잠시 후 다시 눌러 주세요."); };
+      return;
+    }
+    var nm = a.name ? a.name(USER) : "회원";
+    $("who").innerHTML = '<div class="me"><div class="av">' + esc(String(nm).slice(0, 1)) + '</div><div>'
+      + '<div class="nm">' + esc(nm) + '님</div>'
+      + (USER.email ? '<div class="em">' + esc(USER.email) + '</div>' : "")
+      + '</div><button type="button" class="out" id="outBtn">로그아웃</button></div>'
+      + '<div id="pts"></div>'
+      + '<div class="admin">' + (a.adminHtml ? a.adminHtml() : "") + '</div>';
+    $("outBtn").onclick = function () { if (a.logout) a.logout(); };
+    loadPoints();
+  }
+  function loadPoints() {
+    SB().from("points_ledger").select("amount").then(function (res) {
+      var rows = (res && res.data) || [];
+      if (!rows.length || !$("pts")) return;
+      var bal = rows.reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
+      $("pts").innerHTML = '<span class="pts">🌱 적립금 ' + won(bal) + '</span>';
+    }).catch(function () {});
+  }
+
+  // ── 주문·배송: 회원 목록 ──
+  var BADGE = {
+    new: ["접수됨", "#5a564d", "#f0eee8"], ordered: ["준비 중", "#1f4733", "#e8f0ea"],
+    delivered: ["배송완료", "#355d8a", "#eaf0f6"], canceled: ["취소됨", "#9a3b2e", "#fbecea"],
+    awaiting_deposit: ["입금 대기", "#6f4a08", "#fff7e5"], expired: ["기한 지남", "#5a564d", "#f0eee8"]
+  };
+  function badge(s) { var x = BADGE[s] || BADGE.new; return '<span class="badge" style="color:' + x[1] + ';background:' + x[2] + '">' + x[0] + '</span>'; }
+  var ORDERS = [];
+  function loadOrders() {
+    var cols = "order_id,product_label,product_code,recipient_name,venue,address,amount,event_date,event_time,order_type,status,completed_photo,completed_at,created_at";
+    var fb = cols.replace(",created_at", "");
+    return SB().from("orders").select(cols).order("created_at", { ascending: false }).limit(30)
+      .then(function (res) {
+        if (res.error) return SB().from("orders").select(fb).limit(30).then(function (r2) { return r2.data || []; });
+        return res.data || [];
+      }).catch(function () { return []; });
+  }
+  function drawOrders() {
+    var box = $("myOrders");
+    if (!USER) {
+      box.innerHTML = "";
+      $("lookWrap").hidden = false; $("lookWrap").removeAttribute("data-more");
+      return;
+    }
+    box.innerHTML = '<div class="empty">지난 주문을 불러오는 중…</div>';
+    loadOrders().then(function (rows) {
+      ORDERS = rows;
+      drawPeople();
+      if (!rows.length) {
+        box.innerHTML = '<div class="sec-h">내 주문</div><div class="empty">로그인한 계정으로 한 주문이 아직 없어요.<br>로그인 없이 주문하셨으면 아래에서 주문번호로 찾아 주세요.</div>';
+      } else {
+        var live = rows.filter(function (o) { return !o.completed_at && o.status !== "canceled" && o.status !== "expired"; });
+        var past = rows.filter(function (o) { return live.indexOf(o) < 0; });
+        box.innerHTML = (live.length ? '<div class="sec-h">진행 중 <small>' + live.length + '건</small></div>' + live.map(ordHtml).join("") : "")
+          + (past.length ? '<div class="sec-h">지난 주문 <small>' + past.length + '건</small></div>' + past.map(ordHtml).join("") : "");
+        box.querySelectorAll("[data-re]").forEach(function (b) {
+          b.onclick = function () { reorder(ORDERS[Number(b.getAttribute("data-re"))]); };
+        });
+        loadPhotos(box);
+      }
+      // 회원도 비회원으로 한 주문을 찾을 수 있게 조회 칸은 접어서 아래에
+      var lw = $("lookWrap");
+      if (!lw.parentNode.classList.contains("more")) {
+        var d = document.createElement("details"); d.className = "more";
+        d.innerHTML = "<summary>로그인 없이 한 주문 찾기 (주문번호)</summary>";
+        lw.parentNode.insertBefore(d, lw); d.appendChild(lw);
+        $("lookH").hidden = true;
+        if ($("oid").value) d.open = true;
+      }
+    });
+  }
+  function ordHtml(o) {
+    var i = ORDERS.indexOf(o);
+    var who = [o.recipient_name, o.venue].filter(Boolean).join(" · ");
+    var when = o.event_date ? fmtDate(o.event_date) : "";
+    return '<div class="ord"><div class="t"><div class="p">' + esc(o.product_label || "주문") + "</div>" + badge(o.completed_at && o.status !== "canceled" ? "delivered" : o.status) + "</div>"
+      + (who || when ? '<div class="w">' + esc([when, who].filter(Boolean).join(" · ")) + "</div>" : "")
+      + (o.completed_photo ? '<img data-po="' + esc(o.order_id) + '" alt="도착 사진"><div class="ph">도착 사진이 왔어요</div>' : "")
+      + '<div class="b"><span class="amt">' + won(o.amount) + '</span><button type="button" class="sbtn" data-re="' + i + '">그대로 다시</button></div></div>';
+  }
+  // 도착 사진은 비공개 저장소 — 본인 토큰으로 받아 화면에만 그린다(주소 노출 없음)
+  function loadPhotos(box) {
+    box.querySelectorAll("img[data-po]").forEach(function (im) {
+      SB().auth.getSession().then(function (s) {
+        var tok = s && s.data && s.data.session && s.data.session.access_token; if (!tok) return;
+        fetch("/api/order-photo-view?order=" + encodeURIComponent(im.getAttribute("data-po")), { headers: { Authorization: "Bearer " + tok } })
+          .then(function (r) { return r.ok ? r.blob() : null; })
+          .then(function (b) { if (b) { im.src = URL.createObjectURL(b); im.style.display = "block"; } })
+          .catch(function () {});
+      });
+    });
+  }
+  // 홈 주문서가 af_reorder 를 읽어 그대로 채운다(index.html)
+  function reorder(o) {
+    if (!o) return;
+    try { sessionStorage.setItem("af_reorder", JSON.stringify(o)); } catch (_e) {}
+    location.href = "/";
+  }
+
+  // ── 주문번호 조회(예전 order-lookup.html) ──
+  function showErr(html) { var e = $("err"); e.innerHTML = html; e.classList.add("on"); }
+  function clearErr() { $("err").classList.remove("on"); }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return String(iso);
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    var y = d.getFullYear() === new Date().getFullYear() ? "" : m[1] + "년 ";
+    return y + Number(m[2]) + "월 " + Number(m[3]) + "일 (" + WD[d.getDay()] + ")";
+  }
+  function fmtStamp(ts) {
+    if (!ts) return "";
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return "";
+    return (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+  var SLOT = { today: "당일중", am: "오전중", pm: "오후중", custom: "" };
+  function fmtTime(o) { var s = SLOT[o.delivery_time_slot]; return s ? s : (o.event_time || ""); }
+  function payLabel(m) {
+    if (!m) return "";
+    if (m === "MANUAL_BANK" || m === "BANK_TRANSFER") return "계좌이체 · 무통장";
+    return ({ CARD: "카드", TRANSFER: "계좌이체", VIRTUAL_ACCOUNT: "가상계좌",
+              MOBILE_PHONE: "휴대폰", EASY_PAY: "간편결제", 간편결제: "간편결제", 카드: "카드" })[m] || m;
+  }
+  function render(o) {
+    var expired = o.status === "expired";
+    var awaiting = o.status === "awaiting_deposit";
+    var canceled = !!o.canceled_at || o.status === "canceled" || expired;
+    var step = canceled ? -1 : (o.completed_at && o.has_photo) ? 4 : o.completed_at ? 3 : o.ordered_at ? 2 : 1;
+    var steps = [
+      [awaiting ? "입금 대기" : "주문 접수", fmtStamp(o.created_at)],
+      ["준비 중", fmtStamp(o.ordered_at)],
+      ["배송·도착", fmtStamp(o.completed_at)],
+      ["도착 사진", o.has_photo ? "올라왔어요" : ""]
+    ];
+    var allDone = step >= 4;
+    var tl = steps.map(function (s, i) {
+      var n = i + 1;
+      var cls = canceled ? "" : (n < step || allDone) ? "done" : (n === step ? "now" : "");
+      return '<li class="' + cls + '"' + (cls === "now" ? ' aria-current="step"' : "") + '>'
+        + esc(s[0]) + (s[1] ? "<small>" + esc(s[1]) + "</small>" : "<small>&nbsp;</small>") + "</li>";
+    }).join("");
+    var rows = "";
+    function row(k, v) { if (v) rows += '<div class="row"><span class="k">' + k + '</span><span class="v">' + v + "</span></div>"; }
+    var when = [fmtDate(o.event_date), fmtTime(o)].filter(Boolean).join(" · ");
+    row("받는 날", esc(when));
+    row("받는 분", esc(o.recipient_name || ""));
+    row("받는 곳", esc(o.venue || ""));
+    row("리본", esc(o.ribbon || ""));
+    row("결제", esc(payLabel(o.payment_method)));
+    row("주문자", esc(o.sender_phone_masked || ""));
+    if (!when && !o.venue && !o.recipient_name) row("안내", "배송 정보가 이 화면에 저장돼 있지 않아요. 자세한 내용은 1577-2286 으로 확인해주세요.");
+    var depAcct = o.va_account ? esc((o.va_bank || "") + " " + o.va_account) : "기업은행 169-165982-04-025 (주)아마존";
+    var depDue = o.va_due ? fmtDate(String(o.va_due).slice(0, 10)) + " " + (fmtStamp(o.va_due).split(" ")[1] || "") + "까지 · " : "";
+    var banner = expired
+      ? '<div class="banner off"><b>입금 기한이 지나 주문이 닫혔어요.</b><br>꽃은 준비되지 않았어요. 다시 주문하시거나 1577-2286 으로 연락 주세요.</div>'
+      : awaiting
+      ? '<div class="banner warn"><b>입금을 기다리고 있어요.</b><br>' + depAcct + "<br>" + depDue
+        + (o.va_account ? "입금하시면 자동으로 확인돼요." : "입금 확인은 9시~19시에 사장님이 합니다.") + "</div>"
+      : canceled
+      ? '<div class="banner off"><b>취소된 주문이에요.</b><br>환불은 결제하신 수단으로 처리됩니다. 궁금한 점은 1577-2286 으로 연락 주세요.</div>'
+      : o.has_photo
+        ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진이 올라왔어요. 문자나 카카오톡으로 못 받으셨으면 1577-2286으로 전화 주세요.</div>'
+        : o.completed_at
+          ? '<div class="banner ok"><b>배송이 끝났습니다.</b><br>도착 사진을 곧 보내드려요.</div>'
+          : '<div class="banner ok"><b>사장님이 확인하고 준비합니다.</b><br>안부가 닿으면 도착 사진을 문자로 보내드려요.</div>';
+    var acts = '<div class="acts">'
+      + (o.receipt_url ? '<a href="' + esc(o.receipt_url) + '" target="_blank" rel="noopener">영수증 보기</a>' : "")
+      + '<a class="primary" href="tel:1577-2286">전화로 문의</a></div>';
+    $("res").innerHTML = '<div class="res-head"><div class="res-oid">주문번호 ' + esc(o.order_id) + "</div>"
+      + '<div class="res-prod">' + esc(o.product_label || "주문") + "</div>"
+      + '<div class="res-amt">' + won(o.amount) + "</div></div>"
+      + '<ol class="tl' + (canceled ? " canceled" : "") + '">' + tl + "</ol>"
+      + '<div class="rows">' + rows + "</div>" + banner + acts;
+    $("res").hidden = false;
+    $("res").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function lookup() {
+    clearErr();
+    var oid = $("oid").value.trim().toUpperCase();
+    var last4 = $("ph").value.replace(/[^0-9]/g, "");
+    if (!oid) { showErr("주문번호를 넣어주세요."); $("oid").focus(); return; }
+    if (last4.length !== 4) { showErr("연락처 뒷 4자리를 넣어주세요."); $("ph").focus(); return; }
+    if (!window.SUPA || !window.SUPA.url) { showErr("지금은 조회가 어려워요. 1577-2286 으로 연락 주세요."); return; }
+    var btn = $("go");
+    btn.disabled = true; btn.textContent = "찾는 중…";
+    $("res").hidden = true;
+    fetch(window.SUPA.url + "/rest/v1/rpc/lookup_order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: window.SUPA.anon, Authorization: "Bearer " + window.SUPA.anon },
+      body: JSON.stringify({ p_order_id: oid, p_phone_last4: last4 })
+    })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error("http_" + r.status)); })
+      .then(function (rows) {
+        var o = Array.isArray(rows) ? rows[0] : rows;
+        if (!o || !o.order_id) {
+          // 없는 주문과 번호 불일치를 구분하지 않는다(주문번호 대입으로 존재 여부를 캐낼 수 없게).
+          showErr("주문번호나 연락처가 맞지 않아요. 문자에 적힌 번호를 다시 확인해주세요.<br>전화로 주문하셨다면 <a href=\"tel:1577-2286\">1577-2286</a> 으로 문의해주세요.");
+          return;
+        }
+        render(o);
+      })
+      .catch(function () { showErr("지금은 조회가 어려워요. 잠시 후 다시 시도하시거나 <a href=\"tel:1577-2286\">1577-2286</a> 으로 연락 주세요."); })
+      .finally(function () { btn.disabled = false; btn.textContent = "주문 찾기"; });
+  }
+  $("go").addEventListener("click", lookup);
+  ["oid", "ph"].forEach(function (id) { $(id).addEventListener("keydown", function (e) { if (e.key === "Enter") lookup(); }); });
+  $("ph").addEventListener("input", function () { this.value = this.value.replace(/[^0-9]/g, "").slice(0, 4); });
+
+  // ── 챙길 사람(기념일) ──
+  // recipient = 누구, label = 무슨 날. 예전 행은 label 에 '어머니 생신'처럼 다 들어 있다.
+  // 주소·연락처·태어난 해는 supabase-anniv-people.sql 뒤에만 저장된다(그 전엔 기본 칸만 읽고 쓴다).
+  var MEM_RE = /(기일|忌日|제사|제삿|차례|추도|추모|소상|대상|탈상|49재|사십구재|기제)/;
+  var ELDER = /^(어머니|아버지|엄마|아빠|장인|장모|장인어른|장모님|시어머니|시아버지|할머니|할아버지|외할머니|외할아버지)/;
+  var WHO = ["어머니", "아버지", "아내", "남편", "장인어른", "장모님", "시어머니", "시아버지", "친구", "회사"];
+  var DAYS = ["생일", "결혼기념일", "기일"];
+  var PEOPLE = [], EXT = true, LUNAR = {};
+  var COLS = "id,label,month,day,recipient,cal_type,created_at";
+  function loadPeople() {
+    if (!USER) return Promise.resolve([]);
+    return SB().from("anniversaries").select(COLS + ",birth_year,phone,addr,via").then(function (res) {
+      if (res.error) { EXT = false; return SB().from("anniversaries").select(COLS).then(function (r2) { return r2.data || []; }); }
+      return res.data || [];
+    }).catch(function () { return []; }).then(function (rows) { PEOPLE = rows; return fillLunar(); });
+  }
+  function title(a) {
+    var who = (a.recipient || "").trim(), lb = (a.label || "").trim();
+    if (!who) return lb;
+    if (lb.indexOf(who) >= 0) return lb;
+    return who + " " + (lb === "생일" && ELDER.test(who) ? "생신" : lb);
+  }
+  function isMem(a) { return MEM_RE.test(a.label || ""); }
+  function ymd(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function today0() { var t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
+  function parseYmd(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  // 음력은 서버(korean-lunar-calendar)에서 해마다 양력으로 바꿔 온다. 작년~10년 뒤.
+  function fillLunar() {
+    var need = PEOPLE.filter(function (a) { return a.cal_type === "lunar" && !LUNAR[a.month + "/" + a.day]; });
+    if (!need.length) return Promise.resolve(PEOPLE);
+    var keys = [], items = [];
+    need.forEach(function (a) { var k = a.month + "/" + a.day; if (keys.indexOf(k) < 0) { keys.push(k); items.push({ m: a.month, d: a.day }); } });
+    return fetch("/api/parse-url", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "lunar", items: items, y0: new Date().getFullYear() - 1, n: 12 }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && j.dates) keys.forEach(function (k, i) { LUNAR[k] = j.dates[i] || []; }); return PEOPLE; })
+      .catch(function () { return PEOPLE; });
+  }
+  // 다가오는 날(오늘 포함) 목록. 양력 2/29 는 윤년이 아니면 2/28 로.
+  function nextDates(a, howMany) {
+    var t0 = today0(), out = [];
+    if (a.cal_type === "lunar") {
+      (LUNAR[a.month + "/" + a.day] || []).forEach(function (s) { var d = parseYmd(s); if (d && d >= t0 && out.length < howMany) out.push(d); });
+      return out;
+    }
+    for (var y = t0.getFullYear(); out.length < howMany && y < t0.getFullYear() + howMany + 1; y++) {
+      var d = new Date(y, a.month - 1, a.day);
+      if (d.getMonth() !== a.month - 1) d = new Date(y, a.month - 1, a.day - 1);
+      if (d >= t0) out.push(d);
+    }
+    return out;
+  }
+  function dday(d) { return d ? Math.round((d - today0()) / 86400000) : null; }
+  function lastOrderFor(a) {
+    var who = (a.recipient || "").trim(); if (!who) return null;
+    for (var i = 0; i < ORDERS.length; i++) if ((ORDERS[i].recipient_name || "").replace(/\s/g, "") === who.replace(/\s/g, "")) return ORDERS[i];
+    return null;
+  }
+  // 환갑·칠순 같은 해(태어난 해와 올해 차이로 센다)
+  var BIG = { 60: "환갑", 70: "칠순", 77: "희수", 80: "팔순", 88: "미수", 90: "구순", 100: "백수" };
+  function milestone(a, d) {
+    if (!a.birth_year || !d || isMem(a) || !/생/.test(a.label || "")) return "";
+    var k = BIG[d.getFullYear() - a.birth_year];
+    return k ? k + "(올해)" : "";
+  }
+  function drawPeople() {
+    var box = $("ppBody");
+    if (!USER) {
+      box.innerHTML = '<h1>챙길 사람</h1><p class="sub">어머니 생신, 결혼기념일, 친구 생일을 적어 두면 일주일 전에 알려 드려요. 알림에서 바로 꽃을 고를 수 있어요.</p>'
+        + '<div class="empty">로그인하면 쓸 수 있어요.<br><button type="button" class="sbtn" style="margin-top:12px" id="ppLogin">로그인 · 가입</button></div>';
+      $("ppLogin").onclick = function () { if (A() && A().login) A().login(); };
+      return;
+    }
+    var list = PEOPLE.map(function (a) { var n = nextDates(a, 1)[0] || null; return { a: a, d: n, dd: dday(n) }; })
+      .sort(function (x, y) { return (x.dd == null ? 9999 : x.dd) - (y.dd == null ? 9999 : y.dd); });
+    var names = {}; PEOPLE.forEach(function (a) { names[(a.recipient || a.label || "").trim()] = 1; });
+    var soon = list.filter(function (x) { return x.dd != null && x.dd <= 30; }).length;
+    box.innerHTML = '<div class="sec-h">챙길 사람 ' + Object.keys(names).length + '명 <small>30일 안에 ' + soon + '번</small></div>'
+      + (list.length ? list.map(personHtml).join("") : '<div class="empty">아직 적어 둔 분이 없어요.<br>어머니 생신부터 적어 볼까요? 일주일 전에 알려 드려요.</div>')
+      + '<div class="tools">'
+      + '<button type="button" class="main" id="ppAdd">＋ 사람 추가</button>'
+      + '<button type="button" id="ppAsk">생일 알려줘 링크</button>'
+      + '<button type="button" id="ppPaste">여러 명 붙여넣기</button>'
+      + '<button type="button" id="ppIcs">📅 내 달력에 넣기</button>'
+      + '<button type="button" id="ppPush">🔔 알림 켜기</button>'
+      + '</div><div id="ppForm"></div>'
+      + '<div class="note">일주일 전 아침 9시에 알려 드려요. 기일은 꽃 이야기 없이 날짜만 알려요.<br>'
+      + '아이폰은 웹 알림이 잘 안 와서 <b>내 달력에 넣기</b>를 같이 해 두세요. 달력이 7일 전과 하루 전에 알려 줘요.<br>'
+      + '적어 둔 이름·주소·연락처는 로그인한 나만 볼 수 있고, 꽃을 보낼 때만 써요.</div>';
+    box.querySelectorAll("[data-del]").forEach(function (b) { b.onclick = function () { delPerson(b.getAttribute("data-del")); }; });
+    box.querySelectorAll("[data-again]").forEach(function (b) { b.onclick = function () { reorder(lastOrderFor(PEOPLE.filter(function (a) { return a.id === b.getAttribute("data-again"); })[0])); }; });
+    $("ppAdd").onclick = function () { openAdd(); };
+    $("ppPaste").onclick = openPaste;
+    $("ppAsk").onclick = makeAsk;
+    $("ppIcs").onclick = downloadIcs;
+    $("ppPush").onclick = function () { if (A() && A().pushOn) A().pushOn(); };
+  }
+  function personHtml(x) {
+    var a = x.a, d = x.d, mem = isMem(a), t = title(a);
+    var when = (a.cal_type === "lunar" ? '<span class="lu">음력</span>' + a.month + "/" + a.day + (d ? " → 올해 " + (d.getMonth() + 1) + "/" + d.getDate() + "(" + WD[d.getDay()] + ")" : "")
+      : a.month + "/" + a.day + (d ? "(" + WD[d.getDay()] + ")" : ""));
+    var extra = [milestone(a, d), a.addr ? "주소 저장됨" : "", a.via === "ask" ? "직접 알려 줌" : ""].filter(Boolean).join(" · ");
+    var last = mem ? null : lastOrderFor(a);
+    var acts = "";
+    if (!mem && x.dd != null && x.dd <= 14) {
+      acts = '<div class="ac">' + (last ? '<button type="button" class="sbtn" data-again="' + esc(a.id) + '">지난번 그대로</button>' : "")
+        + '<a class="sbtn' + (last ? " o" : "") + '" href="/catalog.html?cat=basket">꽃 고르기</a></div>';
+    }
+    return '<div class="pp' + (mem ? " mem" : "") + (x.dd != null && x.dd <= 7 ? " soon" : "") + '"><div class="av">' + esc((a.recipient || t).slice(0, 1)) + '</div>'
+      + '<div class="tx"><div class="nm">' + esc(t) + '</div><div class="dt">' + when + (extra ? " · " + esc(extra) : "") + "</div>" + acts + "</div>"
+      + '<div style="text-align:right"><div class="dd">' + (x.dd == null ? "" : x.dd === 0 ? "오늘" : "D-" + x.dd) + '</div>'
+      + '<button type="button" class="sbtn g" style="margin-top:6px;font-size:12px;padding:3px 8px" data-del="' + esc(a.id) + '" aria-label="' + esc(t) + ' 지우기">지우기</button></div></div>';
+  }
+  function delPerson(id) {
+    var a = PEOPLE.filter(function (x) { return x.id === id; })[0]; if (!a) return;
+    if (!confirm("'" + title(a) + "'을(를) 지울까요?")) return;
+    SB().from("anniversaries").delete().eq("id", id).then(function () { refreshPeople(); }).catch(function () {});
+  }
+  function refreshPeople() { return loadPeople().then(drawPeople); }
+
+  // 사람 추가 — 칩을 누르면 10초
+  function opts(n, a, b, sel) { var s = ""; for (var i = a; i <= b; i++) s += '<option value="' + i + '"' + (i === sel ? " selected" : "") + ">" + i + n + "</option>"; return s; }
+  function openAdd() {
+    var f = $("ppForm");
+    var now = new Date();
+    f.innerHTML = '<div class="card addbox"><h2 style="margin-top:0">사람 추가</h2>'
+      + '<label class="fl">누구</label><div class="chips" id="fWhoC">' + WHO.map(function (w) { return '<button type="button">' + w + "</button>"; }).join("") + "</div>"
+      + '<input id="fWho" maxlength="20" placeholder="이름이나 관계 (예: 박 부장님)" style="margin-top:8px">'
+      + '<label class="fl">무슨 날</label><div class="chips" id="fDayC">' + DAYS.map(function (w, i) { return '<button type="button"' + (i === 0 ? ' class="on"' : "") + ">" + w + "</button>"; }).join("") + '<button type="button" data-own="1">직접 적기</button></div>'
+      + '<input id="fDay" maxlength="20" placeholder="예: 개업일, 첫 만남" style="margin-top:8px" hidden>'
+      + '<label class="fl">날짜</label><div class="duo"><select id="fM">' + opts("월", 1, 12, now.getMonth() + 1) + '</select><select id="fD">' + opts("일", 1, 31, now.getDate()) + '</select>'
+      + '<div class="seg2" id="fCal"><button type="button" class="on" data-v="solar">양력</button><button type="button" data-v="lunar">음력</button></div></div>'
+      + (EXT ? '<label class="fl" for="fY">태어난 해 <span class="hint">(선택) 칠순·환갑을 미리 알려 드려요</span></label><input id="fY" inputmode="numeric" maxlength="4" placeholder="예: 1956">'
+        + '<label class="fl" for="fAddr">보낼 주소 <span class="hint">(선택) 알림에서 바로 주문할 때 써요</span></label><input id="fAddr" maxlength="120" placeholder="예: 경기 시흥시 ○○로 12">'
+        + '<label class="fl" for="fPh">받는 분 연락처 <span class="hint">(선택)</span></label><input id="fPh" type="tel" maxlength="20" placeholder="010-0000-0000">' : "")
+      + '<div class="row2"><button type="button" class="btn g" id="fX">닫기</button><button type="button" class="btn" id="fOk">저장</button></div></div>';
+    var whoC = $("fWhoC"), dayC = $("fDayC"), calC = $("fCal");
+    whoC.onclick = function (e) { var b = e.target.closest("button"); if (!b) return; whoC.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); $("fWho").value = b.textContent; };
+    dayC.onclick = function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      dayC.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      $("fDay").hidden = !b.getAttribute("data-own"); if (!$("fDay").hidden) $("fDay").focus();
+    };
+    calC.onclick = function (e) { var b = e.target.closest("button"); if (!b) return; calC.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); };
+    $("fX").onclick = function () { f.innerHTML = ""; };
+    $("fOk").onclick = function () {
+      var who = $("fWho").value.trim();
+      var on = dayC.querySelector(".on");
+      var lb = on && on.getAttribute("data-own") ? $("fDay").value.trim() : (on ? on.textContent : "생일");
+      if (!who) { alert("누구인지 적어 주세요."); $("fWho").focus(); return; }
+      if (!lb) { alert("무슨 날인지 적어 주세요."); $("fDay").focus(); return; }
+      var row = { recipient: who, label: lb, month: +$("fM").value, day: +$("fD").value, cal_type: calC.querySelector(".on").getAttribute("data-v") };
+      if (EXT) {
+        var y = parseInt($("fY").value, 10); if (y >= 1900 && y <= 2100) row.birth_year = y;
+        row.addr = $("fAddr").value.trim(); row.phone = $("fPh").value.replace(/[^0-9-]/g, "");
+      }
+      saveRows([row]).then(function (ok) { if (ok) f.innerHTML = ""; });
+    };
+    f.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function saveRows(rows) {
+    var uid = USER && USER.id; if (!uid) return Promise.resolve(false);
+    rows = rows.map(function (r) {
+      var o = { user_id: uid, recipient: r.recipient || null, label: r.label, month: r.month, day: r.day, cal_type: r.cal_type || "solar" };
+      if (EXT) ["birth_year", "addr", "phone"].forEach(function (k) { if (r[k]) o[k] = r[k]; });
+      return o;
+    });
+    return SB().from("anniversaries").insert(rows).then(function (res) {
+      if (res.error) { alert("저장하지 못했어요. 잠시 후 다시 해 주세요."); return false; }
+      refreshPeople(); return true;
+    }).catch(function () { alert("저장하지 못했어요."); return false; });
+  }
+
+  // 여러 명 붙여넣기 — '어머니 음력 9/15', '장인어른 12월 3일', '박서연 결혼기념일 11.14'
+  function parseLine(s) {
+    s = String(s || "").trim(); if (!s) return null;
+    var lunar = /음력/.test(s);
+    // 1956.03.07 · 1956-3-7 처럼 태어난 해까지 붙은 날짜
+    var full = /(19\d\d|20\d\d)\s*[.\/\-년]\s*(\d{1,2})\s*[.\/\-월]\s*(\d{1,2})\s*일?/.exec(s);
+    if (full) s = s.replace(full[0], " " + full[2] + "/" + full[3] + " " + full[1] + "년생 ");
+    var m = /(\d{1,2})\s*(?:월|[\/.\-])\s*(\d{1,2})\s*일?/.exec(s);
+    if (!m) return { bad: s };
+    var mo = +m[1], d = +m[2];
+    if (!(mo >= 1 && mo <= 12 && d >= 1 && d <= 31)) return { bad: s };
+    var rest = (s.slice(0, m.index) + " " + s.slice(m.index + m[0].length)).replace(/음력|양력|[,\t|]/g, " ").replace(/\s+/g, " ").trim();
+    var y = /(19\d\d|20\d\d)\s*년?생?/.exec(rest); if (y) rest = rest.replace(y[0], " ").replace(/\s+/g, " ").trim();
+    var kind = "생일";
+    var km = /(생신|생일|결혼기념일|결혼 기념일|기일|제사|추도일|개업일|창립일|기념일)/.exec(rest);
+    if (km) { kind = km[1].replace(/\s/g, "") === "생신" ? "생일" : km[1].replace(/\s/g, ""); rest = rest.replace(km[0], " ").replace(/\s+/g, " ").trim(); }
+    if (!rest) return { bad: s };
+    return { recipient: rest.slice(0, 20), label: kind, month: mo, day: d, cal_type: lunar ? "lunar" : "solar", birth_year: y ? +y[1] : null };
+  }
+  function openPaste() {
+    var f = $("ppForm");
+    f.innerHTML = '<div class="card addbox"><h2 style="margin-top:0">여러 명 붙여넣기</h2>'
+      + '<p class="sub" style="margin:0 0 8px">한 줄에 한 분씩. 메모장이나 엑셀에서 복사해 붙여도 돼요.</p>'
+      + '<textarea id="pT" placeholder="어머니 음력 9/15&#10;장인어른 12월 3일&#10;아내 결혼기념일 11/14&#10;박 부장님 11.30"></textarea>'
+      + '<div class="pv" id="pV"></div>'
+      + '<div class="row2"><button type="button" class="btn g" id="pX">닫기</button><button type="button" class="btn" id="pOk" disabled>저장</button></div></div>';
+    var parsed = [];
+    $("pT").oninput = function () {
+      parsed = this.value.split(/\r?\n/).map(parseLine).filter(Boolean);
+      var good = parsed.filter(function (x) { return !x.bad; });
+      $("pV").innerHTML = parsed.map(function (x) {
+        return x.bad ? '<div class="bad">날짜를 못 찾았어요: ' + esc(x.bad) + "</div>"
+          : "<div>" + esc(title(x)) + " · " + (x.cal_type === "lunar" ? "음력 " : "") + x.month + "/" + x.day + (x.birth_year ? " · " + x.birth_year + "년생" : "") + "</div>";
+      }).join("");
+      $("pOk").disabled = !good.length;
+      $("pOk").textContent = good.length ? good.length + "명 저장" : "저장";
+    };
+    $("pX").onclick = function () { f.innerHTML = ""; };
+    $("pOk").onclick = function () {
+      var good = parsed.filter(function (x) { return !x.bad; }).slice(0, 100);
+      saveRows(good).then(function (ok) { if (ok) f.innerHTML = ""; });
+    };
+    $("pT").focus();
+  }
+
+  // '생일 알려줘' 링크 — 받은 사람이 /ask 에서 생일을 적으면 내 수첩에 바로 들어온다(서버가 회원 id 를 서명해 둔다)
+  function makeAsk() {
+    var b = $("ppAsk"); b.disabled = true;
+    SB().auth.getSession().then(function (s) {
+      var at = s && s.data && s.data.session && s.data.session.access_token;
+      return fetch("/api/parse-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "askmake", at: at || "" }) });
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j || !j.ok) { alert((j && j.error) || "링크를 만들지 못했어요."); return; }
+      var nm = (A().name ? A().name(USER) : "").slice(0, 12);
+      var url = location.origin + "/ask?u=" + j.u + "&t=" + j.t + "&n=" + encodeURIComponent(nm);
+      var text = nm + "님이 생일을 물어봐요. 적어 두면 " + nm + "님만 볼 수 있어요.";
+      if (navigator.share) { navigator.share({ title: "생일 알려 주기", text: text, url: url }).catch(function () {}); return; }
+      copyText(url).then(function () { alert("링크를 복사했어요. 카톡에 붙여 보내 주세요.\n\n" + url); });
+    }).catch(function () { alert("링크를 만들지 못했어요."); }).then(function () { b.disabled = false; });
+  }
+  function copyText(s) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(s).catch(function () { prompt("복사해 주세요", s); });
+    prompt("복사해 주세요", s); return Promise.resolve();
+  }
+
+  // 내 달력에 넣기(.ics) — 양력은 해마다 반복 한 줄, 음력은 날짜가 해마다 달라 10년치를 따로. 7일 전·하루 전 아침 9시 알림.
+  function icsEsc(v) { return String(v || "").replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n"); }
+  function icsDay(d) { return d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0"); }
+  function downloadIcs() {
+    if (!PEOPLE.length) { alert("먼저 사람을 추가해 주세요."); return; }
+    var stamp = icsDay(new Date()) + "T000000Z", url = location.origin + "/my?tab=people", L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//kkotanbu//people//KO", "X-WR-CALNAME:꽃안부 챙길 사람"];
+    function ev(a, d, uid, rr) {
+      var nx = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1), t = title(a);
+      L.push("BEGIN:VEVENT", "UID:" + uid + "@kkotanbu", "DTSTAMP:" + stamp, "DTSTART;VALUE=DATE:" + icsDay(d), "DTEND;VALUE=DATE:" + icsDay(nx));
+      if (rr) L.push("RRULE:FREQ=YEARLY");
+      L.push("SUMMARY:" + icsEsc((a.cal_type === "lunar" ? "(음력 " + a.month + "/" + a.day + ") " : "") + t),
+        "DESCRIPTION:" + icsEsc(isMem(a) ? "꽃안부 챙길 사람" : "꽃 보내기: " + url), "URL:" + url,
+        "BEGIN:VALARM", "TRIGGER:-P6DT15H", "ACTION:DISPLAY", "DESCRIPTION:" + icsEsc(t + " 7일 전"), "END:VALARM",
+        "BEGIN:VALARM", "TRIGGER:-PT15H", "ACTION:DISPLAY", "DESCRIPTION:" + icsEsc(t + " 내일"), "END:VALARM", "END:VEVENT");
+    }
+    PEOPLE.forEach(function (a) {
+      if (a.cal_type === "lunar") nextDates(a, 10).forEach(function (d) { ev(a, d, a.id + "-" + d.getFullYear(), false); });
+      else { var d = nextDates(a, 1)[0]; if (d) ev(a, d, a.id, true); }
+    });
+    L.push("END:VCALENDAR");
+    var u = URL.createObjectURL(new Blob([L.join("\r\n")], { type: "text/calendar;charset=utf-8" }));
+    var l = document.createElement("a"); l.href = u; l.download = "꽃안부-챙길사람.ics"; document.body.appendChild(l); l.click(); l.remove();
+    setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+  }
+
+  // ── 내 안내장(이 기기 localStorage af_cards — card-make.html 이 넣는다) ──
+  function drawCards() {
+    var a = [];
+    try { a = JSON.parse(localStorage.getItem("af_cards") || "[]"); if (!Array.isArray(a)) a = []; } catch (_e) { a = []; }
+    var now = Date.now();
+    a = a.filter(function (x) { return x && x.id && (!x.exp || Date.parse(x.exp) > now); });
+    if (!a.length) { $("cdList").innerHTML = '<div class="empty">이 기기에서 만든 부고장·청첩장이 없어요.</div>'; return; }
+    $("cdList").innerHTML = a.map(function (x) {
+      var t = x.ty === "t" ? ["감사", "t"] : x.k === "w" ? ["청첩장", "w"] : ["부고", ""];
+      var at = new Date(x.at), ex = new Date(x.exp);
+      var path = x.k === "w" ? "/wedding-card/make" : "/bugo/make";
+      return '<div class="cd"><span class="k ' + t[1] + '">' + t[0] + '</span><div class="tx"><div class="nm">' + esc(x.t || "안내") + '</div>'
+        + '<div class="dt">' + (isFinite(at) ? (at.getMonth() + 1) + "/" + at.getDate() + " 만듦" : "") + (isFinite(ex) ? " · " + (ex.getMonth() + 1) + "/" + ex.getDate() + " 자동 삭제" : "") + "</div></div>"
+        + '<a class="sbtn o" href="/c/' + encodeURIComponent(x.id) + '">보기</a><a class="sbtn g" href="' + path + "?edit=" + encodeURIComponent(x.id) + '">고치기</a></div>';
+    }).join("");
+  }
+
+  // ── 시작 ──
+  var q = new URLSearchParams(location.search);
+  if (q.get("o")) { $("oid").value = q.get("o").toUpperCase(); }
+  setTab(q.get("tab"));
+  var started = false;
+  function onUser(u) {
+    var same = started && ((u && USER && u.id === USER.id) || (!u && !USER));
+    USER = u || null; started = true;
+    drawWho();
+    if (same) return;
+    drawOrders();
+    if (USER) { $("ppBody").innerHTML = '<div class="empty" style="margin-top:16px">불러오는 중…</div>'; refreshPeople(); } else { PEOPLE = []; drawPeople(); }
+    if (!USER && q.get("o")) $("ph").focus();
+  }
+  document.addEventListener("af-auth-change", function (e) { onUser(e.detail && e.detail.user); });
+  // auth.js 가 없거나(설정 없음) 늦으면 비회원 화면으로
+  setTimeout(function () { if (!started) onUser(null); }, 2500);
+})();
+</script>
+</body>
+</html>

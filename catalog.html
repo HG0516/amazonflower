@@ -28,8 +28,8 @@
   }
 </script>
 <script src="/pwa-install.js" defer></script>
-<script src="/footer.js?v=20261020c" defer></script>
-<script src="/bottom-nav.js?v=20261020" defer></script>
+<script src="/footer.js?v=20261020d" defer></script>
+<script src="/bottom-nav.js?v=20261020d" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
 <script src="/meanings.js" defer></script>
@@ -213,6 +213,10 @@
   .group-count { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-faint); }
 
   /* 화환 URL 자동주문 박스 */
+  .own-card { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 12px 16px; border-radius: var(--radius); font-size: 15px; font-weight: 700; text-decoration: none; word-break: keep-all; }
+  .own-card.f { background: #26241f; color: #f3f0e8; }
+  .own-card.w { background: #fbeef1; color: #8a2e44; border: 1px solid #f1d3db; }
+  .own-card span { font-size: 20px; line-height: 1; }
   .wreath-url { background: var(--accent-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin: 6px 0 20px; }
   .wu-title { font-weight: 700; font-size: 15px; color: var(--accent-deep); margin-bottom: 10px; }
   .wreath-url input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
@@ -565,7 +569,7 @@
 <script src="/photo-meta.js" defer></script><!-- 관리자 사진 위치 맞추기 값 입히기 -->
 <script src="/products.js"></script><!-- 상품 단일 소스(window.PRODUCTS 등) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/auth.js"></script><!-- 로그인칩(카탈로그에도 로그인·가입 노출) -->
+<script src="/auth.js?v=20261020d"></script><!-- 로그인칩(카탈로그에도 로그인·가입 노출) -->
 <script>
 // 가격대 구성 (실제 상품 들어오면 desc/사진만 채우면 됨)
 // 특별 제작 (탭별로 다르게 노출)
@@ -1193,7 +1197,10 @@ function renderLinkOrder(key){
     basket:    {t:"초대·안내 링크가 있으면 간편 주문", ph:"예) 문자로 받은 초대·안내 링크를 붙여넣기", d:"링크가 있으면 붙여넣기만 하세요 — 보내는 곳·날짜가 자동으로 채워져요."},
   };
   const c=C[key]||{t:"링크로 간편 주문",ph:"예) 문자로 받은 링크를 붙여넣기",d:"링크만 넣으면 보내는 곳·날짜가 자동으로 채워져요."};
-  el.innerHTML=`<div class="wreath-url">
+  // 부고장·청첩장 한 줄(10/20 안내장 배치 시안) — 근조 탭은 흑백, 축하 탭은 분홍. 받는 분이 아니라 '보내는 집'을 위한 길.
+  const own = key==="condolence" ? `<a class="own-card f" href="/bugo?ref=catalog">유족이신가요? 부고장 무료로 만들기 <span aria-hidden="true">›</span></a>`
+    : key==="congrats" ? `<a class="own-card w" href="/wedding-card?ref=catalog">결혼하세요? 모바일 청첩장 무료로 만들기 <span aria-hidden="true">›</span></a>` : "";
+  el.innerHTML=own+`<div class="wreath-url">
       <div class="wu-title">${esc(c.t)}</div>
       <input id="wreathUrl" type="text" inputmode="url" placeholder="${esc(c.ph)}" />
       <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>

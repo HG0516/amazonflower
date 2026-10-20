@@ -7,7 +7,6 @@
   // 라인 아이콘(Lucide 계열) — 이모지는 기기마다 달라 통일감이 깨짐
   var IC_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>';
   var IC_FLOWER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 21V11"/><path d="M12 11c-3 0-5-2-5-5 3 0 5 2 5 5Z"/><path d="M12 11c3 0 5-2 5-5-3 0-5 2-5 5Z"/></svg>';
-  var IC_RECEIPT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 3h12v18l-2-1.3L14 21l-2-1.3L10 21l-2-1.3L6 21V3Z"/><path d="M9 8h6M9 12h6"/></svg>';
   var IC_TALK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 4.5c-4.7 0-8.5 3-8.5 6.7 0 2.4 1.6 4.5 4 5.7l-.8 3 3.4-2.2c.6.1 1.2.1 1.9.1 4.7 0 8.5-3 8.5-6.7S16.7 4.5 12 4.5Z"/></svg>';
   var IC_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6.5 3h3l1.5 5-2 1.3a11 11 0 0 0 5 5l1.3-2 5 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>';
 
@@ -52,16 +51,10 @@
   }
   function isCatalog() { return location.pathname === '/catalog.html'; }
 
-  // '내 주문' — 로그인한 회원은 계정 시트(주문 목록), 비회원은 주문 조회 페이지로.
-  // 예전엔 비회원에게도 로그인 시트를 띄웠는데, 화환 주문의 대다수가 비회원이라
-  // 가입을 요구받고 막히는 자리였다(주문번호+연락처 뒷4자리면 볼 수 있다).
-  function goMyOrders() {
-    if (window.afAuth && window.afAuth.user && typeof window.afOpenAuth === 'function') {
-      window.afOpenAuth();
-      return;
-    }
-    location.href = '/order-lookup.html';
-  }
+  // '내 정보'(10/20 형구 A안) — 주문·배송, 챙길 사람, 내 안내장이 한 페이지(/my). 로그인 안 했으면 그 페이지에서 바로 주문번호 조회가 뜬다.
+  // 예전 '내 주문'은 회원=계정 시트, 비회원=order-lookup.html 로 입구가 둘이었다.
+  function isMy() { return /^\/my(\.html)?\/?$/.test(location.pathname) || location.pathname === '/order-lookup.html'; }
+  var IC_USER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20.5c1.2-3.8 4-5.7 7.5-5.7s6.3 1.9 7.5 5.7"/></svg>';
 
   function tab(active, href, ico, label) {
     return '<a class="' + (active ? 'on' : '') + '" href="' + href + '"'
@@ -78,15 +71,12 @@
     nav.innerHTML =
       tab(isHome(), '/', IC_HOME, '홈')
       + tab(isCatalog(), '/catalog.html', IC_FLOWER, '전체상품')
-      + '<button type="button" id="af-bn-orders"><span class="ic">' + IC_RECEIPT + '</span><span class="lb">내 주문</span></button>'
+      + tab(isMy(), '/my', IC_USER, '내 정보')
       // 카카오톡 상담(10/20 형구) — 꽃안부 채널 pf.kakao.com/_AXXBX 1:1 채팅. 엄마(권점숙, 채널 마스터)가 카카오비즈니스 앱으로 받는다.
       + '<a href="https://pf.kakao.com/_AXXBX/chat" target="_blank" rel="noopener"><span class="ic">' + IC_TALK + '</span><span class="lb">카톡 상담</span></a>'
       + '<a href="tel:15772286"><span class="ic">' + IC_PHONE + '</span><span class="lb">전화</span></a>';
     document.body.appendChild(nav);
     document.body.classList.add('af-nav-on');
-
-    var ob = document.getElementById('af-bn-orders');
-    if (ob) ob.onclick = goMyOrders;
 
     // 주문 모드/주문바와 배타(고정 바는 하나만)
     function sync() {
