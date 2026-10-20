@@ -704,7 +704,7 @@
   .qs-ov { position: fixed; inset: 0; z-index: 9000; display: none; align-items: flex-end; justify-content: center; background: rgba(20,20,15,.48); }
   .qs-ov.open { display: flex; }
   body.qs-open { overflow: hidden; }
-  .qs-sheet { position: relative; width: 100%; max-width: 560px; max-height: calc(100% - 24px); overflow-y: auto; padding: 22px 20px calc(22px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.18); }
+  .qs-sheet { position: relative; width: 100%; max-width: 560px; max-height: calc(100% - 24px); overflow-y: auto; padding: 22px 20px calc(22px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.18), 0 480px 0 0 var(--paper); }  /* 둘째 그림자: 시트 아래 흰 바탕(아이폰 반투명 주소창·키보드 막대 뒤가 비치지 않게) */
   .qs-x { position: absolute; right: 8px; top: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--ink-faint); cursor: pointer; }
   .qs-t { padding-right: 40px; font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1.4; color: var(--accent-deep); }
   .qs-s { margin-top: 6px; font-size: var(--fs-caption); line-height: 1.55; color: var(--ink-soft); word-break: keep-all; }
@@ -2457,13 +2457,16 @@ function afCloseStart(){
 }
 function afFitStart(){
   const sh=document.getElementById("quickStart"), vv=window.visualViewport; if(!sh) return;
-  if(afIsPC()){ sh.style.marginBottom=""; sh.style.maxHeight=""; const o=document.getElementById("qsSheet"); if(o){ o.style.top=o.style.bottom=o.style.height=""; } return; }
+  if(afIsPC()){ sh.style.marginBottom=""; sh.style.maxHeight=""; sh.style.paddingBottom=""; const o=document.getElementById("qsSheet"); if(o){ o.style.top=o.style.bottom=o.style.height=""; } return; }
   // 아이폰은 키보드·입력 보조 막대 높이가 기기마다 달라 계산이 어긋났다(10/20 형구 캡처: 시트 아래로 페이지가 비침).
   // 덮개(qs-ov) 자체를 보이는 영역(visualViewport)에 맞추면 시트가 늘 키보드 바로 위에 붙는다.
+  // 보이는 영역 아래(사파리 주소창·입력 보조 막대·키보드 자리)는 반투명이라 뒤가 비친다 → 시트 흰 바탕을 그 아래까지 늘리고 내용만 위에 둔다.
   const ov=document.getElementById("qsSheet");
-  if(vv && ov){ ov.style.top=Math.round(vv.offsetTop)+"px"; ov.style.bottom="auto"; ov.style.height=Math.round(vv.height)+"px"; }
+  const gap=vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
+  if(vv && ov){ ov.style.top=Math.round(vv.offsetTop)+"px"; ov.style.bottom="0"; ov.style.height="auto"; }
   sh.style.marginBottom="";
-  sh.style.maxHeight=vv ? Math.round(vv.height-12)+"px" : "";
+  sh.style.paddingBottom=gap ? (gap+16)+"px" : "";
+  sh.style.maxHeight=vv ? Math.round(vv.height-12+gap)+"px" : "";
 }
 if(window.visualViewport){ visualViewport.addEventListener("resize", afFitStart); visualViewport.addEventListener("scroll", afFitStart); }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") afCloseStart(); });
@@ -2506,6 +2509,9 @@ function afSugDraw(keepBand){
     const m=AF_SEARCH.match(a, window.PRODUCTS||[]);
     html=`<button type="button" class="sg-go top" onclick="runParse()">'${escapeHtml(val.length>14?val.slice(0,14)+"…":val)}'(으)로 주문서 시작 →</button>`
       + (m.items.length ? `<div class="sg-h">어울리는 상품</div>${pc ? m.items.slice(0,n-1).map(item).join("") : list(m.items,"")}` : "");
+  }
+  else if(a.kind==="other" && val.length>=1){
+    html=`<a class="sg-go top" href="${AF_SEARCH.catalogUrl(a)}">'${escapeHtml(val.length>14?val.slice(0,14)+"…":val)}' 전체상품에서 찾기 →</a>`;
   }
   box.innerHTML=html; box.hidden=!html;
 }
