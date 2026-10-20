@@ -101,7 +101,14 @@
       + '.af-auth-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;'
       + 'border:none;border-radius:10px;font-size:16px;font-weight:700;padding:14px;margin-bottom:10px;cursor:pointer;font-family:inherit;}'
       + '.af-auth-x{display:block;width:100%;background:transparent;border:none;color:#9e9a8f;font-size:14px;padding:10px;margin-top:4px;cursor:pointer;font-family:inherit;}'
-      + '.af-auth-note{font-size:12px;color:#9e9a8f;text-align:center;margin-top:6px;line-height:1.6;}';
+      + '.af-auth-note{font-size:12px;color:#9e9a8f;text-align:center;margin-top:6px;line-height:1.6;}'
+      // 닫기 X(10/20 형구 '이거 어떻게 하지' — PC 폭에서 아래 붙은 시트가 잘리고 닫을 곳이 안 보였다)
+      + '.af-auth-sheet{position:relative;}'
+      + '.af-auth-close{position:absolute;top:12px;right:12px;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:#5a564d;font-size:22px;line-height:40px;cursor:pointer;}'
+      + '.af-auth-close:hover{background:#f1efe9;}'
+      // 넓은 화면(태블릿·PC)은 가운데 뜨는 창으로
+      + '@media (min-width:600px){.af-auth-ov{align-items:center;padding:24px;}.af-auth-sheet{max-width:440px;border-radius:16px;padding:26px 24px 22px;max-height:calc(100vh - 48px);overflow:auto;animation:af-pop .2s ease-out;}}'
+      + '@keyframes af-pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}';
     var s = document.createElement('style');
     s.id = 'af-auth-style';
     s.textContent = css;
@@ -198,6 +205,7 @@
       ov.className = 'af-auth-ov';
       document.body.appendChild(ov);
       ov.addEventListener('click', function (e) { if (e.target === ov) ov.style.display = 'none'; });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && ov.style.display === 'flex') ov.style.display = 'none'; });
     }
     return ov;
   }
@@ -244,7 +252,8 @@
       return '<button class="af-auth-btn" style="' + style + '" data-prov="' + p.id + '">' + (p.icon || '') + p.label.replace('시작하기', '계속하기') + '</button>';
     }).join('');
     ov.innerHTML =
-      '<div class="af-auth-sheet">'
+      '<div class="af-auth-sheet" role="dialog" aria-modal="true" aria-label="주문하기 전에">'
+      + '<button type="button" class="af-auth-close" aria-label="닫기">×</button>'
       + '<h3>주문하기 전에</h3>'
       + (label ? '<div style="background:#f6f4ee;border:1px solid #e3dfd4;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:13px;color:#2a2a24;">' + label + '</div>' : '')
       + '<p>로그인하면 2,000원 적립되고, 다음엔 지난 주문 그대로 다시 보낼 수 있어요.</p>'
@@ -253,6 +262,8 @@
       + '<div class="af-auth-note">로그인 없이도 주문할 수 있어요. 주문 확인은 연락처로 해요.</div>'
       + '</div>';
     ov.style.display = 'flex';
+    // 닫기 = 바깥 누르기와 같다(주문서는 뒤에 그대로 있다)
+    ov.querySelector('.af-auth-close').onclick = function () { ov.style.display = 'none'; };
     ov.querySelectorAll('.af-auth-btn[data-prov]').forEach(function (b) {
       b.onclick = function () {
         try { if (resume) sessionStorage.setItem(ORDER_RESUME_KEY, resume); } catch (e) {}
