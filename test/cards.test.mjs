@@ -69,7 +69,7 @@ test("sanitizeCard: 모르는 칸은 버리고, 필수 칸이 없으면 거절",
   assert.equal(w.data.photo, "", "사진은 https 주소만");
   const big = sanitizeCard({ ...FUN, acc: Array.from({ length: 30 }, () => ({ who: "가".repeat(99), bank: "나", no: "1".repeat(99) })), msg: "다".repeat(900), m: Array.from({ length: 40 }, () => ({ r: "장남", n: "마".repeat(99) })) });
   assert.equal(big.ok, true, "칸마다 길이를 잘라 담는다");
-  assert.equal(big.data.msg.length, 400);
+  assert.equal(big.data.msg.length, 600);   // 인사말+덧붙이는 한 줄(10/20)까지 들어가게 400→600
   assert.equal(big.data.acc.length, 10);
   assert.equal(big.data.m.length, 15);
   assert.equal(big.data.m[0].n.length, 30);
