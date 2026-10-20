@@ -9,6 +9,7 @@
 <link rel="icon" href="/favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
 <script src="/address-search.js" defer></script>
+<script src="/card-msgs.js?v=20261020" defer></script>
 <!--
   무료 부고장·청첩장 만들기(2026-10-06 정식판).
   - 장례식장·장지: data/funeral-homes.json · data/burial-places.json(공공데이터, scripts/build-funeral-data.py)에서 이름으로 찾기
@@ -124,6 +125,19 @@
   .tg-sw input:checked + span { background: var(--green); }
   .tg-sw input:checked + span::after { transform: translateX(22px); }
   .msg-pills { margin-top: 8px; }
+  .msg-lib { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 8px; padding: 12px 14px; border: 1.5px solid var(--accent); border-radius: 12px; background: #f3f8f4; color: var(--accent); font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; text-align: left; }
+  .msg-lib span { font-weight: 400; font-size: 12.5px; color: var(--soft); }
+  .ml-ov { position: fixed; inset: 0; z-index: 85; background: rgba(0,0,0,.5); display: flex; align-items: flex-end; justify-content: center; }
+  .ml-sheet { width: 100%; max-width: 520px; max-height: 86vh; display: flex; flex-direction: column; background: #fff; border-radius: 16px 16px 0 0; }
+  .ml-hd { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 8px; font-weight: 800; font-size: 16px; }
+  .ml-hd button { border: 0; background: none; font-size: 22px; cursor: pointer; width: 40px; height: 40px; }
+  .ml-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 0 16px 10px; border-bottom: 1px solid var(--line); }
+  .ml-tabs button { flex: none; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: 13.5px; cursor: pointer; white-space: nowrap; }
+  .ml-tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .ml-list { overflow-y: auto; padding: 12px 16px calc(16px + env(safe-area-inset-bottom,0px)); display: grid; gap: 10px; }
+  .ml-it { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #fbfaf7; font: inherit; font-size: 14px; line-height: 1.75; white-space: pre-line; text-align: center; cursor: pointer; font-family: "Gowun Batang", "Nanum Myeongjo", serif; color: var(--ink); }
+  .ml-it:active { background: #eef5f0; }
+  .ml-tip { font-size: 12.5px; color: var(--soft); padding: 0 2px; }
   .msg-pills button { font-size: 12.5px; padding: 7px 11px; }
   .hide { display: none !important; }
   /* 미리 보기 */
@@ -243,11 +257,7 @@
         </div>
         <label>인사말 <small>(비우면 기본 문구)</small></label>
         <textarea id="f_msg" placeholder="삼가 고인의 명복을 빕니다.&#10;생전에 베풀어 주신 은혜에 감사드리며&#10;삼가 알려드립니다."></textarea>
-        <div class="pills msg-pills" data-for="f_msg">
-          <button type="button" data-m="평안히 잠드셨습니다.&#10;가시는 길 함께해 주시면 감사하겠습니다.">평안히 잠드셨습니다</button>
-          <button type="button" data-m="생전에 베풀어 주신 사랑에 감사드리며&#10;삼가 부고를 전해 드립니다.">사랑에 감사드리며</button>
-          <button type="button" data-m="가족끼리 조용히 장례를 치르려 합니다.&#10;마음으로만 함께해 주시면 감사하겠습니다.">가족장(조용히)</button>
-        </div>
+        <button type="button" class="msg-lib" onclick="msgLib('f')">문구 고르기 <span>25가지</span></button>
       </section>
     </div>
 
@@ -305,6 +315,7 @@
         <details style="margin-top:8px;"><summary style="font-size:12.5px;color:var(--faint);cursor:pointer;">사진 주소로 넣기</summary><input id="w_photo" placeholder="https://…jpg" style="margin-top:6px;"></details>
         <label>인사말 <small>(비우면 기본 문구)</small></label>
         <textarea id="w_msg" placeholder="서로를 아끼는 마음으로&#10;평생을 함께하려 합니다.&#10;귀한 걸음으로 축복해 주세요."></textarea>
+        <button type="button" class="msg-lib" onclick="msgLib('w')">문구 고르기 <span>39가지 · 직접 찾아뵙지 못하는 양해 문구도</span></button>
       </section>
     </div>
 
@@ -507,6 +518,32 @@ function data(){
 // ── 파트너(상조·장례식장·웨딩홀) 링크 — ?kind=f|w &venue=이름 &ref=코드(영문·숫자·-_ 30자) ──
 // 식장마다 자기 이름이 미리 들어간 링크/QR 을 줄 수 있고, ref 는 카드와 그 카드에서 나온 화환 주문(원문 링크)까지 따라가 어디서 왔는지 센다.
 var REF="";
+// ── 문구 고르기(10/20) — card-msgs.js 의 묶음을 탭으로. 고르면 인사말을 바꾸고, '덧붙이는 한 줄'은 뒤에 붙인다 ──
+function msgLib(k){
+  var groups=(window.CARD_MSGS||{})[k]||[]; if(!groups.length){ toast("문구를 불러오지 못했어요"); return; }
+  var id=k==="f"?"f_msg":"w_msg", cur=0;
+  var ov=document.createElement("div"); ov.className="ml-ov";
+  ov.innerHTML='<div class="ml-sheet"><div class="ml-hd">'+(k==="f"?"부고 인사말":"청첩장 인사말")+'<button type="button" aria-label="닫기">✕</button></div><div class="ml-tabs"></div><div class="ml-list"></div></div>';
+  function fillNames(t){ if(k!=="w") return t; var n=0, g=v("w_g"), b=v("w_b"); return t.replace(/○○/g,function(){ n++; return (n===1?g:b)||"○○"; }); }
+  function draw(){
+    ov.querySelector(".ml-tabs").innerHTML=groups.map(function(g,i){ return '<button type="button" data-i="'+i+'"'+(i===cur?' class="on"':'')+'>'+esc(g.t)+'</button>'; }).join("");
+    var g=groups[cur];
+    ov.querySelector(".ml-list").innerHTML=(g.add?'<div class="ml-tip">지금 인사말 뒤에 덧붙여요.</div>':'<div class="ml-tip">누르면 인사말이 이 문구로 바뀌어요. 고친 뒤에 써도 돼요.</div>')
+      +g.list.map(function(t,i){ return '<button type="button" class="ml-it" data-j="'+i+'">'+esc(fillNames(t))+'</button>'; }).join("");
+    ov.querySelector(".ml-list").scrollTop=0;
+    var on=ov.querySelector(".ml-tabs .on"); if(on && on.scrollIntoView) on.scrollIntoView({inline:"center",block:"nearest"});
+  }
+  ov.onclick=function(e){
+    if(e.target===ov || e.target.closest(".ml-hd button")){ ov.remove(); return; }
+    var tb=e.target.closest("[data-i]"); if(tb){ cur=+tb.getAttribute("data-i"); draw(); return; }
+    var it=e.target.closest("[data-j]"); if(!it) return;
+    var t=fillNames(groups[cur].list[+it.getAttribute("data-j")]), ta=$(id);
+    if(groups[cur].add){ var base=ta.value.trim()||ta.placeholder; ta.value=(base?base+"\n\n":"")+t; }
+    else ta.value=t;
+    ov.remove(); preview(); toast(groups[cur].add?"덧붙였어요":"인사말을 바꿨어요");
+  };
+  draw(); document.body.appendChild(ov);
+}
 function applyPartnerLink(){
   var q=new URLSearchParams(location.search);
   var ref=String(q.get("ref")||"").trim(); if(/^[A-Za-z0-9_-]{1,30}$/.test(ref)) REF=ref;
