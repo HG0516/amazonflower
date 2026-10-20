@@ -444,12 +444,10 @@ function renderFuneral(d){
     +fabHtml(d, dl, orderUrl({ worder:"funeral", rn:"故 "+d.name, cm:chief, v:d.venue, vd:d.room, a:d.addr, et:d.out }), "근조화환 보내기")+'</div>';
 }
 
-var WTHEMES=["classic","flower","white","hanji","night","pastel"];
-function renderWedding(d){
-  var when=kDate(d.date)+" "+kTime(d.time);
+// 머리(이름·날짜·대표 사진) — 디자인마다 다르다. 감사 인사장은 label·sub 만 바꿔 같은 머리를 쓴다.
+function wedHead(d, subText, label){
   var photo = d.photo ? ' style="background-image:url('+esc(d.photo)+')"' : '';
-  // 배경 디자인 6가지(10/20 형구 '배경 디자인 더'): classic 사진 크게 · flower 꽃집 · white 미니멀 · hanji 전통 한지 · night 블랙 골드 · pastel 파스텔
-  var th=WTHEMES.indexOf(d.theme)>=0?d.theme:"classic", sub='<div class="sub">'+esc(when)+'</div>';
+  var th=WTHEMES.indexOf(d.theme)>=0?d.theme:"classic", sub='<div class="sub">'+esc(subText)+'</div>';
   var head =
       th==="flower" ? '<div class="band"><div class="name">'+esc(d.g)+' <span style="color:#c98f88">&amp;</span> '+esc(d.b)+'</div>'+sub+'</div><div class="photo"'+photo+'></div>'
     : th==="white"  ? '<div class="band"><div class="h">WEDDING INVITATION</div><div class="name">'+esc(d.g)+'<i>그리고</i>'+esc(d.b)+'</div>'+sub+'</div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
@@ -457,6 +455,46 @@ function renderWedding(d){
     : th==="night"  ? '<div class="band"><div class="frame"><div class="h">THE WEDDING OF</div><div class="name">'+esc(d.g)+' <span>&amp;</span> '+esc(d.b)+'</div>'+sub+'</div></div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
     : th==="pastel" ? '<div class="band">'+(d.photo?'<div class="photo"'+photo+'></div>':'<div class="photo"></div>')+'<div class="name">'+esc(d.g)+' <span>♥</span> '+esc(d.b)+'</div>'+sub+'</div>'
     : '<div class="band"'+photo+'><div><div class="name">'+esc(d.g)+' · '+esc(d.b)+'</div>'+sub+'</div></div>';
+  if(label) head=head.replace(/WEDDING INVITATION|THE WEDDING OF/, label);
+  return head;
+}
+// 사진 여러 장 — 보여주는 방식: 기본 옆으로 넘기기, g 바둑판, l 크게 이어서, f 저절로, p 폴라로이드. 누르면 크게 보고 옆으로 넘긴다.
+function galBlock(d){
+  var gal=(d.gal||[]).filter(function(u){ return /^https:\/\//.test(u); }).slice(0,8);
+  // 보여주는 방식: 기본 옆으로 넘기기, g 바둑판(3칸), l 크게 이어서. 어느 쪽이든 누르면 크게 보고 옆으로 넘긴다.
+  var gl=gal.length>1 && ["g","l","f","p"].indexOf(d.gl)>=0 ? d.gl : "s";
+  return gal.length?'<div class="gal gl-'+gl+'" id="gal">'+gal.map(function(u,i){ return '<img src="'+esc(u)+'" alt="" loading="lazy" data-lb="'+i+'"'+(gl==="f"&&i===0?' class="on"':'')+'>'; }).join("")+'</div>'
+    +(gl==="f"?'<div class="gal-dots">'+gal.map(function(_,i){ return '<i'+(i===0?' class="on"':'')+'></i>'; }).join("")+'</div>':'')
+    +(gal.length>1&&gl==="s"?'<div class="gal-n">옆으로 넘겨 보세요 · '+gal.length+'장</div>':''):"";
+}
+// ── 감사 인사장(10/20): 장례·결혼식 뒤에 보내는 인사. 지도·계좌·화환·방명록 없이 인사와 사진만 ──
+function renderThanks(d){
+  if(d.k==="f"){
+    var mourners=(d.m||[]).filter(function(x){ return x && x.n; });
+    var g=d.theme==="gukhwa";
+    var head='<div class="band">'+(g?'<div class="flower"></div>':'')+'<div class="h">'+(g?"감사 인사":"謹 謝")+'</div><div class="name">故 '+esc(d.name)+(g?' 님':'')+'</div><div class="sub">보내 주신 위로에 감사드립니다</div></div>';
+    var msg=d.msg||"故 "+d.name+" 님의 장례에 보내 주신\n깊은 위로와 정성에 머리 숙여 감사드립니다.\n일일이 찾아뵙고 인사드려야 하나\n글로 대신하는 점 너그러이 양해해 주십시오.";
+    return '<div class="card t-'+(g?"gukhwa":"mono")+'">'+head+'<div class="pad">'
+      +'<p class="msg">'+esc(msg)+'</p>'
+      +(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')
+      +'<p class="promise" style="margin-top:8px">유족 일동 올림</p>'
+      +shareHtml("故 "+d.name+" 님 장례 감사 인사")
+      +'</div><div class="foot">무료 감사 인사장 · <a href="/bugo">꽃안부에서 만들기</a></div></div>';
+  }
+  var th=WTHEMES.indexOf(d.theme)>=0?d.theme:"classic";
+  var msg2=d.msg||"바쁘신 중에도 저희 결혼을 축하해 주셔서\n진심으로 감사드립니다.\n보내 주신 마음 잊지 않고\n예쁘게 잘 살겠습니다.";
+  return '<div class="card t-'+th+'">'+wedHead(d,"보내 주신 축하에 감사드립니다","THANK YOU")+'<div class="pad">'
+    +'<p class="msg">'+esc(msg2)+'</p><p class="parents">'+esc(d.g)+' · '+esc(d.b)+' 올림</p>'+galBlock(d)
+    +shareHtml(d.g+" ♥ "+d.b+" 감사 인사")
+    +'</div><div class="foot">무료 감사 인사장 · <a href="/wedding-card">꽃안부에서 만들기</a></div></div>';
+}
+var WTHEMES=["classic","flower","white","hanji","night","pastel"];
+function renderWedding(d){
+  var when=kDate(d.date)+" "+kTime(d.time);
+  var photo = d.photo ? ' style="background-image:url('+esc(d.photo)+')"' : '';
+  // 배경 디자인 6가지(10/20 형구 '배경 디자인 더'): classic 사진 크게 · flower 꽃집 · white 미니멀 · hanji 전통 한지 · night 블랙 골드 · pastel 파스텔
+  var th=WTHEMES.indexOf(d.theme)>=0?d.theme:"classic";
+  var head=wedHead(d, when);
   var msg = d.msg || "서로를 아끼는 마음으로\n평생을 함께하려 합니다.\n귀한 걸음으로 축복해 주세요.";
   var dl=deadline(d);
   var wreath = (d.noWreath || dl.over) ? "" :
@@ -470,12 +508,7 @@ function renderWedding(d){
   // D-day(10/20): 예식 전엔 D-숫자, 당일엔 '오늘', 지나면 안 보인다
   var dd=(function(){ var t=at(d.date,"00:00"); if(!t) return ""; var now=new Date(), a=new Date(now.getFullYear(),now.getMonth(),now.getDate()); var n=Math.round((t-a)/86400000); return n>0?"D-"+n:(n===0?"오늘 결혼해요":""); })();
   if(dd) head=head.replace('<div class="sub">'+esc(when)+'</div>','<div class="sub">'+esc(when)+'</div><div><span class="dday">'+esc(dd)+'</span></div>');
-  var gal=(d.gal||[]).filter(function(u){ return /^https:\/\//.test(u); }).slice(0,8);
-  // 보여주는 방식: 기본 옆으로 넘기기, g 바둑판(3칸), l 크게 이어서. 어느 쪽이든 누르면 크게 보고 옆으로 넘긴다.
-  var gl=gal.length>1 && ["g","l","f","p"].indexOf(d.gl)>=0 ? d.gl : "s";
-  var galHtml=gal.length?'<div class="gal gl-'+gl+'" id="gal">'+gal.map(function(u,i){ return '<img src="'+esc(u)+'" alt="" loading="lazy" data-lb="'+i+'"'+(gl==="f"&&i===0?' class="on"':'')+'>'; }).join("")+'</div>'
-    +(gl==="f"?'<div class="gal-dots">'+gal.map(function(_,i){ return '<i'+(i===0?' class="on"':'')+'></i>'; }).join("")+'</div>':'')
-    +(gal.length>1&&gl==="s"?'<div class="gal-n">옆으로 넘겨 보세요 · '+gal.length+'장</div>':''):"";
+  var galHtml=galBlock(d);
   var parents = (d.gp||d.bp) ? '<p class="parents">'+(d.gp?esc(d.gp)+' 의 아들 <b>'+esc(d.g)+'</b><br>':'')+(d.bp?esc(d.bp)+' 의 딸 <b>'+esc(d.b)+'</b>':'')+'</p>' : '';
   return '<div class="card t-'+th+'">'+head+'<div class="pad">'
     +'<p class="msg">'+esc(msg)+'</p>'+parents+galHtml
@@ -561,10 +594,10 @@ function kakaoReady(key){
 }
 function kakaoShare(d){
   var url=shareUrl(), fun=d.k==="f";
-  var title = fun ? "[부고] 故 "+d.name+" 님 "+(FUN_WORD[d.rel||""]||"별세") : (d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다");
+  var title = d.ty==="t" ? (fun ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사") : fun ? "[부고] 故 "+d.name+" 님 "+(FUN_WORD[d.rel||""]||"별세") : (d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다");
   var desc = fun ? [[d.venue,d.room].filter(Boolean).join(" "), d.out?"발인 "+kDate(d.outDate)+" "+kTime(d.out):""].filter(Boolean).join(" · ")
                  : [kDate(d.date)+" "+kTime(d.time), [d.venue,d.hall].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
-  var img=(!fun && /^https:\/\//.test(d.thumb||"")) ? d.thumb : location.origin+"/og/card-"+(fun?(d.theme==="gukhwa"?"f-gukhwa":"f-mono"):"w-"+(WTHEMES.indexOf(d.theme)>=0?d.theme:"classic"))+".png";
+  var img=(!fun && /^https:\/\//.test(d.thumb||"")) ? d.thumb : d.ty==="t" ? location.origin+"/og/card-"+(fun?"f":"w")+"-thanks.png" : location.origin+"/og/card-"+(fun?(d.theme==="gukhwa"?"f-gukhwa":"f-mono"):"w-"+(WTHEMES.indexOf(d.theme)>=0?d.theme:"classic"))+".png";
   return kakaoReady(STATE.kakaoKey).then(function(K){
     K.Share.sendDefault({ objectType:"feed",
       content:{ title:title, description:desc, imageUrl:img, imageWidth:1200, imageHeight:630, link:{ mobileWebUrl:url, webUrl:url } },
@@ -582,11 +615,11 @@ function draw(d){
     return;
   }
   CUR=d;
-  app.innerHTML = d.k==="f" ? renderFuneral(d) : renderWedding(d);
+  app.innerHTML = d.ty==="t" ? renderThanks(d) : d.k==="f" ? renderFuneral(d) : renderWedding(d);
   if(preview){ var sh=app.querySelector(".share"); if(sh) sh.style.display="none"; }
   else { var padEl=app.querySelector(".pad"); if(padEl) padEl.insertAdjacentHTML("afterbegin", toolsHtml()); setupTools(); }
   if(BIG){ var cardEl=app.querySelector(".card"); if(cardEl) cardEl.classList.add("big"); }
-  document.title = d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
+  document.title = d.ty==="t" ? (d.k==="f" ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사") : d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
   setupFab(); setupComments(); setupRsvp(d, deadline(d)); setupLadder();
 }
 // 어르신이 많이 받는 안내라 '글자 크게'를 기억해 둔다. 인쇄는 빈소 앞 게시용(화환·공유 칸은 빠진다).

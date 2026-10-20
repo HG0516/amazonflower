@@ -433,3 +433,17 @@ test("카톡 썸네일·제목(10/20): 이 청첩장 사진만 썸네일로, 새
   const night = renderOgHtml({ id: "abc1234", data: sanitizeCard({ ...base, theme: "night" }).data, bot: true });
   assert.ok(night.includes("/og/card-w-night.png"));
 });
+
+test("감사 인사장(10/20): 장소·날짜 없이 만들고, 만든 날 +30일, 제목·그림이 감사용", () => {
+  const f = sanitizeCard({ k: "f", ty: "t", name: "김영수", m: [{ r: "장남", n: "김민준" }] });
+  assert.equal(f.ok, true); assert.equal(f.data.ty, "t");
+  assert.equal(sanitizeCard({ k: "f", name: "김영수" }).ok, false, "부고장은 여전히 장례식장이 필요");
+  const w = sanitizeCard({ k: "w", ty: "t", g: "김", b: "박" });
+  assert.equal(w.ok, true);
+  const now = Date.UTC(2026, 9, 20, 3);
+  const exp = Date.parse(cardExpiry(w.data, now));
+  assert.ok(exp - now > 29 * 86400000 && exp - now < 32 * 86400000);
+  const html = renderOgHtml({ id: "abc1234", data: f.data, bot: true });
+  assert.ok(html.includes("故 김영수 님 장례 감사 인사"));
+  assert.ok(html.includes("/og/card-f-thanks.png"));
+});

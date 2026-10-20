@@ -9,7 +9,7 @@
 <link rel="icon" href="/favicon.ico">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
 <script src="/address-search.js" defer></script>
-<script src="/card-msgs.js?v=20261020" defer></script>
+<script src="/card-msgs.js?v=20261020b" defer></script>
 <!--
   무료 부고장·청첩장 만들기(2026-10-06 정식판).
   - 장례식장·장지: data/funeral-homes.json · data/burial-places.json(공공데이터, scripts/build-funeral-data.py)에서 이름으로 찾기
@@ -208,6 +208,8 @@
   .mg .cmi.off { opacity: .45; }
   .mg .cmi span { white-space: pre-line; }
   .mg .cmi button { flex: 0 0 auto; border: 0; border-radius: 8px; padding: 6px 10px; background: #f3f2ed; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .thx-btn { display: block; width: 100%; margin-top: 12px; padding: 11px; border: 1px dashed var(--line); border-radius: 12px; background: transparent; font: inherit; font-size: 13.5px; color: var(--soft); cursor: pointer; }
+  body.ty-t .thx-btn { display: none; }
   .keybox { margin-top: 14px; padding: 12px; border-radius: 14px; background: #f6faf7; border: 1px solid #d7e7dc; }
   .keybox b { font-size: 14px; } .keybox p { margin: 4px 0 10px; font-size: 12.5px; }
   .keybox button { width: 100%; padding: 12px; border-radius: 11px; border: 1.5px solid var(--green); background: #fff; color: var(--green); font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
@@ -246,7 +248,7 @@
         <button type="button" class="add" onclick="addM();preview()">＋ 유족 추가 (배우자 · 사위 · 며느리 · 손주 …)</button>
       </section>
 
-      <section class="sec">
+      <section class="sec" id="secFV">
         <h2><b>3</b>빈소 · 일정</h2>
         <label>장례식장 <small>— 이름이나 동네로 찾으면 주소·전화가 채워져요</small></label>
         <div class="search"><input id="f_venue" placeholder="예) 시흥장례원, 시화병원, 정왕동" autocomplete="off"><div class="sugg" id="sgVenue"></div></div>
@@ -289,7 +291,7 @@
           <div><label>신부 혼주 <small>(선택)</small></label><input id="w_bp" placeholder="박정호 · 최미경"></div>
         </div>
       </section>
-      <section class="sec">
+      <section class="sec" id="secWE">
         <h2><b>2</b>예식</h2>
         <div class="two">
           <div><label>예식 날짜</label><input id="w_date" type="date"></div>
@@ -334,7 +336,7 @@
       </section>
     </div>
 
-    <section class="sec">
+    <section class="sec" id="secAcc">
       <h2><b id="nAcc">5</b>마음 전하실 곳 <small style="font-weight:400;color:var(--faint);font-size:12.5px;">(선택)</small></h2>
       <p class="hint">계좌는 받는 화면에서 접혀 있다가 눌러야 보여요.</p>
       <div id="aList"></div>
@@ -354,7 +356,7 @@
       </div>
     </section>
 
-    <section class="sec">
+    <section class="sec" id="secWr">
       <h2><b id="nWr">6</b><span id="wrH">화환</span></h2>
       <div class="switch"><div class="tx" id="wrTx">화환 보내기 칸 보이기<small>꽃안부가 빈소로 보내드려요. 끄면 '화환은 정중히 사양합니다'로 보여요.</small></div>
         <label class="tg-sw" style="margin:0"><input type="checkbox" id="wreathOn" checked><span></span></label></div>
@@ -386,6 +388,7 @@
       <button type="button" onclick="copyLink()">링크 복사</button>
       <a id="openBtn" target="_blank" rel="noopener">새 창에서 보기</a>
     </div>
+    <button type="button" class="thx-btn" id="thxBtn" onclick="goThanks()">나중에 감사 인사장도 이어서 만들 수 있어요 →</button>
     <div class="keybox hide" id="keyBox"><b>고칠 때 쓰는 링크 — 나만 간직하세요</b>
       <p>이 링크로 열면 내용을 고치고, 조문 글을 숨기고, 일찍 닫을 수 있어요. 고치면 이미 보낸 링크에도 바로 반영돼요. 이 기기에도 저장해 뒀어요.</p>
       <button type="button" onclick="copyEditLink()">고칠 때 쓰는 링크 복사</button></div>
@@ -537,6 +540,7 @@ function data(){
     if(THUMB) d.thumb=THUMB; if(TT) d.tt=TT;
   }
   if(acc.length) d.acc=acc;
+  if(TY==="t"){ d.ty="t"; delete d.acc; d.noComment=1; if(REF) d.ref=REF; return d; }   // 감사 인사장: 계좌·화환·글 없이
   if(!$("wreathOn").checked) d.noWreath=1;
   if(READY && !$("cmOn").checked) d.noComment=1;
   if(READY && RSVP_READY && K==="w" && !$("rsvpOn").checked) d.noRsvp=1;
@@ -558,6 +562,13 @@ function KPATH(k){ return k==="w" ? "/wedding-card/make" : "/bugo/make"; }
 function setHero(k){
   document.body.classList.toggle("kind-f", k==="f"); document.body.classList.toggle("kind-w", k==="w");
   var h=document.querySelector(".hero h1"), p=document.querySelector(".hero p");
+  if(TY==="t"){
+    h.textContent = k==="f" ? "장례 감사 인사장" : "결혼 감사 인사장";
+    p.textContent = k==="f" ? "조문해 주신 분들께 고마운 마음을 한 장에 담아 보내세요." : "와 주신 분, 마음 보내 주신 분께 사진과 함께 인사 전하세요.";
+    $("chips").innerHTML='<span>무료</span><span>광고 없음</span><span>인사말 골라 쓰기</span>'+(k==="w"?'<span>사진 8장</span>':'')+'<span>30일 뒤 자동 삭제</span>';
+    document.title=(k==="f"?"장례":"결혼")+" 감사 인사장 만들기 — 꽃안부";
+    return;
+  }
   if(k==="f"){
     h.textContent="부고 알리기"; p.textContent="장례식장 이름만 치면 주소·전화가 채워져요. 링크 하나로 카톡·문자에 보내세요.";
     $("chips").innerHTML='<span>회원가입 없음</span><span>광고 없음</span><span>3분이면 끝</span><span>장례식장 1,117곳 검색</span>'+(READY?'<span>보낸 뒤에도 고치기</span><span>조문 글</span><span>발인 7일 뒤 자동 삭제</span>':'');
@@ -571,11 +582,11 @@ function setHero(k){
 if(PATHK) setHero(PATHK);
 // ── 문구 고르기(10/20) — card-msgs.js 의 묶음을 탭으로. 고르면 인사말을 바꾸고, '덧붙이는 한 줄'은 뒤에 붙인다 ──
 function msgLib(k){
-  var groups=(window.CARD_MSGS||{})[k]||[]; if(!groups.length){ toast("문구를 불러오지 못했어요"); return; }
+  var groups=((window.CARD_MSGS||{})[k]||[]).filter(function(g){ return TY==="t" ? g.ty==="t" : g.ty!=="t"; }); if(!groups.length){ toast("문구를 불러오지 못했어요"); return; }
   var id=k==="f"?"f_msg":"w_msg", cur=0;
   var ov=document.createElement("div"); ov.className="ml-ov";
-  ov.innerHTML='<div class="ml-sheet"><div class="ml-hd">'+(k==="f"?"부고 인사말":"청첩장 인사말")+'<button type="button" aria-label="닫기">✕</button></div><div class="ml-tabs"></div><div class="ml-list"></div></div>';
-  function fillNames(t){ if(k!=="w") return t; var n=0, g=v("w_g"), b=v("w_b"); return t.replace(/○○/g,function(){ n++; return (n===1?g:b)||"○○"; }); }
+  ov.innerHTML='<div class="ml-sheet"><div class="ml-hd">'+(TY==="t"?"감사 인사말":k==="f"?"부고 인사말":"청첩장 인사말")+'<button type="button" aria-label="닫기">✕</button></div><div class="ml-tabs"></div><div class="ml-list"></div></div>';
+  function fillNames(t){ if(k!=="w") return v("f_name") ? t.replace(/故 ○○/g, "故 "+v("f_name")) : t;   /* 회사·단체 문구의 ○○부·○○○ 는 그대로 둔다 */ var n=0, g=v("w_g"), b=v("w_b"); return t.replace(/○○/g,function(){ n++; return (n===1?g:b)||"○○"; }); }
   function draw(){
     ov.querySelector(".ml-tabs").innerHTML=groups.map(function(g,i){ return '<button type="button" data-i="'+i+'"'+(i===cur?' class="on"':'')+'>'+esc(g.t)+'</button>'; }).join("");
     var g=groups[cur];
@@ -733,6 +744,7 @@ $("galFile").addEventListener("change", async function(e){
 $("wPhotoFile").addEventListener("change", function(e){ uploadWeddingPhoto(e.target.files[0]); e.target.value=""; });
 // 서버에서 받은 내용 → 칸 채우기(고치기 모드)
 function fill(d){
+  if((d.ty||"")!==TY) setThanks(d.ty==="t");
   mode(d.k);
   try{ if(location.pathname!==KPATH(d.k)) history.replaceState(null,"",KPATH(d.k)+location.search+location.hash); }catch(_){}
   if(d.k==="f"){
@@ -778,12 +790,31 @@ var WD=["일","월","화","수","목","금","토"];
 function kDate(s){ var m=String(s||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return ""; var d=new Date(+m[1],+m[2]-1,+m[3]); return (+m[2])+"월 "+(+m[3])+"일("+WD[d.getDay()]+")"; }
 function kTime(hm){ var m=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); if(!m) return ""; var h=+m[1], mi=+m[2]; return (h<12?"오전 ":"오후 ")+((h%12)||12)+"시"+(mi?" "+mi+"분":""); }
 var SMS="";
-function titleOf(d){ return d.k==="f" ? "[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세") : d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다"; }
-function descOf(d){ return d.k==="f" ? [d.venue+(d.room?" "+d.room:""), d.out?("발인 "+kDate(d.outDate)+" "+kTime(d.out)):""].filter(Boolean).join(" · ") : [kDate(d.date)+" "+kTime(d.time), d.venue].filter(Boolean).join(" · "); }
+function titleOf(d){ if(d.ty==="t") return d.k==="f" ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사"; return d.k==="f" ? "[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세") : d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다"; }
+function descOf(d){ if(d.ty==="t") return d.k==="f" ? "보내 주신 위로에 감사드립니다" : "보내 주신 축하에 감사드립니다"; return d.k==="f" ? [d.venue+(d.room?" "+d.room:""), d.out?("발인 "+kDate(d.outDate)+" "+kTime(d.out)):""].filter(Boolean).join(" · ") : [kDate(d.date)+" "+kTime(d.time), d.venue].filter(Boolean).join(" · "); }
 function ogName(d){ return d.k==="f" ? (d.theme==="gukhwa"?"f-gukhwa":"f-mono") : "w-"+(["flower","white","hanji","night","pastel"].indexOf(d.theme)>=0?d.theme:"classic"); }
-function ogImg(d){ return (d.k==="w" && /^https:\/\//.test(d.thumb||"")) ? d.thumb : location.origin+"/og/card-"+ogName(d)+".png"; }
+function ogImg(d){ return (d.k==="w" && /^https:\/\//.test(d.thumb||"")) ? d.thumb : d.ty==="t" ? location.origin+"/og/card-"+(d.k==="f"?"f":"w")+"-thanks.png" : location.origin+"/og/card-"+ogName(d)+".png"; }
 // ── 카톡 미리보기(10/20 형구 '썸네일도 같이 정하게, 바뀌는 거랑'): 고칠 때마다 카톡에 뜰 모양을 바로 그린다 ──
 var THUMB="", TT=0;
+// ── 감사 인사장(10/20) — 같은 만들기 화면에서 장소·일정·계좌·화환 칸을 접고 인사만 ──
+var TY = new URLSearchParams(location.search).get("ty")==="t" ? "t" : "";
+function setThanks(on){
+  TY = on ? "t" : "";
+  document.body.classList.toggle("ty-t", on);
+  ["secFV","secWE","secAcc","secWr"].forEach(function(id){ var e=$(id); if(e) e.classList.toggle("hide", on); });
+  // 보이는 칸만 1,2,3… 다시 번호
+  [["fF"],["fW"]].forEach(function(x){ var n=0; [].forEach.call(document.querySelectorAll("#"+x[0]+" > section"), function(sec){ if(sec.classList.contains("hide")) return; var b=sec.querySelector("h2 > b"); if(b) b.textContent=++n; }); });
+  [].forEach.call(document.querySelectorAll(".msg-lib span"), function(sp){ sp.textContent = on ? "감사 인사 문구" : (sp.parentNode.getAttribute("onclick").indexOf("'f'")>=0 ? "25가지" : "39가지 · 직접 찾아뵙지 못하는 양해 문구도"); });
+  if(typeof K!=="undefined") setHero(K);
+}
+// 부고장·청첩장에서 '감사 인사장' → 이름·상주·사진·디자인만 들고 같은 종류 화면으로
+function goThanks(){
+  var d=(MG && MG.data) || data(), keep = d.k==="f"
+    ? { k:"f", name:d.name, rel:d.rel, m:d.m, theme:d.theme }
+    : { k:"w", g:d.g, b:d.b, gp:d.gp, bp:d.bp, theme:d.theme, photo:d.photo, gal:d.gal, gl:d.gl };
+  try{ sessionStorage.setItem("af_thanks", JSON.stringify(keep)); }catch(_){}
+  location.href=KPATH(d.k)+"?ty=t";
+}
 document.addEventListener("click", function(e){
   var b=e.target.closest && e.target.closest("#shThumbs button, #shTitles button"); if(!b) return;
   if(b.hasAttribute("data-th")) THUMB=b.getAttribute("data-th"); else TT=+b.getAttribute("data-tt");
@@ -937,7 +968,7 @@ function renderMg(){
     +'<p class="st">조회 '+(MG.views||0)+'번'+(d.noComment?'':' · '+(fun?"조문 글":"방명록")+' '+cms.filter(function(c){ return !c.hidden; }).length+'개')
     +(isFinite(exp)?' · '+(exp.getMonth()+1)+'월 '+exp.getDate()+'일에 자동으로 닫혀요':'')
     +'<br>아래에서 고친 뒤 <b>고친 내용 저장</b>을 누르면 이미 보낸 링크에도 바로 반영돼요.</p>'
-    +'<div class="btns"><button type="button" class="send" id="mgSend">링크 보내기</button><a href="'+KPATH(K)+'" id="mgNew">새로 만들기</a><button type="button" class="cl" id="mgClose">지금 닫기</button></div>'
+    +'<div class="btns"><button type="button" class="send" id="mgSend">링크 보내기</button><a href="'+KPATH(K)+'" id="mgNew">새로 만들기</a>'+(d.ty==="t"?'':'<button type="button" onclick="goThanks()">'+(fun?"장례 뒤 감사 인사장":"결혼식 뒤 감사 인사장")+'</button>')+'<button type="button" class="cl" id="mgClose">지금 닫기</button></div>'
     +rsvpSummaryHtml(MG)
     +(cms.length?'<div class="cms"><b class="t">'+(fun?"조문 글":"방명록")+'</b>'+cms.map(function(c){
         return '<div class="cmi'+(c.hidden?' off':'')+'"><span><b>'+esc(c.name)+'</b> <small style="color:#9a958a">'+esc(relT(c.created_at))+'</small><br>'+esc(c.body)+'</span><button type="button" data-cid="'+c.id+'" data-h="'+(c.hidden?0:1)+'">'+(c.hidden?"다시 보이기":"숨기기")+'</button></div>';
@@ -981,6 +1012,15 @@ var READY_P=fetch("/api/order-meta?card=ready&json=1",{ cache:"no-store" }).then
 function openPreview(){ preview(); $("pvSheet").classList.add("on"); }
 function closeSheet(id){ $(id).classList.remove("on"); }
 if(PATHK==="w" && K!=="w") mode("w");
+if(TY==="t"){
+  setThanks(true);
+  try{ var tk=JSON.parse(sessionStorage.getItem("af_thanks")||"null"); sessionStorage.removeItem("af_thanks");
+    if(tk && tk.k===K){
+      if(K==="f"){ $("f_name").value=tk.name||""; setRel(tk.rel||""); if(tk.theme){ TF=tk.theme; setTheme("thF",TF); } if((tk.m||[]).length){ $("mList").innerHTML=""; tk.m.forEach(function(x){ addM(x.r,x.n); }); } }
+      else { ["g","b","gp","bp","photo"].forEach(function(f){ $("w_"+f).value=tk[f]||""; }); showPhotoPv(tk.photo||""); if(tk.theme){ TW=tk.theme; setTheme("thW",TW); } GAL=(tk.gal||[]).slice(0,8); GL=tk.gl||"s"; drawGal(); }
+      toast("부고장·청첩장 내용을 가져왔어요");
+    } }catch(_){}
+}
 preview();
 </script>
 </body>
