@@ -732,6 +732,16 @@
   .qs-in input { flex: 1; min-width: 0; height: 50px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 16px; }
   .qs-go { flex: none; width: 76px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent); font-family: var(--font-body); font-size: 15px; font-weight: 800; cursor: pointer; }
   .qs-go:disabled { opacity: .5; }
+  /* 휴대폰 시작 칸 = 채팅창 한 줄(10/20 형구 B안): [사진] [입력] [붙여넣기→시작]. 큰 버튼 두 개·'링크가 없으면'·이름표는 접는다. PC 오른쪽 칸은 그대로. */
+  .qs-cam { flex: 0 0 50px; height: 50px; display: none; align-items: center; justify-content: center; border: 1.5px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent-deep); cursor: pointer; }
+  .qs-cam:disabled { opacity: .5; }
+  .qs-go.paste { background: var(--accent); color: #fff; width: 86px; }
+  @media (max-width: 999px) {
+    .qs-cam { display: flex; }
+    #pasteBtn, .qs-img, .qs-sheet .qs-or { display: none !important; }
+    .qs-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .qs-in { margin-top: 14px; }
+  }
   /* 시작 칸 결과 상자(10/20). 휴대폰은 글을 치기 시작하면(.qs-typing) 위 설명·큰 버튼을 접어 키보드 위에 결과가 보이게 한다. */
   .qs-sug { margin-top: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
   .qs-sug[hidden] { display: none; }
@@ -969,15 +979,16 @@
     <section class="qs-sheet" id="quickStart" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
       <button type="button" class="qs-x" aria-label="닫기" onclick="afCloseStart()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       <h2 class="qs-t" id="qsTitle">청첩장·부고 링크 넣기</h2>
-      <p class="qs-s">부고·청첩장 링크나 캡처 사진을 넣으면 장소와 날짜를 주문서에 채워 드려요.</p>
+      <p class="qs-s">링크나 캡처 사진을 넣으면 주문서를 채워 드려요.</p>
       <button type="button" class="qs-big" id="pasteBtn" onclick="afPasteAndGo()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg><span><span class="qs-m">복사한 링크 </span>붙여넣기</span></button>
       <button type="button" class="qs-img" id="imgBtn" onclick="document.getElementById('imgFile').click()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>부고·청첩장 캡처 사진 올리기</button>
       <input type="file" id="imgFile" accept="image/*" hidden onchange="afImageParse(this)">
       <div class="qs-or">링크가 없으면</div>
       <label class="qs-lbl" for="src"><span class="qs-m">꽃 이름, 가격, 보낼 일</span><span class="qs-p">링크, 꽃 이름, 가격</span></label>
       <div class="qs-in">
+        <button type="button" class="qs-cam" aria-label="부고·청첩장 캡처 사진 올리기" onclick="document.getElementById('imgFile').click()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></button>
         <input id="src" type="text" placeholder="예) 꽃다발 5만원" autocomplete="off" enterkeyhint="go" oninput="afSugDraw()" onkeydown="if(event.key==='Enter'){event.preventDefault();runParse();}">
-        <button type="button" class="qs-go" id="parseBtn" onclick="runParse()">시작</button>
+        <button type="button" class="qs-go" id="parseBtn" onclick="afGo()">시작</button>
       </div>
       <!-- 치는 동안 칸 바로 아래 결과(10/20 형구). 링크·꽃·가격·상황 말에 따라 afSugDraw 가 채운다. -->
       <div class="qs-sug" id="qsSug" hidden aria-live="polite"></div>
@@ -1865,8 +1876,8 @@ function afShrinkImage(file){
 async function afImageParse(input){
   const file=input.files&&input.files[0]; input.value="";
   if(!file) return;
-  const err=document.getElementById("parseErr"), load=document.getElementById("parseLoading"), btn=document.getElementById("imgBtn");
-  err.classList.add("hidden"); load.classList.remove("hidden"); btn.disabled=true;
+  const err=document.getElementById("parseErr"), load=document.getElementById("parseLoading"), btns=document.querySelectorAll("#imgBtn,.qs-cam");
+  err.classList.add("hidden"); load.classList.remove("hidden"); btns.forEach(b=>b.disabled=true);
   try{
     const image=await afShrinkImage(file);
     const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image})});
@@ -1875,7 +1886,7 @@ async function afImageParse(input){
     order.src="(캡처 사진)";
     applyParsed(data.result);
   }catch(e){ showErr(err,e.message); }
-  finally{ load.classList.add("hidden"); btn.disabled=false; }
+  finally{ load.classList.add("hidden"); btns.forEach(b=>b.disabled=false); }
 }
 
 function applyParsed(r){
@@ -2532,6 +2543,19 @@ function afFitStart(){
 }
 if(window.visualViewport){ visualViewport.addEventListener("resize", afFitStart); visualViewport.addEventListener("scroll", afFitStart); }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") afCloseStart(); });
+// 휴대폰 채팅창 한 줄: 칸이 비면 오른쪽 버튼이 '붙여넣기'(초록), 글자가 있으면 '시작'. PC 는 붙여넣기 버튼이 따로 있어 늘 '시작'.
+function afGoMode(){
+  const b=document.getElementById("parseBtn"), s=document.getElementById("src"); if(!b||!s) return;
+  const paste=!(AF_PC_MQ && AF_PC_MQ.matches) && !s.value.trim();
+  b.textContent=paste?"붙여넣기":"시작"; b.classList.toggle("paste",paste);
+  s.placeholder=(AF_PC_MQ && AF_PC_MQ.matches)?"예) 꽃다발 5만원":"링크 · 꽃다발 5만원";
+}
+function afGo(){
+  const s=document.getElementById("src");
+  if(!(AF_PC_MQ && AF_PC_MQ.matches) && s && !s.value.trim()) afPasteAndGo(); else runParse();
+}
+if(AF_PC_MQ && AF_PC_MQ.addEventListener) AF_PC_MQ.addEventListener("change",afGoMode);
+document.addEventListener("DOMContentLoaded",afGoMode);
 async function afPasteAndGo(){
   await pasteFromClipboard();
   const err=document.getElementById("parseErr"), s=document.getElementById("src");
@@ -2550,6 +2574,7 @@ function afSugDraw(keepBand){
   afSugLast=val;
   const a=AF_SEARCH.analyze(val, window.PRODUCTS||[]);
   if(sh) sh.classList.toggle("qs-typing", a.kind!=="empty");
+  afGoMode();
   const pc=!!(AF_PC_MQ && AF_PC_MQ.matches), n=pc?4:3;
   // 휴대폰은 키보드 위 공간이 좁아 가로로 미는 카드(최대 10개 + 전부 보기), PC는 세로 목록 4개.
   const card=p=>`<a class="sg-card" href="/?pc=${encodeURIComponent(p.pc)}"><img src="${escapeHtml(p.photos[0])}" alt="" loading="lazy"><span class="sg-n">${escapeHtml(afHomeName(p))}</span><span class="sg-p">${p.price.toLocaleString()}원</span></a>`;
