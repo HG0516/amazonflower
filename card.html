@@ -440,7 +440,7 @@ function renderFuneral(d){
     +commentsHtml(d)
     +shareHtml("부고 · 故 "+d.name)
     +expHtml()
-    +'</div><div class="foot">무료 부고장 · <a href="/card-make.html">꽃안부에서 만들기</a></div>'
+    +'</div><div class="foot">무료 부고장 · <a href="/bugo">꽃안부에서 만들기</a></div>'
     +fabHtml(d, dl, orderUrl({ worder:"funeral", rn:"故 "+d.name, cm:chief, v:d.venue, vd:d.room, a:d.addr, et:d.out }), "근조화환 보내기")+'</div>';
 }
 
@@ -487,7 +487,7 @@ function renderWedding(d){
     +commentsHtml(d)
     +shareHtml(d.g+" ♥ "+d.b+" 결혼합니다")
     +expHtml()
-    +'</div><div class="foot">무료 모바일 청첩장 · <a href="/card-make.html">꽃안부에서 만들기</a></div>'
+    +'</div><div class="foot">무료 모바일 청첩장 · <a href="/wedding-card">꽃안부에서 만들기</a></div>'
     +fabHtml(d, dl, "#wreathBox", "축하 화환 보내기")+'</div>';
 }
 
@@ -578,7 +578,7 @@ function draw(d){
   PV=/[#&]p=1(&|$)/.test(location.hash); PVS=PV && /[#&]s=1(&|$)/.test(location.hash);
   var preview=PV;
   if(!d || !(d.k==="f"||d.k==="w")){
-    app.innerHTML='<div class="empty"><b>내용을 찾을 수 없어요.</b><br>받으신 링크를 다시 눌러 주세요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
+    app.innerHTML='<div class="empty"><b>내용을 찾을 수 없어요.</b><br>받으신 링크를 다시 눌러 주세요.<br><br><a href="/bugo">무료 부고장</a> · <a href="/wedding-card">무료 청첩장</a></div>';
     return;
   }
   CUR=d;
@@ -598,7 +598,7 @@ function setupTools(){
   if(p) p.onclick=function(){ window.print(); };
 }
 function closedPage(kind){
-  document.getElementById("app").innerHTML='<div class="empty"><b>'+(kind==="w"?"닫힌 청첩장이에요.":"닫힌 부고예요.")+'</b><br>기간이 지났거나 만든 분이 닫아서 계좌와 글은 지워졌어요.<br><br><a href="/card-make.html">무료 부고장·청첩장 만들기</a></div>';
+  document.getElementById("app").innerHTML='<div class="empty"><b>'+(kind==="w"?"닫힌 청첩장이에요.":"닫힌 부고예요.")+'</b><br>기간이 지났거나 만든 분이 닫아서 계좌와 글은 지워졌어요.<br><br>'+(kind==="w"?'<a href="/wedding-card">무료 청첩장 만들기</a>':'<a href="/bugo">무료 부고장 만들기</a>')+'</div>';
 }
 function render(){
   var c=(new URLSearchParams(location.search)).get("c");

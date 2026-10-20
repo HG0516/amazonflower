@@ -34,7 +34,14 @@
   .chips span { font-size: 12.5px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); }
   .layout { max-width: 920px; margin: -52px auto 0; padding: 0 14px 120px; display: grid; grid-template-columns: 1fr; gap: 22px; position: relative; z-index: 2; }
   @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) 340px; padding-bottom: 60px; } }
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--paper); padding: 6px; border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.08); margin-bottom: 14px; }
+  /* 부고·청첩장 입구 나누기(10/20 형구 A안): 탭 없이 주소마다 한쪽만. 부고는 흑백, 청첩장은 밝게 */
+  .seg { display: none !important; }
+  body.kind-f { --green: #2b2b2b; } body.kind-w { --green: #b0746d; }   /* 버튼·번호도 종류 색으로 */
+  body.kind-f .hero { background: #2b2b2b; } body.kind-f .hero::after { display: none; }
+  body.kind-w .hero { background: linear-gradient(135deg, #f6e3df, #efe2d0); color: #4a3a3a; }
+  body.kind-w .hero::after { background: radial-gradient(circle, rgba(201,143,136,.18) 0 18%, transparent 19% 30%, rgba(201,143,136,.12) 31% 44%, transparent 45%); }
+  body.kind-w .chips span { background: rgba(255,255,255,.55); border-color: #dcc6bf; color: #4a3a3a; }
+  .seg-x { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--paper); padding: 6px; border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.08); margin-bottom: 14px; }
   .seg button { padding: 13px 10px; border: 0; border-radius: 12px; background: transparent; font: inherit; font-size: 16px; font-weight: 800; color: var(--soft); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .seg button.on { background: var(--green); color: #fff; }
   .seg i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
@@ -381,6 +388,7 @@ function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0
 function mode(k){
   if(EDIT && MG && MG.data && k!==MG.data.k){ toast("보낸 안내는 종류를 바꿀 수 없어요 — '새로 만들기'를 눌러 주세요"); return; }
   K=k; $("tF").classList.toggle("on",k==="f"); $("tW").classList.toggle("on",k==="w");
+  setHero(k);
   $("fF").classList.toggle("hide",k!=="f"); $("fW").classList.toggle("hide",k!=="w");
   $("aList").classList.toggle("is-w", k==="w"); document.body.classList.toggle("is-w-mode", k==="w");
   $("nAcc").textContent = k==="f" ? "5" : "4"; $("nWr").textContent = k==="f" ? "6" : "5";
@@ -518,6 +526,29 @@ function data(){
 // ── 파트너(상조·장례식장·웨딩홀) 링크 — ?kind=f|w &venue=이름 &ref=코드(영문·숫자·-_ 30자) ──
 // 식장마다 자기 이름이 미리 들어간 링크/QR 을 줄 수 있고, ref 는 카드와 그 카드에서 나온 화환 주문(원문 링크)까지 따라가 어디서 왔는지 센다.
 var REF="";
+// ── 주소로 종류 고정(10/20 A안): /bugo/make = 부고장, /wedding-card/make = 청첩장. 옛 /card-make.html 은 새 주소로 넘긴다(고치기 링크는 불러온 뒤 맞춘다) ──
+var PATHK = /^\/wedding-card/.test(location.pathname) ? "w" : /^\/bugo/.test(location.pathname) ? "f" : "";
+function KPATH(k){ return k==="w" ? "/wedding-card/make" : "/bugo/make"; }
+(function(){
+  if(PATHK) return;
+  var q=new URLSearchParams(location.search); if(q.get("edit")) return;
+  var k=q.get("kind")==="w"?"w":"f"; q.delete("kind");
+  location.replace(KPATH(k)+(q.toString()?"?"+q.toString():"")+location.hash);
+})();
+function setHero(k){
+  document.body.classList.toggle("kind-f", k==="f"); document.body.classList.toggle("kind-w", k==="w");
+  var h=document.querySelector(".hero h1"), p=document.querySelector(".hero p");
+  if(k==="f"){
+    h.textContent="부고 알리기"; p.textContent="장례식장 이름만 치면 주소·전화가 채워져요. 링크 하나로 카톡·문자에 보내세요.";
+    $("chips").innerHTML='<span>회원가입 없음</span><span>광고 없음</span><span>3분이면 끝</span><span>장례식장 1,117곳 검색</span>'+(READY?'<span>보낸 뒤에도 고치기</span><span>조문 글</span><span>발인 7일 뒤 자동 삭제</span>':'');
+    document.title="무료 모바일 부고장 만들기 — 꽃안부";
+  } else {
+    h.textContent="모바일 청첩장 만들기"; p.textContent="사진·계좌·지도·방명록까지. 디자인 6가지에서 골라요.";
+    $("chips").innerHTML='<span>무료</span><span>광고 없음</span><span>사진 8장</span><span>인사말 39가지</span>'+(READY?'<span>보낸 뒤에도 고치기</span><span>축하 방명록</span>'+(RSVP_READY?'<span>참석 여부</span>':'')+'<span>예식 30일 뒤 자동 삭제</span>':'');
+    document.title="무료 모바일 청첩장 만들기 — 꽃안부";
+  }
+}
+if(PATHK) setHero(PATHK);
 // ── 문구 고르기(10/20) — card-msgs.js 의 묶음을 탭으로. 고르면 인사말을 바꾸고, '덧붙이는 한 줄'은 뒤에 붙인다 ──
 function msgLib(k){
   var groups=(window.CARD_MSGS||{})[k]||[]; if(!groups.length){ toast("문구를 불러오지 못했어요"); return; }
@@ -547,7 +578,7 @@ function msgLib(k){
 function applyPartnerLink(){
   var q=new URLSearchParams(location.search);
   var ref=String(q.get("ref")||"").trim(); if(/^[A-Za-z0-9_-]{1,30}$/.test(ref)) REF=ref;
-  if(q.get("kind")==="w") mode("w");
+  if(q.get("kind")==="w" || PATHK==="w") mode("w");
   var venue=String(q.get("venue")||"").trim().slice(0,60); if(!venue) return;
   if(K==="w"){ $("w_venue").value=venue; preview(); return; }
   $("f_venue").value=venue;
@@ -683,6 +714,7 @@ $("wPhotoFile").addEventListener("change", function(e){ uploadWeddingPhoto(e.tar
 // 서버에서 받은 내용 → 칸 채우기(고치기 모드)
 function fill(d){
   mode(d.k);
+  try{ if(location.pathname!==KPATH(d.k)) history.replaceState(null,"",KPATH(d.k)+location.search+location.hash); }catch(_){}
   if(d.k==="f"){
     TF=d.theme==="gukhwa"?"gukhwa":"mono"; setTheme("thF",TF); setRel(d.rel);
     ["name","age","died","venue","room","tel","addr","burial","outDate","out","msg"].forEach(function(k){ $("f_"+k).value=d[k]||""; });
@@ -755,9 +787,9 @@ function make(){
       if(x.s===200 && x.j.id){
         EDIT={ id:x.j.id, key:x.j.key };
         LINK=x.j.url || (location.origin+"/c/"+x.j.id);
-        EDITLINK=location.origin+"/card-make.html?edit="+x.j.id+"#k="+x.j.key;
+        EDITLINK=location.origin+KPATH(d.k)+"?edit="+x.j.id+"#k="+x.j.key;
         saveMine({ id:x.j.id, key:x.j.key, k:d.k, t:titleOf(d), at:new Date().toISOString(), exp:x.j.expiresAt||"" });
-        try{ history.replaceState(null,"","/card-make.html?edit="+x.j.id); }catch(_){}
+        try{ history.replaceState(null,"",KPATH(d.k)+"?edit="+x.j.id); }catch(_){}
         busy(false); showDone(d, true, true, x.j.expiresAt);
         loadEdit(x.j.id, x.j.key, true);
         return;
@@ -771,7 +803,7 @@ function make(){
 function showDone(d, server, fresh, expIso){
   var th=$("kThumb");
   th.style.background=""; th.innerHTML='<img alt="" src="'+(server?"/og/card-"+ogName(d)+".png":"/og_preview.png")+'">';
-  $("kTitle").textContent = server ? titleOf(d) : "꽃안부 무료 부고장 · 청첩장";
+  $("kTitle").textContent = server ? titleOf(d) : (d.k==="f"?"꽃안부 무료 부고장":"꽃안부 무료 모바일 청첩장");
   $("kDesc").textContent = server ? (descOf(d)||"눌러서 자세히 보기") : "눌러서 자세히 보기 · 길찾기";
   $("kB1").textContent = d.k==="f" ? "부고 보기" : "청첩장 보기";
   $("kBt").classList.toggle("hide", !(server && KAKAO));
@@ -822,11 +854,11 @@ function saveMine(e){ var a=myCards(), old=null; a=a.filter(function(x){ if(x.id
 function dropMine(id){ setMine(myCards().filter(function(x){ return x.id!==id; })); }
 function renderMine(){
   var box=$("mine"), now=Date.now();
-  var list=myCards().filter(function(x){ return !x.exp || Date.parse(x.exp)>now; });
+  var list=myCards().filter(function(x){ return (!x.exp || Date.parse(x.exp)>now) && (!x.k || x.k===K); });   // 이 화면 종류(부고/청첩장)만
   if(EDIT || !READY || !list.length){ box.classList.add("hide"); return; }
   box.innerHTML='<h3>이 기기에서 만든 안내</h3>'+list.slice(0,5).map(function(x){
     var at=new Date(x.at||""), ex=new Date(x.exp||"");
-    return '<div class="row"><span>'+esc(x.t||"안내")+'<small>'+(isFinite(at)?(at.getMonth()+1)+"/"+at.getDate()+" 만듦":"")+(isFinite(ex)?" · "+(ex.getMonth()+1)+"/"+ex.getDate()+"까지":"")+'</small></span><a href="/card-make.html?edit='+esc(x.id)+'">고치기</a></div>';
+    return '<div class="row"><span>'+esc(x.t||"안내")+'<small>'+(isFinite(at)?(at.getMonth()+1)+"/"+at.getDate()+" 만듦":"")+(isFinite(ex)?" · "+(ex.getMonth()+1)+"/"+ex.getDate()+"까지":"")+'</small></span><a href="'+KPATH(x.k)+'?edit='+esc(x.id)+'">고치기</a></div>';
   }).join("");
   box.classList.remove("hide");
 }
@@ -837,12 +869,12 @@ function loadEdit(id, key, quiet){
   return post({ action:"manage", id:id, key:key }).then(function(x){
     if(x.s!==200){
       if(x.s===410 || x.s===404){ dropMine(id); }
-      if(!quiet){ toast(x.j.error||"불러오지 못했어요"); EDIT=null; MG=null; try{ history.replaceState(null,"","/card-make.html"); }catch(_){} renderMine(); renderMg(); }
+      if(!quiet){ toast(x.j.error||"불러오지 못했어요"); EDIT=null; MG=null; try{ history.replaceState(null,"",KPATH(K)); }catch(_){} renderMine(); renderMg(); }
       busy(false);
       return;
     }
     EDIT={ id:id, key:key }; MG=x.j; LINK=x.j.url || (location.origin+"/c/"+id);
-    EDITLINK=location.origin+"/card-make.html?edit="+id+"#k="+key;
+    EDITLINK=location.origin+KPATH(x.j.data.k)+"?edit="+id+"#k="+key;
     saveMine({ id:id, key:key, k:x.j.data.k, t:titleOf(x.j.data), exp:x.j.expiresAt||"" });
     if(!quiet) fill(x.j.data);
     renderMg(); renderMine(); busy(false);
@@ -864,7 +896,7 @@ function renderMg(){
     +'<p class="st">조회 '+(MG.views||0)+'번'+(d.noComment?'':' · '+(fun?"조문 글":"방명록")+' '+cms.filter(function(c){ return !c.hidden; }).length+'개')
     +(isFinite(exp)?' · '+(exp.getMonth()+1)+'월 '+exp.getDate()+'일에 자동으로 닫혀요':'')
     +'<br>아래에서 고친 뒤 <b>고친 내용 저장</b>을 누르면 이미 보낸 링크에도 바로 반영돼요.</p>'
-    +'<div class="btns"><button type="button" class="send" id="mgSend">링크 보내기</button><a href="/card-make.html" id="mgNew">새로 만들기</a><button type="button" class="cl" id="mgClose">지금 닫기</button></div>'
+    +'<div class="btns"><button type="button" class="send" id="mgSend">링크 보내기</button><a href="'+KPATH(K)+'" id="mgNew">새로 만들기</a><button type="button" class="cl" id="mgClose">지금 닫기</button></div>'
     +rsvpSummaryHtml(MG)
     +(cms.length?'<div class="cms"><b class="t">'+(fun?"조문 글":"방명록")+'</b>'+cms.map(function(c){
         return '<div class="cmi'+(c.hidden?' off':'')+'"><span><b>'+esc(c.name)+'</b> <small style="color:#9a958a">'+esc(relT(c.created_at))+'</small><br>'+esc(c.body)+'</span><button type="button" data-cid="'+c.id+'" data-h="'+(c.hidden?0:1)+'">'+(c.hidden?"다시 보이기":"숨기기")+'</button></div>';
@@ -875,7 +907,7 @@ function renderMg(){
     if(!confirm("지금 닫으면 받는 분들이 더는 볼 수 없고, 계좌와 "+(fun?"조문 글":"방명록")+"도 지워져요. 되살릴 수 없어요. 닫을까요?")) return;
     post({ action:"close", id:EDIT.id, key:EDIT.key }).then(function(x){
       if(x.s!==200){ toast(x.j.error||"닫지 못했어요"); return; }
-      dropMine(EDIT.id); toast("닫았어요"); setTimeout(function(){ location.href="/card-make.html"; },900);
+      dropMine(EDIT.id); toast("닫았어요"); setTimeout(function(){ location.href=KPATH(K); },900);
     });
   };
   box.querySelectorAll("button[data-cid]").forEach(function(b){ b.onclick=function(){
@@ -892,7 +924,7 @@ var READY_P=fetch("/api/order-meta?card=ready&json=1",{ cache:"no-store" }).then
   READY=!!(j && j.ready); KAKAO=(j && j.kakaoKey)||""; RSVP_READY=!!(j && j.rsvp);
 }).catch(function(){ READY=false; }).then(function(){
   if(READY){
-    $("chips").insertAdjacentHTML("beforeend",'<span>보낸 뒤에도 고치기</span><span>조문 글 · 방명록</span>'+(RSVP_READY?'<span>참석 여부</span>':'')+'<span>기간 지나면 자동 삭제</span>');
+    setHero(K);
     $("cmSw").classList.remove("hide"); $("wrH").textContent="화환 · 글"; $("rsvpSw").classList.toggle("hide", !(RSVP_READY && K==="w"));
     var q=new URLSearchParams(location.search), id=q.get("edit"), km=String(location.hash||"").match(/[#&]k=([A-Za-z0-9_-]{10,})/);
     if(id && /^[A-Za-z0-9]{6,12}$/.test(id)){
@@ -907,6 +939,7 @@ var READY_P=fetch("/api/order-meta?card=ready&json=1",{ cache:"no-store" }).then
 });
 function openPreview(){ preview(); $("pvSheet").classList.add("on"); }
 function closeSheet(id){ $(id).classList.remove("on"); }
+if(PATHK==="w" && K!=="w") mode("w");
 preview();
 </script>
 </body>

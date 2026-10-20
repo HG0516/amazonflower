@@ -210,6 +210,18 @@
       "destination": "/funeral/:name.html"
     },
     {
+      "source": "/bugo/make",
+      "destination": "/card-make.html"
+    },
+    {
+      "source": "/wedding-card/make",
+      "destination": "/card-make.html"
+    },
+    {
+      "source": "/wedding-card",
+      "destination": "/wedding-card.html"
+    },
+    {
       "source": "/bugo",
       "destination": "/bugo.html"
     }

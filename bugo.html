@@ -16,19 +16,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
 <!--
   무료 부고장 소개 페이지(2026-10-08 초안, 10/20 형구 확인 → 검색 공개·sitemap 등록). 검색으로 "무료 부고장"을 찾는 분이 들어오는 입구.
-  만들기 화면(card-make.html)은 도구라 검색에서 막아 두었고, 설명·예시·질문은 여기서 한다.
+  만들기 화면(/bugo/make → card-make.html, 10/20부터 부고 전용 주소)은 도구라 검색에서 막아 두었고, 설명·예시·질문은 여기서 한다.
 -->
 <style>
   :root { --ink:#1f1d18; --soft:#5a564d; --faint:#9a958a; --line:#e4e0d6; --green:#1f4733; --green2:#2f6a4c; --paper:#fff; --bg:#f3f2ed; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Noto Sans KR", sans-serif; line-height: 1.65; -webkit-font-smoothing: antialiased; }
   a { color: inherit; }
-  .hero { background: radial-gradient(120% 140% at 85% 0%, #2f6a4c 0%, #1f4733 45%, #16352a 100%); color: #fff; padding: 36px 20px 40px; }
+  .hero { background: #2b2b2b; color: #fff; padding: 36px 20px 40px; }   /* 10/20 부고·청첩장 나누기: 부고는 흑백 */
   .in { max-width: 920px; margin: 0 auto; }
   .hero .k { font-size: 13px; letter-spacing: .5px; opacity: .8; }
   .hero h1 { margin: 10px 0 12px; font-family: "Nanum Myeongjo", serif; font-size: 32px; line-height: 1.3; letter-spacing: -.3px; }
   .hero p { margin: 0 0 22px; font-size: 16px; opacity: .92; max-width: 560px; }
-  .cta { display: inline-block; background: #fff; color: var(--green); font-weight: 800; font-size: 17px; padding: 15px 24px; border-radius: 14px; text-decoration: none; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
+  .cta { display: inline-block; background: #fff; color: #2b2b2b; font-weight: 800; font-size: 17px; padding: 15px 24px; border-radius: 14px; text-decoration: none; box-shadow: 0 8px 22px rgba(0,0,0,.18); }
   .cta.ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.5); box-shadow: none; margin-left: 8px; font-weight: 600; }
   .hero .tiny { margin-top: 14px; font-size: 13px; opacity: .8; }
   section { padding: 34px 20px; }
@@ -67,7 +67,7 @@
   <div class="k">꽃안부 · 무료 모바일 부고장</div>
   <h1>부고, 3분이면<br>보낼 수 있어요</h1>
   <p>장례식장 이름만 치면 주소와 전화가 채워집니다. 빈소, 발인, 계좌, 지도까지 한 장에 담아 카톡이나 문자로 보내세요. 회원가입도, 광고도 없습니다.</p>
-  <a class="cta" href="/card-make.html?kind=f&ref=bugo">부고장 만들기</a><a class="cta ghost" href="/card-make.html?kind=w&ref=bugo">청첩장도 무료예요</a>
+  <a class="cta" href="/bugo/make?ref=bugo">부고장 만들기</a>
   <div class="tiny">보낸 뒤에도 고칠 수 있고, 발인 7일 뒤에는 자동으로 지워집니다.</div>
 </div></header>
 
@@ -117,7 +117,7 @@
 </div></section>
 
 <div class="bottom">
-  <a class="cta" href="/card-make.html?kind=f&ref=bugo">지금 부고장 만들기</a>
+  <a class="cta" href="/bugo/make?ref=bugo">지금 부고장 만들기</a>
   <div class="cap">3분 · 회원가입 없음 · 광고 없음</div>
 </div>
 <footer>꽃안부 · 경기 시흥 · 1993년부터 · <a href="tel:15772286">1577-2286</a> · <a href="/">홈</a> · <a href="/privacy.html">개인정보처리방침</a></footer>

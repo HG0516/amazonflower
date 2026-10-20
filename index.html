@@ -35,7 +35,7 @@
 <!-- pwa-install.js('홈 화면에 추가' 배너) 제거 — 홈 배너와 겹침 + 추후 네이티브 앱 출시 예정(2026-07-18).
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
-<script src="/footer.js?v=20261020b" defer></script>
+<script src="/footer.js?v=20261020c" defer></script>
 <script src="/bottom-nav.js?v=20261020" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
@@ -725,6 +725,10 @@
   /* 부고·청첩 캡처 사진으로 읽기(10/20 형구). 단톡방 부고는 링크보다 이미지로 많이 온다. */
   .qs-img { width: 100%; min-height: 48px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent-deep); font-family: var(--font-body); font-size: 15.5px; font-weight: 800; cursor: pointer; }
   .af-nowreath { margin: 0 0 10px; padding: 11px 13px; border-radius: var(--radius-sm); background: #fdf3e7; border: 1px solid #ecc99a; color: var(--ink); line-height: 1.65; }
+  .hg-card { display: flex; flex-direction: column; gap: 2px; margin: 12px 0 0; padding: 12px 14px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; }
+  .hg-card b { font-size: 15px; } .hg-card span { font-size: 13px; opacity: .8; }
+  .hg-card.f { background: #2b2b2b; color: #f3f1ec; } .hg-card.w { background: linear-gradient(135deg, #f6e3df, #efe2d0); color: #4a3a3a; }
+  .hg-card[hidden] { display: none; }
   .qs-or { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 13px; color: var(--ink-faint); }
   .qs-or::before, .qs-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
   .qs-lbl { display: block; margin-bottom: 8px; font-size: var(--fs-caption); font-weight: 700; color: var(--ink); }
@@ -942,6 +946,8 @@
       <button type="button" class="hg-chip" data-cat="basket" aria-pressed="false" onclick="afHomeCat('basket')">생신·회갑</button>
       <button type="button" class="hg-chip" data-cat="bouquet" aria-pressed="false" onclick="afHomeCat('bouquet')">병문안</button>
     </div>
+    <!-- '부고'·'결혼' 칩을 고르면 그 칸에만 무료 안내장 한 줄(10/20 부고·청첩장 나누기 A안). 서로 섞어 보이지 않는다. -->
+    <a class="hg-card" id="homeCardLink" hidden></a>
     <div class="hg-grid" id="homeGrid"></div>
     <a class="hg-more" id="homeMore" href="/catalog.html">전체 상품 보기 →</a>
   </section>
@@ -2484,6 +2490,13 @@ function afRenderHomeGrid(){
   if(more){
     more.href="/catalog.html"+(afHomeSel?"?cat="+encodeURIComponent(afHomeSel):"");
     more.textContent=(afHomeSel?HOME_CATS[afHomeSel]+" 전부 보기":"전체 상품 보기")+" →";
+  }
+  const cl=document.getElementById("homeCardLink");
+  if(cl){
+    const f=afHomeSel==="condolence", w=afHomeSel==="congrats";
+    cl.hidden=!(f||w);
+    if(f){ cl.href="/bugo"; cl.className="hg-card f"; cl.innerHTML="<b>부고장도 무료로 만들어 드려요</b><span>빈소·발인·계좌를 한 장에, 카톡으로 보내기 →</span>"; }
+    if(w){ cl.href="/wedding-card"; cl.className="hg-card w"; cl.innerHTML="<b>모바일 청첩장도 무료예요</b><span>사진·계좌·지도·방명록까지, 디자인 6가지 →</span>"; }
   }
   document.querySelectorAll("#homeChips .hg-chip").forEach(b=>{
     const on=(b.dataset.cat||"")===afHomeSel;
