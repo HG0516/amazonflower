@@ -36,7 +36,7 @@
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
 <script src="/footer.js?v=20261004" defer></script>
-<script src="/bottom-nav.js?v=20261004" defer></script>
+<script src="/bottom-nav.js?v=20261020" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
 <script src="/meanings.js" defer></script>
@@ -731,7 +731,14 @@
   .qs-sug .sg-go { display: block; width: 100%; padding: 12px; border: 0; border-top: 1px solid var(--line-soft); background: var(--accent-soft); color: var(--accent-deep); font-family: var(--font-body); font-size: 15px; font-weight: 800; text-align: center; text-decoration: none; cursor: pointer; }
   .qs-sug .sg-go.top { border-top: 0; border-bottom: 1px solid var(--line-soft); text-align: left; }
   .qs-sug .sg-link { padding: 10px 12px; font-size: 14px; color: var(--ink-soft); word-break: break-all; }
-  .qs-sheet.qs-typing .qs-s, .qs-sheet.qs-typing .qs-big, .qs-sheet.qs-typing .qs-or, .qs-sheet.qs-typing .qs-ex, .qs-sheet.qs-typing .qs-call { display: none; }
+  .qs-sug .sg-row { display: flex; gap: 8px; padding: 4px 12px 12px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .qs-sug .sg-row::-webkit-scrollbar { display: none; }
+  .qs-sug .sg-card { flex: none; width: 108px; color: var(--ink); text-decoration: none; }
+  .qs-sug .sg-card img { display: block; width: 108px; height: 108px; border-radius: 10px; object-fit: cover; background: var(--photo-bg); }
+  .qs-sug .sg-card .sg-n { display: -webkit-box; margin-top: 5px; font-size: 13.5px; line-height: 1.3; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .qs-sug .sg-card .sg-p { display: block; margin-top: 2px; font-size: 14.5px; }
+  .qs-sug .sg-more { height: 108px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent-deep); font-size: 14px; font-weight: 800; text-align: center; line-height: 1.4; }
+  .qs-sheet.qs-typing .qs-lbl, .qs-sheet.qs-typing .qs-s, .qs-sheet.qs-typing .qs-big, .qs-sheet.qs-typing .qs-or, .qs-sheet.qs-typing .qs-ex, .qs-sheet.qs-typing .qs-call { display: none; }
   .qs-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .qs-ex button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .qs-call { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; margin-top: 18px; border-radius: var(--radius-lg); background: var(--accent-soft); color: var(--accent-deep); font-size: 14.5px; text-decoration: none; }
@@ -815,7 +822,7 @@
     body.af-start-on:not(.ordering) .qs-ex { order: 9; margin-top: 12px; }
     body.af-start-on:not(.ordering) .qs-sug { order: 4; margin: 8px 0 2px; }
     body.af-start-on:not(.ordering) .qs-sug .sg-bands button { padding: 0 9px; }
-    body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-s { display: block; }
+    body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-s, body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-lbl { display: block; }
     body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-big { display: flex; }
     body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-ex { display: flex; }
     body.af-start-on:not(.ordering) .qs-pc-tel { order: 10; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
@@ -2450,10 +2457,13 @@ function afCloseStart(){
 }
 function afFitStart(){
   const sh=document.getElementById("quickStart"), vv=window.visualViewport; if(!sh) return;
-  if(afIsPC()){ sh.style.marginBottom=""; sh.style.maxHeight=""; return; }
-  const kb=vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
-  sh.style.marginBottom=kb ? kb+"px" : "";
-  sh.style.maxHeight=vv ? Math.round(vv.height-24)+"px" : "";
+  if(afIsPC()){ sh.style.marginBottom=""; sh.style.maxHeight=""; const o=document.getElementById("qsSheet"); if(o){ o.style.top=o.style.bottom=o.style.height=""; } return; }
+  // 아이폰은 키보드·입력 보조 막대 높이가 기기마다 달라 계산이 어긋났다(10/20 형구 캡처: 시트 아래로 페이지가 비침).
+  // 덮개(qs-ov) 자체를 보이는 영역(visualViewport)에 맞추면 시트가 늘 키보드 바로 위에 붙는다.
+  const ov=document.getElementById("qsSheet");
+  if(vv && ov){ ov.style.top=Math.round(vv.offsetTop)+"px"; ov.style.bottom="auto"; ov.style.height=Math.round(vv.height)+"px"; }
+  sh.style.marginBottom="";
+  sh.style.maxHeight=vv ? Math.round(vv.height-12)+"px" : "";
 }
 if(window.visualViewport){ visualViewport.addEventListener("resize", afFitStart); visualViewport.addEventListener("scroll", afFitStart); }
 document.addEventListener("keydown", e=>{ if(e.key==="Escape") afCloseStart(); });
@@ -2476,6 +2486,10 @@ function afSugDraw(keepBand){
   const a=AF_SEARCH.analyze(val, window.PRODUCTS||[]);
   if(sh) sh.classList.toggle("qs-typing", a.kind!=="empty");
   const pc=!!(AF_PC_MQ && AF_PC_MQ.matches), n=pc?4:3;
+  // 휴대폰은 키보드 위 공간이 좁아 가로로 미는 카드(최대 10개 + 전부 보기), PC는 세로 목록 4개.
+  const card=p=>`<a class="sg-card" href="/?pc=${encodeURIComponent(p.pc)}"><img src="${escapeHtml(p.photos[0])}" alt="" loading="lazy"><span class="sg-n">${escapeHtml(afHomeName(p))}</span><span class="sg-p">${p.price.toLocaleString()}원</span></a>`;
+  const list=(items,more)=> pc ? items.slice(0,n).map(item).join("")
+    : `<div class="sg-row">${items.slice(0,10).map(card).join("")}${more?`<a class="sg-card sg-more" href="${more}">전부<br>보기 →</a>`:""}</div>`;
   const item=p=>`<a class="sg-it" href="/?pc=${encodeURIComponent(p.pc)}"><img src="${escapeHtml(p.photos[0])}" alt="" loading="lazy"><span class="sg-n">${escapeHtml(afHomeName(p))}</span><span class="sg-p">${p.price.toLocaleString()}원</span></a>`;
   let html="";
   if(a.kind==="link"){
@@ -2486,11 +2500,12 @@ function afSugDraw(keepBand){
     const on=b=> b ? afSugBand===b : (all || (!afSugBand && !a.min && !a.max));
     const bands=`<div class="sg-bands">${["",...AF_SUG_BANDS].map(b=>`<button type="button" class="${on(b)?"on":""}" onclick="afSugBandPick('${b||"all"}')">${b||"전체"}</button>`).join("")}</div>`;
     const head=m.near ? `${escapeHtml(lb)} 상품이 없어요. 가까운 가격이에요` : m.items.length ? `${escapeHtml(lb)} · ${m.items.length}개 · 싼 순서` : `${escapeHtml(lb)} 상품이 없어요`;
-    html=`<div class="sg-h">${head}</div>${bands}${m.items.slice(0,n).map(item).join("")}<a class="sg-go" href="${AF_SEARCH.catalogUrl(aa, band)}">전부 보기 →</a>`;
+    const more=AF_SEARCH.catalogUrl(aa, band);
+    html=`<div class="sg-h">${head}</div>${bands}${list(m.items, more)}${pc?`<a class="sg-go" href="${more}">전부 보기 →</a>`:""}`;
   } else if(a.kind==="occasion"){
     const m=AF_SEARCH.match(a, window.PRODUCTS||[]);
     html=`<button type="button" class="sg-go top" onclick="runParse()">'${escapeHtml(val.length>14?val.slice(0,14)+"…":val)}'(으)로 주문서 시작 →</button>`
-      + (m.items.length ? `<div class="sg-h">어울리는 상품</div>${m.items.slice(0,n-1).map(item).join("")}` : "");
+      + (m.items.length ? `<div class="sg-h">어울리는 상품</div>${pc ? m.items.slice(0,n-1).map(item).join("") : list(m.items,"")}` : "");
   }
   box.innerHTML=html; box.hidden=!html;
 }

@@ -10,6 +10,15 @@
   var IC_RECEIPT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 3h12v18l-2-1.3L14 21l-2-1.3L10 21l-2-1.3L6 21V3Z"/><path d="M9 8h6M9 12h6"/></svg>';
   var IC_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6.5 3h3l1.5 5-2 1.3a11 11 0 0 0 5 5l1.3-2 5 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>';
 
+  // 입력칸에 커서가 있으면 키보드가 올라온 것으로 본다(휴대폰 폭만). 체크박스·버튼은 키보드가 안 뜨니 뺀다.
+  function syncKb() {
+    var t = document.activeElement, mq = window.matchMedia && window.matchMedia('(max-width: 999px)').matches;
+    var typing = !!t && (/^(TEXTAREA|SELECT)$/.test(t.tagName) || (t.tagName === 'INPUT' && !/^(checkbox|radio|button|submit|reset|file|range|color)$/i.test(t.type || '')) || t.isContentEditable);
+    document.documentElement.classList.toggle('af-kb', typing && !!mq);
+  }
+  document.addEventListener('focusin', syncKb);
+  document.addEventListener('focusout', function () { setTimeout(syncKb, 60); });
+
   function injectStyles() {
     if (document.getElementById('af-bn-style')) return;
     var css = ''
@@ -27,7 +36,9 @@
       + '.af-bn .ic svg{width:24px;height:24px;display:block;}'
       + '.af-bn .lb{font-size:var(--fs-caption);font-weight:700;letter-spacing:.2px;}'
       + '.af-bn .on{color:var(--accent,#1f4733);}'
-      + 'body.af-nav-on{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px));}';
+      + 'body.af-nav-on{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px));}'
+      // 휴대폰에서 글을 치는 동안(html.af-kb)엔 아래 고정 막대를 모두 숨긴다(10/20). 안드로이드는 키보드 바로 위로 떠서 입력칸을 가린다.
+      + 'html.af-kb .af-bn,html.af-kb #buyBar,html.af-kb .start-bar,html.af-kb .cart-fab,html.af-kb .af-auth-chip{display:none!important;}';
     var s = document.createElement('style');
     s.id = 'af-bn-style';
     s.textContent = css;
