@@ -33,6 +33,15 @@
   .mourners b { display: inline-block; min-width: 48px; font-weight: 500; opacity: .6; font-size: 13.5px; }
   details.accts summary { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 0 6px; font-family: "Noto Sans KR", sans-serif; }
   .maps.cal { margin-top: 8px; }
+  .acct-b { display: flex; gap: 6px; flex-shrink: 0; }
+  .acct .kp { border-radius: 8px; padding: 7px 10px; font-size: 12.5px; font-weight: 700; background: #ffeb00; color: #191600; text-decoration: none; white-space: nowrap; }
+  .dday { display: inline-block; margin-top: 8px; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.85); color: #4a3a3a; font-size: 13px; font-weight: 700; font-family: "Noto Sans KR", sans-serif; }
+  .gal { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 18px -4px 0; padding: 0 4px 6px; -webkit-overflow-scrolling: touch; }
+  .gal img { flex: 0 0 72%; max-width: 300px; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; scroll-snap-align: center; cursor: zoom-in; background: #eee; }
+  .gal-n { margin-top: 2px; font-size: 12px; opacity: .6; text-align: center; font-family: "Noto Sans KR", sans-serif; }
+  .lb { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.92); display: flex; align-items: center; justify-content: center; }
+  .lb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  @media print { .gal { display: none; } }
   .maps.cal a { border: 1px solid rgba(0,0,0,.15); background: rgba(255,255,255,.6); color: inherit; font-weight: 600; }
   .acct { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 10px; font-size: 14px; margin-top: 8px; font-family: "Noto Sans KR", sans-serif; }
   .acct button { border: 0; border-radius: 8px; padding: 7px 11px; font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
@@ -171,6 +180,12 @@ function calHtml(d){
   return '<div class="maps cal"><a href="#" data-ics="1">📅 달력에 넣기</a><a href="'+esc(g)+'" target="_blank" rel="noopener">구글 캘린더</a></div>';
 }
 function icsEsc(v){ return String(v||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n"); }
+// 사진 크게 보기 — 누르면 검은 바탕에 꽉 차게, 다시 누르면 닫힌다
+document.addEventListener("click",function(ev){
+  var im=ev.target.closest && ev.target.closest("[data-lb]"); if(!im) return;
+  var lb=document.createElement("div"); lb.className="lb"; lb.innerHTML='<img src="'+esc(im.getAttribute("data-lb"))+'" alt="">';
+  lb.onclick=function(){ lb.remove(); }; document.body.appendChild(lb);
+});
 document.addEventListener("click",function(ev){
   var a=ev.target.closest && ev.target.closest("[data-ics]"); if(!a || !CUR) return;
   ev.preventDefault();
@@ -186,9 +201,11 @@ document.addEventListener("click",function(ev){
   setTimeout(function(){ URL.revokeObjectURL(u); },4000);
 });
 function acctsHtml(list){
-  list=(list||[]).filter(function(a){ return a && a.no; }); if(!list.length) return "";
+  list=(list||[]).filter(function(a){ return a && (a.no||a.kp); }); if(!list.length) return "";
   return '<details class="accts"'+(list.length<=2?' open':'')+'><summary>마음 전하실 곳 ('+list.length+')</summary>'
-    + list.map(function(a){ var t=[a.who,a.bank,a.no].filter(Boolean).join(" "); return '<div class="acct"><span>'+esc(t)+'</span><button data-copy="'+esc((a.bank||"")+" "+a.no)+'">복사</button></div>'; }).join("")
+    + list.map(function(a){ var t=[a.who,a.bank,a.no].filter(Boolean).join(" ");
+        var kp=/^https:\/\/qr\.kakaopay\.com\/[A-Za-z0-9_-]+$/.test(a.kp||"") ? '<a class="kp" href="'+esc(a.kp)+'" target="_blank" rel="noopener">카카오페이</a>' : "";
+        return '<div class="acct"><span>'+esc(t||a.who||"")+'</span><span class="acct-b">'+kp+(a.no?'<button data-copy="'+esc((a.bank||"")+" "+a.no)+'">복사</button>':'')+'</span></div>'; }).join("")
     + '</details>';
 }
 function orderUrl(p){
@@ -352,9 +369,14 @@ function renderWedding(d){
     +'<div class="two"><a class="btn" href="'+esc(orderUrl({ worder:"wedding", side:"groom", rn:"신랑 "+d.g, gn:d.g, bn:d.b, v:d.venue, vd:d.hall, a:d.addr, d:d.date, et:d.time }))+'">신랑 측으로</a>'
     +'<a class="btn" href="'+esc(orderUrl({ worder:"wedding", side:"bride", rn:"신부 "+d.b, gn:d.g, bn:d.b, v:d.venue, vd:d.hall, a:d.addr, d:d.date, et:d.time }))+'">신부 측으로</a></div>'
     +'<p class="promise">'+dueHtml(dl)+'<br>배송비 포함 · 도착하면 사진으로 알려드려요</p></div>';
+  // D-day(10/20): 예식 전엔 D-숫자, 당일엔 '오늘', 지나면 안 보인다
+  var dd=(function(){ var t=at(d.date,"00:00"); if(!t) return ""; var now=new Date(), a=new Date(now.getFullYear(),now.getMonth(),now.getDate()); var n=Math.round((t-a)/86400000); return n>0?"D-"+n:(n===0?"오늘 결혼해요":""); })();
+  if(dd) head=head.replace('<div class="sub">'+esc(when)+'</div>','<div class="sub">'+esc(when)+'</div><div><span class="dday">'+esc(dd)+'</span></div>');
+  var gal=(d.gal||[]).filter(function(u){ return /^https:\/\//.test(u); }).slice(0,8);
+  var galHtml=gal.length?'<div class="gal" id="gal">'+gal.map(function(u){ return '<img src="'+esc(u)+'" alt="" loading="lazy" data-lb="'+esc(u)+'">'; }).join("")+'</div>'+(gal.length>1?'<div class="gal-n">옆으로 넘겨 보세요 · '+gal.length+'장</div>':''):"";
   var parents = (d.gp||d.bp) ? '<p class="parents">'+(d.gp?esc(d.gp)+' 의 아들 <b>'+esc(d.g)+'</b><br>':'')+(d.bp?esc(d.bp)+' 의 딸 <b>'+esc(d.b)+'</b>':'')+'</p>' : '';
   return '<div class="card t-'+(d.theme==="flower"?"flower":"classic")+'">'+head+'<div class="pad">'
-    +'<p class="msg">'+esc(msg)+'</p>'+parents
+    +'<p class="msg">'+esc(msg)+'</p>'+parents+galHtml
     +'<div class="sec"><dl class="kv"><dt>일시</dt><dd>'+esc(when)+'</dd><dt>장소</dt><dd>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</dd></dl>'
     +mapsHtml(d.venue, d.addr)+calHtml(d)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
     +rsvpHtml(d, dl)

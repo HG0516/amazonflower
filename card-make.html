@@ -56,6 +56,10 @@
   .rowm { display: grid; grid-template-columns: 96px 1fr 40px; gap: 8px; margin-top: 8px; align-items: center; }
   .rowa { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: #fbfaf7; position: relative; }
   .rowa .full { grid-column: 1 / -1; }
+  .gal-mk { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .gal-mk div { position: relative; width: 64px; height: 64px; }
+  .gal-mk img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; display: block; }
+  .gal-mk button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: rgba(0,0,0,.7); color: #fff; font-size: 11px; cursor: pointer; }
   .rowa input, .rowa select { background: #fff; }
   .x { width: 40px; height: 40px; border: 0; border-radius: 10px; background: #f6efee; color: #a33; font-size: 16px; cursor: pointer; }
   .rowa .x { position: absolute; right: -8px; top: -8px; width: 28px; height: 28px; border-radius: 50%; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
@@ -254,6 +258,9 @@
           <div><button type="button" class="addr-btn" style="margin-top:0;width:100%" id="wPhotoBtn" onclick="document.getElementById('wPhotoFile').click()">사진 올리기</button><input type="file" id="wPhotoFile" accept="image/*" class="hide"></div>
           <div id="wPhotoPv" style="font-size:12.5px;color:var(--soft);display:flex;align-items:center;gap:8px;min-height:44px;">사진이 없어도 괜찮아요</div>
         </div>
+        <label>사진 더 넣기 <small>(선택 · 8장까지, 옆으로 넘겨 봐요)</small></label>
+        <div class="gal-mk" id="galMk"></div>
+        <button type="button" class="addr-btn" style="margin-top:8px;width:100%" id="galBtn" onclick="document.getElementById('galFile').click()">사진 고르기 (여러 장)</button><input type="file" id="galFile" accept="image/*" multiple class="hide">
         <details style="margin-top:8px;"><summary style="font-size:12.5px;color:var(--faint);cursor:pointer;">사진 주소로 넣기</summary><input id="w_photo" placeholder="https://…jpg" style="margin-top:6px;"></details>
         <label>인사말 <small>(비우면 기본 문구)</small></label>
         <textarea id="w_msg" placeholder="서로를 아끼는 마음으로&#10;평생을 함께하려 합니다.&#10;귀한 걸음으로 축복해 주세요."></textarea>
@@ -349,8 +356,8 @@ function addM(r,n){ var d=document.createElement("div"); d.className="rowm";
   $("mList").appendChild(d); }
 function addA(who,bank,no){ var d=document.createElement("div"); d.className="rowa";
   var banks = bank && BANKS.indexOf(bank)<0 ? BANKS.concat([bank]) : BANKS;
-  d.innerHTML='<input placeholder="누구 (예: 장남 김민준)" class="full"><select><option value="">은행</option>'+banks.map(function(b){ return '<option>'+esc(b)+'</option>'; }).join("")+'</select><input placeholder="계좌번호" inputmode="numeric"><button type="button" class="x" aria-label="빼기">✕</button>';
-  var ins=d.querySelectorAll("input"); ins[0].value=who||""; ins[1].value=no||""; d.querySelector("select").value=bank||"";
+  d.innerHTML='<input placeholder="누구 (예: 장남 김민준)" class="full"><select><option value="">은행</option>'+banks.map(function(b){ return '<option>'+esc(b)+'</option>'; }).join("")+'</select><input placeholder="계좌번호" inputmode="numeric"><input placeholder="카카오페이 송금 링크 (선택) qr.kakaopay.com/…" class="full" inputmode="url"><button type="button" class="x" aria-label="빼기">✕</button>';
+  var ins=d.querySelectorAll("input"); ins[0].value=who||""; ins[1].value=no||""; ins[2].value=arguments[3]||""; d.querySelector("select").value=bank||"";
   d.querySelector(".x").onclick=function(){ d.remove(); preview(); };
   $("aList").appendChild(d); }
 addM("장남"); addM("장녀"); addA();
@@ -411,7 +418,7 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ ret
 function v(id){ return String(($(id)||{}).value||"").trim(); }
 function enc(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
 function data(){
-  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"); return { who:i[0].value.trim(), bank:r.querySelector("select").value, no:i[1].value.trim() }; }).filter(function(a){ return a.no; });
+  var acc=[].map.call(document.querySelectorAll("#aList .rowa"), function(r){ var i=r.querySelectorAll("input"), a={ who:i[0].value.trim(), bank:r.querySelector("select").value, no:i[1].value.trim() }; var kp=i[2].value.trim(); if(/qr\.kakaopay\.com\//.test(kp)) a.kp=kp.replace(/^(?!https:\/\/)/,"https://"); return a; }).filter(function(a){ return a.no||a.kp; });
   var d;
   if(K==="f"){
     d={ k:"f", theme:TF, name:v("f_name"), age:v("f_age"), died:v("f_died"), rel:REL,
@@ -422,6 +429,7 @@ function data(){
     d={ k:"w", theme:TW, g:v("w_g"), b:v("w_b"), gp:v("w_gp"), bp:v("w_bp"), date:v("w_date"), time:v("w_time"),
         venue:v("w_venue"), hall:v("w_hall"), addr:v("w_addr").replace(/^\[\d+\]\s*/,""), park:v("w_park"), photo:/^https:\/\//.test(v("w_photo"))?v("w_photo"):"" };
     if(v("w_msg")) d.msg=v("w_msg");
+    if(GAL.length) d.gal=GAL.slice(0,8);
   }
   if(acc.length) d.acc=acc;
   if(!$("wreathOn").checked) d.noWreath=1;
@@ -473,6 +481,36 @@ function showPhotoPv(url){
   var pv=$("wPhotoPv");
   pv.innerHTML = url ? '<img src="'+esc(url)+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:8px;">사진이 들어갔어요 <button type="button" class="x" style="width:28px;height:28px;font-size:12px;" onclick="$(\'w_photo\').value=\'\';showPhotoPv(\'\');preview()">✕</button>' : "사진이 없어도 괜찮아요";
 }
+// ── 사진 여러 장(10/20) — 대표 사진과 같은 방식으로 한 장씩 줄여 올리고 주소만 모은다 ──
+var GAL=[];
+function drawGal(){
+  $("galMk").innerHTML=GAL.map(function(u,i){ return '<div><img src="'+esc(u)+'" alt=""><button type="button" aria-label="빼기" onclick="GAL.splice('+i+',1);drawGal();preview()">✕</button></div>'; }).join("");
+  $("galBtn").textContent=GAL.length>=8?"8장 모두 넣었어요":"사진 고르기 (여러 장)"+(GAL.length?" · "+GAL.length+"/8":"");
+  $("galBtn").disabled=GAL.length>=8;
+}
+function shrink(file){
+  return new Promise(function(ok,no){
+    var rd=new FileReader(); rd.onerror=no;
+    rd.onload=function(){ var img=new Image(); img.onerror=no; img.onload=function(){
+      var sc=Math.min(1,1600/Math.max(img.width,img.height)), cv=document.createElement("canvas");
+      cv.width=Math.max(1,Math.round(img.width*sc)); cv.height=Math.max(1,Math.round(img.height*sc));
+      cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+      var b=cv.toDataURL("image/jpeg",0.85); ok(b.length>3500000?cv.toDataURL("image/jpeg",0.6):b); }; img.src=rd.result; };
+    rd.readAsDataURL(file);
+  });
+}
+$("galFile").addEventListener("change", async function(e){
+  var files=[].slice.call(e.target.files||[]).slice(0, 8-GAL.length); e.target.value="";
+  if(!files.length) return;
+  if(!READY){ toast("지금은 사진을 올릴 수 없어요"); return; }
+  var btn=$("galBtn"); btn.disabled=true;
+  for(var i=0;i<files.length;i++){
+    btn.textContent="올리는 중… "+(i+1)+"/"+files.length;
+    try{ var x=await post({ action:"photo", image:await shrink(files[i]) }); if(x.s===200 && x.j.url) GAL.push(x.j.url); else toast(x.j.error||"한 장을 못 올렸어요"); }
+    catch(_){ toast("인터넷 연결을 확인해 주세요"); }
+  }
+  drawGal(); preview();
+});
 $("wPhotoFile").addEventListener("change", function(e){ uploadWeddingPhoto(e.target.files[0]); e.target.value=""; });
 // 서버에서 받은 내용 → 칸 채우기(고치기 모드)
 function fill(d){
@@ -485,9 +523,10 @@ function fill(d){
     TW=d.theme==="flower"?"flower":"classic"; setTheme("thW",TW);
     ["g","b","gp","bp","date","time","venue","hall","addr","park","photo","msg"].forEach(function(k){ $("w_"+k).value=d[k]||""; });
     showPhotoPv(d.photo||"");
+    GAL=(d.gal||[]).slice(0,8); drawGal();
   }
   if(d.ref) REF=d.ref;
-  $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no); }); if(!(d.acc||[]).length) addA();
+  $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp); }); if(!(d.acc||[]).length) addA();
   $("wreathOn").checked=!d.noWreath; $("cmOn").checked=!d.noComment; $("rsvpOn").checked=!d.noRsvp;
   preview();
 }

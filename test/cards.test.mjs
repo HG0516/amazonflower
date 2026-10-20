@@ -406,3 +406,16 @@ test("보기·준비 확인·관리: 참석 여부 표가 있을 때만 rsvp 가
     assert.ok(f.calls.some((c) => c.method === "DELETE" && /card_rsvps\?card_id=eq\.Wed1234/.test(c.url)));
   })();
 });
+
+test("청첩장 사진 여러 장·카카오페이 링크(10/20): https 주소만 8장까지, 카카오페이는 qr.kakaopay.com 만", () => {
+  const r = sanitizeCard({ k: "w", g: "김", b: "박", date: "2026-11-14", venue: "홀",
+    gal: Array.from({ length: 10 }, (_, i) => `https://x.supabase.co/p/${i}.jpg`).concat(["javascript:alert(1)"]),
+    acc: [{ who: "신랑", bank: "국민", no: "123", kp: "qr.kakaopay.com/FabcdEF12" },
+          { who: "신부", kp: "https://evil.example/qr" }, { who: "혼주", kp: "https://qr.kakaopay.com/Zz9_x" }] });
+  assert.equal(r.ok, true);
+  assert.equal(r.data.gal.length, 8);
+  assert.ok(r.data.gal.every((u) => u.startsWith("https://")));
+  assert.equal(r.data.acc[0].kp, "https://qr.kakaopay.com/FabcdEF12");
+  assert.equal(r.data.acc.length, 2);   // 계좌도 안전한 링크도 없는 줄은 빠진다
+  assert.equal(r.data.acc[1].kp, "https://qr.kakaopay.com/Zz9_x");
+});
