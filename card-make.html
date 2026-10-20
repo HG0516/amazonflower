@@ -59,9 +59,35 @@
   .rowa .side, .w-acc { display: none; }
   #aList.is-w .rowa .side { display: block; grid-column: 1 / -1; }
   .is-w-mode .w-acc { display: block; }
-  .gal-mk { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-  .gal-mk div { position: relative; width: 64px; height: 64px; }
-  .gal-mk img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; display: block; }
+  .gal-mk { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+  .gal-mk div { position: relative; width: 72px; height: 72px; }
+  .gal-mk img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; }
+  .gal-mk .no { position: absolute; left: 4px; bottom: 4px; padding: 0 6px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; line-height: 18px; }
+  .gl-pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .gl-pills button { padding: 10px 4px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; font: inherit; font-size: 13.5px; cursor: pointer; }
+  .gl-pills button.on { border-color: var(--accent); background: #e8f1ea; color: var(--accent); font-weight: 700; }
+  .gl-pills button i { display: block; height: 22px; margin: 0 auto 4px; width: 40px; font-style: normal; }
+  /* 사진 메뉴·자르기 창 */
+  .ph-ov { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center; }
+  .ph-sheet { width: 100%; max-width: 480px; background: #fff; border-radius: 16px 16px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom,0px)); }
+  .ph-sheet h3 { margin: 0 0 12px; font-size: 16px; }
+  .ph-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ph-acts button { padding: 13px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font: inherit; font-size: 14.5px; cursor: pointer; }
+  .ph-acts button.dg { color: #b8442f; }
+  .ph-acts button:disabled { opacity: .4; }
+  .crop-ov { position: fixed; inset: 0; z-index: 90; background: #111; display: flex; flex-direction: column; color: #fff; }
+  .crop-stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; padding: 16px; }
+  .crop-box { position: relative; overflow: hidden; box-shadow: 0 0 0 2px #fff, 0 0 0 9999px rgba(0,0,0,.5); cursor: grab; }
+  .crop-box img { position: absolute; left: 0; top: 0; transform-origin: 0 0; user-select: none; -webkit-user-drag: none; max-width: none; }
+  .crop-bar { padding: 12px 16px calc(14px + env(safe-area-inset-bottom,0px)); background: #1b1b1b; }
+  .crop-rat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .crop-rat button { padding: 9px 0; border: 1px solid #444; border-radius: 9px; background: transparent; color: #ddd; font: inherit; font-size: 13px; cursor: pointer; }
+  .crop-rat button.on { background: #fff; color: #111; font-weight: 700; }
+  .crop-zoom { display: flex; align-items: center; gap: 10px; margin: 12px 0; font-size: 13px; color: #bbb; }
+  .crop-zoom input { flex: 1; }
+  .crop-go { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+  .crop-go button { padding: 13px; border-radius: 10px; border: 0; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .crop-go .c { background: #333; color: #ddd; } .crop-go .ok { background: #fff; color: #111; }
   .gal-mk button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: rgba(0,0,0,.7); color: #fff; font-size: 11px; cursor: pointer; }
   .rowa input, .rowa select { background: #fff; }
   .x { width: 40px; height: 40px; border: 0; border-radius: 10px; background: #f6efee; color: #a33; font-size: 16px; cursor: pointer; }
@@ -263,6 +289,12 @@
         </div>
         <label>사진 더 넣기 <small>(선택 · 8장까지, 옆으로 넘겨 봐요)</small></label>
         <div class="gal-mk" id="galMk"></div>
+        <div class="gl-pills hide" id="glPills" aria-label="사진 보여주는 방식">
+          <button type="button" data-gl="s" class="on"><i style="background:linear-gradient(90deg,#cfc6b8 0 62%,transparent 62% 68%,#e2dbd0 68%);border-radius:4px;"></i>옆으로 넘기기</button>
+          <button type="button" data-gl="g"><i style="background:repeating-linear-gradient(90deg,#cfc6b8 0 12px,transparent 12px 14px);border-radius:3px;"></i>바둑판</button>
+          <button type="button" data-gl="l"><i style="background:repeating-linear-gradient(180deg,#cfc6b8 0 9px,transparent 9px 11px);width:24px;border-radius:3px;"></i>크게 이어서</button>
+        </div>
+        <p class="hint" id="galHint" style="display:none">사진을 누르면 자르기·순서 바꾸기·대표 사진으로 하기를 할 수 있어요.</p>
         <button type="button" class="addr-btn" style="margin-top:8px;width:100%" id="galBtn" onclick="document.getElementById('galFile').click()">사진 고르기 (여러 장)</button><input type="file" id="galFile" accept="image/*" multiple class="hide">
         <details style="margin-top:8px;"><summary style="font-size:12.5px;color:var(--faint);cursor:pointer;">사진 주소로 넣기</summary><input id="w_photo" placeholder="https://…jpg" style="margin-top:6px;"></details>
         <label>인사말 <small>(비우면 기본 문구)</small></label>
@@ -457,6 +489,7 @@ function data(){
         venue:v("w_venue"), hall:v("w_hall"), addr:v("w_addr").replace(/^\[\d+\]\s*/,""), park:v("w_park"), photo:/^https:\/\//.test(v("w_photo"))?v("w_photo"):"" };
     if(v("w_msg")) d.msg=v("w_msg");
     if(GAL.length) d.gal=GAL.slice(0,8);
+    if(GAL.length>1 && GL!=="s") d.gl=GL;
   }
   if(acc.length) d.acc=acc;
   if(!$("wreathOn").checked) d.noWreath=1;
@@ -506,12 +539,77 @@ function uploadWeddingPhoto(file){
 }
 function showPhotoPv(url){
   var pv=$("wPhotoPv");
-  pv.innerHTML = url ? '<img src="'+esc(url)+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:8px;">사진이 들어갔어요 <button type="button" class="x" style="width:28px;height:28px;font-size:12px;" onclick="$(\'w_photo\').value=\'\';showPhotoPv(\'\');preview()">✕</button>' : "사진이 없어도 괜찮아요";
+  pv.innerHTML = url ? '<img src="'+esc(url)+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:8px;">'+(READY?'<button type="button" class="addr-btn" style="margin:0;padding:6px 10px;width:auto;font-size:12.5px" onclick="cropAndUpload($(\'w_photo\').value,\'4:3\',function(u){$(\'w_photo\').value=u;showPhotoPv(u);preview();})">자르기</button>':'사진이 들어갔어요')+' <button type="button" class="x" style="width:28px;height:28px;font-size:12px;" onclick="$(\'w_photo\').value=\'\';showPhotoPv(\'\');preview()">✕</button>' : "사진이 없어도 괜찮아요";
 }
 // ── 사진 여러 장(10/20) — 대표 사진과 같은 방식으로 한 장씩 줄여 올리고 주소만 모은다 ──
-var GAL=[];
+var GAL=[], GL="s";
+$("glPills").addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return; GL=b.getAttribute("data-gl"); drawGal(); preview(); });
+// 사진 메뉴(사진을 누르면): 자르기 · 앞으로 · 뒤로 · 대표 사진으로 · 빼기
+function photoMenu(i){
+  var ov=document.createElement("div"); ov.className="ph-ov";
+  ov.innerHTML='<div class="ph-sheet"><h3>'+(i+1)+'번째 사진</h3><div class="ph-acts">'
+    +'<button data-a="crop">자르기</button><button data-a="main">대표 사진으로</button>'
+    +'<button data-a="up"'+(i===0?' disabled':'')+'>앞으로</button><button data-a="down"'+(i===GAL.length-1?' disabled':'')+'>뒤로</button>'
+    +'<button data-a="del" class="dg">빼기</button><button data-a="x">닫기</button></div></div>';
+  ov.onclick=function(e){ if(e.target===ov){ ov.remove(); return; } var b=e.target.closest("button[data-a]"); if(!b) return; var a=b.getAttribute("data-a"); ov.remove();
+    if(a==="up"){ GAL.splice(i-1,0,GAL.splice(i,1)[0]); }
+    if(a==="down"){ GAL.splice(i+1,0,GAL.splice(i,1)[0]); }
+    if(a==="del"){ GAL.splice(i,1); }
+    if(a==="main"){ var old=v("w_photo"); $("w_photo").value=GAL[i]; showPhotoPv(GAL[i]); if(old) GAL[i]=old; else GAL.splice(i,1); toast("대표 사진으로 바꿨어요"); }
+    if(a==="crop"){ cropAndUpload(GAL[i], "3:4", function(u){ GAL[i]=u; drawGal(); preview(); }); return; }
+    drawGal(); preview(); };
+  document.body.appendChild(ov);
+}
+// ── 사진 자르기(10/20 형구) — 비율을 고르고, 손가락으로 끌어 위치를 맞추고, 아래 막대로 키운다. 자른 사진을 새로 올려 주소를 바꾼다 ──
+var RATIOS=[["3:4","세로"],["1:1","정사각"],["4:3","가로"],["0","원래대로"]];
+function cropAndUpload(url, ratio, done){
+  var img=new Image(); img.crossOrigin="anonymous";
+  img.onerror=function(){ toast("사진을 열지 못했어요"); };
+  img.onload=function(){
+    var ov=document.createElement("div"); ov.className="crop-ov";
+    ov.innerHTML='<div class="crop-stage"><div class="crop-box"></div></div><div class="crop-bar"><div class="crop-rat">'
+      +RATIOS.map(function(r){ return '<button type="button" data-r="'+r[0]+'">'+r[1]+'</button>'; }).join("")
+      +'</div><div class="crop-zoom">작게<input type="range" min="1" max="3" step="0.01" value="1">크게</div>'
+      +'<div class="crop-go"><button type="button" class="c">취소</button><button type="button" class="ok">이대로 넣기</button></div></div>';
+    document.body.appendChild(ov);
+    var stage=ov.querySelector(".crop-stage"), box=ov.querySelector(".crop-box"), zr=ov.querySelector("input");
+    box.appendChild(img);
+    var W=img.naturalWidth, H=img.naturalHeight, bw=0, bh=0, base=1, z=1, x=0, y=0, R=ratio;
+    function layout(){
+      var sw=stage.clientWidth-32, sh=stage.clientHeight-32, r=R==="0"?W/H:(function(p){ return p[0]/p[1]; })(R.split(":").map(Number));
+      bw=Math.min(sw, sh*r); bh=bw/r; box.style.width=bw+"px"; box.style.height=bh+"px";
+      base=Math.max(bw/W, bh/H); z=1; zr.value=1; x=(bw-W*base)/2; y=(bh-H*base)/2; draw();
+      [].forEach.call(ov.querySelectorAll(".crop-rat button"), function(b){ b.classList.toggle("on", b.getAttribute("data-r")===R); });
+    }
+    function clamp(){ var s=base*z; x=Math.min(0, Math.max(bw-W*s, x)); y=Math.min(0, Math.max(bh-H*s, y)); }
+    function draw(){ clamp(); img.style.width=W+"px"; img.style.transform="translate("+x+"px,"+y+"px) scale("+(base*z)+")"; }
+    zr.oninput=function(){ var cx=bw/2, cy=bh/2, old=base*z; z=+zr.value; var s=base*z; x=cx-(cx-x)*s/old; y=cy-(cy-y)*s/old; draw(); };
+    var drag=null;
+    box.addEventListener("pointerdown", function(e){ drag={ px:e.clientX, py:e.clientY, x:x, y:y }; box.setPointerCapture(e.pointerId); });
+    box.addEventListener("pointermove", function(e){ if(!drag) return; x=drag.x+e.clientX-drag.px; y=drag.y+e.clientY-drag.py; draw(); });
+    box.addEventListener("pointerup", function(){ drag=null; });
+    ov.querySelector(".crop-rat").onclick=function(e){ var b=e.target.closest("button"); if(!b) return; R=b.getAttribute("data-r"); layout(); };
+    ov.querySelector(".c").onclick=function(){ ov.remove(); };
+    ov.querySelector(".ok").onclick=function(){
+      var s=base*z, sx=-x/s, sy=-y/s, sw=bw/s, sh=bh/s, k=Math.min(1, 1600/Math.max(sw,sh));
+      var cv=document.createElement("canvas"); cv.width=Math.round(sw*k); cv.height=Math.round(sh*k);
+      try{ cv.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height); var b64=cv.toDataURL("image/jpeg",0.86); }
+      catch(_){ toast("이 사진은 자를 수 없어요"); ov.remove(); return; }
+      var ok=ov.querySelector(".ok"); ok.disabled=true; ok.textContent="올리는 중…";
+      post({ action:"photo", image:b64 }).then(function(x2){
+        ov.remove();
+        if(x2.s!==200 || !x2.j.url){ toast(x2.j.error||"사진을 올리지 못했어요"); return; }
+        done(x2.j.url); toast("잘랐어요 ✓");
+      }).catch(function(){ ov.remove(); toast("인터넷 연결을 확인해 주세요"); });
+    };
+    requestAnimationFrame(layout);
+  };
+  img.src=url+(url.indexOf("?")<0?"?":"&")+"c=1";
+}
 function drawGal(){
-  $("galMk").innerHTML=GAL.map(function(u,i){ return '<div><img src="'+esc(u)+'" alt=""><button type="button" aria-label="빼기" onclick="GAL.splice('+i+',1);drawGal();preview()">✕</button></div>'; }).join("");
+  $("galMk").innerHTML=GAL.map(function(u,i){ return '<div><img src="'+esc(u)+'" alt="" onclick="photoMenu('+i+')"><span class="no">'+(i+1)+'</span><button type="button" aria-label="빼기" onclick="GAL.splice('+i+',1);drawGal();preview()">✕</button></div>'; }).join("");
+  $("glPills").classList.toggle("hide", GAL.length<2); $("galHint").style.display=GAL.length?"":"none";
+  [].forEach.call($("glPills").querySelectorAll("button"), function(b){ b.classList.toggle("on", b.getAttribute("data-gl")===GL); });
   $("galBtn").textContent=GAL.length>=8?"8장 모두 넣었어요":"사진 고르기 (여러 장)"+(GAL.length?" · "+GAL.length+"/8":"");
   $("galBtn").disabled=GAL.length>=8;
 }
@@ -550,7 +648,7 @@ function fill(d){
     TW=d.theme==="flower"?"flower":"classic"; setTheme("thW",TW);
     ["g","b","gp","bp","date","time","venue","hall","addr","park","photo","msg"].forEach(function(k){ $("w_"+k).value=d[k]||""; });
     showPhotoPv(d.photo||"");
-    GAL=(d.gal||[]).slice(0,8); drawGal();
+    GAL=(d.gal||[]).slice(0,8); GL=d.gl||"s"; drawGal();
   }
   if(d.ref) REF=d.ref;
   $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp,a.s); }); if(!(d.acc||[]).length) addA();

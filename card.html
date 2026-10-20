@@ -45,8 +45,17 @@
   .dday { display: inline-block; margin-top: 8px; padding: 3px 12px; border-radius: 999px; background: rgba(255,255,255,.85); color: #4a3a3a; font-size: 13px; font-weight: 700; font-family: "Noto Sans KR", sans-serif; }
   .gal { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 18px -4px 0; padding: 0 4px 6px; -webkit-overflow-scrolling: touch; }
   .gal img { flex: 0 0 72%; max-width: 300px; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; scroll-snap-align: center; cursor: zoom-in; background: #eee; }
+  .gal.gl-g { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; overflow: visible; margin: 18px 0 0; padding: 0; }
+  .gal.gl-g img { width: 100%; max-width: none; aspect-ratio: 1/1; border-radius: 6px; }
+  .gal.gl-l { display: flex; flex-direction: column; gap: 10px; overflow: visible; margin: 18px 0 0; padding: 0; }
+  .gal.gl-l img { width: 100%; max-width: none; aspect-ratio: auto; border-radius: 12px; }
+  .gal:not(.gl-g):not(.gl-l) img:only-child { flex-basis: 100%; }
+  .lb button { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 64px; border: 0; background: rgba(255,255,255,.22); color: #fff; font-size: 30px; cursor: pointer; }
+  .lb .p { left: 6px; border-radius: 0 10px 10px 0; } .lb .n { right: 6px; border-radius: 10px 0 0 10px; }
+  .lb .c { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom,0px)); left: 0; right: 0; text-align: center; color: #ddd; font: 14px "Noto Sans KR", sans-serif; }
+  .lb .x { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; transform: none; font-size: 22px; }
   .gal-n { margin-top: 2px; font-size: 12px; opacity: .6; text-align: center; font-family: "Noto Sans KR", sans-serif; }
-  .lb { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.92); display: flex; align-items: center; justify-content: center; }
+  .lb { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; align-items: center; justify-content: center; }
   .lb img { max-width: 100%; max-height: 100%; object-fit: contain; }
   @media print { .gal { display: none; } }
   .maps.cal a { border: 1px solid rgba(0,0,0,.15); background: rgba(255,255,255,.6); color: inherit; font-weight: 600; }
@@ -189,9 +198,16 @@ function calHtml(d){
 function icsEsc(v){ return String(v||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n"); }
 // 사진 크게 보기 — 누르면 검은 바탕에 꽉 차게, 다시 누르면 닫힌다
 document.addEventListener("click",function(ev){
-  var im=ev.target.closest && ev.target.closest("[data-lb]"); if(!im) return;
-  var lb=document.createElement("div"); lb.className="lb"; lb.innerHTML='<img src="'+esc(im.getAttribute("data-lb"))+'" alt="">';
-  lb.onclick=function(){ lb.remove(); }; document.body.appendChild(lb);
+  var im=ev.target.closest && ev.target.closest("[data-lb]"); if(!im || !CUR) return;
+  var list=(CUR.gal||[]).filter(function(u){ return /^https:\/\//.test(u); }), i=+im.getAttribute("data-lb")||0;
+  var lb=document.createElement("div"); lb.className="lb";
+  lb.innerHTML='<img alt="">'+(list.length>1?'<button class="p" aria-label="이전">‹</button><button class="n" aria-label="다음">›</button><div class="c"></div>':'')+'<button class="x" aria-label="닫기">✕</button>';
+  var pic=lb.querySelector("img");
+  function show(k){ i=(k+list.length)%list.length; pic.src=list[i]; var c=lb.querySelector(".c"); if(c) c.textContent=(i+1)+" / "+list.length; }
+  lb.onclick=function(e){ if(e.target.classList.contains("p")) show(i-1); else if(e.target.classList.contains("n")) show(i+1); else lb.remove(); };
+  var sx=null; lb.addEventListener("touchstart",function(e){ sx=e.touches[0].clientX; },{passive:true});
+  lb.addEventListener("touchend",function(e){ if(sx==null) return; var dx=e.changedTouches[0].clientX-sx; sx=null; if(Math.abs(dx)>40){ show(dx<0?i+1:i-1); e.preventDefault(); } });
+  show(i); document.body.appendChild(lb);
 });
 document.addEventListener("click",function(ev){
   var a=ev.target.closest && ev.target.closest("[data-ics]"); if(!a || !CUR) return;
@@ -389,7 +405,9 @@ function renderWedding(d){
   var dd=(function(){ var t=at(d.date,"00:00"); if(!t) return ""; var now=new Date(), a=new Date(now.getFullYear(),now.getMonth(),now.getDate()); var n=Math.round((t-a)/86400000); return n>0?"D-"+n:(n===0?"오늘 결혼해요":""); })();
   if(dd) head=head.replace('<div class="sub">'+esc(when)+'</div>','<div class="sub">'+esc(when)+'</div><div><span class="dday">'+esc(dd)+'</span></div>');
   var gal=(d.gal||[]).filter(function(u){ return /^https:\/\//.test(u); }).slice(0,8);
-  var galHtml=gal.length?'<div class="gal" id="gal">'+gal.map(function(u){ return '<img src="'+esc(u)+'" alt="" loading="lazy" data-lb="'+esc(u)+'">'; }).join("")+'</div>'+(gal.length>1?'<div class="gal-n">옆으로 넘겨 보세요 · '+gal.length+'장</div>':''):"";
+  // 보여주는 방식: 기본 옆으로 넘기기, g 바둑판(3칸), l 크게 이어서. 어느 쪽이든 누르면 크게 보고 옆으로 넘긴다.
+  var gl=gal.length>1 ? (d.gl==="g"?"g":d.gl==="l"?"l":"s") : "s";
+  var galHtml=gal.length?'<div class="gal gl-'+gl+'" id="gal">'+gal.map(function(u,i){ return '<img src="'+esc(u)+'" alt="" loading="lazy" data-lb="'+i+'">'; }).join("")+'</div>'+(gal.length>1&&gl==="s"?'<div class="gal-n">옆으로 넘겨 보세요 · '+gal.length+'장</div>':''):"";
   var parents = (d.gp||d.bp) ? '<p class="parents">'+(d.gp?esc(d.gp)+' 의 아들 <b>'+esc(d.g)+'</b><br>':'')+(d.bp?esc(d.bp)+' 의 딸 <b>'+esc(d.b)+'</b>':'')+'</p>' : '';
   return '<div class="card t-'+(d.theme==="flower"?"flower":"classic")+'">'+head+'<div class="pad">'
     +'<p class="msg">'+esc(msg)+'</p>'+parents+galHtml
