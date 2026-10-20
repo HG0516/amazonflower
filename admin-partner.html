@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko" data-admin-role="owner">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>파트너 QR — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  /* 파트너 QR(10/20) — 장례식장·예식장·웨딩 업체에 둘 무료 부고장·청첩장 QR과 인쇄물, 파트너별 숫자.
+     파트너 코드(ref)가 부고장·청첩장과 거기서 나온 화환 주문까지 따라간다(api/admin resource 'partner').
+     소개비 같은 돈 계산은 일부러 없다. 명단 표(site_settings)는 누구나 읽을 수 있어 메모·연락처 칸이 없다. */
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;padding:0 0 40px;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 14px;}
+  header{text-align:center;padding:18px 0 4px;}
+  h1{font-size:20px;font-weight:800;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;word-break:keep-all;}
+  .notice{margin-top:14px;background:#fff6e5;border:1px solid #e8c98a;border-radius:10px;padding:12px 14px;font-size:13px;color:#6b4e12;display:none;}
+  .sect-title{font-size:15px;font-weight:800;margin:24px 4px 6px;}
+  .hint{font-size:12.5px;color:var(--ink-faint);margin:2px 4px 0;word-break:keep-all;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:10px;}
+  label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text],input[type=search]{width:100%;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;color:var(--ink);font-family:inherit;}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;}
+  .seg button{flex:1;min-height:42px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:700 14px inherit;font-family:inherit;color:var(--ink-soft);cursor:pointer;}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .found{max-height:220px;overflow:auto;margin-top:6px;border:1px solid var(--line-soft);border-radius:8px;}
+  .found:empty{display:none;}
+  .found button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line-soft);background:transparent;padding:8px 10px;font:14px inherit;font-family:inherit;cursor:pointer;color:var(--ink);}
+  .found small{display:block;color:var(--ink-faint);font-size:12px;}
+  .sw{display:flex;align-items:flex-start;gap:8px;font-size:14px;margin-top:12px;}
+  .sw input{width:20px;height:20px;margin-top:1px;flex:0 0 auto;}
+  .sw small{display:block;color:var(--ink-faint);font-size:12px;}
+  .btn{width:100%;margin-top:16px;padding:13px;font-size:15px;font-weight:800;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
+  .btn:disabled{background:var(--ink-faint);}
+  .pt{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px;}
+  .pt .qr{flex:0 0 auto;width:84px;height:84px;}
+  .pt .qr img,.pt .qr canvas{width:84px!important;height:84px!important;}
+  .pt .tx{flex:1;min-width:0;}
+  .pt .nm{font-weight:800;font-size:15px;}
+  .pt .k{display:inline-block;font-size:11px;font-weight:800;border-radius:4px;padding:0 6px;margin-right:4px;vertical-align:1px;}
+  .k.f{background:#2b2b2b;color:#fff;} .k.w{background:#fbeef1;color:#8a2e44;} .k.p{background:#eef2f7;color:#355d8a;}
+  .pt .u{font-size:12px;color:var(--ink-faint);word-break:break-all;margin-top:2px;}
+  .pt .st{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  .pt .ac{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .pt .ac button{min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:700 13px inherit;font-family:inherit;cursor:pointer;color:var(--ink);}
+  .pt .ac button.p{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .pt .ac button.d{color:#9a3b2e;}
+  table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px;margin-top:8px;}
+  th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
+  th:first-child,td:first-child{text-align:left;white-space:normal;}
+  th{background:#f7f5ef;font-size:12px;color:var(--ink-soft);}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+
+  /* ── 인쇄물 ── 화면에선 미리보기, 인쇄할 땐 이것만 */
+  #sheet{display:none;margin-top:16px;}
+  #sheet.on{display:block;}
+  .sheet-bar{display:flex;gap:8px;margin-bottom:12px;}
+  .sheet-bar button{flex:1;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:800 14px inherit;font-family:inherit;cursor:pointer;}
+  .sheet-bar button.p{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .pg{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;justify-content:center;}
+  .stand{width:148mm;height:210mm;border-radius:4px;padding:16mm 14mm;display:flex;flex-direction:column;font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif;}
+  .stand.f{background:#26241f;color:#f3f0e8;}
+  .stand.w{background:#fbeef1;color:#5e1f30;}
+  .stand .hall{font-size:13px;letter-spacing:2px;opacity:.75;}
+  .stand h2{font-size:36px;line-height:1.3;margin:8mm 0 6mm;font-weight:800;word-break:keep-all;}
+  .stand p{font-size:16px;line-height:1.65;margin:0 0 3mm;opacity:.9;word-break:keep-all;}
+  .stand .qrb{margin:auto auto 0;background:#fff;padding:5mm;border-radius:4mm;}
+  .stand .qrb img,.stand .qrb canvas{width:60mm!important;height:60mm!important;display:block;}
+  .stand .ft{margin-top:5mm;text-align:center;font-size:12.5px;opacity:.75;}
+  .biz{width:90mm;height:50mm;background:#fff;border:1px solid #ccc;border-radius:2mm;padding:5mm 6mm;display:flex;gap:4mm;font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#1f1d18;}
+  .biz .t{flex:1;display:flex;flex-direction:column;}
+  .biz b{font-size:15px;line-height:1.3;}
+  .biz span{font-size:10.5px;color:#5a564d;margin-top:2mm;line-height:1.5;word-break:keep-all;}
+  .biz em{font-style:normal;margin-top:auto;font-size:13px;font-weight:800;color:#1f4733;}
+  .biz .q img,.biz .q canvas{width:30mm!important;height:30mm!important;}
+  @media print{
+    @page{margin:8mm;}
+    body{background:#fff;padding:0;}
+    .wrap > :not(#sheet), .sheet-bar, .toast{display:none!important;}
+    #sheet{display:block!important;margin:0;}
+    .wrap{max-width:none;padding:0;}
+    .stand{page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🤝 파트너 QR</h1>
+    <div class="sub">장례식장·예식장·웨딩 업체에 둘 무료 부고장·청첩장 QR을 만들고, 그 QR로 몇 장이 만들어져 화환 주문이 몇 건 나왔는지 봐요.</div>
+  </header>
+  <div class="notice" id="notReady">아직 저장 칸이 없어요. <b>supabase-photo-home.sql</b> 을 실행한 뒤부터 명단이 저장돼요. 그 전에도 QR·인쇄물은 만들 수 있어요(새로고침하면 사라져요).</div>
+
+  <div class="sect-title">파트너 추가</div>
+  <div class="card">
+    <label>어디에 두나요</label>
+    <div class="seg" id="kindSeg">
+      <button type="button" data-k="f" class="on">장례식장</button>
+      <button type="button" data-k="w">예식장</button>
+      <button type="button" data-k="p">웨딩 업체·기타</button>
+    </div>
+    <div id="fBox">
+      <label for="fq">장례식장 찾기 <small style="font-weight:400;color:var(--ink-faint)">이름·지역 (전국 1,117곳)</small></label>
+      <input type="search" id="fq" placeholder="예: 시흥, 신천연세">
+      <div class="found" id="fFound"></div>
+    </div>
+    <label for="pName">이름 <small style="font-weight:400;color:var(--ink-faint)">관리용, 손님에겐 안 보여요</small></label>
+    <input type="text" id="pName" maxlength="40" placeholder="예: ○○장례식장">
+    <div id="wBox" hidden>
+      <label for="pAddr">예식장 주소 <small style="font-weight:400;color:var(--ink-faint)">청첩장에 미리 들어가요</small></label>
+      <input type="text" id="pAddr" maxlength="120" placeholder="예: 경기 시흥시 ○○로 12">
+    </div>
+    <label for="pCode">파트너 코드 <small style="font-weight:400;color:var(--ink-faint)">영문·숫자·-_ 30자, 자동으로 채워져요</small></label>
+    <input type="text" id="pCode" maxlength="30" placeholder="f-sihwa">
+    <label class="sw"><input type="checkbox" id="pNb"><span>화환 버튼 빼기<small>장례식장·예식장 안에 꽃집이 있는 곳. 부고장·청첩장에서 화환 칸을 조용히 뺍니다.</small></span></label>
+    <button class="btn" id="addBtn">추가하고 QR 만들기</button>
+  </div>
+
+  <div class="sect-title">파트너 <span id="cnt"></span></div>
+  <div class="hint">QR을 찍으면 그 장소가 미리 들어간 만들기 화면이 열려요. '인쇄물'에서 세움판(A5)과 명함 크기 카드를 뽑을 수 있어요.</div>
+  <div id="list"></div>
+
+  <div class="sect-title">숫자 <small style="font-weight:400;color:var(--ink-faint)" id="statDays"></small></div>
+  <div class="hint">부고장은 발인 7일 뒤, 청첩장은 예식 30일 뒤 지워져서 오래된 만든 수는 줄어들어요. 주문 수는 남아요. 10/20 이전 주문은 코드가 없어요.</div>
+  <div id="stats"><div class="card" style="color:var(--ink-faint);font-size:13px">불러오는 중…</div></div>
+
+  <div id="sheet">
+    <div class="sheet-bar"><button type="button" id="shClose">닫기</button><button type="button" class="p" id="shPrint">인쇄 (A4에 세움판·카드)</button></div>
+    <div class="pg" id="pg"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ORIGIN="https://floweranbu.co.kr";
+let LIST=[], READY=true, KIND="f", HOMES=null, PICK=null, STATS=null;
+function toast(t,err){ const el=$("toast"); el.textContent=t; el.className="toast show"+(err?" err":""); clearTimeout(toast._t); toast._t=setTimeout(()=>el.className="toast",2600); }
+async function api(payload){
+  const r=await afAdmin.fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resource:"partner",...payload})});
+  const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||"실패"); return j;
+}
+// 코드: 종류 글자 + 이름에서 만든 6자리(같은 이름이면 같은 코드)
+function autoCode(kind,name){
+  let h=2166136261; for(const ch of String(name)){ h^=ch.codePointAt(0); h=Math.imul(h,16777619)>>>0; }
+  return kind+"-"+h.toString(36).slice(0,6);
+}
+function linkOf(p){
+  const q=new URLSearchParams();
+  if(p.kind==="f"){ if(p.venue) q.set("venue",p.venue); }
+  else if(p.kind==="w"){ if(p.venue) q.set("venue",p.venue); if(p.addr) q.set("addr",p.addr); }
+  q.set("ref",p.code); if(p.nb) q.set("nb","1");
+  // 웨딩 업체·기타는 청첩장 소개 화면부터(만들기 버튼이 코드를 이어받는다)
+  const path=p.kind==="f"?"/bugo/make":p.kind==="w"?"/wedding-card/make":"/wedding-card";
+  return ORIGIN+path+"?"+q.toString();
+}
+function qrInto(el,text,size){ el.innerHTML=""; try{ new QRCode(el,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M}); }catch(e){ el.textContent="QR 실패"; } }
+
+// ── 종류 ──
+$("kindSeg").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; KIND=b.dataset.k;
+  $("kindSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
+  $("fBox").hidden=KIND!=="f"; $("wBox").hidden=KIND!=="w"; PICK=null; syncCode(); };
+function syncCode(){ const n=$("pName").value.trim(); if(!$("pCode").dataset.touched) $("pCode").value=n?autoCode(KIND,n):""; }
+$("pName").oninput=syncCode;
+$("pCode").oninput=function(){ this.dataset.touched=this.value?"1":""; };
+
+// ── 장례식장 찾기(data/funeral-homes.json, 부고장 만들기와 같은 목록) ──
+$("fq").oninput=async function(){
+  const q=this.value.replace(/\s+/g,""); if(!q){ $("fFound").innerHTML=""; return; }
+  if(!HOMES) HOMES=await fetch("/data/funeral-homes.json").then(r=>r.json()).then(j=>j.items||[]).catch(()=>[]);
+  const hit=HOMES.filter(h=>(h.n+h.a).replace(/\s+/g,"").includes(q)).slice(0,30);
+  $("fFound").innerHTML=hit.length?hit.map((h,i)=>`<button type="button" data-i="${i}">${esc(h.n)}<small>${esc(h.a)}</small></button>`).join(""):'<div style="padding:10px;font-size:13px;color:var(--ink-faint)">없어요</div>';
+  $("fFound").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; PICK=hit[+b.dataset.i];
+    $("pName").value=PICK.n; $("fFound").innerHTML=""; $("fq").value=PICK.n; syncCode(); };
+};
+
+// ── 추가 ──
+$("addBtn").onclick=async()=>{
+  const name=$("pName").value.trim(), code=$("pCode").value.trim();
+  if(!name) return toast("이름을 적어 주세요",1);
+  if(!/^[A-Za-z0-9_-]{1,30}$/.test(code)) return toast("코드는 영문·숫자·-_ 만 돼요",1);
+  if(LIST.some(p=>p.code===code)) return toast("같은 코드가 이미 있어요",1);
+  if(KIND==="f" && !PICK) return toast("장례식장을 목록에서 골라 주세요(그래야 주소·지도가 들어가요)",1);
+  const p={ code, kind:KIND, name, venue:KIND==="p"?"":(KIND==="f"?PICK.n:name), addr:KIND==="w"?$("pAddr").value.trim():"", nb:$("pNb").checked, at:new Date().toISOString().slice(0,10) };
+  LIST.unshift(p); draw(); await save();
+  $("pName").value=""; $("pAddr").value=""; $("pCode").value=""; $("pCode").dataset.touched=""; $("pNb").checked=false; $("fq").value=""; PICK=null;
+};
+async function save(){
+  if(!READY){ toast("저장 칸이 없어서 이 화면에만 있어요"); return; }
+  try{ const j=await api({action:"save",list:LIST}); LIST=j.list; draw(); toast("저장했어요"); }
+  catch(e){ toast(e.message,1); }
+}
+
+// ── 목록 ──
+const KN={f:"장례식장",w:"예식장",p:"업체"};
+function draw(){
+  $("cnt").textContent=LIST.length?LIST.length+"곳":"";
+  $("list").innerHTML=LIST.length?LIST.map((p,i)=>{
+    const s=(STATS&&STATS.by[p.code])||null;
+    const st=s?`부고 ${s.f} · 청첩 ${s.w} · 감사 ${s.t} · 열람 ${s.views} · 화환 ${s.orders}건 ${s.amount.toLocaleString()}원`:"아직 숫자 없음";
+    return `<div class="pt"><div class="qr" data-q="${i}"></div><div class="tx">
+      <div class="nm"><span class="k ${p.kind}">${KN[p.kind]}</span>${esc(p.name)}${p.nb?' <small style="font-weight:400;color:var(--ink-faint)">화환 버튼 뺌</small>':""}</div>
+      <div class="u">${esc(decodeURIComponent(linkOf(p)))}</div><div class="st">${st}</div>
+      <div class="ac"><button type="button" class="p" data-print="${i}">인쇄물</button><button type="button" data-copy="${i}">링크 복사</button><button type="button" data-open="${i}">열어 보기</button><button type="button" class="d" data-del="${i}">지우기</button></div>
+    </div></div>`;
+  }).join(""):'<div class="card" style="color:var(--ink-faint);font-size:13px">아직 없어요. 위에서 추가하세요.</div>';
+  $("list").querySelectorAll("[data-q]").forEach(el=>qrInto(el,linkOf(LIST[+el.dataset.q]),168));
+}
+$("list").onclick=async e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.copy){ const u=linkOf(LIST[+b.dataset.copy]); try{ await navigator.clipboard.writeText(u); toast("복사했어요"); }catch(_){ prompt("복사해 주세요",u); } }
+  if(b.dataset.open){ window.open(linkOf(LIST[+b.dataset.open]),"_blank","noopener"); }
+  if(b.dataset.print){ sheet(LIST[+b.dataset.print]); }
+  if(b.dataset.del){ const p=LIST[+b.dataset.del]; if(!confirm(`'${p.name}'을(를) 지울까요? 이미 나간 QR은 계속 열리고 숫자도 코드로 남아요.`)) return; LIST.splice(+b.dataset.del,1); draw(); await save(); }
+};
+
+// ── 인쇄물: 세움판(A5) + 명함 카드 4장 ──
+function sheet(p){
+  const fun=p.kind==="f", u=linkOf(p);
+  const place=p.kind==="p"?"":esc(p.name);
+  const stand=fun
+    ? `<div class="stand f"><div class="hall">${place} 안내</div><h2>부고 문자,<br>휴대폰으로 바로 만드세요</h2>
+        <p>찍으면 ${place||"장례식장"} 주소와 오시는 길이 미리 들어간 부고장이 열려요. 고인 성함과 빈소, 발인만 적으면 카톡으로 보낼 링크가 나와요.</p>
+        <p>무료이고 가입하지 않아도 돼요.</p><div class="qrb" id="qS"></div><div class="ft">발인 7일 뒤 저절로 지워져요 · 꽃안부 1577-2286</div></div>`
+    : `<div class="stand w"><div class="hall">${place?place+" 안내":"꽃안부"}</div><h2>모바일 청첩장,<br>무료로 만드세요</h2>
+        <p>${place?"찍으면 "+place+" 이름과 주소가 미리 들어간 청첩장이 열려요. ":""}사진 여러 장, 디자인 6가지, 참석 여부까지 받을 수 있어요.</p>
+        <p>무료이고 가입하지 않아도 돼요. 결혼식 뒤 감사 인사장도 이어서 만들 수 있어요.</p><div class="qrb" id="qS"></div><div class="ft">꽃안부 · 1993년부터 시흥 · 1577-2286</div></div>`;
+  const biz=`<div class="biz"><div class="t"><b>${fun?"무료 모바일 부고장":"무료 모바일 청첩장"}</b><span>${fun?"찍으면 장례식장 주소와 지도가 들어간 부고장이 열려요.":"찍으면 사진과 지도가 들어간 청첩장을 바로 만들어요."} 가입 없이 무료.</span><em>꽃안부 1577-2286</em></div><div class="q"></div></div>`;
+  $("pg").innerHTML=stand+`<div style="display:grid;grid-template-columns:repeat(2,90mm);gap:4mm">${biz.repeat(4)}</div>`;
+  qrInto($("qS"),u,512);
+  $("pg").querySelectorAll(".biz .q").forEach(el=>qrInto(el,u,256));
+  $("sheet").classList.add("on"); $("sheet").scrollIntoView({behavior:"smooth"});
+}
+$("shClose").onclick=()=>$("sheet").classList.remove("on");
+$("shPrint").onclick=()=>window.print();
+
+// ── 숫자 ──
+const FIXED={"":"코드 없이 직접",bugo:"부고장 소개 화면",wcard:"청첩장 소개 화면",catalog:"상품 목록 한 줄","funeral-page":"장례식장 페이지(1,117곳)","order-done":"축하 주문 완료 화면"};
+async function loadStats(){
+  try{
+    STATS=await api({action:"stats",days:90});
+    $("statDays").textContent="최근 "+STATS.days+"일";
+    const by=STATS.by, names={}; LIST.forEach(p=>names[p.code]=p.name);
+    const keys=Object.keys(by).sort((a,b)=>(by[b].orders-by[a].orders)||((by[b].f+by[b].w)-(by[a].f+by[a].w)));
+    $("stats").innerHTML=keys.length?`<table><tr><th>어디서</th><th>부고</th><th>청첩</th><th>감사</th><th>열람</th><th>화환</th><th>금액</th></tr>`
+      +keys.map(k=>{ const x=by[k]; return `<tr><td>${esc(names[k]||FIXED[k]||k)}<br><small style="color:var(--ink-faint)">${esc(k||"-")}</small></td><td>${x.f}</td><td>${x.w}</td><td>${x.t}</td><td>${x.views}</td><td>${x.orders}</td><td>${x.amount.toLocaleString()}</td></tr>`; }).join("")+"</table>"
+      :'<div class="card" style="color:var(--ink-faint);font-size:13px">아직 만들어진 부고장·청첩장이 없어요.</div>';
+    draw();
+  }catch(e){ $("stats").innerHTML='<div class="card" style="color:#9a3b2e;font-size:13px">숫자를 못 불러왔어요: '+esc(e.message)+'</div>'; }
+}
+async function load(){
+  try{ const j=await api({action:"list"}); READY=j.ready!==false; LIST=j.list||[]; }
+  catch(e){ toast(e.message,1); }
+  $("notReady").style.display=READY?"none":"block";
+  draw(); loadStats();
+}
+afAdmin.ready.then(a=>{ if(a) load(); });
+</script>
+</body>
+</html>

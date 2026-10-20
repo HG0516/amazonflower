@@ -341,7 +341,7 @@ function commentsHtml(d){
 // '못 가요 → 꽃으로 마음 전하기' 계단. 가장 자연스러운 순간(못 간다고 답한 직후·조문이 어려울 때)에만 보여 준다.
 function ladderHtml(d, dl){
   var fun=d.k==="f", items=[];
-  if(!d.noWreath && !dl.over) items.push('<a href="#wreathBox" data-ladder="wreath"><span><b>'+(fun?"근조화환 보내기":"축하 화환 보내기")+'</b><small>'+esc(dl.short||dl.text)+' · 보내는 분 이름만 적으면 돼요</small></span><span class="go">›</span></a>');
+  if(!d.noWreath && !d.nb && !dl.over) items.push('<a href="#wreathBox" data-ladder="wreath"><span><b>'+(fun?"근조화환 보내기":"축하 화환 보내기")+'</b><small>'+esc(dl.short||dl.text)+' · 보내는 분 이름만 적으면 돼요</small></span><span class="go">›</span></a>');
   if(d.acc && d.acc.length) items.push('<button type="button" data-ladder="acct"><span><b>'+(fun?"조의금 계좌 보기":"축의금 계좌 보기")+'</b><small>번호를 한 번에 복사할 수 있어요</small></span><span class="go">›</span></button>');
   if(STATE.server && !d.noComment) items.push('<button type="button" data-ladder="cm"><span><b>'+(fun?"조문 글 남기기":"축하 글 남기기")+'</b><small>'+(fun?"위로의 말 한 줄":"축하 한마디")+'</small></span><span class="go">›</span></button>');
   if(!items.length) return "";
@@ -418,7 +418,8 @@ function renderFuneral(d){
     : '<div class="band"><div class="h">訃 告</div><div class="name">故 '+esc(d.name)+'</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>';
   var msg = d.msg || "삼가 고인의 명복을 빕니다.\n생전에 베풀어 주신 은혜에 감사드리며\n삼가 알려드립니다.";
   var dl=deadline(d);
-  var wreath = d.noWreath ? '<p class="promise" style="margin-top:20px;font-size:13.5px;opacity:.85;font-family:\'Noto Sans KR\',sans-serif;">유족의 뜻에 따라 화환은 정중히 사양합니다.</p>' :
+  // d.nb = 파트너가 화환 버튼을 꺼 둔 링크(장례식장 안 꽃집과 겹치지 않게, 10/20). 유족 뜻 문구도 없이 조용히 뺀다.
+  var wreath = d.nb ? '' : d.noWreath ? '<p class="promise" style="margin-top:20px;font-size:13.5px;opacity:.85;font-family:\'Noto Sans KR\',sans-serif;">유족의 뜻에 따라 화환은 정중히 사양합니다.</p>' :
     dl.over ? '' :
     '<div class="wreath" id="wreathBox"><div class="t">직접 못 가셔도, 마음은 빈소에</div>'
     +'<p class="s">주문서가 이미 채워져 있어요. <b>보내는 분 이름만</b> 적으시면 됩니다.</p>'
@@ -497,7 +498,7 @@ function renderWedding(d){
   var head=wedHead(d, when);
   var msg = d.msg || "서로를 아끼는 마음으로\n평생을 함께하려 합니다.\n귀한 걸음으로 축복해 주세요.";
   var dl=deadline(d);
-  var wreath = (d.noWreath || dl.over) ? "" :
+  var wreath = (d.noWreath || d.nb || dl.over) ? "" :
     '<div class="wreath" id="wreathBox"><div class="t">못 가는 대신, 꽃으로 먼저</div>'
     +'<ul class="pre"><li>받는 곳 <b>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</b></li>'
     +(d.time?'<li>도착 <b>'+esc(when)+' 예식 전</b></li>':'')
@@ -534,7 +535,7 @@ function expHtml(){
   return '<p class="exp">이 안내는 '+(t.getMonth()+1)+'월 '+t.getDate()+'일에 자동으로 닫혀요 · 계좌·글도 함께 지워져요</p>';
 }
 function fabHtml(d, dl, href, label){
-  if(d.noWreath || dl.over) return "";
+  if(d.noWreath || d.nb || dl.over) return "";
   return '<a class="fab" id="fab" href="'+esc(href)+'"><span><b>'+esc(label)+'</b><small>'+esc(dl.short||dl.text)+'</small></span><span class="go">보내기</span></a>';
 }
 var FABSTATE={ scrolled:false, boxSeen:false, typing:false, bound:false };

@@ -54,7 +54,7 @@
 <!-- 로그인 (Supabase Auth: 카카오·구글). 키 설정은 SETUP-AUTH.md 참조 -->
 <script src="/supabase-config.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-<script src="/auth.js?v=20261020d" defer></script>
+<script src="/auth.js?v=20261020e" defer></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap');
@@ -3602,6 +3602,8 @@ async function requestPay(){
   try{
     const u=JSON.parse(localStorage.getItem("af_utm")||"null");
     if(u && u.t && Date.now()-u.t < 30*86400000){ order.utmSource=u.s; order.utmMedium=u.m; order.utmCampaign=u.c; }
+    const cu=window.AF_CARD_UTM;   // 부고장·청첩장에서 바로 온 주문은 그쪽을 앞세운다
+    if(cu){ order.utmSource=cu.s; order.utmMedium=cu.m; order.utmCampaign=cu.c; }
   }catch(_e){}
   // 확정이 필요한 건이면 사장님 문자·텔레그램에 실려 가게 태그를 붙인다.
   // (서버가 신뢰하는 값이 아니라 '알림용 메모'다 — 금액·상품 검증은 서버가 따로 한다)
@@ -3924,6 +3926,9 @@ function renderDone(data,o){
         <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-bottom:10px;"><b>가입하면 2,000원 적립</b> · 로그인하면 지난 주문 그대로 <b>원탭 재주문</b>, 가족 기념일 <b>일주일 전 알림</b>까지.</div>
         <button class="btn" onclick="window.afOpenAuth&&window.afOpenAuth()" style="width:100%;">가입하고 2,000원 받기</button>
       </div>`);
+  // 결혼식으로 꽃 보낸 손님은 주변에 결혼 앞둔 사람이 있는 사람들이다(10/20 부고장·청첩장 알리기). 근조 주문엔 붙이지 않는다.
+  const wedCardLine = o.type==="wedding" ? `
+      <a href="/wedding-card?ref=order-done" style="display:block;margin-top:12px;padding:12px 14px;border-radius:var(--radius);background:#fbeef1;border:1px solid #f1d3db;color:#8a2e44;font-size:var(--fs-caption);font-weight:700;text-decoration:none;text-align:left;">결혼 앞둔 분이 주변에 있으면, 꽃안부 모바일 청첩장은 무료예요 ›</a>` : "";
   const surveyCard = `
       <div id="surveyCard" style="border:1px dashed var(--line);border-radius: var(--radius);padding:12px 14px;margin-top:12px;text-align:left;">
         <div style="font-size:var(--fs-caption);font-weight:700;color:var(--ink);margin-bottom:8px;">꽃안부를 어떻게 알고 오셨어요? <span style="font-weight:400;color:var(--ink-faint);">(한 번만 눌러 주세요)</span></div>
@@ -4005,6 +4010,7 @@ function renderDone(data,o){
       </div>`:""}
       ${upsellHtml(o)}
       ${memberCard}
+      ${wedCardLine}
       ${surveyCard}
       <div class="share-row">
         <a class="btn btn-ghost" href="/my?o=${orderId}">주문 조회</a>
@@ -4675,6 +4681,8 @@ function handleWorderParam(){
   // sourceUrl 은 서버 whitelist(confirm-payment)에 이미 있는 칸이라 결제 코드는 손대지 않는다.
   const _cid=P("cid"), _ref=P("ref");
   if(/^[A-Za-z0-9]{6,12}$/.test(_cid)) order.sourceUrl = location.origin+"/c/"+_cid+(/^[A-Za-z0-9_-]{1,30}$/.test(_ref)?"?ref="+_ref:"");
+  // 파트너별로 세려고 유입 칸(utm, 이미 주문 표에 있는 칸)에도 남긴다: source=card, medium=부고/청첩, campaign=파트너 코드(10/20 admin-partner)
+  if(/^[A-Za-z0-9]{6,12}$/.test(_cid)) window.AF_CARD_UTM={ s:"card", m:isFun?"bugo":"wedding", c:/^[A-Za-z0-9_-]{1,30}$/.test(_ref)?_ref:"" };
   const _witems=getItems("wreath");
   const tier=Math.max(0, Math.min(Math.max(0,_witems.length-1), parseInt(q.get("tier"),10)||0));
   document.getElementById("typePill").innerHTML = "";   // '장례식 · 근조화환' 상자도 같은 이유로 뺐다(10/19)

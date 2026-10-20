@@ -146,5 +146,14 @@
   document.getElementById("pv").src="/card.html#p=1&s=1&d="+enc;
 })();
 </script>
+<script>
+// 들어올 때 붙은 파트너 코드(?ref=)를 만들기 버튼까지 넘긴다(10/20 파트너 QR). 없으면 버튼의 기본 코드 그대로.
+(function(){ try{ var q=new URLSearchParams(location.search), r=q.get("ref")||"", nb=q.get("nb")==="1";
+  if(!/^[A-Za-z0-9_-]{1,30}$/.test(r) && !nb) return;
+  document.querySelectorAll('a[href^="/bugo/make"],a[href^="/wedding-card/make"]').forEach(function(a){
+    var u=new URL(a.getAttribute("href"), location.origin); if(/^[A-Za-z0-9_-]{1,30}$/.test(r)) u.searchParams.set("ref", r); if(nb) u.searchParams.set("nb","1");
+    a.setAttribute("href", u.pathname+u.search); });
+}catch(_){} })();
+</script>
 </body>
 </html>

@@ -959,6 +959,52 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, ready: true, items: await r.json().catch(() => []) });
   }
 
+  // ─────────────────────── 파트너 QR (10/20, admin-partner.html) ───────────────────────
+  // 장례식장·예식장·웨딩 업체에 둘 무료 부고장·청첩장 QR. 파트너 코드(ref)가 부고장·청첩장(cards.data.ref)과
+  // 거기서 들어온 화환 주문(orders.utm_source='card', utm_campaign=ref)에 따라가서 파트너별로 센다.
+  // 명단은 site_settings key='partners' 한 줄(supabase-photo-home.sql 의 표). 그 표는 누구나 읽을 수 있어서 메모·연락처는 두지 않는다.
+  // 소개비 같은 돈 계산은 없다(장례업계 알선 대가는 공정위 제재 사례가 있다).
+  if (body.resource === "partner") {
+    if (body.action === "save") {
+      const raw = Array.isArray(body.list) ? body.list.slice(0, 300) : [];
+      const seen = new Set();
+      const list = raw.map((p) => ({
+        code: String(p.code || "").trim(),
+        kind: ["f", "w", "p"].includes(p.kind) ? p.kind : "p",
+        name: clean(p.name, 40), venue: clean(p.venue, 60), addr: clean(p.addr, 120),
+        nb: p.nb === true,
+        at: /^\d{4}-\d{2}-\d{2}$/.test(String(p.at || "")) ? String(p.at) : new Date().toISOString().slice(0, 10),
+      })).filter((p) => /^[A-Za-z0-9_-]{1,30}$/.test(p.code) && p.name && !seen.has(p.code) && seen.add(p.code));
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?on_conflict=key`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify({ key: "partners", value: { list }, updated_at: new Date().toISOString() }),
+      });
+      if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: r.status === 404 ? "저장 칸이 아직 없어요. supabase-photo-home.sql 을 먼저 실행해야 해요." : "저장에 실패했습니다." });
+      await audit("save", "partner", "partners", `${list.length}곳`);
+      return res.status(200).json({ ok: true, list });
+    }
+    if (body.action === "stats") {
+      // 최근 N일(기본 90). 부고장·청첩장은 지워지면(발인 7일·예식 30일 뒤) 표에서도 빠진다 — 오래된 수는 주문 쪽이 남는다.
+      const days = Math.max(1, Math.min(365, Math.trunc(Number(body.days)) || 90));
+      const since = new Date(Date.now() - days * 86400000).toISOString();
+      const [cr, or] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/cards?select=kind,views,ref:data->>ref,ty:data->>ty&created_at=gte.${since}&limit=5000`, { headers: sb }),
+        fetch(`${SUPABASE_URL}/rest/v1/orders?select=amount,status,utm_medium,utm_campaign&utm_source=eq.card&created_at=gte.${since}&limit=5000`, { headers: sb }),
+      ]);
+      const cards = cr.ok ? await cr.json().catch(() => []) : [];
+      const orders = or.ok ? await or.json().catch(() => []) : [];
+      const by = {};
+      const row = (k) => (by[k] = by[k] || { f: 0, w: 0, t: 0, views: 0, orders: 0, amount: 0 });
+      cards.forEach((c) => { const x = row(c.ref || ""); x[c.ty === "t" ? "t" : c.kind === "w" ? "w" : "f"]++; x.views += Number(c.views) || 0; });
+      orders.filter((o) => o.status !== "canceled" && o.status !== "expired").forEach((o) => { const x = row(o.utm_campaign || ""); x.orders++; x.amount += Number(o.amount) || 0; });
+      return res.status(200).json({ ok: true, days, by, cardsReady: cr.ok, ordersReady: or.ok });
+    }
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?key=eq.partners&select=value`, { headers: sb });
+    if (!r.ok) return res.status(200).json({ ok: true, ready: false, list: [] });
+    const rows = await r.json().catch(() => []);
+    return res.status(200).json({ ok: true, ready: true, list: (rows[0] && rows[0].value && rows[0].value.list) || [] });
+  }
+
   // ─────────────────────── 홈 화면 관리 (10/18) ───────────────────────
   // 칸 순서·숨김, 맨 위 대표 상품(최대 3), 시즌 띠. site_settings key='home' 한 줄에 JSON.
   // 칸 안 디자인은 못 바꾼다 — 잘못 눌러도 홈이 깨지지 않게 정해진 칸 이름만 받는다.

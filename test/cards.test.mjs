@@ -447,3 +447,9 @@ test("감사 인사장(10/20): 장소·날짜 없이 만들고, 만든 날 +30�
   assert.ok(html.includes("故 김영수 님 장례 감사 인사"));
   assert.ok(html.includes("/og/card-f-thanks.png"));
 });
+
+test("sanitizeCard: 파트너 링크 nb(화환 버튼 빼기)는 1로만 남는다", () => {
+  assert.equal(sanitizeCard({ ...FUN, nb: true }).data.nb, 1);
+  assert.equal(sanitizeCard({ ...FUN, nb: "1" }).data.nb, 1);
+  assert.equal(sanitizeCard({ ...FUN }).data.nb, undefined);
+});

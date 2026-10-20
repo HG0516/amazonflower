@@ -540,16 +540,17 @@ function data(){
     if(THUMB) d.thumb=THUMB; if(TT) d.tt=TT;
   }
   if(acc.length) d.acc=acc;
-  if(TY==="t"){ d.ty="t"; delete d.acc; d.noComment=1; if(REF) d.ref=REF; return d; }   // 감사 인사장: 계좌·화환·글 없이
+  if(TY==="t"){ d.ty="t"; delete d.acc; d.noComment=1; if(REF) d.ref=REF; if(NB) d.nb=1; return d; }   // 감사 인사장: 계좌·화환·글 없이
   if(!$("wreathOn").checked) d.noWreath=1;
   if(READY && !$("cmOn").checked) d.noComment=1;
   if(READY && RSVP_READY && K==="w" && !$("rsvpOn").checked) d.noRsvp=1;
   if(REF) d.ref=REF;
+  if(NB) d.nb=1;
   return d;
 }
 // ── 파트너(상조·장례식장·웨딩홀) 링크 — ?kind=f|w &venue=이름 &ref=코드(영문·숫자·-_ 30자) ──
 // 식장마다 자기 이름이 미리 들어간 링크/QR 을 줄 수 있고, ref 는 카드와 그 카드에서 나온 화환 주문(원문 링크)까지 따라가 어디서 왔는지 센다.
-var REF="";
+var REF="", NB=false;   // NB: ?nb=1 파트너 링크 — 받는 화면에서 화환 버튼을 뺀다(식장 안 꽃집과 겹치는 곳)
 // ── 주소로 종류 고정(10/20 A안): /bugo/make = 부고장, /wedding-card/make = 청첩장. 옛 /card-make.html 은 새 주소로 넘긴다(고치기 링크는 불러온 뒤 맞춘다) ──
 var PATHK = /^\/wedding-card/.test(location.pathname) ? "w" : /^\/bugo/.test(location.pathname) ? "f" : "";
 function KPATH(k){ return k==="w" ? "/wedding-card/make" : "/bugo/make"; }
@@ -609,9 +610,10 @@ function msgLib(k){
 function applyPartnerLink(){
   var q=new URLSearchParams(location.search);
   var ref=String(q.get("ref")||"").trim(); if(/^[A-Za-z0-9_-]{1,30}$/.test(ref)) REF=ref;
+  if(q.get("nb")==="1") NB=true;
   if(q.get("kind")==="w" || PATHK==="w") mode("w");
   var venue=String(q.get("venue")||"").trim().slice(0,60); if(!venue) return;
-  if(K==="w"){ $("w_venue").value=venue; preview(); return; }
+  if(K==="w"){ $("w_venue").value=venue; var wa=String(q.get("addr")||"").trim().slice(0,120); if(wa) $("w_addr").value=wa; preview(); return; }
   $("f_venue").value=venue;
   loadData("funeral-homes").then(function(all){
     var nv=norm(venue), hit=all.filter(function(it){ return norm(it.n)===nv; });
@@ -758,6 +760,7 @@ function fill(d){
     GAL=(d.gal||[]).slice(0,8); GL=d.gl||"s"; drawGal(); THUMB=d.thumb||""; TT=d.tt||0;
   }
   if(d.ref) REF=d.ref;
+  if(d.nb) NB=true;
   $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp,a.s); }); if(!(d.acc||[]).length) addA();
   $("wreathOn").checked=!d.noWreath; $("cmOn").checked=!d.noComment; $("rsvpOn").checked=!d.noRsvp;
   preview();
@@ -813,7 +816,7 @@ function goThanks(){
     ? { k:"f", name:d.name, rel:d.rel, m:d.m, theme:d.theme }
     : { k:"w", g:d.g, b:d.b, gp:d.gp, bp:d.bp, theme:d.theme, photo:d.photo, gal:d.gal, gl:d.gl };
   try{ sessionStorage.setItem("af_thanks", JSON.stringify(keep)); }catch(_){}
-  location.href=KPATH(d.k)+"?ty=t";
+  location.href=KPATH(d.k)+"?ty=t"+(d.ref?"&ref="+encodeURIComponent(d.ref):"")+(d.nb?"&nb=1":"");
 }
 document.addEventListener("click", function(e){
   var b=e.target.closest && e.target.closest("#shThumbs button, #shTitles button"); if(!b) return;
