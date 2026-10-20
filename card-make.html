@@ -181,6 +181,14 @@
   .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: rgba(0,0,0,.82); color: #fff; padding: 10px 16px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 60; }
   .toast.on { opacity: 1; }
   .err { border-color: #c0392b !important; background: #fff6f5 !important; }
+  .layout main, #shPv { min-width: 0; }   /* 썸네일 줄이 옆으로 길어도 화면 폭을 밀지 않게 */
+  .sh-chat { margin-top: 8px; }
+  .sh-chat .thumb { height: 126px; background: #eee; }
+  .sh-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .sh-thumbs button { flex: 0 0 auto; width: 92px; padding: 0; border: 2px solid transparent; border-radius: 10px; background: #fff; cursor: pointer; overflow: hidden; box-shadow: 0 0 0 1px var(--line); font: inherit; }
+  .sh-thumbs button.on { border-color: var(--green); }
+  .sh-thumbs img { display: block; width: 100%; height: 50px; object-fit: cover; }
+  .sh-thumbs span { display: block; font-size: 11.5px; padding: 4px 0; }
   .kchat .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .mine { background: var(--paper); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; border: 1px solid #ece9e1; box-shadow: 0 6px 22px rgba(0,0,0,.06); }
   .mine h3 { margin: 0 0 6px; font-size: 14px; color: var(--soft); }
@@ -333,6 +341,17 @@
       <button type="button" class="add" onclick="addA();preview()">＋ 계좌 추가</button>
       <button type="button" class="add w-acc" onclick="addFamilyA()">＋ 신랑·신부·혼주 6칸 한 번에</button>
       <p class="hint">'국민 123-456-789 홍길동'처럼 통째로 붙여넣으면 은행·계좌·이름이 나눠 들어가요.</p>
+    </section>
+
+    <section class="sec" id="shPv">
+      <h2>카톡 미리보기 <small style="font-weight:400;color:var(--faint);font-size:12.5px;">보내면 이렇게 떠요</small></h2>
+      <div class="kchat sh-chat"><div class="card"><div class="thumb"><img id="shImg" alt=""></div><div class="tt" id="shTt"></div><div class="dd" id="shDd"></div><div class="bt"><span>자세히 보기</span><span>길찾기</span></div></div></div>
+      <div id="shOpts" class="hide">
+        <label>썸네일 <small>(카톡 사진)</small></label>
+        <div class="sh-thumbs" id="shThumbs"></div>
+        <label>제목</label>
+        <div class="pills" id="shTitles"><button type="button" data-tt="0">○ ♥ ○ 결혼합니다</button><button type="button" data-tt="1">○ · ○, 저희 결혼해요</button><button type="button" data-tt="2">[청첩장] ○ ♥ ○</button></div>
+      </div>
     </section>
 
     <section class="sec">
@@ -515,6 +534,7 @@ function data(){
     if(v("w_msg")) d.msg=v("w_msg");
     if(GAL.length) d.gal=GAL.slice(0,8);
     if(GAL.length>1 && GL!=="s") d.gl=GL;
+    if(THUMB) d.thumb=THUMB; if(TT) d.tt=TT;
   }
   if(acc.length) d.acc=acc;
   if(!$("wreathOn").checked) d.noWreath=1;
@@ -723,7 +743,7 @@ function fill(d){
     TW=["flower","white","hanji","night","pastel"].indexOf(d.theme)>=0?d.theme:"classic"; setTheme("thW",TW);
     ["g","b","gp","bp","date","time","venue","hall","addr","park","photo","msg"].forEach(function(k){ $("w_"+k).value=d[k]||""; });
     showPhotoPv(d.photo||"");
-    GAL=(d.gal||[]).slice(0,8); GL=d.gl||"s"; drawGal();
+    GAL=(d.gal||[]).slice(0,8); GL=d.gl||"s"; drawGal(); THUMB=d.thumb||""; TT=d.tt||0;
   }
   if(d.ref) REF=d.ref;
   $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp,a.s); }); if(!(d.acc||[]).length) addA();
@@ -740,6 +760,7 @@ function sample(d){
 var pvTimer=null;
 function preview(){
   clearTimeout(pvTimer);
+  try{ drawShare(data()); }catch(_){}
   pvTimer=setTimeout(function(){
     var h="#p=1"+(READY?"&s=1":"")+"&d="+enc(sample(data()));
     ["pvFrame","pvFrame2"].forEach(function(id){ var f=$(id); if(!f) return;
@@ -757,9 +778,29 @@ var WD=["일","월","화","수","목","금","토"];
 function kDate(s){ var m=String(s||"").match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return ""; var d=new Date(+m[1],+m[2]-1,+m[3]); return (+m[2])+"월 "+(+m[3])+"일("+WD[d.getDay()]+")"; }
 function kTime(hm){ var m=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); if(!m) return ""; var h=+m[1], mi=+m[2]; return (h<12?"오전 ":"오후 ")+((h%12)||12)+"시"+(mi?" "+mi+"분":""); }
 var SMS="";
-function titleOf(d){ return d.k==="f" ? "[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세") : d.g+" ♥ "+d.b+" 결혼합니다"; }
+function titleOf(d){ return d.k==="f" ? "[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세") : d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다"; }
 function descOf(d){ return d.k==="f" ? [d.venue+(d.room?" "+d.room:""), d.out?("발인 "+kDate(d.outDate)+" "+kTime(d.out)):""].filter(Boolean).join(" · ") : [kDate(d.date)+" "+kTime(d.time), d.venue].filter(Boolean).join(" · "); }
-function ogName(d){ return d.k==="f" ? (d.theme==="gukhwa"?"f-gukhwa":"f-mono") : (d.theme==="flower"?"w-flower":"w-classic"); }
+function ogName(d){ return d.k==="f" ? (d.theme==="gukhwa"?"f-gukhwa":"f-mono") : "w-"+(["flower","white","hanji","night","pastel"].indexOf(d.theme)>=0?d.theme:"classic"); }
+function ogImg(d){ return (d.k==="w" && /^https:\/\//.test(d.thumb||"")) ? d.thumb : location.origin+"/og/card-"+ogName(d)+".png"; }
+// ── 카톡 미리보기(10/20 형구 '썸네일도 같이 정하게, 바뀌는 거랑'): 고칠 때마다 카톡에 뜰 모양을 바로 그린다 ──
+var THUMB="", TT=0;
+document.addEventListener("click", function(e){
+  var b=e.target.closest && e.target.closest("#shThumbs button, #shTitles button"); if(!b) return;
+  if(b.hasAttribute("data-th")) THUMB=b.getAttribute("data-th"); else TT=+b.getAttribute("data-tt");
+  preview();
+});
+function drawShare(d){
+  var box=$("shPv"); if(!box) return;
+  var s=sample(d);
+  $("shImg").src=ogImg(s); $("shTt").textContent=titleOf(s); $("shDd").textContent=descOf(s)||"눌러서 자세히 보기";
+  var w=K==="w"; $("shOpts").classList.toggle("hide", !w);
+  if(!w) return;
+  var pics=[v("w_photo")].concat(GAL).filter(function(u){ return /^https:\/\//.test(u); });
+  if(THUMB && pics.indexOf(THUMB)<0) THUMB="";
+  $("shThumbs").innerHTML='<button type="button" data-th=""'+(THUMB?'':' class="on"')+'><img src="/og/card-'+ogName(s)+'.png" alt=""><span>디자인 그림</span></button>'
+    +pics.map(function(u,i){ return '<button type="button" data-th="'+esc(u)+'"'+(THUMB===u?' class="on"':'')+'><img src="'+esc(u)+'" alt=""><span>'+(i===0&&u===v("w_photo")?"대표 사진":"사진 "+(i+(v("w_photo")?0:1)))+'</span></button>'; }).join("");
+  [].forEach.call($("shTitles").querySelectorAll("button"), function(b){ b.classList.toggle("on", +b.getAttribute("data-tt")===TT); });
+}
 function post(body){
   return fetch("/api/order-meta",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(Object.assign({ type:"card" }, body)) })
     .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return { s:r.status, j:j||{} }; }); });
@@ -802,7 +843,7 @@ function make(){
 }
 function showDone(d, server, fresh, expIso){
   var th=$("kThumb");
-  th.style.background=""; th.innerHTML='<img alt="" src="'+(server?"/og/card-"+ogName(d)+".png":"/og_preview.png")+'">';
+  th.style.background=""; th.innerHTML='<img alt="" src="'+(server?ogImg(d):"/og_preview.png")+'">';
   $("kTitle").textContent = server ? titleOf(d) : (d.k==="f"?"꽃안부 무료 부고장":"꽃안부 무료 모바일 청첩장");
   $("kDesc").textContent = server ? (descOf(d)||"눌러서 자세히 보기") : "눌러서 자세히 보기 · 길찾기";
   $("kB1").textContent = d.k==="f" ? "부고 보기" : "청첩장 보기";
@@ -836,7 +877,7 @@ function shareLink(){
   var short=/\/c\/[A-Za-z0-9]+$/.test(LINK);
   function plain(){ if(navigator.share) navigator.share({ title:$("kTitle").textContent, text:$("kDesc").textContent, url:LINK }).catch(function(){}); else { copyLink(); toast("링크를 복사했어요 — 카톡에 붙여 넣으세요"); } }
   if(!(KAKAO && short)) return plain();
-  var d=(MG && MG.data) || data(), img=location.origin+"/og/card-"+ogName(d)+".png";
+  var d=(MG && MG.data) || data(), img=ogImg(d);
   kakaoReady().then(function(Kk){
     Kk.Share.sendDefault({ objectType:"feed",
       content:{ title:titleOf(d), description:descOf(d)||"눌러서 자세히 보기", imageUrl:img, imageWidth:1200, imageHeight:630, link:{ mobileWebUrl:LINK, webUrl:LINK } },

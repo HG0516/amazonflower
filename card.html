@@ -561,10 +561,10 @@ function kakaoReady(key){
 }
 function kakaoShare(d){
   var url=shareUrl(), fun=d.k==="f";
-  var title = fun ? "[부고] 故 "+d.name+" 님 "+(FUN_WORD[d.rel||""]||"별세") : d.g+" ♥ "+d.b+" 결혼합니다";
+  var title = fun ? "[부고] 故 "+d.name+" 님 "+(FUN_WORD[d.rel||""]||"별세") : (d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다");
   var desc = fun ? [[d.venue,d.room].filter(Boolean).join(" "), d.out?"발인 "+kDate(d.outDate)+" "+kTime(d.out):""].filter(Boolean).join(" · ")
                  : [kDate(d.date)+" "+kTime(d.time), [d.venue,d.hall].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
-  var img=location.origin+"/og/card-"+(fun?(d.theme==="gukhwa"?"f-gukhwa":"f-mono"):(d.theme==="flower"?"w-flower":"w-classic"))+".png";
+  var img=(!fun && /^https:\/\//.test(d.thumb||"")) ? d.thumb : location.origin+"/og/card-"+(fun?(d.theme==="gukhwa"?"f-gukhwa":"f-mono"):"w-"+(WTHEMES.indexOf(d.theme)>=0?d.theme:"classic"))+".png";
   return kakaoReady(STATE.kakaoKey).then(function(K){
     K.Share.sendDefault({ objectType:"feed",
       content:{ title:title, description:desc, imageUrl:img, imageWidth:1200, imageHeight:630, link:{ mobileWebUrl:url, webUrl:url } },

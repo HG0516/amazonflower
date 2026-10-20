@@ -419,3 +419,17 @@ test("청첩장 사진 여러 장·카카오페이 링크(10/20): https 주소�
   assert.equal(r.data.acc.length, 2);   // 계좌도 안전한 링크도 없는 줄은 빠진다
   assert.equal(r.data.acc[1].kp, "https://qr.kakaopay.com/Zz9_x");
 });
+
+test("카톡 썸네일·제목(10/20): 이 청첩장 사진만 썸네일로, 새 디자인은 자기 그림", () => {
+  const P = "https://x.supabase.co/p/";
+  const base = { k: "w", g: "김", b: "박", date: "2026-11-14", venue: "홀", photo: P + "a.jpg", gal: [P + "b.jpg"] };
+  const ok = sanitizeCard({ ...base, thumb: P + "b.jpg", tt: 2 });
+  assert.equal(ok.data.thumb, P + "b.jpg");
+  assert.equal(sanitizeCard({ ...base, thumb: "https://evil.example/x.jpg" }).data.thumb, undefined);
+  const html = renderOgHtml({ id: "abc1234", data: ok.data, bot: true });
+  assert.ok(html.includes(`og:image" content="${P}b.jpg"`));
+  assert.ok(html.includes("[청첩장] 김 ♥ 박"));
+  assert.ok(!html.includes("og:image:width"), "사진이면 1200×630 크기를 적지 않는다");
+  const night = renderOgHtml({ id: "abc1234", data: sanitizeCard({ ...base, theme: "night" }).data, bot: true });
+  assert.ok(night.includes("/og/card-w-night.png"));
+});
