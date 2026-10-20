@@ -47,6 +47,13 @@ test("판단 순서: 예시 표", () => {
   assert.equal(a("어머니 칠순").kind, "occasion");
   assert.equal(a("거래처 개업").kind, "occasion");
   assert.equal(a("꽃다빌").kind, "other");
+  // 치는 중인 글자도 바로(한 글자부터)
+  assert.deepEqual(a("꽃").cats, ["bouquet", "basket"]);
+  assert.deepEqual(a("꽃다").cats, ["bouquet"]);
+  assert.deepEqual(a("근").cats, ["condolence"]);
+  assert.deepEqual(a("화").cats.sort(), ["condolence", "congrats", "plant"]);
+  assert.equal(a("봄마").kind, "product");
+  assert.equal(a("ㅋ").kind, "other");
   assert.equal(a("봄마중").kind, "product");
   // 링크 없는 부고 문자는 사연으로(이름·날짜 속 숫자·글자를 상품으로 읽지 않는다)
   assert.equal(a("[부고] 故 홍길동님 별세 발인 3월 5일 오전 7시 서울성모병원 장례식장 1호실").kind, "occasion");

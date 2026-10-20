@@ -100,7 +100,20 @@
         min: price ? price.min : 0, max: price ? price.max : 0, term: term };
     }
     if (sit.length) return { kind: "occasion", cats: sit };
+    // 치는 중인 글자(한 글자 '꽃', '근', '꽃다' 등)도 바로 띄운다(10/20 형구): 종류 이름 일부 → 그 종류, 아니면 상품 이름 일부.
+    var part = partialCats(term);
+    if (part.length) return { kind: "product", cats: part, names: [], min: 0, max: 0, term: term, partial: true };
+    var pn = term.length <= 12 ? products.filter(function (p) { return String(p.name || "").indexOf(term) >= 0; }) : [];
+    if (pn.length) return { kind: "product", cats: [], names: pn.map(function (p) { return p.pc; }), min: 0, max: 0, term: term, partial: true };
     return { kind: "other", term: q };
+  }
+  var KIND_WORDS = [["꽃다발", ["bouquet"]], ["꽃바구니", ["basket"]], ["근조화환", ["condolence"]], ["축하화환", ["congrats"]], ["화환", ["condolence", "congrats"]],
+    ["호접란", ["orchid"]], ["동양란", ["orchid"]], ["서양란", ["orchid"]], ["관엽식물", ["plant"]], ["화분", ["plant"]]];
+  function partialCats(text) {
+    var q = String(text || "").replace(/\s+/g, ""), out = [];
+    if (!q || q.length > 4) return out;
+    KIND_WORDS.forEach(function (w) { if (w[0].indexOf(q) === 0 || (q.length >= 2 && w[0].indexOf(q) >= 0)) w[1].forEach(function (c) { if (out.indexOf(c) < 0) out.push(c); }); });
+    return out;
   }
 
   // 조건에 맞는 상품(싼 순서). band 를 주면 가격 대신 그 가격대 칸(전체상품의 5만대·7만대…)으로 거른다.
