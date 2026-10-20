@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex" />
 <meta name="theme-color" content="#1f4733" />
 <link rel="icon" href="/favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@700;800&family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&family=Nanum+Brush+Script&display=swap" rel="stylesheet">
 <script src="/address-search.js" defer></script>
 <script src="/card-msgs.js?v=20261020b" defer></script>
 <!--
@@ -116,6 +116,17 @@
   .picked { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: #f2f7f3; font-size: 13px; color: var(--green); display: none; line-height: 1.6; }
   .picked.on { display: block; }
   .addr-btn { margin-top: 8px; padding: 10px 14px; border-radius: 10px; border: 0; background: var(--green); color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  /* 더 꾸미기(10/21) */
+  .deco-sum { cursor: pointer; font-size: 16px; font-weight: 800; padding: 2px 0; }
+  .deco-sum small { font-weight: 400; color: var(--faint); font-size: 12.5px; margin-left: 4px; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .swatches button { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line); cursor: pointer; font: inherit; font-size: 11px; }
+  .swatches button:first-child { width: auto; border-radius: 17px; padding: 0 10px; background: #fff; }
+  .swatches button.on { box-shadow: 0 0 0 2px var(--green); }
+  .ord-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; margin-top: 6px; background: #fff; font-size: 14.5px; }
+  .ord-row span { flex: 1; }
+  .ord-row button { width: 34px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; }
+  .ord-row button:disabled { opacity: .3; }
   /* 테마 카드 */
   .themes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .th { border: 2px solid transparent; border-radius: 14px; padding: 0; overflow: hidden; cursor: pointer; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 0 0 1px var(--line); font: inherit; }
@@ -271,6 +282,12 @@
         <div class="themes" id="thF">
           <button type="button" class="th on" data-t="mono"><div class="mini" style="background:#2b2b2b;color:#f3f1ec;"><div style="font-size:10px;letter-spacing:4px;opacity:.75">訃 告</div><div class="mn" style="font-size:17px;font-weight:800;margin-top:4px;">故 김영수</div></div><div class="nm">단정한 흑백 <span>가장 무난</span></div></button>
           <button type="button" class="th" data-t="gukhwa"><div class="mini" style="background:#f4f1ea;color:#2c2a25;"><div style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,#eee8d6 19% 34%,#fff 35% 50%,#e8e1cc 51% 66%,transparent 67%);box-shadow:0 0 0 1px #ddd5c0;"></div><div class="mn" style="font-size:15px;font-weight:800;margin-top:6px;">故 김영수 님</div></div><div class="nm">국화 은은 <span>따뜻하게</span></div></button>
+          <button type="button" class="th" data-t="cross"><div class="mini" style="background:#fbfbfa;color:#2a2e33;"><div style="position:relative;width:14px;height:22px;"><i style="position:absolute;left:6px;top:0;width:3px;height:22px;background:#5d6b7a"></i><i style="position:absolute;left:0;top:6px;width:14px;height:3px;background:#5d6b7a"></i></div><div class="mn" style="font-size:15px;font-weight:800;margin-top:6px;">故 김영수 님</div></div><div class="nm">십자가 <span>기독교·천주교</span></div></button>
+          <button type="button" class="th" data-t="lotus"><div class="mini" style="background:#f6f3ee;color:#3a3530;"><div style="width:34px;height:18px;border-radius:50% 50% 0 0;background:radial-gradient(ellipse at 50% 100%,#d9b8b0 0 40%,#eedad4 41% 70%,transparent 71%);"></div><div class="mn" style="font-size:15px;font-weight:800;margin-top:6px;">故 김영수 님</div></div><div class="nm">연꽃 <span>불교</span></div></button>
+          <button type="button" class="th" data-t="lily"><div class="mini" style="background:linear-gradient(#f2f5ef,#fdfdfb);color:#2c2f2a;"><div style="width:8px;height:20px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #c9d4c0,-8px 4px 0 -1px #fff,8px 4px 0 -1px #fff;"></div><div class="mn" style="font-size:15px;font-weight:800;margin-top:6px;">故 김영수 님</div></div><div class="nm">흰 백합 <span>맑게</span></div></button>
+          <button type="button" class="th" data-t="ink"><div class="mini" style="background:#f1ead9;color:#23201b;flex-direction:row;gap:10px;"><div style="writing-mode:vertical-rl;font-family:'Nanum Brush Script',cursive;font-size:26px;line-height:1;">訃告</div><div class="mn" style="font-size:15px;font-weight:800;">故 김영수 님</div></div><div class="nm">먹글씨 <span>한지</span></div></button>
+          <button type="button" class="th" data-t="navy"><div class="mini" style="background:#1f2a3d;color:#eef1f6;"><div style="font-size:10px;letter-spacing:4px;opacity:.75">訃 告</div><div class="mn" style="font-size:17px;font-weight:800;margin-top:4px;">故 김영수</div></div><div class="nm">남색 <span>검정 말고</span></div></button>
+          <button type="button" class="th" data-t="paper"><div class="mini" style="background:#fbfaf6 repeating-linear-gradient(180deg,transparent 0 13px,#e9e5da 13px 14px);color:#2a2721;"><div style="font-family:'Nanum Pen Script',cursive;font-size:15px;color:#8b8576;">삼가 알려 드립니다</div><div class="mn" style="font-size:15px;font-weight:800;margin-top:2px;">故 김영수 님</div></div><div class="nm">편지지 <span>감사 인사에도</span></div></button>
         </div>
         <label>인사말 <small>(비우면 기본 문구)</small></label>
         <textarea id="f_msg" placeholder="삼가 고인의 명복을 빕니다.&#10;생전에 베풀어 주신 은혜에 감사드리며&#10;삼가 알려드립니다."></textarea>
@@ -312,6 +329,12 @@
           <button type="button" class="th" data-t="hanji"><div class="mini" style="background:#f3ead8;color:#3b2a1e;"><div style="width:28px;height:28px;border-radius:50%;background:#a8322a;color:#f7e9c9;font-size:16px;line-height:28px;">囍</div><div class="mn" style="font-size:15px;margin-top:6px;">민준 · 서연</div></div><div class="nm">전통 <span>한지·囍</span></div></button>
           <button type="button" class="th" data-t="night"><div class="mini" style="background:#141414;color:#f3e6c8;"><div style="border:1px solid #b89a63;padding:8px 14px;"><div style="font:600 7px sans-serif;letter-spacing:2px;color:#b89a63;">THE WEDDING OF</div><div class="mn" style="font-size:14px;margin-top:4px;">민준 <span style="color:#b89a63">&amp;</span> 서연</div></div></div><div class="nm">블랙 골드 <span>고급스럽게</span></div></button>
           <button type="button" class="th" data-t="pastel"><div class="mini" style="background:radial-gradient(circle at 15% 25%,#f6dbe8 0 22%,transparent 23%),radial-gradient(circle at 88% 15%,#dfe6fb 0 26%,transparent 27%),#fbf8ff;color:#4b4560;"><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f3d6e4,#d9e0f8);box-shadow:0 0 0 3px #fff;"></div><div class="mn" style="font-size:15px;margin-top:6px;">민준 <span style="color:#e59ab8">♥</span> 서연</div></div><div class="nm">파스텔 <span>부드럽게</span></div></button>
+          <button type="button" class="th" data-t="garden"><div class="mini" style="background:#f4f7f1;color:#2f3b2c;"><div style="font:600 7px sans-serif;letter-spacing:2px;color:#6f8a64;">OUR WEDDING DAY</div><div class="mn" style="font-size:15px;margin-top:4px;">민준 <span style="color:#6f8a64">&amp;</span> 서연</div><div style="width:40px;height:20px;margin-top:5px;border-radius:6px;background:#c5d6bb;"></div></div><div class="nm">가든 <span>야외·초록</span></div></button>
+          <button type="button" class="th" data-t="water"><div class="mini" style="background:radial-gradient(ellipse at 15% 20%,rgba(244,190,196,.7) 0 20%,transparent 40%),radial-gradient(ellipse at 85% 80%,rgba(252,213,180,.7) 0 18%,transparent 38%),#fffaf7;color:#4d3b3b;"><div class="mn" style="font-size:16px;">민준 <span style="color:#e48f9b">♡</span> 서연</div></div><div class="nm">봄꽃 수채화 <span>화사하게</span></div></button>
+          <button type="button" class="th" data-t="letter"><div class="mini" style="background:#fbf7ef repeating-linear-gradient(180deg,transparent 0 13px,#ebe3d3 13px 14px);color:#3c3226;"><div style="font-family:'Nanum Pen Script',cursive;font-size:14px;color:#9a7b5a;">To. 소중한 분께</div><div class="mn" style="font-family:'Nanum Pen Script',cursive;font-size:22px;">민준 · 서연</div></div><div class="nm">편지지 <span>손글씨</span></div></button>
+          <button type="button" class="th" data-t="poster"><div class="mini" style="background:linear-gradient(180deg,#3b3a40,#15151a);color:#fff;align-items:flex-start;padding:0 12px;justify-content:flex-end;padding-bottom:10px;"><div style="font:700 7px sans-serif;letter-spacing:3px;color:#d9c08f;">THE WEDDING</div><div class="mn" style="font:800 17px 'Noto Sans KR',sans-serif;line-height:1.05;">민준<br>서연</div></div><div class="nm">영화 포스터 <span>사진 꽉 차게</span></div></button>
+          <button type="button" class="th" data-t="hanbok"><div class="mini" style="background:#fbf7f0;color:#2e2a26;"><div style="width:70px;height:5px;background:linear-gradient(90deg,#2c4a7c 50%,#b23a3a 50%);margin-bottom:8px;"></div><div class="mn" style="font-size:15px;"><span style="color:#2c4a7c">민준</span> · <span style="color:#b23a3a">서연</span></div></div><div class="nm">청홍 한복 <span>전통 혼례</span></div></button>
+          <button type="button" class="th" data-t="type"><div class="mini" style="background:#fff;color:#111;align-items:flex-start;padding:0 14px;"><div style="font:800 28px 'Noto Sans KR',sans-serif;letter-spacing:-1px;line-height:1;">10.24</div><div style="font:700 12px 'Noto Sans KR',sans-serif;margin-top:4px;">민준 / 서연</div></div><div class="nm">글자만 <span>사진 없어도</span></div></button>
         </div>
         <label>대표 사진 <small>(선택 — 휴대폰 사진을 바로 올려요)</small></label>
         <div class="two" style="align-items:center;">
@@ -335,6 +358,19 @@
         <button type="button" class="msg-lib" onclick="msgLib('w')">문구 고르기 <span>39가지 · 직접 찾아뵙지 못하는 양해 문구도</span></button>
       </section>
     </div>
+
+    <section class="sec" id="secDeco">
+      <details id="decoBox"><summary class="deco-sum">더 꾸미기 <small>글꼴 · 강조색 · 칸 순서 · 큰 글씨 (선택)</small></summary>
+        <label>글꼴</label>
+        <div class="pills" id="fontPills"><button type="button" class="on" data-v="">디자인대로</button><button type="button" data-v="myeong" style="font-family:'Nanum Myeongjo',serif">명조</button><button type="button" data-v="batang" style="font-family:'Gowun Batang',serif">바탕</button><button type="button" data-v="gothic">고딕</button><button type="button" data-v="pen" style="font-family:'Nanum Pen Script',cursive;font-size:17px">손글씨</button></div>
+        <label>강조색 <small>(버튼·계좌·이름 사이 표시)</small></label>
+        <div class="swatches" id="acSw"><button type="button" class="on" data-v="" title="디자인대로">기본</button></div>
+        <label>칸 순서 <small>(위·아래 화살표로 옮겨요)</small></label>
+        <div id="ordList"></div>
+        <button type="button" class="add" id="ordReset" style="margin-top:6px">기본 순서로</button>
+        <label class="chk" style="display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:400"><input type="checkbox" id="bigOn" style="width:20px;height:20px"> 처음부터 큰 글씨로 보이기 <small style="color:var(--faint)">(어르신이 많이 받으시면)</small></label>
+      </details>
+    </section>
 
     <section class="sec" id="secAcc">
       <h2><b id="nAcc">5</b>마음 전하실 곳 <small style="font-weight:400;color:var(--faint);font-size:12.5px;">(선택)</small></h2>
@@ -399,6 +435,35 @@
 
 <script>
 var K="f", TF="mono", TW="classic", REL="", LINK="";
+// 더 꾸미기(10/21) — lib/cards.mjs ACCENTS·ORD_KEYS 와 같아야 한다
+var FONT="", ACC="", ORD=null, BIGD=false, TF_PICKED=false;
+var ACCENTS=["#2b2b2b","#4a5664","#1f2a3d","#4f6248","#6b5a4a","#8c6a50","#c98f88","#d77f8c","#9b8ad0","#a8322a","#b89a63","#2c4a7c"];
+var ORD_DEF={ f:["msg","people","info","acc","wreath","cm"], w:["msg","people","gal","info","rsvp","acc","wreath","cm"], t:["msg","people","gal"] };
+var ORD_NM={ msg:"인사말", people:"", gal:"사진", info:"", rsvp:"참석 여부", acc:"마음 전하실 곳(계좌)", wreath:"화환 보내기", cm:"" };
+function ordKind(){ return TY==="t" ? "t" : K; }
+function ordName(k){ if(k==="people") return K==="f"?"상주":(TY==="t"?"보내는 사람":"혼주·신랑신부"); if(k==="info") return K==="f"?"빈소·발인·지도":"일시·장소·지도"; if(k==="cm") return K==="f"?"조문 글":"축하 방명록"; return ORD_NM[k]; }
+function drawOrd(){
+  var list=(ORD||ORD_DEF[ordKind()]).filter(function(k){ return ORD_DEF[ordKind()].indexOf(k)>=0; });
+  ORD_DEF[ordKind()].forEach(function(k){ if(list.indexOf(k)<0) list.push(k); });
+  $("ordList").innerHTML=list.map(function(k,i){ return '<div class="ord-row"><span>'+esc(ordName(k))+'</span><button type="button" data-up="'+i+'"'+(i===0?' disabled':'')+' aria-label="위로">▲</button><button type="button" data-dn="'+i+'"'+(i===list.length-1?' disabled':'')+' aria-label="아래로">▼</button></div>'; }).join("");
+  $("ordList").dataset.list=list.join(",");
+}
+document.addEventListener("DOMContentLoaded", function(){
+  $("acSw").insertAdjacentHTML("beforeend", ACCENTS.map(function(c){ return '<button type="button" data-v="'+c+'" style="background:'+c+'" aria-label="강조색 '+c+'"></button>'; }).join(""));
+  $("fontPills").addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return; FONT=b.dataset.v; this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); preview(); });
+  $("acSw").addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return; ACC=b.dataset.v; this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); preview(); });
+  $("ordList").addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return; var l=$("ordList").dataset.list.split(","), i=+(b.dataset.up||b.dataset.dn), j=b.dataset.up!=null?i-1:i+1; if(j<0||j>=l.length) return; var t=l[i]; l[i]=l[j]; l[j]=t; ORD=l; drawOrd(); preview(); });
+  $("ordReset").onclick=function(){ ORD=null; drawOrd(); preview(); };
+  $("bigOn").onchange=function(){ BIGD=this.checked; preview(); };
+  drawOrd();
+});
+function setDeco(d){
+  FONT=d.font||""; ACC=d.ac||""; ORD=d.ord||null; BIGD=!!d.big;
+  $("fontPills").querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x.dataset.v===FONT); });
+  $("acSw").querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x.dataset.v===ACC); });
+  $("bigOn").checked=BIGD; drawOrd();
+  if(FONT||ACC||ORD||BIGD) $("decoBox").open=true;
+}
 var READY=false, KAKAO="", RSVP_READY=false, EDIT=null, MG=null, EDITLINK="";   // 정식판 준비 여부 · 카카오 공유 키 · 고치는 중인 안내 {id,key}
 var RELS=["장남","장녀","차남","차녀","삼남","삼녀","배우자","며느리","사위","손자","손녀","외손","형제","자매","조카"];
 var BANKS=["국민","신한","우리","하나","농협","기업","카카오뱅크","토스뱅크","케이뱅크","새마을금고","우체국","신협","수협","SC제일","씨티","부산","대구","경남","광주","전북","제주","산업"];
@@ -410,6 +475,7 @@ function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0
 function mode(k){
   if(EDIT && MG && MG.data && k!==MG.data.k){ toast("보낸 안내는 종류를 바꿀 수 없어요 — '새로 만들기'를 눌러 주세요"); return; }
   K=k; $("tF").classList.toggle("on",k==="f"); $("tW").classList.toggle("on",k==="w");
+  if($("ordList")){ ORD=null; drawOrd(); }
   setHero(k);
   $("fF").classList.toggle("hide",k!=="f"); $("fW").classList.toggle("hide",k!=="w");
   $("aList").classList.toggle("is-w", k==="w"); document.body.classList.toggle("is-w-mode", k==="w");
@@ -427,9 +493,11 @@ function setTheme(boxId, t){ document.querySelectorAll("#"+boxId+" .th").forEach
 function setRel(r){ REL=r||""; $("relPills").querySelectorAll("button").forEach(function(x){ x.classList.toggle("on", x.getAttribute("data-v")===REL); }); }
 document.querySelectorAll(".themes").forEach(function(box){ box.addEventListener("click", function(e){ var b=e.target.closest(".th"); if(!b) return;
   box.querySelectorAll(".th").forEach(function(x){ x.classList.toggle("on",x===b); });
-  if(box.id==="thF") TF=b.getAttribute("data-t"); else TW=b.getAttribute("data-t"); preview(); }); });
+  if(box.id==="thF"){ TF=b.getAttribute("data-t"); TF_PICKED=true; } else TW=b.getAttribute("data-t"); preview(); }); });
 $("relPills").addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
-  this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); REL=b.getAttribute("data-v"); preview(); });
+  this.querySelectorAll("button").forEach(function(x){ x.classList.toggle("on",x===b); }); REL=b.getAttribute("data-v");
+  if(!TF_PICKED){ TF={"기독교":"cross","천주교":"cross","불교":"lotus"}[REL]||"mono"; setTheme("thF",TF); }
+  preview(); });
 document.querySelectorAll(".msg-pills").forEach(function(p){ p.addEventListener("click", function(e){ var b=e.target.closest("button"); if(!b) return;
   $(p.getAttribute("data-for")).value=b.getAttribute("data-m"); preview(); }); });
 
@@ -540,6 +608,8 @@ function data(){
     if(THUMB) d.thumb=THUMB; if(TT) d.tt=TT;
   }
   if(acc.length) d.acc=acc;
+  if(FONT) d.font=FONT; if(ACC) d.ac=ACC; if(BIGD) d.big=1;
+  if(ORD){ var dl=ORD_DEF[ordKind()]; if(ORD.join()!==dl.join()) d.ord=ORD.filter(function(k){ return dl.indexOf(k)>=0; }); }
   if(TY==="t"){ d.ty="t"; delete d.acc; d.noComment=1; if(REF) d.ref=REF; if(NB) d.nb=1; return d; }   // 감사 인사장: 계좌·화환·글 없이
   if(!$("wreathOn").checked) d.noWreath=1;
   if(READY && !$("cmOn").checked) d.noComment=1;
@@ -750,17 +820,18 @@ function fill(d){
   mode(d.k);
   try{ if(location.pathname!==KPATH(d.k)) history.replaceState(null,"",KPATH(d.k)+location.search+location.hash); }catch(_){}
   if(d.k==="f"){
-    TF=d.theme==="gukhwa"?"gukhwa":"mono"; setTheme("thF",TF); setRel(d.rel);
+    TF=FTH.indexOf(d.theme)>=0?d.theme:"mono"; TF_PICKED=true; setTheme("thF",TF); setRel(d.rel);
     ["name","age","died","venue","room","tel","addr","burial","outDate","out","msg"].forEach(function(k){ $("f_"+k).value=d[k]||""; });
     $("mList").innerHTML=""; (d.m||[]).forEach(function(x){ addM(x.r,x.n); }); if(!(d.m||[]).length) addM("장남");
   }else{
-    TW=["flower","white","hanji","night","pastel"].indexOf(d.theme)>=0?d.theme:"classic"; setTheme("thW",TW);
+    TW=WTH.indexOf(d.theme)>=0?d.theme:"classic"; setTheme("thW",TW);
     ["g","b","gp","bp","date","time","venue","hall","addr","park","photo","msg"].forEach(function(k){ $("w_"+k).value=d[k]||""; });
     showPhotoPv(d.photo||"");
     GAL=(d.gal||[]).slice(0,8); GL=d.gl||"s"; drawGal(); THUMB=d.thumb||""; TT=d.tt||0;
   }
   if(d.ref) REF=d.ref;
   if(d.nb) NB=true;
+  setDeco(d);
   $("aList").innerHTML=""; (d.acc||[]).forEach(function(a){ addA(a.who,a.bank,a.no,a.kp,a.s); }); if(!(d.acc||[]).length) addA();
   $("wreathOn").checked=!d.noWreath; $("cmOn").checked=!d.noComment; $("rsvpOn").checked=!d.noRsvp;
   preview();
@@ -782,7 +853,7 @@ function preview(){
       if(!f.getAttribute("src")) f.setAttribute("src","/card.html"+h);
       else try{ f.contentWindow.location.replace("/card.html"+h); }catch(_){ f.setAttribute("src","/card.html"+h); } });
     // 테마 카드의 이름도 따라 바뀐다
-    var nm=v("f_name")||"김영수"; document.querySelectorAll("#thF .mn").forEach(function(el,i){ el.textContent= i===0 ? "故 "+nm : "故 "+nm+" 님"; });
+    var nm=v("f_name")||"김영수"; document.querySelectorAll("#thF .mn").forEach(function(el){ var t=el.closest(".th").getAttribute("data-t"); el.textContent= (t==="mono"||t==="navy") ? "故 "+nm : "故 "+nm+" 님"; });
   },220);
 }
 document.addEventListener("input", function(e){ if(e.target && e.target.closest && e.target.closest("main")) { e.target.classList.remove("err"); preview(); } });
@@ -795,7 +866,10 @@ function kTime(hm){ var m=String(hm||"").match(/^(\d{1,2}):(\d{2})$/); if(!m) re
 var SMS="";
 function titleOf(d){ if(d.ty==="t") return d.k==="f" ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사"; return d.k==="f" ? "[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세") : d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다"; }
 function descOf(d){ if(d.ty==="t") return d.k==="f" ? "보내 주신 위로에 감사드립니다" : "보내 주신 축하에 감사드립니다"; return d.k==="f" ? [d.venue+(d.room?" "+d.room:""), d.out?("발인 "+kDate(d.outDate)+" "+kTime(d.out)):""].filter(Boolean).join(" · ") : [kDate(d.date)+" "+kTime(d.time), d.venue].filter(Boolean).join(" · "); }
-function ogName(d){ return d.k==="f" ? (d.theme==="gukhwa"?"f-gukhwa":"f-mono") : "w-"+(["flower","white","hanji","night","pastel"].indexOf(d.theme)>=0?d.theme:"classic"); }
+var FTH=["mono","gukhwa","cross","lotus","lily","ink","navy","paper"], WTH=["classic","flower","white","hanji","night","pastel","garden","water","letter","poster","hanbok","type"];
+// 카톡 그림은 처음 디자인들만 있다 — 새 디자인은 가까운 그림(card.html ogName 과 같게)
+var OG_F={ gukhwa:"f-gukhwa", lily:"f-gukhwa", lotus:"f-gukhwa" }, OG_W={ flower:"flower", white:"white", hanji:"hanji", night:"night", pastel:"pastel", garden:"flower", water:"pastel", letter:"white", poster:"night", hanbok:"hanji", type:"white" };
+function ogName(d){ return d.k==="f" ? (OG_F[d.theme]||"f-mono") : "w-"+(OG_W[d.theme]||"classic"); }
 function ogImg(d){ return (d.k==="w" && /^https:\/\//.test(d.thumb||"")) ? d.thumb : d.ty==="t" ? location.origin+"/og/card-"+(d.k==="f"?"f":"w")+"-thanks.png" : location.origin+"/og/card-"+ogName(d)+".png"; }
 // ── 카톡 미리보기(10/20 형구 '썸네일도 같이 정하게, 바뀌는 거랑'): 고칠 때마다 카톡에 뜰 모양을 바로 그린다 ──
 var THUMB="", TT=0;
@@ -809,12 +883,13 @@ function setThanks(on){
   [["fF"],["fW"]].forEach(function(x){ var n=0; [].forEach.call(document.querySelectorAll("#"+x[0]+" > section"), function(sec){ if(sec.classList.contains("hide")) return; var b=sec.querySelector("h2 > b"); if(b) b.textContent=++n; }); });
   [].forEach.call(document.querySelectorAll(".msg-lib span"), function(sp){ sp.textContent = on ? "감사 인사 문구" : (sp.parentNode.getAttribute("onclick").indexOf("'f'")>=0 ? "25가지" : "39가지 · 직접 찾아뵙지 못하는 양해 문구도"); });
   if(typeof K!=="undefined") setHero(K);
+  if($("ordList")){ ORD=null; drawOrd(); }
 }
 // 부고장·청첩장에서 '감사 인사장' → 이름·상주·사진·디자인만 들고 같은 종류 화면으로
 function goThanks(){
   var d=(MG && MG.data) || data(), keep = d.k==="f"
-    ? { k:"f", name:d.name, rel:d.rel, m:d.m, theme:d.theme }
-    : { k:"w", g:d.g, b:d.b, gp:d.gp, bp:d.bp, theme:d.theme, photo:d.photo, gal:d.gal, gl:d.gl };
+    ? { k:"f", name:d.name, rel:d.rel, m:d.m, theme:d.theme, font:d.font, ac:d.ac }
+    : { k:"w", g:d.g, b:d.b, gp:d.gp, bp:d.bp, theme:d.theme, photo:d.photo, gal:d.gal, gl:d.gl, font:d.font, ac:d.ac };
   try{ sessionStorage.setItem("af_thanks", JSON.stringify(keep)); }catch(_){}
   location.href=KPATH(d.k)+"?ty=t"+(d.ref?"&ref="+encodeURIComponent(d.ref):"")+(d.nb?"&nb=1":"");
 }
@@ -1019,7 +1094,8 @@ if(TY==="t"){
   setThanks(true);
   try{ var tk=JSON.parse(sessionStorage.getItem("af_thanks")||"null"); sessionStorage.removeItem("af_thanks");
     if(tk && tk.k===K){
-      if(K==="f"){ $("f_name").value=tk.name||""; setRel(tk.rel||""); if(tk.theme){ TF=tk.theme; setTheme("thF",TF); } if((tk.m||[]).length){ $("mList").innerHTML=""; tk.m.forEach(function(x){ addM(x.r,x.n); }); } }
+      setDeco({ font:tk.font, ac:tk.ac });
+      if(K==="f"){ $("f_name").value=tk.name||""; setRel(tk.rel||""); if(tk.theme){ TF=tk.theme; TF_PICKED=true; setTheme("thF",TF); } if((tk.m||[]).length){ $("mList").innerHTML=""; tk.m.forEach(function(x){ addM(x.r,x.n); }); } }
       else { ["g","b","gp","bp","photo"].forEach(function(f){ $("w_"+f).value=tk[f]||""; }); showPhotoPv(tk.photo||""); if(tk.theme){ TW=tk.theme; setTheme("thW",TW); } GAL=(tk.gal||[]).slice(0,8); GL=tk.gl||"s"; drawGal(); }
       toast("부고장·청첩장 내용을 가져왔어요");
     } }catch(_){}

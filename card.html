@@ -10,7 +10,7 @@
 <meta property="og:description" content="눌러서 자세히 보기 · 길찾기" />
 <meta property="og:image" content="https://floweranbu.co.kr/og_preview.png" />
 <link rel="icon" href="/favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&family=Nanum+Brush+Script&display=swap" rel="stylesheet">
 <!--
   무료 부고장·청첩장 — 받는 사람 화면(2026-10-06 정식판).
   - 짧은 링크 /c/<id> → (api/order-meta 가 카톡 미리보기를 내주고) card.html?c=<id> → 서버에서 내용·조문 글을 받아 그린다.
@@ -105,6 +105,111 @@
   .t-pastel .acct { background: #f1ecfb; } .t-pastel .acct button { background: #9b8ad0; color: #fff; }
   .t-pastel .wreath { background: #fff; border: 1px solid #ebe3f8; } .t-pastel .wreath .btn { background: #9b8ad0; color: #fff; }
   .t-white .fab { background: #222; } .t-hanji .fab { background: #a8322a; } .t-night .fab { background: #b89a63; color: #141414; } .t-pastel .fab { background: #9b8ad0; }
+
+  /* ── 디자인 더(10/21 형구 '부고·청첩장 더 다양하게') ── 부고 6 · 청첩장 6 추가 */
+  /* 부고 — 십자가(기독교·천주교) */
+  .t-cross { background: #fbfbfa; color: #2a2e33; font-family: "Nanum Myeongjo", serif; }
+  .t-cross .band { text-align: center; padding: 46px 20px 22px; border-bottom: 1px solid #e3e6ea; }
+  .t-cross .band .cr { position: relative; width: 22px; height: 34px; margin: 0 auto 16px; }
+  .t-cross .band .cr::before { content: ""; position: absolute; left: 9px; top: 0; width: 4px; height: 34px; background: #5d6b7a; border-radius: 2px; }
+  .t-cross .band .cr::after { content: ""; position: absolute; left: 0; top: 9px; width: 22px; height: 4px; background: #5d6b7a; border-radius: 2px; }
+  .t-cross .band .h { font-size: 13px; letter-spacing: 6px; color: #5d6b7a; }
+  .t-cross .band .name { font-size: 28px; margin: 12px 0 6px; } .t-cross .band .sub { font-size: 14px; color: #6b7480; }
+  .t-cross .acct { background: #eef0f3; } .t-cross .acct button, .t-cross .wreath .btn, .t-cross .fab { background: #4a5664; color: #fff; } .t-cross .wreath { background: #eef0f3; }
+  /* 부고 — 연꽃(불교) */
+  .t-lotus { background: #f6f3ee; color: #3a3530; font-family: "Gowun Batang", serif; }
+  .t-lotus .band { text-align: center; padding: 44px 20px 18px; }
+  .t-lotus .band .lt { position: relative; width: 70px; height: 40px; margin: 0 auto 14px; }
+  .t-lotus .band .lt i { position: absolute; bottom: 0; left: 25px; width: 20px; height: 38px; border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%; background: #d9b8b0; transform-origin: 50% 100%; opacity: .9; }
+  .t-lotus .band .lt i:nth-child(2) { transform: rotate(-38deg); background: #e5cbc4; } .t-lotus .band .lt i:nth-child(3) { transform: rotate(38deg); background: #e5cbc4; }
+  .t-lotus .band .lt i:nth-child(4) { transform: rotate(-70deg) scale(.8); background: #eedad4; } .t-lotus .band .lt i:nth-child(5) { transform: rotate(70deg) scale(.8); background: #eedad4; }
+  .t-lotus .band .h { font-size: 14px; letter-spacing: 5px; color: #8a7a6a; } .t-lotus .band .name { font-size: 27px; margin: 10px 0 4px; } .t-lotus .band .sub { font-size: 14px; color: #8a7a6a; }
+  .t-lotus .acct, .t-lotus .wreath { background: #ece6dc; } .t-lotus .acct button, .t-lotus .wreath .btn, .t-lotus .fab { background: #6b5a4a; color: #fff; }
+  /* 부고 — 흰 백합 */
+  .t-lily { background: #fdfdfb; color: #2c2f2a; font-family: "Gowun Batang", serif; }
+  .t-lily .band { text-align: center; padding: 40px 20px 18px; background: linear-gradient(180deg, #f2f5ef, #fdfdfb); }
+  .t-lily .band .ly { position: relative; width: 60px; height: 62px; margin: 0 auto 12px; }
+  .t-lily .band .ly i { position: absolute; left: 22px; top: 0; width: 16px; height: 34px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px #d9e0d2; transform-origin: 50% 100%; }
+  .t-lily .band .ly i:nth-child(2) { transform: rotate(-40deg); } .t-lily .band .ly i:nth-child(3) { transform: rotate(40deg); }
+  .t-lily .band .ly b { position: absolute; left: 29px; top: 32px; width: 2px; height: 30px; background: #7d9474; }
+  .t-lily .band .h { font-size: 14px; letter-spacing: 5px; color: #6d7f6a; } .t-lily .band .name { font-size: 27px; margin: 10px 0 4px; } .t-lily .band .sub { font-size: 14px; color: #6d7f6a; }
+  .t-lily .acct, .t-lily .wreath { background: #eef2ea; } .t-lily .acct button, .t-lily .wreath .btn, .t-lily .fab { background: #4f6248; color: #fff; }
+  /* 부고 — 한지 먹글씨 */
+  .t-ink { background: #f1ead9 repeating-linear-gradient(115deg, rgba(120,100,70,.05) 0 2px, transparent 2px 8px); color: #23201b; font-family: "Gowun Batang", serif; }
+  .t-ink .band { display: flex; justify-content: center; gap: 22px; align-items: center; padding: 40px 20px 20px; }
+  .t-ink .band .h { writing-mode: vertical-rl; font-family: "Nanum Brush Script", cursive; font-size: 56px; line-height: 1; color: #1c1a16; letter-spacing: 6px; }
+  .t-ink .band .tx { text-align: left; } .t-ink .band .name { font-size: 27px; } .t-ink .band .sub { font-size: 14px; margin-top: 6px; color: #6a5d48; }
+  .t-ink .acct, .t-ink .wreath { background: #e7dec9; } .t-ink .acct button, .t-ink .wreath .btn, .t-ink .fab { background: #23201b; color: #f1ead9; }
+  /* 부고 — 남색 */
+  .t-navy { background: #f7f8fa; color: #1f2a3d; font-family: "Nanum Myeongjo", serif; }
+  .t-navy .band { background: #1f2a3d; color: #eef1f6; text-align: center; padding: 40px 20px 30px; }
+  .t-navy .band .h { font-size: 13px; letter-spacing: 6px; opacity: .75; } .t-navy .band .name { font-size: 30px; font-weight: 700; margin: 14px 0 6px; } .t-navy .band .sub { font-size: 14px; opacity: .8; font-family: "Noto Sans KR", sans-serif; }
+  .t-navy .acct, .t-navy .wreath { background: #e8ecf2; } .t-navy .acct button, .t-navy .wreath .btn, .t-navy .fab { background: #1f2a3d; color: #fff; }
+  /* 부고·감사 — 편지지(단정) */
+  .t-paper { background: #fbfaf6 repeating-linear-gradient(180deg, transparent 0 31px, #e9e5da 31px 32px); color: #2a2721; font-family: "Gowun Batang", serif; }
+  .t-paper .band { text-align: center; padding: 44px 20px 16px; } .t-paper .band .h { font-size: 13px; letter-spacing: 4px; color: #8b8576; }
+  .t-paper .band .name { font-size: 27px; margin: 10px 0 4px; } .t-paper .band .sub { font-size: 14px; color: #8b8576; }
+  .t-paper .msg { font-family: "Nanum Pen Script", cursive; font-size: 24px; line-height: 32px; }
+  .t-paper .acct, .t-paper .wreath { background: #f0ece2; } .t-paper .acct button, .t-paper .wreath .btn, .t-paper .fab { background: #4a453b; color: #fff; }
+  /* 청첩장 — 가든 */
+  .t-garden { background: #f4f7f1; color: #2f3b2c; font-family: "Gowun Batang", serif; }
+  .t-garden .band { text-align: center; padding: 50px 20px 20px; position: relative; overflow: hidden; }
+  .t-garden .band::before, .t-garden .band::after { content: ""; position: absolute; width: 90px; height: 34px; border-radius: 0 100% 0 100%; background: #9fb894; opacity: .55; }
+  .t-garden .band::before { top: 18px; left: -14px; transform: rotate(28deg); } .t-garden .band::after { top: 26px; right: -14px; transform: rotate(-28deg) scaleX(-1); background: #b9cdb0; }
+  .t-garden .band .h { font: 600 11px "Noto Sans KR", sans-serif; letter-spacing: 4px; color: #6f8a64; } .t-garden .band .name { font-size: 28px; margin: 12px 0 6px; } .t-garden .band .name span { color: #6f8a64; } .t-garden .band .sub { font-size: 14px; color: #5e6f58; }
+  .t-garden .photo { aspect-ratio: 4/5; margin: 0 20px; border-radius: 18px; background: linear-gradient(135deg, #dfe8d8, #c5d6bb); background-size: cover; background-position: center; }
+  .t-garden .acct, .t-garden .wreath { background: #e8efe3; } .t-garden .acct button, .t-garden .wreath .btn, .t-garden .fab { background: #56704b; color: #fff; }
+  /* 청첩장 — 봄꽃 수채화 */
+  .t-water { background: #fffaf7; color: #4d3b3b; font-family: "Gowun Batang", serif; }
+  .t-water .band { text-align: center; padding: 56px 20px 26px; background: radial-gradient(ellipse at 12% 18%, rgba(244,190,196,.55) 0 18%, transparent 36%), radial-gradient(ellipse at 88% 12%, rgba(252,213,180,.6) 0 16%, transparent 34%), radial-gradient(ellipse at 78% 88%, rgba(214,200,240,.5) 0 14%, transparent 32%), radial-gradient(ellipse at 20% 92%, rgba(250,224,200,.5) 0 12%, transparent 30%); }
+  .t-water .band .name { font-size: 29px; } .t-water .band .name span { color: #e48f9b; } .t-water .band .sub { font-size: 14px; margin-top: 8px; color: #8a6e6c; }
+  .t-water .photo { aspect-ratio: 1/1; margin: 0 26px; border-radius: 46% 54% 50% 50% / 52% 48% 52% 48%; background: linear-gradient(135deg, #f8d9d6, #fbe6cf); background-size: cover; background-position: center; }
+  .t-water .acct, .t-water .wreath { background: #fdf0ec; } .t-water .acct button, .t-water .wreath .btn, .t-water .fab { background: #d77f8c; color: #fff; }
+  /* 청첩장·감사 — 편지지 손글씨 */
+  .t-letter { background: #fbf7ef repeating-linear-gradient(180deg, transparent 0 33px, #ebe3d3 33px 34px); color: #3c3226; font-family: "Gowun Batang", serif; }
+  .t-letter .band { position: relative; padding: 46px 24px 18px; }
+  .t-letter .band .st { position: absolute; right: 22px; top: 22px; width: 52px; height: 62px; border: 2px dashed #c9a27a; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #c9a27a; font-size: 22px; transform: rotate(6deg); }
+  .t-letter .band .h { font-family: "Nanum Pen Script", cursive; font-size: 26px; color: #9a7b5a; }
+  .t-letter .band .name { font-family: "Nanum Pen Script", cursive; font-size: 46px; line-height: 1.1; margin: 6px 0; } .t-letter .band .sub { font-size: 14px; color: #8a7560; }
+  .t-letter .msg { font-family: "Nanum Pen Script", cursive; font-size: 25px; line-height: 34px; }
+  .t-letter .photo { aspect-ratio: 4/5; margin: 4px 30px 0; border: 8px solid #fff; box-shadow: 0 6px 16px rgba(0,0,0,.12); transform: rotate(-1.5deg); background: #eadfcd; background-size: cover; background-position: center; }
+  .t-letter .acct, .t-letter .wreath { background: #f3ecdd; } .t-letter .acct button, .t-letter .wreath .btn, .t-letter .fab { background: #8a6a4a; color: #fff; }
+  /* 청첩장 — 영화 포스터 */
+  .t-poster { background: #111; color: #eee; font-family: "Noto Sans KR", sans-serif; }
+  .t-poster .band { position: relative; min-height: 520px; background: linear-gradient(180deg, rgba(0,0,0,.05) 35%, rgba(0,0,0,.85)), linear-gradient(160deg, #3b3a40, #15151a); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 22px 28px; }
+  .t-poster .band .h { font-size: 12px; font-weight: 700; letter-spacing: 5px; color: #d9c08f; }
+  .t-poster .band .name { font-size: 40px; font-weight: 800; line-height: 1.08; letter-spacing: -1px; margin: 8px 0 10px; color: #fff; }
+  .t-poster .band .name span { display: block; font-size: 15px; font-weight: 500; letter-spacing: 4px; color: #d9c08f; margin: 4px 0; }
+  .t-poster .band .sub { font-size: 13px; letter-spacing: 2px; color: #bbb; border-top: 1px solid rgba(255,255,255,.25); padding-top: 10px; }
+  .t-poster .acct, .t-poster .wreath, .t-poster .pre, .t-poster .maps.cal a, .t-poster .cm input, .t-poster .cm textarea, .t-poster .rsvp, .t-poster .rsvp .rb, .t-poster details.accts.grp { background: #1d1d1d; color: inherit; border-color: #333; }
+  .t-poster .acct button, .t-poster .wreath .btn, .t-poster .fab { background: #d9c08f; color: #111; }
+  .t-poster .share button, .t-poster .share a { border-color: #333; }
+  /* 청첩장 — 한복·청홍 */
+  .t-hanbok { background: #fbf7f0; color: #2e2a26; font-family: "Gowun Batang", serif; }
+  .t-hanbok .band { text-align: center; padding: 0 20px 22px; }
+  .t-hanbok .band .cs { height: 10px; margin: 0 -20px 34px; background: linear-gradient(90deg, #2c4a7c 0 50%, #b23a3a 50% 100%); }
+  .t-hanbok .band .h { display: inline-block; font-size: 13px; letter-spacing: 6px; color: #fff; background: #2e2a26; padding: 4px 14px; border-radius: 2px; }
+  .t-hanbok .band .name { font-size: 28px; margin: 16px 0 6px; } .t-hanbok .band .name .gb { color: #2c4a7c; } .t-hanbok .band .name .bb { color: #b23a3a; }
+  .t-hanbok .band .sub { font-size: 14px; color: #7a6a5a; }
+  .t-hanbok .photo { aspect-ratio: 4/5; margin: 0 24px; border-left: 6px solid #2c4a7c; border-right: 6px solid #b23a3a; background: #e8ddcc; background-size: cover; background-position: center; }
+  .t-hanbok .acct, .t-hanbok .wreath { background: #f1e9db; } .t-hanbok .acct button, .t-hanbok .fab { background: #b23a3a; color: #fff; } .t-hanbok .wreath .btn { background: #2c4a7c; color: #fff; }
+  /* 청첩장 — 글자만(모던) */
+  .t-type { background: #fff; color: #111; font-family: "Noto Sans KR", sans-serif; }
+  .t-type .band { padding: 46px 24px 22px; }
+  .t-type .band .h { font-size: 12px; font-weight: 700; letter-spacing: 4px; color: #888; }
+  .t-type .band .big { font-size: 74px; font-weight: 800; letter-spacing: -3px; line-height: .95; margin: 14px 0 12px; }
+  .t-type .band .name { font-size: 22px; font-weight: 700; } .t-type .band .name span { color: #bbb; font-weight: 400; margin: 0 6px; }
+  .t-type .band .sub { font-size: 14px; color: #666; margin-top: 6px; }
+  .t-type .photo { aspect-ratio: 4/5; margin: 0 24px; background: #eee; background-size: cover; background-position: center; filter: grayscale(.15); }
+  .t-type .acct, .t-type .wreath { background: #f4f4f4; } .t-type .acct button, .t-type .wreath .btn, .t-type .fab { background: #111; color: #fff; }
+  /* ── 꾸미기(10/21): 글꼴 · 강조색 ── 디자인 위에 덮는다 */
+  .fn-myeong, .fn-myeong .msg, .fn-myeong .band .name { font-family: "Nanum Myeongjo", serif !important; }
+  .fn-batang, .fn-batang .msg, .fn-batang .band .name { font-family: "Gowun Batang", serif !important; }
+  .fn-gothic, .fn-gothic .msg, .fn-gothic .band .name { font-family: "Noto Sans KR", sans-serif !important; }
+  .fn-pen .msg, .fn-pen .band .name { font-family: "Nanum Pen Script", cursive !important; }
+  .fn-pen .msg { font-size: 23px; } .fn-pen .band .name { font-size: 38px; }
+  .acx .acct button, .acx .wreath .btn, .acx .fab, .acx .rsvp button.on { background: var(--ac) !important; color: #fff !important; }
+  .acx .band .name span, .acx .band .h { color: var(--ac) !important; }
   .gal-n { margin-top: 2px; font-size: 12px; opacity: .6; text-align: center; font-family: "Noto Sans KR", sans-serif; }
   .lb { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; align-items: center; justify-content: center; }
   .lb img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -409,13 +514,42 @@ function setupLadder(){
 }
 function cmItem(c){ return '<div class="it"><b>'+esc(c.name)+'</b><small>'+esc(relTime(c.created_at))+'</small><br>'+esc(c.body)+'</div>'; }
 
+
+// ── 디자인 목록(10/21) — lib/cards.mjs sanitizeCard 와 같아야 한다 ──
+var FTHEMES=["mono","gukhwa","cross","lotus","lily","ink","navy","paper"];
+var ORD_F=["msg","people","info","acc","wreath","cm"], ORD_W=["msg","people","gal","info","rsvp","acc","wreath","cm"], ORD_T=["msg","people","gal"];
+// 카톡 그림은 디자인마다 있지 않다 — 새 디자인은 가까운 그림을 쓴다(lib/cards.mjs cardImage 와 같게)
+var OG_F={ gukhwa:"f-gukhwa", lily:"f-gukhwa", lotus:"f-gukhwa" }, OG_W={ flower:"flower", white:"white", hanji:"hanji", night:"night", pastel:"pastel", garden:"flower", water:"pastel", letter:"white", poster:"night", hanbok:"hanji", type:"white" };
+function ogName(d){ return d.k==="f" ? (OG_F[d.theme]||"f-mono") : "w-"+(OG_W[d.theme]||"classic"); }
+function fth(d){ return FTHEMES.indexOf(d.theme)>=0?d.theme:"mono"; }
+// 카드 바깥 — 디자인 + 꾸미기(글꼴 fn-*, 강조색 --ac). 강조색은 정해진 색만(서버가 거른다).
+function cardOpen(d){
+  var th = d.k==="f" ? fth(d) : (WTHEMES.indexOf(d.theme)>=0?d.theme:"classic");
+  var cls="card t-"+th+(d.font?" fn-"+d.font:"")+(d.ac?" acx":"");
+  return '<div class="'+cls+'"'+(d.ac?' style="--ac:'+esc(d.ac)+'"':'')+'>';
+}
+// 칸 순서(만든 분이 바꿀 수 있다). 모르는 칸은 버리고, 빠진 칸은 기본 순서대로 뒤에 붙인다.
+function arrange(d, parts, def){
+  var ord=(Array.isArray(d.ord)?d.ord:[]).filter(function(k){ return def.indexOf(k)>=0; });
+  def.forEach(function(k){ if(ord.indexOf(k)<0) ord.push(k); });
+  return ord.map(function(k){ return parts[k]||""; }).join("");
+}
+// 부고 머리 — 디자인마다 다르다. 감사 인사장도 같이 쓴다(h·sub 만 바꿔서).
+function funHead(d, h, sub){
+  var th=fth(d), name='故 '+esc(d.name)+(th==="mono"||th==="navy"?'':' 님'), sb='<div class="sub">'+sub+'</div>';
+  if(th==="gukhwa") return '<div class="band"><div class="flower"></div><div class="h">'+(h==="訃 告"?"부 고":h)+'</div><div class="name">'+name+'</div>'+sb+'</div>';
+  if(th==="cross") return '<div class="band"><div class="cr"></div><div class="h">'+(h==="訃 告"?"부 고":h)+'</div><div class="name">'+name+'</div>'+sb+'</div>';
+  if(th==="lotus") return '<div class="band"><div class="lt"><i></i><i></i><i></i><i></i><i></i></div><div class="h">'+h+'</div><div class="name">'+name+'</div>'+sb+'</div>';
+  if(th==="lily") return '<div class="band"><div class="ly"><i></i><i></i><i></i><b></b></div><div class="h">'+(h==="訃 告"?"부 고":h)+'</div><div class="name">'+name+'</div>'+sb+'</div>';
+  if(th==="ink") return '<div class="band"><div class="h">'+(h==="訃 告"?"訃告":h.replace(/\s/g,""))+'</div><div class="tx"><div class="name">'+name+'</div>'+sb+'</div></div>';
+  if(th==="paper") return '<div class="band"><div class="h">'+(h==="訃 告"?"삼가 알려 드립니다":h)+'</div><div class="name">'+name+'</div>'+sb+'</div>';
+  return '<div class="band"><div class="h">'+h+'</div><div class="name">'+name+'</div>'+sb+'</div>';   // mono · navy
+}
 function renderFuneral(d){
   var word=FUN_WORD[d.rel||""]||"별세";
   var mourners=(d.m||[]).filter(function(x){ return x && x.n; });
   var chief=(mourners[0]||{}).n||"";
-  var head = d.theme==="gukhwa"
-    ? '<div class="band"><div class="flower"></div><div class="h">부 고</div><div class="name">故 '+esc(d.name)+' 님</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>'
-    : '<div class="band"><div class="h">訃 告</div><div class="name">故 '+esc(d.name)+'</div><div class="sub">'+(d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word+'</div></div>';
+  var head = funHead(d, "訃 告", (d.age?'향년 '+esc(d.age)+'세 · ':'')+esc(kDate(d.died))+' '+word);
   var msg = d.msg || "삼가 고인의 명복을 빕니다.\n생전에 베풀어 주신 은혜에 감사드리며\n삼가 알려드립니다.";
   var dl=deadline(d);
   // d.nb = 파트너가 화환 버튼을 꺼 둔 링크(장례식장 안 꽃집과 겹치지 않게, 10/20). 유족 뜻 문구도 없이 조용히 뺀다.
@@ -428,17 +562,15 @@ function renderFuneral(d){
     +'<li>리본 문구는 관계에 맞게 골라 드려요</li></ul>'
     +'<a class="btn" href="'+esc(orderUrl({ worder:"funeral", rn:"故 "+d.name, cm:chief, v:d.venue, vd:d.room, a:d.addr, et:d.out }))+'">이름만 적고 근조화환 보내기</a>'
     +'<p class="promise">'+dueHtml(dl)+'<br>배송비 포함 · 도착하면 사진으로 알려드려요</p></div>';
-  return '<div class="card t-'+(d.theme==="gukhwa"?"gukhwa":"mono")+'">'+head+'<div class="pad">'
-    +'<p class="msg">'+esc(msg)+'</p>'
-    +(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')
-    +'<div class="sec"><dl class="kv">'
+  var info='<div class="sec"><dl class="kv">'
     +'<dt>빈소</dt><dd>'+esc([d.venue,d.room].filter(Boolean).join(" "))+(d.tel?'<br><a href="tel:'+esc(d.tel.replace(/[^0-9]/g,""))+'" style="color:inherit;font-size:13.5px;opacity:.8;">☎ '+esc(d.tel)+'</a>':'')+'</dd>'
     +(d.out?'<dt>발인</dt><dd>'+esc(kDate(d.outDate)+" "+kTime(d.out))+'</dd>':'')
     +(d.burial?'<dt>장지</dt><dd>'+esc(d.burial)+'</dd>':'')
-    +'</dl>'+mapsHtml(d.venue, d.addr)+calHtml(d)+cantGoHtml(d, dl)+'</div>'
-    +acctsHtml(d.acc)
-    +wreath
-    +commentsHtml(d)
+    +'</dl>'+mapsHtml(d.venue, d.addr)+calHtml(d)+cantGoHtml(d, dl)+'</div>';
+  return cardOpen(d)+head+'<div class="pad">'
+    +arrange(d, { msg:'<p class="msg">'+esc(msg)+'</p>',
+      people: mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'',
+      info:info, acc:acctsHtml(d.acc), wreath:wreath, cm:commentsHtml(d) }, ORD_F)
     +shareHtml("부고 · 故 "+d.name)
     +expHtml()
     +'</div><div class="foot">무료 부고장 · <a href="/bugo">꽃안부에서 만들기</a></div>'
@@ -455,10 +587,17 @@ function wedHead(d, subText, label){
     : th==="hanji"  ? '<div class="band"><div class="xi">囍</div><div class="name">'+esc(d.g)+' · '+esc(d.b)+'</div>'+sub+'</div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
     : th==="night"  ? '<div class="band"><div class="frame"><div class="h">THE WEDDING OF</div><div class="name">'+esc(d.g)+' <span>&amp;</span> '+esc(d.b)+'</div>'+sub+'</div></div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
     : th==="pastel" ? '<div class="band">'+(d.photo?'<div class="photo"'+photo+'></div>':'<div class="photo"></div>')+'<div class="name">'+esc(d.g)+' <span>♥</span> '+esc(d.b)+'</div>'+sub+'</div>'
+    : th==="garden" ? '<div class="band"><div class="h">OUR WEDDING DAY</div><div class="name">'+esc(d.g)+' <span>&amp;</span> '+esc(d.b)+'</div>'+sub+'</div><div class="photo"'+photo+'></div>'
+    : th==="water"  ? '<div class="band"><div class="name">'+esc(d.g)+' <span>♡</span> '+esc(d.b)+'</div>'+sub+'</div><div class="photo"'+photo+'></div>'
+    : th==="letter" ? '<div class="band"><div class="st">♡</div><div class="h">To. 소중한 분께</div><div class="name">'+esc(d.g)+' · '+esc(d.b)+'</div>'+sub+'</div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
+    : th==="poster" ? '<div class="band"'+(d.photo?' style="background-image:linear-gradient(180deg,rgba(0,0,0,.05) 35%,rgba(0,0,0,.85)),url('+esc(d.photo)+')"':'')+'><div class="h">THE WEDDING</div><div class="name">'+esc(d.g)+'<span>AND</span>'+esc(d.b)+'</div>'+sub+'</div>'
+    : th==="hanbok" ? '<div class="band"><div class="cs"></div><div class="h">혼 례</div><div class="name"><span class="gb">'+esc(d.g)+'</span> · <span class="bb">'+esc(d.b)+'</span></div>'+sub+'</div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
+    : th==="type"   ? '<div class="band"><div class="h">WEDDING INVITATION</div><div class="big">'+esc(bigDate(d.date))+'</div><div class="name">'+esc(d.g)+'<span>/</span>'+esc(d.b)+'</div>'+sub+'</div>'+(d.photo?'<div class="photo"'+photo+'></div>':'')
     : '<div class="band"'+photo+'><div><div class="name">'+esc(d.g)+' · '+esc(d.b)+'</div>'+sub+'</div></div>';
-  if(label) head=head.replace(/WEDDING INVITATION|THE WEDDING OF/, label);
+  if(label) head=head.replace(/WEDDING INVITATION|THE WEDDING OF|OUR WEDDING DAY|THE WEDDING|혼 례/, label).replace("To. 소중한 분께","고마운 분께");
   return head;
 }
+function bigDate(iso){ var m=String(iso||"").match(/^\d{4}-(\d{2})-(\d{2})$/); return m?(+m[1])+"."+m[2]:"♡"; }
 // 사진 여러 장 — 보여주는 방식: 기본 옆으로 넘기기, g 바둑판, l 크게 이어서, f 저절로, p 폴라로이드. 누르면 크게 보고 옆으로 넘긴다.
 function galBlock(d){
   var gal=(d.gal||[]).filter(function(u){ return /^https:\/\//.test(u); }).slice(0,8);
@@ -472,24 +611,21 @@ function galBlock(d){
 function renderThanks(d){
   if(d.k==="f"){
     var mourners=(d.m||[]).filter(function(x){ return x && x.n; });
-    var g=d.theme==="gukhwa";
-    var head='<div class="band">'+(g?'<div class="flower"></div>':'')+'<div class="h">'+(g?"감사 인사":"謹 謝")+'</div><div class="name">故 '+esc(d.name)+(g?' 님':'')+'</div><div class="sub">보내 주신 위로에 감사드립니다</div></div>';
+    var head=funHead(d, fth(d)==="mono"||fth(d)==="navy"||fth(d)==="ink"?"謹 謝":"감사 인사", "보내 주신 위로에 감사드립니다");
     var msg=d.msg||"故 "+d.name+" 님의 장례에 보내 주신\n깊은 위로와 정성에 머리 숙여 감사드립니다.\n일일이 찾아뵙고 인사드려야 하나\n글로 대신하는 점 너그러이 양해해 주십시오.";
-    return '<div class="card t-'+(g?"gukhwa":"mono")+'">'+head+'<div class="pad">'
-      +'<p class="msg">'+esc(msg)+'</p>'
-      +(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')
-      +'<p class="promise" style="margin-top:8px">유족 일동 올림</p>'
+    return cardOpen(d)+head+'<div class="pad">'
+      +arrange(d, { msg:'<p class="msg">'+esc(msg)+'</p>', people:(mourners.length?'<div class="mourners">'+mourners.map(function(x){ return '<div><b>'+esc(x.r||"상주")+'</b> '+esc(x.n)+'</div>'; }).join("")+'</div>':'')+'<p class="promise" style="margin-top:8px">유족 일동 올림</p>', gal:'' }, ORD_T)
       +shareHtml("故 "+d.name+" 님 장례 감사 인사")
       +'</div><div class="foot">무료 감사 인사장 · <a href="/bugo">꽃안부에서 만들기</a></div></div>';
   }
   var th=WTHEMES.indexOf(d.theme)>=0?d.theme:"classic";
   var msg2=d.msg||"바쁘신 중에도 저희 결혼을 축하해 주셔서\n진심으로 감사드립니다.\n보내 주신 마음 잊지 않고\n예쁘게 잘 살겠습니다.";
-  return '<div class="card t-'+th+'">'+wedHead(d,"보내 주신 축하에 감사드립니다","THANK YOU")+'<div class="pad">'
-    +'<p class="msg">'+esc(msg2)+'</p><p class="parents">'+esc(d.g)+' · '+esc(d.b)+' 올림</p>'+galBlock(d)
+  return cardOpen(d)+wedHead(d,"보내 주신 축하에 감사드립니다","THANK YOU")+'<div class="pad">'
+    +arrange(d, { msg:'<p class="msg">'+esc(msg2)+'</p>', people:'<p class="parents">'+esc(d.g)+' · '+esc(d.b)+' 올림</p>', gal:galBlock(d) }, ORD_T)
     +shareHtml(d.g+" ♥ "+d.b+" 감사 인사")
     +'</div><div class="foot">무료 감사 인사장 · <a href="/wedding-card">꽃안부에서 만들기</a></div></div>';
 }
-var WTHEMES=["classic","flower","white","hanji","night","pastel"];
+var WTHEMES=["classic","flower","white","hanji","night","pastel","garden","water","letter","poster","hanbok","type"];
 function renderWedding(d){
   var when=kDate(d.date)+" "+kTime(d.time);
   var photo = d.photo ? ' style="background-image:url('+esc(d.photo)+')"' : '';
@@ -511,14 +647,11 @@ function renderWedding(d){
   if(dd) head=head.replace('<div class="sub">'+esc(when)+'</div>','<div class="sub">'+esc(when)+'</div><div><span class="dday">'+esc(dd)+'</span></div>');
   var galHtml=galBlock(d);
   var parents = (d.gp||d.bp) ? '<p class="parents">'+(d.gp?esc(d.gp)+' 의 아들 <b>'+esc(d.g)+'</b><br>':'')+(d.bp?esc(d.bp)+' 의 딸 <b>'+esc(d.b)+'</b>':'')+'</p>' : '';
-  return '<div class="card t-'+th+'">'+head+'<div class="pad">'
-    +'<p class="msg">'+esc(msg)+'</p>'+parents+galHtml
-    +'<div class="sec"><dl class="kv"><dt>일시</dt><dd>'+esc(when)+'</dd><dt>장소</dt><dd>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</dd></dl>'
-    +mapsHtml(d.venue, d.addr)+calHtml(d)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
-    +rsvpHtml(d, dl)
-    +acctsHtml(d.acc)
-    +wreath
-    +commentsHtml(d)
+  return cardOpen(d)+head+'<div class="pad">'
+    +arrange(d, { msg:'<p class="msg">'+esc(msg)+'</p>', people:parents, gal:galHtml,
+      info:'<div class="sec"><dl class="kv"><dt>일시</dt><dd>'+esc(when)+'</dd><dt>장소</dt><dd>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</dd></dl>'
+        +mapsHtml(d.venue, d.addr)+calHtml(d)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>',
+      rsvp:rsvpHtml(d, dl), acc:acctsHtml(d.acc), wreath:wreath, cm:commentsHtml(d) }, ORD_W)
     +shareHtml(d.g+" ♥ "+d.b+" 결혼합니다")
     +expHtml()
     +'</div><div class="foot">무료 모바일 청첩장 · <a href="/wedding-card">꽃안부에서 만들기</a></div>'
@@ -598,7 +731,7 @@ function kakaoShare(d){
   var title = d.ty==="t" ? (fun ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사") : fun ? "[부고] 故 "+d.name+" 님 "+(FUN_WORD[d.rel||""]||"별세") : (d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다");
   var desc = fun ? [[d.venue,d.room].filter(Boolean).join(" "), d.out?"발인 "+kDate(d.outDate)+" "+kTime(d.out):""].filter(Boolean).join(" · ")
                  : [kDate(d.date)+" "+kTime(d.time), [d.venue,d.hall].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
-  var img=(!fun && /^https:\/\//.test(d.thumb||"")) ? d.thumb : d.ty==="t" ? location.origin+"/og/card-"+(fun?"f":"w")+"-thanks.png" : location.origin+"/og/card-"+(fun?(d.theme==="gukhwa"?"f-gukhwa":"f-mono"):"w-"+(WTHEMES.indexOf(d.theme)>=0?d.theme:"classic"))+".png";
+  var img=(!fun && /^https:\/\//.test(d.thumb||"")) ? d.thumb : d.ty==="t" ? location.origin+"/og/card-"+(fun?"f":"w")+"-thanks.png" : location.origin+"/og/card-"+ogName(d)+".png";
   return kakaoReady(STATE.kakaoKey).then(function(K){
     K.Share.sendDefault({ objectType:"feed",
       content:{ title:title, description:desc, imageUrl:img, imageWidth:1200, imageHeight:630, link:{ mobileWebUrl:url, webUrl:url } },
@@ -619,6 +752,8 @@ function draw(d){
   app.innerHTML = d.ty==="t" ? renderThanks(d) : d.k==="f" ? renderFuneral(d) : renderWedding(d);
   if(preview){ var sh=app.querySelector(".share"); if(sh) sh.style.display="none"; }
   else { var padEl=app.querySelector(".pad"); if(padEl) padEl.insertAdjacentHTML("afterbegin", toolsHtml()); setupTools(); }
+  var bigPref=null; try{ bigPref=localStorage.getItem("af_card_big"); }catch(_){}
+  if(d.big && bigPref===null) BIG=true;
   if(BIG){ var cardEl=app.querySelector(".card"); if(cardEl) cardEl.classList.add("big"); }
   document.title = d.ty==="t" ? (d.k==="f" ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사") : d.k==="f" ? "[부고] 故 "+d.name : d.g+" ♥ "+d.b+" 결혼합니다";
   setupFab(); setupComments(); setupRsvp(d, deadline(d)); setupLadder();

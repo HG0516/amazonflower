@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 
 import {
   sanitizeCard, cardExpiry, renderOgHtml, isPreviewBot, editHash, createdText,
-  handleCardPost, handleCardGet, cleanupExpiredCards,
+  handleCardPost, handleCardGet, cleanupExpiredCards, cardImage,
 } from "../lib/cards.mjs";
 import orderMeta from "../api/order-meta.js";
 
@@ -452,4 +452,28 @@ test("sanitizeCard: 파트너 링크 nb(화환 버튼 빼기)는 1로만 남는�
   assert.equal(sanitizeCard({ ...FUN, nb: true }).data.nb, 1);
   assert.equal(sanitizeCard({ ...FUN, nb: "1" }).data.nb, 1);
   assert.equal(sanitizeCard({ ...FUN }).data.nb, undefined);
+});
+
+test("sanitizeCard: 새 디자인(10/21)과 꾸미기 값은 정해진 것만 남는다", () => {
+  for (const t of ["cross", "lotus", "lily", "ink", "navy", "paper"]) assert.equal(sanitizeCard({ ...FUN, theme: t }).data.theme, t);
+  assert.equal(sanitizeCard({ ...FUN, theme: "neon" }).data.theme, "mono");
+  const r = sanitizeCard({ ...FUN, font: "pen", ac: "#A8322A", ord: ["cm", "msg", "evil", "msg"], big: true });
+  assert.equal(r.data.font, "pen");
+  assert.equal(r.data.ac, "#a8322a");
+  assert.deepEqual(r.data.ord, ["cm", "msg"]);
+  assert.equal(r.data.big, 1);
+  const bad = sanitizeCard({ ...FUN, font: "comic", ac: "red; background:url(x)", ord: "msg" });
+  assert.equal(bad.data.font, undefined);
+  assert.equal(bad.data.ac, undefined);
+  assert.equal(bad.data.ord, undefined);
+});
+
+test("sanitizeCard: 청첩장 새 디자인 6개와 카톡 그림은 가까운 그림으로", () => {
+  for (const t of ["garden", "water", "letter", "poster", "hanbok", "type"]) {
+    const d = sanitizeCard({ ...WED, theme: t }).data;
+    assert.equal(d.theme, t);
+    assert.match(cardImage(d), /\/og\/card-w-(classic|flower|white|hanji|night|pastel)\.png$/);
+  }
+  assert.match(cardImage(sanitizeCard({ ...FUN, theme: "lotus" }).data), /card-f-gukhwa\.png$/);
+  assert.deepEqual(sanitizeCard({ ...WED, ty: "t", ord: ["gal", "msg", "acc"] }).data.ord, ["gal", "msg"]);
 });
