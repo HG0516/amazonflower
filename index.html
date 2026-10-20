@@ -35,7 +35,7 @@
 <!-- pwa-install.js('홈 화면에 추가' 배너) 제거 — 홈 배너와 겹침 + 추후 네이티브 앱 출시 예정(2026-07-18).
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
-<script src="/footer.js?v=20261004" defer></script>
+<script src="/footer.js?v=20261020" defer></script>
 <script src="/bottom-nav.js?v=20261020" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
@@ -745,6 +745,7 @@
   .qs-call b { font-family: var(--font-display); font-size: 17px; }
   /* PC 두 칸(PC-A)에서만 쓰는 것 — 휴대폰에선 숨김 */
   .hdr-menu, .qs-pc, .qs-p { display: none; }
+  .qp-talk { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; min-height: 44px; border-radius: 10px; background: #FEE500; color: #191600; font-size: 15px; font-weight: 800; text-decoration: none; }
 
   /* ─── 데스크탑 미니 패치 (모든 일반 정의보다 뒤에 와야 적용됨) ─── */
   @media (min-width: 1000px) {
@@ -971,7 +972,7 @@
       <div class="err hidden" id="parseErr"></div>
       <a class="qs-call" href="tel:1577-2286"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"/></svg>전화가 편하시면 <b>1577-2286</b></a>
       <!-- PC 오른쪽 칸에만 보이는 전화·약속(10/19 PC-A). 휴대폰에선 머리 아래 한 줄이 같은 말을 한다. -->
-      <div class="qs-pc qs-pc-tel"><div class="qp-k">전화로 주문</div><a class="qp-tel" href="tel:1577-2286">1577-2286</a><div class="qp-s">상품부터 리본 문구까지 같이 정해 드려요</div></div>
+      <div class="qs-pc qs-pc-tel"><div class="qp-k">전화로 주문</div><a class="qp-tel" href="tel:1577-2286">1577-2286</a><div class="qp-s">상품부터 리본 문구까지 같이 정해 드려요</div><a class="qp-talk" href="https://pf.kakao.com/_AXXBX/chat" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5c-4.7 0-8.5 3-8.5 6.7 0 2.4 1.6 4.5 4 5.7l-.8 3 3.4-2.2c.6.1 1.2.1 1.9.1 4.7 0 8.5-3 8.5-6.7S16.7 4.5 12 4.5Z" fill="currentColor"/></svg>카카오톡 상담하기</a></div>
       <ul class="qs-pc qs-facts">
         <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>시흥 한 자리 33년</b>1993년부터 같은 사장님</span></li>
         <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>전국 당일 배송</b>평일 18시 · 주말 16시까지 주문</span></li>

@@ -8,6 +8,7 @@
   var IC_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>';
   var IC_FLOWER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 21V11"/><path d="M12 11c-3 0-5-2-5-5 3 0 5 2 5 5Z"/><path d="M12 11c3 0 5-2 5-5-3 0-5 2-5 5Z"/></svg>';
   var IC_RECEIPT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 3h12v18l-2-1.3L14 21l-2-1.3L10 21l-2-1.3L6 21V3Z"/><path d="M9 8h6M9 12h6"/></svg>';
+  var IC_TALK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 4.5c-4.7 0-8.5 3-8.5 6.7 0 2.4 1.6 4.5 4 5.7l-.8 3 3.4-2.2c.6.1 1.2.1 1.9.1 4.7 0 8.5-3 8.5-6.7S16.7 4.5 12 4.5Z"/></svg>';
   var IC_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6.5 3h3l1.5 5-2 1.3a11 11 0 0 0 5 5l1.3-2 5 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>';
 
   // 입력칸에 커서가 있으면 키보드가 올라온 것으로 본다(휴대폰 폭만). 체크박스·버튼은 키보드가 안 뜨니 뺀다.
@@ -78,6 +79,8 @@
       tab(isHome(), '/', IC_HOME, '홈')
       + tab(isCatalog(), '/catalog.html', IC_FLOWER, '전체상품')
       + '<button type="button" id="af-bn-orders"><span class="ic">' + IC_RECEIPT + '</span><span class="lb">내 주문</span></button>'
+      // 카카오톡 상담(10/20 형구) — 꽃안부 채널 pf.kakao.com/_AXXBX 1:1 채팅. 엄마(권점숙, 채널 마스터)가 카카오비즈니스 앱으로 받는다.
+      + '<a href="https://pf.kakao.com/_AXXBX/chat" target="_blank" rel="noopener"><span class="ic">' + IC_TALK + '</span><span class="lb">카톡 상담</span></a>'
       + '<a href="tel:15772286"><span class="ic">' + IC_PHONE + '</span><span class="lb">전화</span></a>';
     document.body.appendChild(nav);
     document.body.classList.add('af-nav-on');
