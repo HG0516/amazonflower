@@ -128,6 +128,24 @@
   <div class="hint">부고장은 발인 7일 뒤, 청첩장은 예식 30일 뒤 지워져서 오래된 만든 수는 줄어들어요. 주문 수는 남아요. 10/20 이전 주문은 코드가 없어요.</div>
   <div id="stats"><div class="card" style="color:var(--ink-faint);font-size:13px">불러오는 중…</div></div>
 
+  <div id="mail" class="card" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b id="mTitle">제안 메일</b><button type="button" id="mX" style="border:0;background:none;font-size:20px;cursor:pointer">×</button></div>
+    <label for="mTo">받는 주소 <small style="font-weight:400;color:var(--ink-faint)">장례식장·예식장 홈페이지나 전화로 물어본 주소</small></label>
+    <input type="text" id="mTo" inputmode="email" placeholder="office@example.com">
+    <label for="mSub">제목</label>
+    <input type="text" id="mSub">
+    <label for="mBody">본문 <small style="font-weight:400;color:var(--ink-faint)">고쳐 써도 돼요</small></label>
+    <textarea id="mBody" style="width:100%;min-height:300px;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fcfbf8;font-family:inherit;line-height:1.6"></textarea>
+    <label class="sw"><input type="checkbox" id="mAd" checked><span>제목에 (광고) 붙이기<small>처음 연락하는 곳에 보내는 홍보 메일은 정보통신망법상 (광고) 표시와 수신거부 방법이 필요해요. 미리 전화로 받아도 된다고 한 곳이면 빼도 돼요.</small></span></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+      <button type="button" class="btn" id="mOpen" style="flex:2;margin:0">메일 앱으로 열기</button>
+      <button type="button" class="btn" id="mQr" style="flex:1;margin:0;background:var(--paper);color:var(--ink);border:1px solid var(--line)">QR 이미지 저장</button>
+      <button type="button" class="btn" id="mCopy" style="flex:1;margin:0;background:var(--paper);color:var(--ink);border:1px solid var(--line)">본문 복사</button>
+    </div>
+    <div class="hint" style="margin:8px 0 0">메일 앱에는 파일을 자동으로 붙일 수 없어요. 'QR 이미지 저장'으로 받은 그림을 메일에 첨부해 주세요. 보내기는 형구님 메일에서 직접 눌러요.</div>
+    <div id="mQrBox" hidden></div>
+  </div>
+
   <div id="sheet">
     <div class="sheet-bar"><button type="button" id="shClose">닫기</button><button type="button" class="p" id="shPrint">인쇄 (A4에 세움판·카드)</button></div>
     <div class="pg" id="pg"></div>
@@ -162,6 +180,8 @@ function linkOf(p){
   const path=p.kind==="f"?"/bugo/make":p.kind==="w"?"/wedding-card/make":"/wedding-card";
   return ORIGIN+path+"?"+q.toString();
 }
+// 짧은 주소(/p/코드, p.html) — 명단이 저장된 뒤에만 쓴다(저장 칸이 없으면 p.html 이 장소를 못 찾는다)
+function shortOf(p){ return READY ? ORIGIN+"/p/"+p.code : linkOf(p); }
 function qrInto(el,text,size){ el.innerHTML=""; try{ new QRCode(el,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M}); }catch(e){ el.textContent="QR 실패"; } }
 
 // ── 종류 ──
@@ -208,23 +228,24 @@ function draw(){
     const st=s?`부고 ${s.f} · 청첩 ${s.w} · 감사 ${s.t} · 열람 ${s.views} · 화환 ${s.orders}건 ${s.amount.toLocaleString()}원`:"아직 숫자 없음";
     return `<div class="pt"><div class="qr" data-q="${i}"></div><div class="tx">
       <div class="nm"><span class="k ${p.kind}">${KN[p.kind]}</span>${esc(p.name)}${p.nb?' <small style="font-weight:400;color:var(--ink-faint)">화환 버튼 뺌</small>':""}</div>
-      <div class="u">${esc(decodeURIComponent(linkOf(p)))}</div><div class="st">${st}</div>
-      <div class="ac"><button type="button" class="p" data-print="${i}">인쇄물</button><button type="button" data-copy="${i}">링크 복사</button><button type="button" data-open="${i}">열어 보기</button><button type="button" class="d" data-del="${i}">지우기</button></div>
+      <div class="u">${esc(shortOf(p))}</div><div class="st">${st}</div>
+      <div class="ac"><button type="button" class="p" data-mail="${i}">메일 쓰기</button><button type="button" data-print="${i}">인쇄물</button><button type="button" data-copy="${i}">링크 복사</button><button type="button" data-open="${i}">열어 보기</button><button type="button" class="d" data-del="${i}">지우기</button></div>
     </div></div>`;
   }).join(""):'<div class="card" style="color:var(--ink-faint);font-size:13px">아직 없어요. 위에서 추가하세요.</div>';
-  $("list").querySelectorAll("[data-q]").forEach(el=>qrInto(el,linkOf(LIST[+el.dataset.q]),168));
+  $("list").querySelectorAll("[data-q]").forEach(el=>qrInto(el,shortOf(LIST[+el.dataset.q]),168));
 }
 $("list").onclick=async e=>{
   const b=e.target.closest("button"); if(!b) return;
-  if(b.dataset.copy){ const u=linkOf(LIST[+b.dataset.copy]); try{ await navigator.clipboard.writeText(u); toast("복사했어요"); }catch(_){ prompt("복사해 주세요",u); } }
+  if(b.dataset.copy){ const u=shortOf(LIST[+b.dataset.copy]); try{ await navigator.clipboard.writeText(u); toast("복사했어요"); }catch(_){ prompt("복사해 주세요",u); } }
   if(b.dataset.open){ window.open(linkOf(LIST[+b.dataset.open]),"_blank","noopener"); }
   if(b.dataset.print){ sheet(LIST[+b.dataset.print]); }
+  if(b.dataset.mail){ mail(LIST[+b.dataset.mail]); }
   if(b.dataset.del){ const p=LIST[+b.dataset.del]; if(!confirm(`'${p.name}'을(를) 지울까요? 이미 나간 QR은 계속 열리고 숫자도 코드로 남아요.`)) return; LIST.splice(+b.dataset.del,1); draw(); await save(); }
 };
 
 // ── 인쇄물: 세움판(A5) + 명함 카드 4장 ──
 function sheet(p){
-  const fun=p.kind==="f", u=linkOf(p);
+  const fun=p.kind==="f", u=shortOf(p);
   const place=p.kind==="p"?"":esc(p.name);
   const stand=fun
     ? `<div class="stand f"><div class="hall">${place} 안내</div><h2>부고 문자,<br>휴대폰으로 바로 만드세요</h2>
@@ -240,6 +261,38 @@ function sheet(p){
   $("sheet").classList.add("on"); $("sheet").scrollIntoView({behavior:"smooth"});
 }
 $("shClose").onclick=()=>$("sheet").classList.remove("on");
+
+// ── 제안 메일(10/20 형구: 인쇄물보다 메일) ── 우리 서버는 메일을 보내지 않는다. 초안만 만들고 형구 메일 앱이 보낸다.
+let MP=null;
+function mailText(p){
+  const fun=p.kind==="f", place=p.kind==="p"?"":p.name, u=shortOf(p);
+  const sub=fun?`[꽃안부] ${place} 유족분께 드릴 무료 모바일 부고장`:place?`[꽃안부] ${place} 예비부부께 드릴 무료 모바일 청첩장`:"[꽃안부] 고객님께 드릴 무료 모바일 청첩장";
+  const body=fun
+    ? `안녕하세요. 경기 시흥에서 1993년부터 꽃집을 하는 꽃안부입니다.\n\n${place} 이름과 주소, 오시는 길이 미리 들어간 모바일 부고장 링크를 만들어 두었습니다. 유족분이 이 링크나 첨부한 QR로 들어가 고인 성함과 빈소, 발인만 적으시면 카톡으로 보낼 부고장이 나옵니다.\n\n비용과 회원가입은 없습니다. 부고장은 발인 7일 뒤 저절로 지워집니다.\n\n링크: ${u}\n\n상황실에서 유족분께 보여 주시거나 안내문에 넣어 쓰시면 됩니다. 필요하시면 상황실에 둘 세움판도 만들어 가져다드리겠습니다.\n\n필요 없으시면 이 메일에 '수신거부'라고만 답해 주세요. 다시 보내지 않겠습니다.\n\n꽃안부 드림\n1577-2286 · floweranbu.co.kr`
+    : `안녕하세요. 경기 시흥에서 1993년부터 꽃집을 하는 꽃안부입니다.\n\n${place?place+" 이름과 주소가 미리 들어간 ":""}모바일 청첩장 링크를 만들어 두었습니다. 예비부부가 이 링크나 첨부한 QR로 들어가 이름과 날짜, 사진을 넣으면 카톡으로 보낼 청첩장이 나옵니다. 디자인은 6가지이고 참석 여부도 받을 수 있습니다.\n\n비용과 회원가입은 없습니다. 결혼식이 끝나면 같은 사진으로 감사 인사장도 이어서 만들 수 있습니다.\n\n링크: ${u}\n\n${p.kind==="w"?"상담 오신 예비부부께 덤으로 안내해 주시면 됩니다.":"고객님께 덤으로 안내해 주시면 됩니다."}\n\n필요 없으시면 이 메일에 '수신거부'라고만 답해 주세요. 다시 보내지 않겠습니다.\n\n꽃안부 드림\n1577-2286 · floweranbu.co.kr`;
+  return {sub, body};
+}
+function mail(p){
+  MP=p; const t=mailText(p);
+  $("mTitle").textContent=p.name+" 제안 메일";
+  $("mSub").value=($("mAd").checked?"(광고) ":"")+t.sub; $("mBody").value=t.body;
+  qrInto($("mQrBox"),shortOf(p),600);
+  $("mail").hidden=false; $("mail").scrollIntoView({behavior:"smooth"});
+}
+$("mX").onclick=()=>{ $("mail").hidden=true; };
+$("mAd").onchange=()=>{ const v=$("mSub").value.replace(/^\(광고\)\s*/,""); $("mSub").value=($("mAd").checked?"(광고) ":"")+v; };
+$("mOpen").onclick=()=>{
+  const to=$("mTo").value.trim();
+  if(to && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return toast("메일 주소를 확인해 주세요",1);
+  location.href="mailto:"+encodeURIComponent(to)+"?subject="+encodeURIComponent($("mSub").value)+"&body="+encodeURIComponent($("mBody").value);
+};
+$("mCopy").onclick=async()=>{ const t=$("mSub").value+"\n\n"+$("mBody").value; try{ await navigator.clipboard.writeText(t); toast("제목과 본문을 복사했어요"); }catch(_){ prompt("복사해 주세요",t); } };
+$("mQr").onclick=()=>{
+  if(!MP) return;
+  const c=$("mQrBox").querySelector("canvas"), img=$("mQrBox").querySelector("img");
+  const url=c?c.toDataURL("image/png"):(img&&img.src); if(!url) return toast("QR을 못 만들었어요",1);
+  const a=document.createElement("a"); a.href=url; a.download="꽃안부-"+MP.code+"-QR.png"; document.body.appendChild(a); a.click(); a.remove();
+};
 $("shPrint").onclick=()=>window.print();
 
 // ── 숫자 ──

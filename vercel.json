@@ -232,6 +232,10 @@
     {
       "source": "/ask",
       "destination": "/ask.html"
+    },
+    {
+      "source": "/p/:code",
+      "destination": "/p.html"
     }
   ]
 }

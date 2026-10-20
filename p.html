@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>꽃안부</title>
+<!-- 파트너 짧은 주소(/p/<코드>, 10/20). 메일·QR에 긴 주소 대신. 파트너 명단(site_settings 'partners', admin-partner.html)에서
+     그 코드의 장소를 찾아 만들기 화면으로 넘긴다. admin-partner.html 의 linkOf 와 같은 규칙. 못 찾으면 코드만 달고 부고장 소개로. -->
+<script src="/supabase-config.js"></script>
+</head>
+<body style="font-family:sans-serif;padding:24px;color:#5a564d">잠시만요…
+<script>
+(function(){
+  var m=location.pathname.match(/^\/p\/([A-Za-z0-9_-]{1,30})\/?$/), c=m?m[1]:(new URLSearchParams(location.search).get("c")||"");
+  if(!/^[A-Za-z0-9_-]{1,30}$/.test(c)){ location.replace("/bugo"); return; }
+  function go(p){
+    var q=new URLSearchParams(), path;
+    if(p){
+      if(p.kind!=="p" && p.venue) q.set("venue",p.venue);
+      if(p.kind==="w" && p.addr) q.set("addr",p.addr);
+      path=p.kind==="f"?"/bugo/make":p.kind==="w"?"/wedding-card/make":"/wedding-card";
+      if(p.nb) q.set("nb","1");
+    } else path=c.charAt(0)==="w"?"/wedding-card":"/bugo";
+    q.set("ref",c);
+    location.replace(path+"?"+q.toString());
+  }
+  var S=window.SUPA||{};
+  if(!S.url){ go(null); return; }
+  fetch(S.url+"/rest/v1/site_settings?key=eq.partners&select=value",{headers:{apikey:S.anon,Authorization:"Bearer "+S.anon}})
+    .then(function(r){ return r.ok?r.json():[]; })
+    .then(function(rows){ var l=(rows[0]&&rows[0].value&&rows[0].value.list)||[]; go(l.filter(function(x){ return x.code===c; })[0]||null); })
+    .catch(function(){ go(null); });
+})();
+</script>
+</body>
+</html>
