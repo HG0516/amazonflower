@@ -42,7 +42,8 @@
 <script src="/meanings.js" defer></script>
 <script src="/regions.js" defer></script>
 <script src="/photo-meta.js" defer></script><!-- 관리자 사진 위치 맞추기 값 입히기 -->
-<script src="/products.js"></script><!-- 상품 단일 소스(window.PRODUCTS 등). 본문 스크립트가 참조하므로 defer 없이 먼저 로드 -->
+<script src="/products.js"></script>
+<script src="/home-search.js"></script><!-- 홈 시작 칸 검색 규칙(링크·꽃·가격). 본문 스크립트가 참조 --><!-- 상품 단일 소스(window.PRODUCTS 등). 본문 스크립트가 참조하므로 defer 없이 먼저 로드 -->
 
 <!-- LCP 최적화: 히어로 대표사진 우선 로드 -->
 <link rel="preload" as="image" href="/photos/hero/대표1.jpg" fetchpriority="high" />
@@ -662,7 +663,10 @@
   .hero { padding: 10px 0 0; }
   .trust-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 14px; font-size: var(--fs-caption); line-height: 1.5; color: var(--ink-soft); word-break: keep-all; }
   .trust-row b { color: var(--accent-deep); font-weight: 700; margin-right: 4px; }
-  .hg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  /* 휴대폰은 칩 한 줄 + 옆으로 밀기(10/20 형구). 오른쪽 끝을 흐리게 해서 더 있다는 걸 보인다. PC는 한 줄에 다 들어가 그대로. */
+  .hg-chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 -20px; padding: 0 20px 2px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg,#000 84%,transparent); mask-image: linear-gradient(90deg,#000 84%,transparent); }
+  .hg-chips::-webkit-scrollbar { display: none; }
+  .hg-chip { flex: none; }
   .hg-chip { min-height: 36px; padding: 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--paper); font-family: var(--font-body); font-size: var(--fs-sub); font-weight: 600; color: var(--ink); cursor: pointer; }
   .hg-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .hg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; margin-top: 12px; }
@@ -672,6 +676,17 @@
   .hg-ph img.tall { object-position: 50% 28%; }
   .hg-nm { margin-top: 7px; font-size: var(--fs-sub); font-weight: 600; line-height: 1.35; color: var(--ink); word-break: keep-all; }
   .hg-pr { font-size: var(--fs-body); font-weight: 800; line-height: 1.35; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
+  /* 화환 49,000원 띠(10/20 형구 "49,000 티 나게"). 상품 칩 바로 위. 값·링크는 afRenderPriceBand 가 products.js 에서 채운다. */
+  .prb { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; padding: 12px 12px 12px 16px; border-radius: var(--radius-lg); background: var(--accent-deep); color: #fff; }
+  .prb[hidden] { display: none; }
+  .prb-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .prb-k { font-size: var(--fs-caption); font-weight: 700; color: rgba(255,255,255,.85); }
+  .prb-p { font-family: var(--font-display); font-size: 16px; font-weight: 700; line-height: 1.2; }
+  .prb-p b { font-size: 30px; font-weight: 800; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+  .prb-s { margin-top: 2px; font-size: var(--fs-caption); color: rgba(255,255,255,.85); }
+  .prb-go { flex: none; display: flex; flex-direction: column; gap: 6px; }
+  .prb-go a { display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 14px; border-radius: var(--radius-pill); background: #fff; color: var(--accent-deep); font-size: var(--fs-sub); font-weight: 800; text-decoration: none; white-space: nowrap; }
+  .prb-go a[hidden] { display: none; }
   .hg-more { display: block; margin-top: 14px; padding: 12px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); font-size: var(--fs-sub); font-weight: 700; text-decoration: none; }
   /* 시작 바 — 하단 탭(56px) 바로 위. 주문 중(body.ordering)엔 .home-sect 라 같이 숨는다. */
   .start-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 84; display: flex; gap: 8px; padding: 7px 12px calc(7px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-top: 1px solid var(--line); box-shadow: 0 -6px 16px rgba(31,29,24,.06); }
@@ -701,6 +716,22 @@
   .qs-in input { flex: 1; min-width: 0; height: 50px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 16px; }
   .qs-go { flex: none; width: 76px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent); font-family: var(--font-body); font-size: 15px; font-weight: 800; cursor: pointer; }
   .qs-go:disabled { opacity: .5; }
+  /* 시작 칸 결과 상자(10/20). 휴대폰은 글을 치기 시작하면(.qs-typing) 위 설명·큰 버튼을 접어 키보드 위에 결과가 보이게 한다. */
+  .qs-sug { margin-top: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
+  .qs-sug[hidden] { display: none; }
+  .qs-sug .sg-h { padding: 9px 12px 4px; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .qs-sug .sg-bands { display: flex; gap: 5px; padding: 4px 12px 6px; overflow-x: auto; scrollbar-width: none; }
+  .qs-sug .sg-bands::-webkit-scrollbar { display: none; }
+  .qs-sug .sg-bands button { flex: none; min-height: 32px; padding: 0 11px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 13.5px; font-weight: 700; cursor: pointer; }
+  .qs-sug .sg-bands button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .qs-sug a.sg-it { display: flex; align-items: center; gap: 10px; padding: 7px 12px; color: var(--ink); text-decoration: none; }
+  .qs-sug a.sg-it img { flex: none; width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: var(--photo-bg); }
+  .qs-sug .sg-n { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qs-sug .sg-p { flex: none; font-size: 15px; font-weight: 800; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
+  .qs-sug .sg-go { display: block; width: 100%; padding: 12px; border: 0; border-top: 1px solid var(--line-soft); background: var(--accent-soft); color: var(--accent-deep); font-family: var(--font-body); font-size: 15px; font-weight: 800; text-align: center; text-decoration: none; cursor: pointer; }
+  .qs-sug .sg-go.top { border-top: 0; border-bottom: 1px solid var(--line-soft); text-align: left; }
+  .qs-sug .sg-link { padding: 10px 12px; font-size: 14px; color: var(--ink-soft); word-break: break-all; }
+  .qs-sheet.qs-typing .qs-s, .qs-sheet.qs-typing .qs-big, .qs-sheet.qs-typing .qs-or, .qs-sheet.qs-typing .qs-ex, .qs-sheet.qs-typing .qs-call { display: none; }
   .qs-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .qs-ex button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .qs-call { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; margin-top: 18px; border-radius: var(--radius-lg); background: var(--accent-soft); color: var(--accent-deep); font-size: 14.5px; text-decoration: none; }
@@ -749,10 +780,17 @@
     body.af-start-on:not(.ordering) .trust-row { display: none; }
     body.af-start-on:not(.ordering), body.af-start-on.af-nav-on:not(.ordering) { padding-bottom: 0; }
     body.af-start-on:not(.ordering) [data-home="occ"] .occ-title { font-size: 22px; font-weight: 800; margin: 4px 0 12px; }
+    .hg-chips { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; -webkit-mask-image: none; mask-image: none; }
     body.af-start-on:not(.ordering) .hg-chip { min-height: 38px; padding: 0 18px; font-size: 15px; }
     body.af-start-on:not(.ordering) .hg-grid { gap: 20px 16px; margin-top: 16px; }
     body.af-start-on:not(.ordering) .hg-nm { margin-top: 9px; font-size: 16px; }
     body.af-start-on:not(.ordering) .hg-pr { font-size: 17px; }
+    .prb { gap: 20px; margin-bottom: 22px; padding: 18px 20px 18px 26px; }
+    .prb-tx { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; }
+    .prb-k, .prb-s { font-size: 15px; }
+    .prb-p b { font-size: 36px; }
+    .prb-go { flex-direction: row; gap: 8px; }
+    .prb-go a { min-height: 46px; padding: 0 22px; font-size: 16px; }
     body.af-start-on:not(.ordering) .qs-ov { display: block; position: absolute; inset: auto; top: var(--aside-top, 110px); right: 28px; bottom: 30px; width: 348px; z-index: 5; background: none; }
     body.af-start-on.qs-open:not(.ordering) { overflow: visible; }
     body.af-start-on:not(.ordering) .qs-sheet { position: sticky; top: calc(var(--hdr-h, 80px) + 16px); display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; max-width: none; max-height: calc(100vh - var(--hdr-h, 80px) - 32px); margin: 0; padding: 24px; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 24px rgba(31,29,24,.05); }
@@ -775,6 +813,11 @@
     body.af-start-on:not(.ordering) #parseLoading,
     body.af-start-on:not(.ordering) #parseErr { order: 8; }
     body.af-start-on:not(.ordering) .qs-ex { order: 9; margin-top: 12px; }
+    body.af-start-on:not(.ordering) .qs-sug { order: 4; margin: 8px 0 2px; }
+    body.af-start-on:not(.ordering) .qs-sug .sg-bands button { padding: 0 9px; }
+    body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-s { display: block; }
+    body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-big { display: flex; }
+    body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-ex { display: flex; }
     body.af-start-on:not(.ordering) .qs-pc-tel { order: 10; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
     body.af-start-on:not(.ordering) .qs-facts { order: 11; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); list-style: none; display: flex; flex-direction: column; gap: 9px; }
     .qp-k { font-size: 13px; font-weight: 700; color: var(--ink-faint); }
@@ -842,6 +885,17 @@
        10/19 형구 A-2: 동그라미 6칸은 전체상품으로 넘어가기만 해서 첫 화면에 꽃이 안 보였다 →
        칩으로 바꾸고 바로 아래에 상품 사진을 깐다. 칩을 누르면 페이지를 안 넘기고 그 자리에서 바뀐다. -->
   <section class="home-sect" data-home="occ" style="margin-top:14px;">
+    <div class="prb" id="priceBand" hidden>
+      <div class="prb-tx">
+        <span class="prb-k">근조·축하 화환</span>
+        <span class="prb-p"><b id="prbPrice">49,000</b>원<span id="prbFrom" hidden>부터</span></span>
+        <span class="prb-s">기본 배송비 포함</span>
+      </div>
+      <div class="prb-go">
+        <a id="prbC" href="/?pc=WC-01">근조화환</a>
+        <a id="prbG" href="/?pc=WG-01">축하화환</a>
+      </div>
+    </div>
     <div class="occ-title">무슨 일로 보내세요?</div>
     <div class="hg-chips" id="homeChips">
       <button type="button" class="hg-chip on" data-cat="" aria-pressed="true" onclick="afHomeCat('')">전체</button>
@@ -878,7 +932,7 @@
   <div class="start-bar home-sect" data-home="paste" id="startBar">
     <button type="button" class="sb-field" onclick="afOpenStart()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      <span class="sb-txt"><span class="sb-f1">링크 넣고 바로 시작</span><span class="sb-f2">링크 없으면 보낼 일을 적어도 돼요</span></span>
+      <span class="sb-txt"><span class="sb-f1">청첩장·부고 링크 넣기</span><span class="sb-f2">꽃 이름이나 가격으로 찾아도 돼요</span></span>
     </button>
     <button type="button" class="sb-paste" onclick="afOpenStart(true)">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
@@ -888,21 +942,23 @@
   <div class="qs-ov" id="qsSheet" onclick="if(event.target===this)afCloseStart()">
     <section class="qs-sheet" id="quickStart" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
       <button type="button" class="qs-x" aria-label="닫기" onclick="afCloseStart()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-      <h2 class="qs-t" id="qsTitle">링크 넣고 바로 시작</h2>
+      <h2 class="qs-t" id="qsTitle">청첩장·부고 링크 넣기</h2>
       <p class="qs-s">부고·청첩장 링크를 붙여넣으면 장소와 날짜를 주문서에 채워 드려요.</p>
       <button type="button" class="qs-big" id="pasteBtn" onclick="afPasteAndGo()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg><span><span class="qs-m">복사한 링크 </span>붙여넣기</span></button>
       <div class="qs-or">링크가 없으면</div>
-      <label class="qs-lbl" for="src"><span class="qs-m">보낼 일을 적어 주세요</span><span class="qs-p">링크 또는 보낼 일</span></label>
+      <label class="qs-lbl" for="src"><span class="qs-m">꽃 이름, 가격, 보낼 일</span><span class="qs-p">링크, 꽃 이름, 가격</span></label>
       <div class="qs-in">
-        <input id="src" type="text" placeholder="예) 어머니 칠순" enterkeyhint="go" onkeydown="if(event.key==='Enter'){event.preventDefault();runParse();}">
+        <input id="src" type="text" placeholder="예) 꽃다발 5만원" autocomplete="off" enterkeyhint="go" oninput="afSugDraw()" onkeydown="if(event.key==='Enter'){event.preventDefault();runParse();}">
         <button type="button" class="qs-go" id="parseBtn" onclick="runParse()">시작</button>
       </div>
+      <!-- 치는 동안 칸 바로 아래 결과(10/20 형구). 링크·꽃·가격·상황 말에 따라 afSugDraw 가 채운다. -->
+      <div class="qs-sug" id="qsSug" hidden aria-live="polite"></div>
       <p class="qs-pc qs-pc-hint">복사한 링크는 이 칸에 바로 붙여넣어도 돼요</p>
       <div class="qs-ex">
+        <button type="button" onclick="afStartEx(this)">꽃다발 5만원</button>
+        <button type="button" onclick="afStartEx(this)">근조화환</button>
+        <button type="button" onclick="afStartEx(this)">개업 화분</button>
         <button type="button" onclick="afStartEx(this)">어머니 칠순</button>
-        <button type="button" onclick="afStartEx(this)">거래처 개업</button>
-        <button type="button" onclick="afStartEx(this)">승진 축하</button>
-        <button type="button" onclick="afStartEx(this)">병문안</button>
       </div>
       <div class="loading hidden" id="parseLoading"><div class="spinner"></div> 내용을 읽고 있어요…</div>
       <div class="err hidden" id="parseErr"></div>
@@ -919,7 +975,7 @@
   </div>
 
   <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
-  <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 55,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
+  <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 49,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
 
   <!-- 결제 안내 4칸 — 카드·간편결제 / 계좌이체(무통장, 계좌 명시) / 영수증·계산서 / 전화주문 절차.
        결제수단이 6단계 결제 직전에야 보여 "홈피 보고 전화하는 손님"이 계좌를 못 찾던 문제(2026-09-12). -->
@@ -1725,23 +1781,33 @@ async function runParse(){
   const err=document.getElementById("parseErr"); err.classList.add("hidden");
   const btn=document.getElementById("parseBtn"), load=document.getElementById("parseLoading");
   const val=document.getElementById("src").value.trim();
-  if(!val) return showErr(err,"링크나 내용을 입력해 주세요.");
-  if(/amazonflower\.vercel\.app/i.test(val) || (isUrl(val) && val.replace(/^https?:\/\//,'').replace(/\/.*$/,'')===location.host)){
+  if(!val) return showErr(err,"링크나 꽃 이름을 입력해 주세요.");
+  // 시작 칸 판단(10/20, home-search.js): 글 안의 링크 → 꽃·가격은 전체상품 검색 → 상황 말은 아래 사연 주문서 → 그 밖은 전체상품 검색
+  const a = window.AF_SEARCH ? AF_SEARCH.analyze(val, window.PRODUCTS||[]) : {kind: isUrl(val) ? "link" : "occasion", url: val};
+  const url = a.kind==="link" ? a.url : "";
+  if(/amazonflower\.vercel\.app/i.test(url) || (url && url.replace(/^https?:\/\//,'').replace(/[\/?#].*$/,'')===location.host)){
     return showErr(err,"이건 이 사이트 주소예요. 받으신 청첩장·부고 링크나 행사 내용을 넣어 주세요.");
   }
+  if(a.kind==="product" || a.kind==="other"){ location.href=AF_SEARCH.catalogUrl(afSugBand==="all"?Object.assign({},a,{min:0,max:0}):a, afSugBand==="all"?"":afSugBand); return; }
   order.src=val;
   // 링크가 아니면 먼저 사연 기반 추천(생신·기념일·개업·승진 등)을 시도
-  if(!isUrl(val)){
+  if(!url){
     const reco = classifyOccasion(val);
     if(reco){ applyOccasion(reco, val); return; }
   }
   btn.disabled=true; load.classList.remove("hidden");
-  try{
-    const body = isUrl(val) ? {url:val} : {text:val};
+  const ask=async body=>{
     const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||"분석에 실패했습니다.");
-    applyParsed(data.result);
+    return data.result;
+  };
+  try{
+    let r;
+    // 글과 링크가 섞여 왔으면 링크 페이지를 먼저 읽고, 못 읽으면 붙여넣은 글 전체로 다시 읽는다(카톡 부고 문자에 이름·장소가 같이 있는 경우).
+    if(url){ try{ r=await ask({url}); }catch(e){ if(val===url) throw e; r=await ask({text:val}); } }
+    else r=await ask({text:val});
+    applyParsed(r);
   }catch(e){ showErr(err,e.message); }
   finally{ btn.disabled=false; load.classList.add("hidden"); }
 }
@@ -2321,8 +2387,10 @@ function afRenderHomeGrid(){
   let list;
   if(afHomeSel) list=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,n);
   else {
-    list=(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).slice(0,3);
-    for(let r=0; r<3 && list.length<n; r++) Object.keys(HOME_CATS).forEach(c=>{
+    // 화환은 위 초록 띠(49,000원)가 맡으니 '전체'에선 빼고 꽃·식물을 보인다(10/20 형구). '부고'·'결혼' 칩에선 화환이 나온다.
+    const flower=p=>p.cat!=="condolence" && p.cat!=="congrats";
+    list=(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).filter(flower).slice(0,3);
+    for(let r=0; r<3 && list.length<n; r++) Object.keys(HOME_CATS).filter(c=>c!=="condolence" && c!=="congrats").forEach(c=>{
       if(list.length>=n) return;
       const p=cheapest(all.filter(q=>q.cat===c && !list.includes(q)))[0];
       if(p) list.push(p);
@@ -2341,6 +2409,19 @@ function afRenderHomeGrid(){
     const on=(b.dataset.cat||"")===afHomeSel;
     b.classList.toggle("on",on); b.setAttribute("aria-pressed",on?"true":"false");
   });
+  afRenderPriceBand();
+}
+// 화환 띠: 근조·축하에서 가장 싼 화환의 값과 주문 링크. 둘 값이 다르면 '부터'를 붙이고, 둘 다 없으면 띠를 숨긴다.
+function afRenderPriceBand(){
+  const el=document.getElementById("priceBand"); if(!el) return;
+  const all=(window.PRODUCTS||[]).filter(p=>p && p.status!=="품절" && (p.photos||[]).length);
+  const low=c=>all.filter(p=>p.cat===c).sort((x,y)=>x.price-y.price)[0];
+  const c=low("condolence"), g=low("congrats"), got=[c,g].filter(Boolean);
+  if(!got.length){ el.hidden=true; return; }
+  document.getElementById("prbPrice").textContent=Math.min(...got.map(p=>p.price)).toLocaleString();
+  document.getElementById("prbFrom").hidden=!(c && g && c.price!==g.price);
+  [["prbC",c],["prbG",g]].forEach(([id,p])=>{ const a=document.getElementById(id); a.hidden=!p; if(p) a.href="/?pc="+encodeURIComponent(p.pc); });
+  el.hidden=false;
 }
 function afHomeCat(cat){ afHomeSel=HOME_CATS[cat]?cat:""; afRenderHomeGrid(); }
 
@@ -2381,6 +2462,38 @@ async function afPasteAndGo(){
   const err=document.getElementById("parseErr"), s=document.getElementById("src");
   if(err.classList.contains("hidden") && s.value.trim()) runParse();
 }
+// 시작 칸 결과 상자(10/20 형구). 치는 동안 링크·꽃·가격·상황 말에 맞춰 칸 바로 아래를 채운다.
+// 가격대 버튼(전체상품의 5만대·7만대…)을 누르면 친 가격 대신 그 칸으로 거른다. '전체'는 친 가격도 풀고 다 보인다("all"). 글을 고치면 버튼 선택은 풀린다.
+let afSugBand="", afSugLast="";
+const AF_SUG_BANDS=["5만대","7만대","9만대","10만↑"];
+function afSugBandPick(b){ afSugBand=afSugBand===b?"":b; afSugDraw(true); }
+function afSugDraw(keepBand){
+  const box=document.getElementById("qsSug"), s=document.getElementById("src"), sh=document.getElementById("quickStart");
+  if(!box||!s||!window.AF_SEARCH) return;
+  const val=s.value.trim();
+  if(!keepBand && val!==afSugLast) afSugBand="";
+  afSugLast=val;
+  const a=AF_SEARCH.analyze(val, window.PRODUCTS||[]);
+  if(sh) sh.classList.toggle("qs-typing", a.kind!=="empty");
+  const pc=!!(AF_PC_MQ && AF_PC_MQ.matches), n=pc?4:3;
+  const item=p=>`<a class="sg-it" href="/?pc=${encodeURIComponent(p.pc)}"><img src="${escapeHtml(p.photos[0])}" alt="" loading="lazy"><span class="sg-n">${escapeHtml(afHomeName(p))}</span><span class="sg-p">${p.price.toLocaleString()}원</span></a>`;
+  let html="";
+  if(a.kind==="link"){
+    html=`<div class="sg-link">링크를 찾았어요 · ${escapeHtml(a.url.replace(/^https?:\/\//,"").slice(0,40))}${a.url.length>48?"…":""}</div><button type="button" class="sg-go" onclick="runParse()">이 링크로 시작 →</button>`;
+  } else if(a.kind==="product"){
+    const all=afSugBand==="all", band=all?"":afSugBand, aa=all?Object.assign({},a,{min:0,max:0}):a;
+    const m=AF_SEARCH.match(aa, window.PRODUCTS||[], band), lb=AF_SEARCH.label(aa, band);
+    const on=b=> b ? afSugBand===b : (all || (!afSugBand && !a.min && !a.max));
+    const bands=`<div class="sg-bands">${["",...AF_SUG_BANDS].map(b=>`<button type="button" class="${on(b)?"on":""}" onclick="afSugBandPick('${b||"all"}')">${b||"전체"}</button>`).join("")}</div>`;
+    const head=m.near ? `${escapeHtml(lb)} 상품이 없어요. 가까운 가격이에요` : m.items.length ? `${escapeHtml(lb)} · ${m.items.length}개 · 싼 순서` : `${escapeHtml(lb)} 상품이 없어요`;
+    html=`<div class="sg-h">${head}</div>${bands}${m.items.slice(0,n).map(item).join("")}<a class="sg-go" href="${AF_SEARCH.catalogUrl(aa, band)}">전부 보기 →</a>`;
+  } else if(a.kind==="occasion"){
+    const m=AF_SEARCH.match(a, window.PRODUCTS||[]);
+    html=`<button type="button" class="sg-go top" onclick="runParse()">'${escapeHtml(val.length>14?val.slice(0,14)+"…":val)}'(으)로 주문서 시작 →</button>`
+      + (m.items.length ? `<div class="sg-h">어울리는 상품</div>${m.items.slice(0,n-1).map(item).join("")}` : "");
+  }
+  box.innerHTML=html; box.hidden=!html;
+}
 function afStartEx(btn){
   const s=document.getElementById("src"); if(!s) return;
   s.value=btn.textContent.trim(); runParse();
@@ -2396,7 +2509,7 @@ function afSyncPC(){
   const pc=!!(AF_PC_MQ && AF_PC_MQ.matches);
   if(pc){ sh.setAttribute("role","region"); sh.removeAttribute("aria-modal"); }
   else { sh.setAttribute("role","dialog"); sh.setAttribute("aria-modal","true"); }
-  if(s) s.placeholder=pc ? "링크 붙여넣기 또는 '어머니 칠순'" : "예) 어머니 칠순";
+  if(s) s.placeholder=pc ? "청첩장·부고 링크, 꽃다발 5만원" : "예) 꽃다발 5만원";
   afFitStart();
 }
 if(AF_PC_MQ){
