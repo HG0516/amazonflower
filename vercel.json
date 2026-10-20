@@ -206,6 +206,10 @@
       "destination": "/api/order-meta?card=:id"
     },
     {
+      "source": "/funeral/:name",
+      "destination": "/funeral/:name.html"
+    },
+    {
       "source": "/bugo",
       "destination": "/bugo.html"
     }

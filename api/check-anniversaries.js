@@ -115,5 +115,31 @@ export default async function handler(req, res) {
     }).catch(() => {});
   }
 
-  return res.status(200).json({ ok: true, anniversaries: annivs.length, sent, removed: gone });
+  // 거래처 직원 생일 D-7 → 사장님 텔레그램(10/20, supabase-corp-birthdays.sql). 표가 없거나 실패해도 위 알림 결과는 그대로.
+  let corpBd = 0;
+  try {
+    const dateFilter = (lm && ld)
+      ? `or(and(lunar.is.false,month.eq.${m},day.eq.${day}),and(lunar.is.true,month.eq.${lm},day.eq.${ld}))`
+      : `and(lunar.is.false,month.eq.${m},day.eq.${day})`;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/corp_birthdays?select=id,corp_regno,name,lunar,addr,phone,budget,msg`
+      + `&and=(${dateFilter},or(notified_on.is.null,notified_on.neq.${todayStr}))&limit=200`, { headers: sb });
+    const rows = r.ok ? await r.json() : [];
+    const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
+    if (rows.length && tg && tgc) {
+      const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+      const lines = rows.map((x) => `· ${x.name}${x.lunar ? "(음력)" : ""} ${x.budget ? x.budget.toLocaleString("ko-KR") + "원 " : ""}— ${x.addr || "주소 없음"}${x.phone ? " " + x.phone : ""}${x.msg ? ` / "${x.msg}"` : ""} [${x.corp_regno}]`);
+      await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: tgc, text: `${tag}🎂 7일 뒤 거래처 직원 생일 ${rows.length}명 (${m}/${day})\n${lines.join("\n")}`.slice(0, 3900), disable_web_page_preview: true }),
+      });
+      corpBd = rows.length;
+      const ids = rows.map((x) => x.id).join(",");
+      await fetch(`${SUPABASE_URL}/rest/v1/corp_birthdays?id=in.(${ids})`, {
+        method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ notified_on: todayStr }),
+      }).catch(() => {});
+    }
+  } catch (e) { console.error("corp birthdays", e && e.message); }
+
+  return res.status(200).json({ ok: true, anniversaries: annivs.length, sent, removed: gone, corpBirthdays: corpBd });
 }

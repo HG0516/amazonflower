@@ -61,6 +61,8 @@ const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(�
   "groomName": "신랑 이름 (결혼식인 경우만, 아니면 빈 문자열)",
   "brideName": "신부 이름 (결혼식인 경우만, 아니면 빈 문자열)",
   "chiefMourner": "상주 이름 (장례식인 경우만, 아니면 빈 문자열)",
+  "noWreath": true | false,
+  "noWreathText": "화환·조화를 사양한다는 원문 한 줄. 없으면 빈 문자열",
   "confidence": "high" | "medium" | "low"
 }
 
@@ -68,7 +70,9 @@ const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(�
 - 결혼식 안내면 type을 "wedding", 장례/부고면 "funeral"로 설정.
 - 날짜는 반드시 YYYY-MM-DD로 변환. 연도가 없으면 가장 가까운 미래 연도로 추정.
 - 확실하지 않은 필드는 추측하지 말고 빈 문자열로 둔다.
-- 정보가 거의 없으면 confidence를 "low"로.`;
+- 정보가 거의 없으면 confidence를 "low"로.
+- "화환은 정중히 사양합니다", "조화 사절", "부의금·화환 받지 않습니다"처럼 화환을 받지 않는다는 말이 분명히 있을 때만 noWreath 를 true 로. 애매하면 false.
+- 이미지(캡처)가 오면 그 안의 글자를 읽어 같은 형식으로 답한다.`;
 
 function safeJsonParse(text) {
   // 혹시 코드블록이나 앞뒤 텍스트가 붙어와도 JSON 부분만 뽑아낸다
@@ -332,6 +336,81 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ── 거래처: 월말 정산 요청 → 사장님 텔레그램 (corp.html, 10/20) ──
+    // body: {action:"corpmonth", regno, token, month:"2026-10"} — 그 달 주문을 서버에서 다시 세어 건수·합계를 알린다(손님이 보낸 숫자는 안 믿는다).
+    // ── 거래처: 직원 생일 명단 (corp.html, 10/20) ──
+    // body: {action:"corpbd", regno, token, mode:"list"} → {ok, rows}
+    //       {action:"corpbd", regno, token, mode:"save", rows:[{name,month,day,lunar,addr,phone,budget,msg}]} → 그 거래처 명단을 통째로 바꾼다.
+    // 표는 supabase-corp-birthdays.sql. 아직 없으면 {ok:false, setup:true} 로 알려 화면이 '준비 중'을 띄운다.
+    if (early && (early.action === "corpmonth" || early.action === "corpbd")) {
+      const regno = String(early.regno || "").replace(/\D/g, "");
+      if (!/^\d{10}$/.test(regno)) return res.status(400).json({ error: "사업자번호가 올바르지 않습니다." });
+      const SECRET = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
+      if (!SECRET) return res.status(503).json({ error: "설정이 필요합니다." });
+      const expect = crypto.createHmac("sha256", SECRET).update("corp:" + regno).digest("hex").slice(0, 24);
+      const got = String(early.token || "");
+      const a = Buffer.from(got), b = Buffer.from(expect);
+      if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(401).json({ error: "링크가 유효하지 않습니다." });
+      const URL_ = process.env.SUPABASE_URL, KEY_ = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!URL_ || !KEY_) return res.status(503).json({ error: "설정이 필요합니다." });
+      const hdr = { apikey: KEY_, Authorization: `Bearer ${KEY_}` };
+      const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
+      const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+      const tell = async (text) => {
+        if (!tg || !tgc) return;
+        try {
+          await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: tgc, text: tag + text, disable_web_page_preview: true }),
+          });
+        } catch { /* 알림 실패는 무시 */ }
+      };
+      try {
+        if (early.action === "corpmonth") {
+          const mo = String(early.month || "");
+          if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mo)) return res.status(400).json({ error: "달이 올바르지 않습니다." });
+          const [y, mm] = mo.split("-").map(Number);
+          const next = mm === 12 ? `${y + 1}-01` : `${y}-${String(mm + 1).padStart(2, "0")}`;
+          // created_at 은 UTC 라 한국 날짜 경계(-9시간)로 자른다
+          const r = await fetch(`${URL_}/rest/v1/orders?corp_regno=eq.${regno}&created_at=gte.${mo}-01T00:00:00%2B09:00&created_at=lt.${next}-01T00:00:00%2B09:00&select=amount,status,corp_name&limit=500`, { headers: hdr });
+          if (!r.ok) return res.status(502).json({ error: "주문을 불러오지 못했습니다." });
+          const rows = (await r.json().catch(() => [])).filter((o) => o.status !== "canceled");
+          const sum = rows.reduce((t, o) => t + (Number(o.amount) || 0), 0);
+          const memo = String(early.memo || "").replace(/\s+/g, " ").trim().slice(0, 200);
+          await tell(`🧾 월말 정산 요청\n${(rows[0] && rows[0].corp_name) || "거래처"} (${regno})\n${mo} · ${rows.length}건 · ${sum.toLocaleString("ko-KR")}원${memo ? `\n메모: ${memo}` : ""}\n(거래처 대시보드에서 요청)`);
+          return res.status(200).json({ ok: true, count: rows.length, sum });
+        }
+        // corpbd
+        const T = `${URL_}/rest/v1/corp_birthdays`;
+        if (early.mode === "save") {
+          const raw = Array.isArray(early.rows) ? early.rows.slice(0, 500) : [];
+          const str = (v, n) => String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, n);
+          const rows = raw.map((x) => ({
+            corp_regno: regno, name: str(x.name, 30),
+            month: Math.trunc(Number(x.month)), day: Math.trunc(Number(x.day)), lunar: !!x.lunar,
+            addr: str(x.addr, 120), phone: str(x.phone, 20).replace(/[^0-9-]/g, ""),
+            budget: Math.max(0, Math.min(1000000, Math.round(Number(x.budget) || 0))), msg: str(x.msg, 80),
+          })).filter((x) => x.name && x.month >= 1 && x.month <= 12 && x.day >= 1 && x.day <= 31);
+          const del = await fetch(`${T}?corp_regno=eq.${regno}`, { method: "DELETE", headers: hdr });
+          if (del.status === 404) return res.status(200).json({ ok: false, setup: true });
+          if (!del.ok) return res.status(502).json({ error: "명단을 저장하지 못했습니다." });
+          if (rows.length) {
+            const ins = await fetch(T, { method: "POST", headers: { ...hdr, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(rows) });
+            if (!ins.ok) return res.status(502).json({ error: "명단을 저장하지 못했습니다." });
+          }
+          await tell(`🎂 거래처 직원 생일 명단 ${rows.length}명 저장\n사업자번호 ${regno}\n(생일 7일 전에 여기로 알려 드려요)`);
+          return res.status(200).json({ ok: true, saved: rows.length });
+        }
+        const r = await fetch(`${T}?corp_regno=eq.${regno}&select=name,month,day,lunar,addr,phone,budget,msg&order=month.asc,day.asc&limit=500`, { headers: hdr });
+        if (r.status === 404) return res.status(200).json({ ok: false, setup: true });
+        if (!r.ok) return res.status(502).json({ error: "명단을 불러오지 못했습니다." });
+        return res.status(200).json({ ok: true, rows: await r.json().catch(() => []) });
+      } catch (e) {
+        console.error(early.action + " error:", e && e.message);
+        return res.status(502).json({ error: "잠시 후 다시 시도해 주세요." });
+      }
+    }
+
     // ── 거래처: 공급자 서류(사업자등록증) 다운로드 ──
     // 공개 정적파일이 아니라 corp 토큰이 확인된 요청에만 파일 바이트를 내려준다(거래처 전용).
     // 파일은 api/_corp 에 두고 함수 번들에 포함(vercel.json includeFiles). 공개 URL 아님.
@@ -414,7 +493,24 @@ export default async function handler(req, res) {
     }
     body = body || {};
 
-    const { url, text } = body;
+    const { url, text, image } = body;
+
+    // 캡처 사진(부고·청첩장 이미지) — data URL(jpeg/png/webp), 4MB 이하. 글자를 읽어 같은 JSON 으로 답한다.
+    if (typeof image === "string" && image) {
+      const m = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+      if (!m) return res.status(400).json({ error: "사진 형식을 읽지 못했어요." });
+      if (m[2].length > 4_000_000) return res.status(413).json({ error: "사진이 너무 커요. 화면을 캡처한 사진으로 다시 해 주세요." });
+      const r = await askClaude({
+        system: SYSTEM_PROMPT, maxTokens: 1024, timeoutMs: 25000,
+        content: [
+          { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } },
+          { type: "text", text: "이 이미지는 청첩장·부고 캡처입니다. 화환 배송 정보를 추출해 JSON으로만 응답하세요." },
+        ],
+      });
+      const j = r.ok ? extractJson(r.text) : null;
+      if (!j || typeof j !== "object") return res.status(422).json({ error: "사진에서 내용을 읽지 못했어요. 링크를 붙여넣거나 전화(1577-2286) 주세요." });
+      return res.status(200).json({ ok: true, result: j });
+    }
 
     let sourceText = "";
     if (url && typeof url === "string" && url.trim()) {

@@ -47,6 +47,19 @@
   .req-btn{width:100%;padding:13px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--paper);color:var(--ink);font-weight:700;font-size:14px;font-family:var(--font-body);cursor:pointer;}
   .req-btn:hover{background:var(--ink);color:var(--paper);}
   .req-btn:disabled{opacity:.75;cursor:default;background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+  .mrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line);font-size:14px;}
+  .mrow:first-of-type{border-top:0;}
+  .mrow b{font-size:15px;}
+  .mbtns{display:flex;gap:6px;flex-shrink:0;}
+  .mini{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);white-space:nowrap;}
+  .mini.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .mini:disabled{opacity:.6;cursor:default;}
+  .bd-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .bd-tbl{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
+  .bd-tbl th,.bd-tbl td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
+  .bd-tbl th{color:var(--ink-faint);font-weight:700;}
+  .bd-bad{color:#b8442f;}
+  .bd-msg{margin-top:10px;font-size:13.5px;line-height:1.6;}
   .sect-h{font-size:13px;font-weight:800;color:var(--ink-faint);letter-spacing:.05em;margin:22px 4px 10px;}
   .order{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:9px;}
   .o-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
@@ -67,7 +80,7 @@
   .hidden{display:none;}
   @media (prefers-reduced-motion:no-preference){.spin{animation:sp 1s linear infinite;display:inline-block;}@keyframes sp{to{transform:rotate(360deg);}}}
 </style>
-<script src="/footer.js?v=20261020" defer></script>
+<script src="/footer.js?v=20261020b" defer></script>
 </head>
 <body>
   <div class="topbar">
@@ -168,7 +181,9 @@
       +   '<a class="btn primary" href="'+reorderUrl+'">새 주문하기 (정보 자동 채움) →</a>'
       + '</div>'
       + docsBlock()
-      + invoiceBlock(acc.email);
+      + invoiceBlock(acc.email)
+      + monthBlock(orders)
+      + bdBlock();
 
     html += '<div class="sect-h">지난 주문'+(orders.length?(' · '+orders.length+'건'):'')+'</div>';
     if(!orders.length){
@@ -191,6 +206,150 @@
     }
     $("loading").classList.add("hidden");
     var c = $("content"); c.innerHTML = html; c.classList.remove("hidden");
+    ORDERS = orders; loadBd();
+  }
+
+  // ── 월별 정산(10/20) — 건마다 결제·계산서 대신 한 달 치를 묶어 보고, 사장님께 월말 정산을 요청한다 ──
+  var ORDERS = [];
+  function kstMonth(iso){ var t=Date.parse(iso||""); if(!isFinite(t)) return ""; var d=new Date(t+9*3600000); return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0"); }
+  function monthBlock(orders){
+    var by={};
+    orders.forEach(function(o){ if(o.status==="canceled") return; var k=kstMonth(o.created_at); if(!k) return; (by[k]=by[k]||{n:0,sum:0}); by[k].n++; by[k].sum+=Number(o.amount)||0; });
+    var keys=Object.keys(by).sort().reverse().slice(0,6);
+    return '<div class="card"><div class="sect-h2">📅 월별 정산</div>'
+      + '<div class="sect-note">한 달 치 주문을 묶어서 보고 <b>월말에 한 번</b> 정산·계산서를 받을 수 있어요. 품의용 내역은 엑셀로 받으세요.</div>'
+      + (keys.length ? keys.map(function(k){
+          var p=k.split("-");
+          return '<div class="mrow"><div><b>'+(+p[0])+'년 '+(+p[1])+'월</b><br><span class="muted">'+by[k].n+'건 · '+won(by[k].sum)+'</span></div>'
+            + '<div class="mbtns"><button class="mini" onclick="monthCsv(\''+k+'\')">엑셀</button><button class="mini" onclick="monthReq(this,\''+k+'\')">정산 요청</button></div></div>';
+        }).join("") : '<div class="muted" style="font-size:14px;">아직 정산할 주문이 없어요.</div>')
+      + '</div>';
+  }
+  function csvCell(v){ v=String(v==null?"":v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  function saveCsv(name, rows){
+    var u=URL.createObjectURL(new Blob(["﻿"+rows.map(function(r){ return r.map(csvCell).join(","); }).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+    var a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); },1500);
+  }
+  window.monthCsv = function(k){
+    var rows=[["주문번호","주문일","상품","금액","상태","행사일","보낸이","계산서"]];
+    ORDERS.filter(function(o){ return kstMonth(o.created_at)===k && o.status!=="canceled"; }).forEach(function(o){
+      rows.push([o.order_id, fmtDate(o.created_at), o.product_label||"", Number(o.amount)||0, STAT[o.status]||o.status||"", fmtDate(o.event_date), o.sender_name||"", o.invoice_issued===true?"발행":(o.invoice_issued===false?"대기":"")]);
+    });
+    saveCsv("꽃안부_"+k+"_주문내역.csv", rows);
+  };
+  window.monthReq = async function(btn, k){
+    var old=btn.textContent; btn.disabled=true; btn.textContent="보내는 중…";
+    try{
+      var r=await post("corpmonth",{ month:k });
+      if(r.ok){ btn.textContent="요청됐어요"; btn.classList.add("on"); }
+      else { btn.disabled=false; btn.textContent=old; alert((r.data&&r.data.error)||"잠시 후 다시 시도해 주세요."); }
+    }catch(e){ btn.disabled=false; btn.textContent=old; }
+  };
+
+  // ── 직원 생일 꽃(10/20) — 엑셀 양식을 받아 채워 올리면, 생일 7일 전에 사장님이 준비한다 ──
+  // 엑셀 읽기·만들기는 SheetJS(cdnjs)를 누를 때만 불러온다. CSV 는 라이브러리 없이 읽는다.
+  var BD_HEAD=["이름","생일(월-일)","음력(O/X)","받을 주소","연락처","예산(원)","카드 문구"];
+  var BD_ROWS=[], BD_NEW=null;
+  function bdBlock(){
+    return '<div class="card" id="bdCard"><div class="sect-h2">🎂 직원 생일 꽃</div>'
+      + '<div class="sect-note">직원 명단과 생일을 <b>엑셀로 한 번</b> 올려 두시면, 생일 7일 전에 사장님이 확인 전화를 드리고 날짜에 맞춰 보내 드려요. 정산은 위 월별 정산에 함께 묶여요.</div>'
+      + '<div class="bd-btns"><button class="req-btn" onclick="bdTemplate(this)">엑셀 양식 받기</button><button class="req-btn" onclick="document.getElementById(\'bdFile\').click()">명단 올리기</button></div>'
+      + '<input type="file" id="bdFile" accept=".xlsx,.xls,.csv" hidden onchange="bdUpload(this)">'
+      + '<div id="bdBody" class="bd-msg muted">명단을 불러오는 중…</div></div>';
+  }
+  var _xlsx=null;
+  function loadXlsx(){
+    if(window.XLSX) return Promise.resolve(window.XLSX);
+    if(_xlsx) return _xlsx;
+    _xlsx=new Promise(function(ok,no){ var sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; sc.onload=function(){ ok(window.XLSX); }; sc.onerror=function(){ _xlsx=null; no(new Error("엑셀 도구를 불러오지 못했어요")); }; document.head.appendChild(sc); });
+    return _xlsx;
+  }
+  window.bdTemplate = async function(btn){
+    var rows=[BD_HEAD,["홍길동","03-15","X","서울 강남구 테헤란로 123 4층","010-1234-5678","50000","생일 축하드려요. 늘 고맙습니다."],["김영희","11-02","O","","","",""]];
+    BD_ROWS.forEach(function(r){ rows.push([r.name, String(r.month).padStart(2,"0")+"-"+String(r.day).padStart(2,"0"), r.lunar?"O":"X", r.addr, r.phone, r.budget||"", r.msg]); });
+    if(BD_ROWS.length) rows.splice(1,2);   // 이미 명단이 있으면 예시 대신 지금 명단을 담아 준다(고쳐서 다시 올리기)
+    try{
+      var X=await loadXlsx(), ws=X.utils.aoa_to_sheet(rows);
+      ws["!cols"]=[{wch:10},{wch:12},{wch:9},{wch:36},{wch:15},{wch:10},{wch:30}];
+      var wb=X.utils.book_new(); X.utils.book_append_sheet(wb, ws, "직원 생일"); X.writeFile(wb, "꽃안부_직원생일_양식.xlsx");
+    }catch(e){ saveCsv("꽃안부_직원생일_양식.csv", rows); }
+  };
+  function parseCsv(t){
+    var out=[], row=[], cur="", q=false;
+    for(var i=0;i<t.length;i++){ var c=t[i];
+      if(q){ if(c==='"'){ if(t[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; }
+      else if(c==='"') q=true; else if(c===","){ row.push(cur); cur=""; }
+      else if(c==="\n"||c==="\r"){ if(c==="\r"&&t[i+1]==="\n") i++; row.push(cur); out.push(row); row=[]; cur=""; }
+      else cur+=c; }
+    if(cur||row.length){ row.push(cur); out.push(row); }
+    return out;
+  }
+  // 생일 칸: '03-15' · '3/15' · '3월 15일' · '1990-03-15' · 엑셀 날짜(숫자) 모두 받는다
+  function readMD(v){
+    if(typeof v==="number" && v>59){ var d=new Date(Math.round((v-25569)*86400000)); return [d.getUTCMonth()+1, d.getUTCDate()]; }
+    var s=String(v==null?"":v).trim(), m;
+    if((m=s.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/))) return [+m[2],+m[3]];
+    if((m=s.match(/^(\d{1,2})\s*(?:월|[-./])\s*(\d{1,2})/))) return [+m[1],+m[2]];
+    if((m=s.match(/^(\d{2})(\d{2})$/))) return [+m[1],+m[2]];
+    return null;
+  }
+  function toRows(aoa){
+    var head=(aoa[0]||[]).map(function(h){ return String(h||"").replace(/\s/g,""); });
+    var col=function(re,def){ for(var i=0;i<head.length;i++) if(re.test(head[i])) return i; return def; };
+    var ci={ name:col(/이름|성명/,0), bd:col(/생일|생년/,1), lunar:col(/음력/,2), addr:col(/주소/,3), phone:col(/연락|전화|휴대/,4), budget:col(/예산|금액/,5), msg:col(/문구|메시지|카드/,6) };
+    var start=/이름|성명/.test(head.join("")) ? 1 : 0;
+    var rows=[];
+    aoa.slice(start).forEach(function(r,i){
+      if(!r || !r.some(function(x){ return String(x==null?"":x).trim(); })) return;
+      var md=readMD(r[ci.bd]), name=String(r[ci.name]==null?"":r[ci.name]).trim();
+      var ok=!!(name && md && md[0]>=1 && md[0]<=12 && md[1]>=1 && md[1]<=31);
+      rows.push({ line:i+start+1, ok:ok, name:name, month:md?md[0]:0, day:md?md[1]:0,
+        lunar:/^(o|y|음|예|true|1)/i.test(String(r[ci.lunar]==null?"":r[ci.lunar]).trim()),
+        addr:String(r[ci.addr]==null?"":r[ci.addr]).trim(), phone:String(r[ci.phone]==null?"":r[ci.phone]).trim(),
+        budget:Number(String(r[ci.budget]==null?"":r[ci.budget]).replace(/[^0-9]/g,""))||0, msg:String(r[ci.msg]==null?"":r[ci.msg]).trim() });
+    });
+    return rows;
+  }
+  window.bdUpload = async function(input){
+    var f=input.files&&input.files[0]; input.value=""; if(!f) return;
+    var box=$("bdBody"); box.className="bd-msg muted"; box.textContent="읽는 중…";
+    try{
+      var aoa;
+      if(/\.csv$/i.test(f.name)) aoa=parseCsv((await f.text()).replace(/^﻿/,""));
+      else { var X=await loadXlsx(); var wb=X.read(await f.arrayBuffer(),{type:"array"}); aoa=X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:""}); }
+      BD_NEW=toRows(aoa);
+      if(!BD_NEW.length){ box.textContent="파일에 명단이 없어요. 양식의 둘째 줄부터 적어 주세요."; return; }
+      var bad=BD_NEW.filter(function(r){ return !r.ok; });
+      box.className="bd-msg";
+      box.innerHTML='<b>'+BD_NEW.length+'명</b>을 읽었어요.'+(bad.length?' <span class="bd-bad">'+bad.length+'명은 이름이나 생일을 못 읽어서 빼고 저장해요.</span>':'')
+        + ' 기존 명단은 이 명단으로 바뀌어요.'
+        + bdTable(BD_NEW)
+        + '<button class="btn primary" style="width:100%" onclick="bdSave(this)">'+(BD_NEW.length-bad.length)+'명 저장하기</button>';
+    }catch(e){ box.className="bd-msg bd-bad"; box.textContent="파일을 읽지 못했어요. 양식(엑셀)으로 다시 올려 주세요."; }
+  };
+  function bdTable(rows){
+    return '<table class="bd-tbl"><tr><th>이름</th><th>생일</th><th>받을 곳</th><th>예산</th></tr>'
+      + rows.slice(0,50).map(function(r){
+          return '<tr'+(r.ok===false?' class="bd-bad"':'')+'><td>'+esc(r.name||"(이름 없음)")+'</td><td>'+(r.month?r.month+'/'+r.day+(r.lunar?' 음력':''):'못 읽음')+'</td><td>'+esc(r.addr||"-")+'</td><td>'+(r.budget?won(r.budget):"-")+'</td></tr>';
+        }).join("") + '</table>' + (rows.length>50?'<div class="muted" style="font-size:12.5px;margin-top:4px;">외 '+(rows.length-50)+'명</div>':'');
+  }
+  window.bdSave = async function(btn){
+    btn.disabled=true; btn.textContent="저장 중…";
+    var r=await post("corpbd",{ mode:"save", rows:(BD_NEW||[]).filter(function(x){ return x.ok; }) }).catch(function(){ return { ok:false, data:{} }; });
+    if(r.ok && r.data.ok){ BD_NEW=null; loadBd("저장했어요. 생일 7일 전에 사장님이 연락드려요."); }
+    else if(r.data && r.data.setup){ $("bdBody").innerHTML='<span class="bd-bad">명단 저장 칸을 준비하고 있어요. 급하시면 파일을 1577-2286 문자나 카카오톡 상담으로 보내 주세요.</span>'; }
+    else { btn.disabled=false; btn.textContent="다시 저장하기"; alert((r.data&&r.data.error)||"잠시 후 다시 시도해 주세요."); }
+  };
+  async function loadBd(note){
+    var box=$("bdBody"); if(!box) return;
+    var r=await post("corpbd",{ mode:"list" }).catch(function(){ return { ok:false, data:{} }; });
+    if(!(r.ok && r.data.ok)){ box.className="bd-msg muted"; box.textContent= r.data && r.data.setup ? "명단 저장 칸을 준비하고 있어요. 곧 열려요." : "명단을 불러오지 못했어요."; return; }
+    BD_ROWS=r.data.rows||[];
+    box.className="bd-msg";
+    box.innerHTML=(note?'<b style="color:var(--accent)">'+esc(note)+'</b><br>':'')
+      + (BD_ROWS.length ? '지금 명단 <b>'+BD_ROWS.length+'명</b>. 고치려면 양식을 받아(지금 명단이 담겨 있어요) 고친 뒤 다시 올려 주세요.'+bdTable(BD_ROWS)
+                        : '<span class="muted">아직 올린 명단이 없어요.</span>');
   }
 
   async function boot(){

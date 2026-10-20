@@ -24,3 +24,4 @@ Disallow: /delivery-photo.html
 Allow: /
 
 Sitemap: https://floweranbu.co.kr/sitemap.xml
+Sitemap: https://floweranbu.co.kr/sitemap-funeral.xml

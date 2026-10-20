@@ -32,6 +32,8 @@
   .mourners { font-family: "Noto Sans KR", sans-serif; font-size: 15px; line-height: 1.9; }
   .mourners b { display: inline-block; min-width: 48px; font-weight: 500; opacity: .6; font-size: 13.5px; }
   details.accts summary { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 0 6px; font-family: "Noto Sans KR", sans-serif; }
+  .maps.cal { margin-top: 8px; }
+  .maps.cal a { border: 1px solid rgba(0,0,0,.15); background: rgba(255,255,255,.6); color: inherit; font-weight: 600; }
   .acct { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 10px; font-size: 14px; margin-top: 8px; font-family: "Noto Sans KR", sans-serif; }
   .acct button { border: 0; border-radius: 8px; padding: 7px 11px; font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
   .wreath { margin-top: 22px; padding: 16px; border-radius: 14px; font-family: "Noto Sans KR", sans-serif; }
@@ -154,6 +156,35 @@ function mapsHtml(place, addr){
     +'<a class="nm" href="https://map.naver.com/p/search/'+q+'" target="_blank" rel="noopener">네이버 지도</a>'
     +(addr?'<div class="addr">'+esc(addr)+'</div>':'')+'</div>';
 }
+// 달력에 넣기(10/20): 아이폰은 .ics 파일을 열면 '캘린더에 추가'가 뜨고, 안드로이드는 구글 캘린더 링크가 편하다.
+function calEvent(d){
+  var f=d.k==="f", start=f?at(d.outDate,d.out):at(d.date,d.time);
+  if(!start || !(f?d.out:d.time)) return null;
+  var end=new Date(start.getTime()+(f?60:120)*60000);
+  return { title: f ? "故 "+d.name+" 님 발인" : d.g+" ♥ "+d.b+" 결혼식",
+    where: [d.venue, f?d.room:d.hall, d.addr].filter(Boolean).join(" "), start:start, end:end };
+}
+function icsStamp(t){ function z(n){ return (n<10?"0":"")+n; } return t.getFullYear()+z(t.getMonth()+1)+z(t.getDate())+"T"+z(t.getHours())+z(t.getMinutes())+"00"; }
+function calHtml(d){
+  var e=calEvent(d); if(!e) return "";
+  var g="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(e.title)+"&dates="+icsStamp(e.start)+"/"+icsStamp(e.end)+"&ctz=Asia/Seoul&location="+encodeURIComponent(e.where)+"&details="+encodeURIComponent(location.href.split("#")[0]);
+  return '<div class="maps cal"><a href="#" data-ics="1">📅 달력에 넣기</a><a href="'+esc(g)+'" target="_blank" rel="noopener">구글 캘린더</a></div>';
+}
+function icsEsc(v){ return String(v||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n"); }
+document.addEventListener("click",function(ev){
+  var a=ev.target.closest && ev.target.closest("[data-ics]"); if(!a || !CUR) return;
+  ev.preventDefault();
+  var e=calEvent(CUR); if(!e) return;
+  var ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//kkotanbu//card//KO","BEGIN:VEVENT",
+    "UID:"+(STATE.id||Date.now())+"@kkotanbu","DTSTAMP:"+icsStamp(new Date()),
+    "DTSTART;TZID=Asia/Seoul:"+icsStamp(e.start),"DTEND;TZID=Asia/Seoul:"+icsStamp(e.end),
+    "SUMMARY:"+icsEsc(e.title),"LOCATION:"+icsEsc(e.where),"URL:"+location.href.split("#")[0],
+    "BEGIN:VALARM","TRIGGER:-PT"+(CUR.k==="f"?"2H":"3H"),"ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.title),"END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  var u=URL.createObjectURL(new Blob([ics],{type:"text/calendar;charset=utf-8"}));
+  var l=document.createElement("a"); l.href=u; l.download=(CUR.k==="f"?"발인":"결혼식")+".ics"; document.body.appendChild(l); l.click(); l.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); },4000);
+});
 function acctsHtml(list){
   list=(list||[]).filter(function(a){ return a && a.no; }); if(!list.length) return "";
   return '<details class="accts"'+(list.length<=2?' open':'')+'><summary>마음 전하실 곳 ('+list.length+')</summary>'
@@ -295,7 +326,7 @@ function renderFuneral(d){
     +'<dt>빈소</dt><dd>'+esc([d.venue,d.room].filter(Boolean).join(" "))+(d.tel?'<br><a href="tel:'+esc(d.tel.replace(/[^0-9]/g,""))+'" style="color:inherit;font-size:13.5px;opacity:.8;">☎ '+esc(d.tel)+'</a>':'')+'</dd>'
     +(d.out?'<dt>발인</dt><dd>'+esc(kDate(d.outDate)+" "+kTime(d.out))+'</dd>':'')
     +(d.burial?'<dt>장지</dt><dd>'+esc(d.burial)+'</dd>':'')
-    +'</dl>'+mapsHtml(d.venue, d.addr)+cantGoHtml(d, dl)+'</div>'
+    +'</dl>'+mapsHtml(d.venue, d.addr)+calHtml(d)+cantGoHtml(d, dl)+'</div>'
     +acctsHtml(d.acc)
     +wreath
     +commentsHtml(d)
@@ -325,7 +356,7 @@ function renderWedding(d){
   return '<div class="card t-'+(d.theme==="flower"?"flower":"classic")+'">'+head+'<div class="pad">'
     +'<p class="msg">'+esc(msg)+'</p>'+parents
     +'<div class="sec"><dl class="kv"><dt>일시</dt><dd>'+esc(when)+'</dd><dt>장소</dt><dd>'+esc([d.venue,d.hall].filter(Boolean).join(" "))+'</dd></dl>'
-    +mapsHtml(d.venue, d.addr)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
+    +mapsHtml(d.venue, d.addr)+calHtml(d)+(d.park?'<p class="promise" style="opacity:.8">'+esc(d.park)+'</p>':'')+'</div>'
     +rsvpHtml(d, dl)
     +acctsHtml(d.acc)
     +wreath

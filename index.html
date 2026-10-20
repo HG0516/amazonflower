@@ -35,7 +35,7 @@
 <!-- pwa-install.js('홈 화면에 추가' 배너) 제거 — 홈 배너와 겹침 + 추후 네이티브 앱 출시 예정(2026-07-18).
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
-<script src="/footer.js?v=20261020" defer></script>
+<script src="/footer.js?v=20261020b" defer></script>
 <script src="/bottom-nav.js?v=20261020" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
@@ -570,6 +570,19 @@
   .tone-tab { flex: 1; text-align: center; padding: 11px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: transparent; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
   .tone-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .ribbon-opts { display: flex; flex-direction: column; gap: 8px; }
+  /* 리본 미리보기(10/20 형구 '리본 좌우 더 자세히'): 실제로 달리는 두 줄을 세로로 그려 왼쪽·오른쪽이 헷갈리지 않게 */
+  .rb-prev { display: flex; gap: 14px; align-items: flex-start; margin: 14px 0 4px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfaf7; }
+  .rb-strips { flex: 0 0 auto; display: flex; gap: 10px; }
+  .rb-strip { width: 46px; min-height: 210px; padding: 12px 0; border-radius: 3px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .rb-strip small { font-size: 11px; font-weight: 700; opacity: .7; writing-mode: horizontal-tb; }
+  .rb-strip span { writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; font-size: 17px; font-weight: 700; letter-spacing: 1px; line-height: 1.15; }
+  .rb-strip.fun { background: #fff; border: 1px solid #cfccc4; color: #1f1d18; }
+  .rb-strip.joy { background: #b8322a; color: #fff6dc; }
+  .rb-note { flex: 1; min-width: 0; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; }
+  .rb-note b { color: var(--ink); }
+  .rb-note .rb-long { color: var(--accent-deep); font-weight: 700; }
+  .rb-ends { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+  .rb-ends button { padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: 14px; cursor: pointer; color: var(--ink); }
   .ribbon-ask { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
   .ribbon-ask-row { display: flex; gap: 8px; align-items: stretch; }
   .ribbon-ask-row input { flex: 1; min-width: 0; }
@@ -709,6 +722,9 @@
   .qs-t { padding-right: 40px; font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1.4; color: var(--accent-deep); }
   .qs-s { margin-top: 6px; font-size: var(--fs-caption); line-height: 1.55; color: var(--ink-soft); word-break: keep-all; }
   .qs-big { width: 100%; min-height: 54px; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: var(--radius-lg); background: var(--accent); color: #fff; font-family: var(--font-body); font-size: 16px; font-weight: 800; cursor: pointer; }
+  /* 부고·청첩 캡처 사진으로 읽기(10/20 형구). 단톡방 부고는 링크보다 이미지로 많이 온다. */
+  .qs-img { width: 100%; min-height: 48px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent-deep); font-family: var(--font-body); font-size: 15.5px; font-weight: 800; cursor: pointer; }
+  .af-nowreath { margin: 0 0 10px; padding: 11px 13px; border-radius: var(--radius-sm); background: #fdf3e7; border: 1px solid #ecc99a; color: var(--ink); line-height: 1.65; }
   .qs-or { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 13px; color: var(--ink-faint); }
   .qs-or::before, .qs-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
   .qs-lbl { display: block; margin-bottom: 8px; font-size: var(--fs-caption); font-weight: 700; color: var(--ink); }
@@ -738,7 +754,7 @@
   .qs-sug .sg-card .sg-n { display: -webkit-box; margin-top: 5px; font-size: 13.5px; line-height: 1.3; white-space: normal; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .qs-sug .sg-card .sg-p { display: block; margin-top: 2px; font-size: 14.5px; }
   .qs-sug .sg-more { height: 108px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent-deep); font-size: 14px; font-weight: 800; text-align: center; line-height: 1.4; }
-  .qs-sheet.qs-typing .qs-lbl, .qs-sheet.qs-typing .qs-s, .qs-sheet.qs-typing .qs-big, .qs-sheet.qs-typing .qs-or, .qs-sheet.qs-typing .qs-ex, .qs-sheet.qs-typing .qs-call { display: none; }
+  .qs-sheet.qs-typing .qs-lbl, .qs-sheet.qs-typing .qs-s, .qs-sheet.qs-typing .qs-big, .qs-sheet.qs-typing .qs-img, .qs-sheet.qs-typing .qs-or, .qs-sheet.qs-typing .qs-ex, .qs-sheet.qs-typing .qs-call { display: none; }
   .qs-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .qs-ex button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13.5px; font-weight: 600; cursor: pointer; }
   .qs-call { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; margin-top: 18px; border-radius: var(--radius-lg); background: var(--accent-soft); color: var(--accent-deep); font-size: 14.5px; text-decoration: none; }
@@ -817,6 +833,8 @@
     body.af-start-on:not(.ordering) #pasteBtn { order: 5; grid-column: 1; min-height: 46px; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font-size: 15px; font-weight: 700; }
     body.af-start-on:not(.ordering) #pasteBtn svg { width: 16px; height: 16px; }
     body.af-start-on:not(.ordering) #parseBtn { order: 6; grid-column: 2; width: auto; min-height: 46px; margin-top: 10px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-size: 15px; }
+    body.af-start-on:not(.ordering) .qs-img { order: 7; min-height: 44px; margin-top: 8px; border-width: 1px; border-color: var(--line); border-radius: 10px; color: var(--ink); font-size: 14.5px; font-weight: 700; }
+    body.af-start-on:not(.ordering) .qs-sheet.qs-typing .qs-img { display: flex; }
     body.af-start-on:not(.ordering) .qs-pc-hint { order: 7; margin-top: 8px; font-size: 12.5px; color: var(--ink-faint); }
     body.af-start-on:not(.ordering) #parseLoading,
     body.af-start-on:not(.ordering) #parseErr { order: 8; }
@@ -951,8 +969,10 @@
     <section class="qs-sheet" id="quickStart" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
       <button type="button" class="qs-x" aria-label="닫기" onclick="afCloseStart()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       <h2 class="qs-t" id="qsTitle">청첩장·부고 링크 넣기</h2>
-      <p class="qs-s">부고·청첩장 링크를 붙여넣으면 장소와 날짜를 주문서에 채워 드려요.</p>
+      <p class="qs-s">부고·청첩장 링크나 캡처 사진을 넣으면 장소와 날짜를 주문서에 채워 드려요.</p>
       <button type="button" class="qs-big" id="pasteBtn" onclick="afPasteAndGo()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg><span><span class="qs-m">복사한 링크 </span>붙여넣기</span></button>
+      <button type="button" class="qs-img" id="imgBtn" onclick="document.getElementById('imgFile').click()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>부고·청첩장 캡처 사진 올리기</button>
+      <input type="file" id="imgFile" accept="image/*" hidden onchange="afImageParse(this)">
       <div class="qs-or">링크가 없으면</div>
       <label class="qs-lbl" for="src"><span class="qs-m">꽃 이름, 가격, 보낼 일</span><span class="qs-p">링크, 꽃 이름, 가격</span></label>
       <div class="qs-in">
@@ -1160,12 +1180,20 @@
     <div class="ribbon-only">
       <label class="fl">리본 왼쪽: 보내는 분 <span class="fl-sub">비워 두면 위 성함이 들어가요</span></label>
       <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
+      <div class="rb-ends" id="rbEnds" aria-label="왼쪽 리본 끝말, 누르면 붙어요"></div>
       <label class="fl">리본 오른쪽: 문구 <span class="fl-sub">어떤 사이인지에 맞춰 골라 주세요</span></label>
       <div class="tone-tabs" id="toneTabs"></div>
       <div class="ribbon-opts" id="ribbonOpts"></div>
       <label class="fl" for="ribbonRight">리본에 들어갈 문구 <span class="fl-sub">고른 문구를 고쳐 쓸 수 있어요</span></label>
       <input type="text" id="ribbonRight" placeholder="직접 적어도 돼요" onblur="ribbonCheck()" />
       <div id="ribbonWarn" class="af-lb-msg err" style="display:none;"></div>
+      <div class="rb-prev" id="rbPrev" aria-live="polite">
+        <div class="rb-strips" aria-hidden="true">
+          <div class="rb-strip" id="rbStripL"><small>왼쪽</small><span id="rbTextL"></span></div>
+          <div class="rb-strip" id="rbStripR"><small>오른쪽</small><span id="rbTextR"></span></div>
+        </div>
+        <div class="rb-note" id="rbNote"></div>
+      </div>
       <div class="ribbon-ask">
         <label class="fl" style="margin:0 0 6px;">어떤 사이인지 적으면 문구를 골라 드려요</label>
         <div class="ribbon-ask-row">
@@ -1820,6 +1848,36 @@ async function runParse(){
   finally{ btn.disabled=false; load.classList.add("hidden"); }
 }
 
+// 캡처 사진 → 긴 변 1600px JPEG 로 줄여 보낸다(서버 본문 한도 4.5MB, 글자는 이 크기면 충분히 읽힌다).
+function afShrinkImage(file){
+  return new Promise(function(ok,no){
+    var img=new Image(), u=URL.createObjectURL(file);
+    img.onload=function(){
+      var k=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+      var c=document.createElement("canvas"); c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
+      var g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(u); ok(c.toDataURL("image/jpeg",0.82));
+    };
+    img.onerror=function(){ URL.revokeObjectURL(u); no(new Error("사진을 열지 못했어요. 다른 사진으로 해 주세요.")); };
+    img.src=u;
+  });
+}
+async function afImageParse(input){
+  const file=input.files&&input.files[0]; input.value="";
+  if(!file) return;
+  const err=document.getElementById("parseErr"), load=document.getElementById("parseLoading"), btn=document.getElementById("imgBtn");
+  err.classList.add("hidden"); load.classList.remove("hidden"); btn.disabled=true;
+  try{
+    const image=await afShrinkImage(file);
+    const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok || !data.result) throw new Error(data.error||"사진에서 내용을 읽지 못했어요. 링크를 붙여넣거나 전화(1577-2286) 주세요.");
+    order.src="(캡처 사진)";
+    applyParsed(data.result);
+  }catch(e){ showErr(err,e.message); }
+  finally{ load.classList.add("hidden"); btn.disabled=false; }
+}
+
 function applyParsed(r){
   Object.assign(order,{
     type:r.type||"unknown", recipientName:r.recipientName||"",
@@ -1860,6 +1918,9 @@ function applyParsed(r){
   if(_cs) _cs.innerHTML = gotAny
     ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요. 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 돼요.'
     : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b>. 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;">전화(1577-2286)</a>로 주문하셔도 돼요.';
+  // 부고·청첩장에 '화환은 정중히 사양' 같은 말이 있으면 주문 전에 먼저 알린다(10/20). 막지는 않는다.
+  if(_cs && r.noWreath) _cs.innerHTML = '<div class="af-nowreath"><b>안내문에 화환을 사양한다는 말이 있어요.</b> 유족·혼주의 뜻일 수 있으니 한 번 확인해 주세요. 마음을 전하고 싶으시면 꽃바구니나 조의 메시지로 대신하는 분도 많아요.'
+    + (r.noWreathText ? '<br><span style="color:var(--ink-faint)">“'+escapeHtml(String(r.noWreathText).slice(0,60))+'”</span>' : '') + '</div>' + _cs.innerHTML;
   const parsedOrderLabel = order.category==="wreath"
     ? (isFun?'근조화환':isWed?'축하화환':'화환')
     : CATALOG[order.category].label;
@@ -2872,13 +2933,52 @@ function renderRibbonOpts(){
   document.getElementById("ribbonOpts").innerHTML = opts.map((txt)=>
     `<div class="ribbon-opt ${txt===defaultTxt?'on':''}" onclick="pickRibbon(this,'${escapeAttr(txt)}')">${txt}</div>`).join("");
   if(opts.length){ order.ribbonRight=defaultTxt; document.getElementById("ribbonRight").value=defaultTxt; }
+  afRibbonPreview();
 }
+// 리본 미리보기: 화환을 마주 보고 선 자리에서 보이는 그대로(왼쪽=보내는 분, 오른쪽=문구). 근조는 흰 리본, 축하는 붉은 리본.
+// 끝말 버튼은 왼쪽 칸 뒤에 '드림'·'올림'·'임직원 일동'을 붙인다. 이미 붙어 있으면 바꿔 끼운다.
+var AF_RB_ENDS=["드림","올림","일동","임직원 일동","외 직원 일동"];
+function afRibbonEnd(w){
+  var el=document.getElementById("ribbonLeft"); if(!el) return;
+  var v=(el.value||order.senderName||"").trim();
+  AF_RB_ENDS.slice().sort(function(a,b){ return b.length-a.length; }).forEach(function(e){
+    if(v.slice(-e.length)===e) v=v.slice(0,-e.length).trim();
+  });
+  el.value=(v?v+" ":"")+w; el.dataset.touched="1"; order.ribbonLeft=el.value;
+  afRibbonPreview();
+}
+function afRibbonPreview(){
+  var box=document.getElementById("rbPrev"); if(!box) return;
+  var L=((document.getElementById("ribbonLeft")||{}).value||order.senderName||"").trim();
+  var R=((document.getElementById("ribbonRight")||{}).value||"").trim();
+  var fun=order.type==="funeral"||order.category==="condolence";
+  ["rbStripL","rbStripR"].forEach(function(id){ var e=document.getElementById(id); if(e) e.className="rb-strip "+(fun?"fun":"joy"); });
+  // 한자 문구는 괄호 속 한글 읽기를 빼고 그린다(리본엔 한자만 들어간다)
+  var Rp=R.replace(/\s*\([가-힣\s]+\)/g,"");
+  var tl=document.getElementById("rbTextL"), tr=document.getElementById("rbTextR");
+  // 리본엔 (주)가 ㈜ 한 글자로 들어간다. 글자가 많으면 실제처럼 작아진다(세로 330px 안에 한 줄).
+  var Lp=L.replace(/\(주\)/g,"㈜").replace(/\(유\)/g,"㈲");
+  tl.textContent=Lp||"보내는 분"; tr.textContent=Rp||"문구";
+  [tl,tr].forEach(function(el){ var t=el.textContent, n=t.replace(/\s/g,"").length+(t.match(/\s/g)||[]).length*0.5; el.style.fontSize=Math.max(10,Math.min(17,Math.floor(300/Math.max(1,n))))+"px"; });
+  tl.style.opacity=L?"":".35"; tr.style.opacity=Rp?"":".35";
+  var lenL=Lp.replace(/\s/g,"").length, lenR=Rp.replace(/\s/g,"").length;
+  var ends=document.getElementById("rbEnds");
+  if(ends && !ends.childElementCount) ends.innerHTML=AF_RB_ENDS.map(function(e){ return '<button type="button" onclick="afRibbonEnd(\''+e+'\')">+ '+e+'</button>'; }).join("");
+  var tip=fun
+    ? "근조 리본은 <b>흰 바탕에 검은 글씨</b>예요. 왼쪽에 보내는 분, 오른쪽에 위로 문구가 들어가요."
+    : "축하 리본은 <b>붉은 바탕</b>이에요. 왼쪽에 보내는 분, 오른쪽에 축하 문구가 들어가요.";
+  if(lenL>16||lenR>16) tip+='<br><span class="rb-long">글자가 '+Math.max(lenL,lenR)+'자라 작게 들어가요. 회사명은 줄여 쓰면 더 잘 보여요.</span>';
+  else tip+="<br>화환을 마주 보고 섰을 때 보이는 모양이에요.";
+  document.getElementById("rbNote").innerHTML=tip;
+}
+document.addEventListener("input",function(e){ if(e.target && /^(ribbonLeft|ribbonRight|senderName)$/.test(e.target.id)) afRibbonPreview(); });
 function pickRibbon(el,txt){
   // 준비된 목록과 AI 제안 목록 어느 쪽에서 골라도 선택 표시는 하나만 남는다
   document.querySelectorAll("#ribbonOpts .ribbon-opt, #ribbonSug .ribbon-opt").forEach(o=>o.classList.remove("on"));
   el.classList.add("on");
   order.ribbonRight=txt; document.getElementById("ribbonRight").value=txt;
   ribbonCheck();
+  afRibbonPreview();
 }
 
 // ── 리본 문구 도우미 ──────────────────────────────────────────────
