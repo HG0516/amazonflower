@@ -867,9 +867,9 @@ var SMS="";
 function titleOf(d){ if(d.ty==="t") return d.k==="f" ? "故 "+d.name+" 님 장례 감사 인사" : d.g+" ♥ "+d.b+" 감사 인사"; return d.k==="f" ? "[부고] 故 "+d.name+" 님 "+({"기독교":"소천","천주교":"선종","불교":"입적"}[d.rel]||"별세") : d.tt===1 ? d.g+" · "+d.b+", 저희 결혼해요" : d.tt===2 ? "[청첩장] "+d.g+" ♥ "+d.b : d.g+" ♥ "+d.b+" 결혼합니다"; }
 function descOf(d){ if(d.ty==="t") return d.k==="f" ? "보내 주신 위로에 감사드립니다" : "보내 주신 축하에 감사드립니다"; return d.k==="f" ? [d.venue+(d.room?" "+d.room:""), d.out?("발인 "+kDate(d.outDate)+" "+kTime(d.out)):""].filter(Boolean).join(" · ") : [kDate(d.date)+" "+kTime(d.time), d.venue].filter(Boolean).join(" · "); }
 var FTH=["mono","gukhwa","cross","lotus","lily","ink","navy","paper"], WTH=["classic","flower","white","hanji","night","pastel","garden","water","letter","poster","hanbok","type"];
-// 카톡 그림은 처음 디자인들만 있다 — 새 디자인은 가까운 그림(card.html ogName 과 같게)
-var OG_F={ gukhwa:"f-gukhwa", lily:"f-gukhwa", lotus:"f-gukhwa" }, OG_W={ flower:"flower", white:"white", hanji:"hanji", night:"night", pastel:"pastel", garden:"flower", water:"pastel", letter:"white", poster:"night", hanbok:"hanji", type:"white" };
-function ogName(d){ return d.k==="f" ? (OG_F[d.theme]||"f-mono") : "w-"+(OG_W[d.theme]||"classic"); }
+// 디자인마다 카톡 그림이 있다(card.html ogName·lib/cards.mjs cardImage 와 같게)
+var FTHEMES=["mono","gukhwa","cross","lotus","lily","ink","navy","paper"], WTHEMES=["classic","flower","white","hanji","night","pastel","garden","water","letter","poster","hanbok","type"];
+function ogName(d){ return d.k==="f" ? "f-"+(FTHEMES.indexOf(d.theme)>=0?d.theme:"mono") : "w-"+(WTHEMES.indexOf(d.theme)>=0?d.theme:"classic"); }
 function ogImg(d){ return (d.k==="w" && /^https:\/\//.test(d.thumb||"")) ? d.thumb : d.ty==="t" ? location.origin+"/og/card-"+(d.k==="f"?"f":"w")+"-thanks.png" : location.origin+"/og/card-"+ogName(d)+".png"; }
 // ── 카톡 미리보기(10/20 형구 '썸네일도 같이 정하게, 바뀌는 거랑'): 고칠 때마다 카톡에 뜰 모양을 바로 그린다 ──
 var THUMB="", TT=0;

@@ -518,9 +518,8 @@ function cmItem(c){ return '<div class="it"><b>'+esc(c.name)+'</b><small>'+esc(r
 // ── 디자인 목록(10/21) — lib/cards.mjs sanitizeCard 와 같아야 한다 ──
 var FTHEMES=["mono","gukhwa","cross","lotus","lily","ink","navy","paper"];
 var ORD_F=["msg","people","info","acc","wreath","cm"], ORD_W=["msg","people","gal","info","rsvp","acc","wreath","cm"], ORD_T=["msg","people","gal"];
-// 카톡 그림은 디자인마다 있지 않다 — 새 디자인은 가까운 그림을 쓴다(lib/cards.mjs cardImage 와 같게)
-var OG_F={ gukhwa:"f-gukhwa", lily:"f-gukhwa", lotus:"f-gukhwa" }, OG_W={ flower:"flower", white:"white", hanji:"hanji", night:"night", pastel:"pastel", garden:"flower", water:"pastel", letter:"white", poster:"night", hanbok:"hanji", type:"white" };
-function ogName(d){ return d.k==="f" ? (OG_F[d.theme]||"f-mono") : "w-"+(OG_W[d.theme]||"classic"); }
+// 디자인마다 카톡 그림이 있다(lib/cards.mjs cardImage 와 같게)
+function ogName(d){ return d.k==="f" ? "f-"+(FTHEMES.indexOf(d.theme)>=0?d.theme:"mono") : "w-"+(WTHEMES.indexOf(d.theme)>=0?d.theme:"classic"); }
 function fth(d){ return FTHEMES.indexOf(d.theme)>=0?d.theme:"mono"; }
 // 카드 바깥 — 디자인 + 꾸미기(글꼴 fn-*, 강조색 --ac). 강조색은 정해진 색만(서버가 거른다).
 function cardOpen(d){

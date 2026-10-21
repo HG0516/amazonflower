@@ -468,12 +468,12 @@ test("sanitizeCard: 새 디자인(10/21)과 꾸미기 값은 정해진 것만 �
   assert.equal(bad.data.ord, undefined);
 });
 
-test("sanitizeCard: 청첩장 새 디자인 6개와 카톡 그림은 가까운 그림으로", () => {
+test("sanitizeCard: 청첩장 새 디자인 6개와 디자인마다 카톡 그림", () => {
   for (const t of ["garden", "water", "letter", "poster", "hanbok", "type"]) {
     const d = sanitizeCard({ ...WED, theme: t }).data;
     assert.equal(d.theme, t);
-    assert.match(cardImage(d), /\/og\/card-w-(classic|flower|white|hanji|night|pastel)\.png$/);
+    assert.match(cardImage(d), new RegExp(`/og/card-w-${t}\\.png$`));
   }
-  assert.match(cardImage(sanitizeCard({ ...FUN, theme: "lotus" }).data), /card-f-gukhwa\.png$/);
+  assert.match(cardImage(sanitizeCard({ ...FUN, theme: "lotus" }).data), /card-f-lotus\.png$/);
   assert.deepEqual(sanitizeCard({ ...WED, ty: "t", ord: ["gal", "msg", "acc"] }).data.ord, ["gal", "msg"]);
 });
