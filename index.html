@@ -691,10 +691,9 @@
   .hg-pr { font-size: var(--fs-body); font-weight: 800; line-height: 1.35; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
   /* 화환 49,000원 띠(10/20 형구 "49,000 티 나게"). 상품 칩 바로 위. 값·링크는 afRenderPriceBand 가 products.js 에서 채운다. */
   .prb { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; padding: 12px 12px 12px 16px; border-radius: var(--radius-lg); background: var(--accent-deep); color: #fff; overflow: hidden; }
-  /* 화환 사진을 띠 왼쪽에 붙이고 오른쪽으로 초록에 스며들게(10/22 형구 "근조화환 사진도 같이 녹여"). */
-  .prb-img { flex: none; align-self: stretch; width: 78px; margin: -12px -6px -12px -16px; object-fit: cover; object-position: 50% 28%; -webkit-mask-image: linear-gradient(90deg, #000 50%, transparent); mask-image: linear-gradient(90deg, #000 50%, transparent); }
-  .prb-img[hidden] { display: none; }
-  @media (max-width: 340px) { .prb-img { display: none; } }  /* 320 폭에선 값이 줄바꿈돼서 사진을 뺀다 */
+  /* 버튼마다 그 화환 사진을 동그랗게(10/22 형구 B안: 근조만 크게 보이면 부고 전용처럼 읽혀서 근조·축하를 같은 크기로). */
+  .prb-go a img { width: 30px; height: 30px; margin: 0 6px 0 -10px; border-radius: 50%; object-fit: cover; object-position: 50% 30%; }
+  .prb-go a img[hidden] { display: none; }
   .prb[hidden] { display: none; }
   .prb-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .prb-k { font-size: var(--fs-caption); font-weight: 700; color: rgba(255,255,255,.85); }
@@ -839,7 +838,7 @@
     .prb-tx { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; }
     .prb-k, .prb-s { font-size: 15px; }
     .prb-p b { font-size: 36px; }
-    .prb-img { width: 150px; margin: -18px -8px -18px -26px; }
+    .prb-go a img { width: 36px; height: 36px; margin-left: -16px; }
     .prb-go { flex-direction: row; gap: 8px; }
     .prb-go a { min-height: 46px; padding: 0 22px; font-size: 16px; }
     body.af-start-on:not(.ordering) .qs-ov { display: block; position: absolute; inset: auto; top: var(--aside-top, 110px); right: 28px; bottom: 30px; width: 348px; z-index: 5; background: none; }
@@ -948,15 +947,14 @@
        칩으로 바꾸고 바로 아래에 상품 사진을 깐다. 칩을 누르면 페이지를 안 넘기고 그 자리에서 바뀐다. -->
   <section class="home-sect" data-home="occ" style="margin-top:14px;">
     <div class="prb" id="priceBand" hidden>
-      <img class="prb-img" id="prbImg" src="/photos/products/WC-01_1.jpg" alt="" width="78" height="98" hidden>
       <div class="prb-tx">
         <span class="prb-k">근조·축하 화환</span>
         <span class="prb-p"><b id="prbPrice">49,000</b>원<span id="prbFrom" hidden>부터</span></span>
         <span class="prb-s">기본 배송비 포함</span>
       </div>
       <div class="prb-go">
-        <a id="prbC" href="/?pc=WC-01">근조화환</a>
-        <a id="prbG" href="/?pc=WG-01">축하화환</a>
+        <a id="prbC" href="/?pc=WC-01"><img src="/photos/products/WC-01_1.jpg" alt="" width="30" height="30" hidden>근조화환</a>
+        <a id="prbG" href="/?pc=WG-01"><img src="/photos/products/WG-01_1.jpg" alt="" width="30" height="30" hidden>축하화환</a>
       </div>
     </div>
     <div class="occ-title">무슨 일로 보내세요?</div>
@@ -2536,9 +2534,8 @@ function afRenderPriceBand(){
   if(!got.length){ el.hidden=true; return; }
   document.getElementById("prbPrice").textContent=Math.min(...got.map(p=>p.price)).toLocaleString();
   document.getElementById("prbFrom").hidden=!(c && g && c.price!==g.price);
-  const im=document.getElementById("prbImg"), ph=((c||g).photos||[])[0];
-  if(im){ if(ph) im.src=ph; im.hidden=!ph; }
-  [["prbC",c],["prbG",g]].forEach(([id,p])=>{ const a=document.getElementById(id); a.hidden=!p; if(p) a.href="/?pc="+encodeURIComponent(p.pc); });
+  [["prbC",c],["prbG",g]].forEach(([id,p])=>{ const a=document.getElementById(id); a.hidden=!p; if(!p) return; a.href="/?pc="+encodeURIComponent(p.pc);
+    const im=a.querySelector("img"), ph=(p.photos||[])[0]; if(im){ if(ph) im.src=ph; im.hidden=!ph; } });
   el.hidden=false;
 }
 function afHomeCat(cat){ afHomeSel=HOME_CATS[cat]?cat:""; afRenderHomeGrid(); }
