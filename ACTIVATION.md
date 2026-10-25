@@ -87,7 +87,8 @@ Supabase SQL Editor 에서 **`supabase-signup-2000.sql`** 전체 실행 → 맨 
 
 1. Supabase SQL Editor 에서 `supabase-points-referral.sql` 실행 → 맨 아래 `points_ready = true`.
 2. Vercel: `POINTS_MODE=owner` + `POINTS_TEST_EMAILS=<형구 로그인 이메일>` → Redeploy.
-   (화환 제외로 갈 거면 `POINTS_EXCLUDE_CATS=condolence,congrats` — 10/6 아버지 "할인코드는 화환 제외로 나중에")
+   화환에도 쓴다(10/25 형구 결정, 10/6 아버지 "할인코드는 화환 제외"를 바꿈) → `POINTS_EXCLUDE_CATS` 는 비워 둔다.
+   화환 49,000원에 3,000원을 쓰면 남는 돈이 약 12,500원 → 9,500원. 다시 빼려면 `POINTS_EXCLUDE_CATS=condolence,congrats`.
 3. 시험할 폰에서 `https://floweranbu.co.kr/?pointstest=1` 을 한 번 연다(그 브라우저에만 적립금 칸이 보임, 끄기는 `?pointstest=0`).
    화면 표시용일 뿐이고, 실제로 쓸 수 있는지는 서버가 `POINTS_TEST_EMAILS` 로 다시 막는다.
 4. 3만 원 넘는 상품을 로그인해서 '적립금 쓰기' 체크 → 결제 → 관리자에서 환불 → 5분 안에 적립금이 돌아오는지(내 정보 잔액).
