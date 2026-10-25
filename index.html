@@ -683,6 +683,10 @@
   .hg-chip { min-height: 36px; padding: 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--paper); font-family: var(--font-body); font-size: var(--fs-sub); font-weight: 600; color: var(--ink); cursor: pointer; }
   .hg-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .hg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; margin-top: 12px; }
+  /* '전체' 탭 줄 제목(근조화환·축하화환·개업·승진 화분). 10/25 D안 */
+  .hg-rowh { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; margin: 8px 0 -6px; font-size: 17px; font-weight: 800; }
+  .hg-rowh:first-child { margin-top: 0; }
+  .hg-rowh small { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-soft); }
   .hg-card { display: block; min-width: 0; color: inherit; text-decoration: none; }
   .hg-ph { aspect-ratio: 1 / 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--photo-bg); border: 1px solid var(--line-soft); }
   .hg-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -961,9 +965,9 @@
     <div class="hg-chips" id="homeChips">
       <button type="button" class="hg-chip on" data-cat="" aria-pressed="true" onclick="afHomeCat('')">전체</button>
       <button type="button" class="hg-chip" data-cat="condolence" aria-pressed="false" onclick="afHomeCat('condolence')">부고</button>
+      <button type="button" class="hg-chip" data-cat="congrats" aria-pressed="false" onclick="afHomeCat('congrats')">결혼</button>
       <button type="button" class="hg-chip" data-cat="plant" aria-pressed="false" onclick="afHomeCat('plant')">개업</button>
       <button type="button" class="hg-chip" data-cat="orchid" aria-pressed="false" onclick="afHomeCat('orchid')">승진·취임</button>
-      <button type="button" class="hg-chip" data-cat="congrats" aria-pressed="false" onclick="afHomeCat('congrats')">결혼</button>
       <button type="button" class="hg-chip" data-cat="basket" aria-pressed="false" onclick="afHomeCat('basket')">생신·회갑</button>
       <button type="button" class="hg-chip" data-cat="bouquet" aria-pressed="false" onclick="afHomeCat('bouquet')">병문안</button>
     </div>
@@ -2491,22 +2495,26 @@ function afRenderHomeGrid(){
   const cheapest=a=>a.slice().sort((x,y)=>x.price-y.price);
   // 휴대폰 6개(2칸×3줄), PC 9개(3칸×3줄). 전체 탭은 대표 상품 뒤에 분류마다 싼 것부터 돌아가며 채운다.
   const n=AF_PC_MQ && AF_PC_MQ.matches ? 9 : 6;
-  let list;
-  if(afHomeSel) list=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,n);
-  else {
-    // 화환은 위 초록 띠(49,000원)가 맡으니 '전체'에선 빼고 꽃·식물을 보인다(10/20 형구). '부고'·'결혼' 칩에선 화환이 나온다.
-    const flower=p=>p.cat!=="condolence" && p.cat!=="congrats";
-    list=(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).filter(flower).slice(0,3);
-    for(let r=0; r<3 && list.length<n; r++) Object.keys(HOME_CATS).filter(c=>c!=="condolence" && c!=="congrats").forEach(c=>{
-      if(list.length>=n) return;
-      const p=cheapest(all.filter(q=>q.cat===c && !list.includes(q)))[0];
-      if(p) list.push(p);
-    });
-  }
-  el.innerHTML=list.map((p,i)=>{
+  const card=(p,i)=>{
     const nm=escapeHtml(afHomeName(p)), tall=(p.cat==="condolence"||p.cat==="congrats")?' class="tall"':'';
     return `<a class="hg-card" href="/?pc=${encodeURIComponent(p.pc)}"><div class="hg-ph"><img${tall} src="${escapeHtml(p.photos[0])}" alt="${nm}" loading="${i<n-3?"eager":"lazy"}" onerror="this.style.display='none'"></div><div class="hg-nm">${nm}</div><div class="hg-pr">${p.price.toLocaleString()}원</div></a>`;
-  }).join("");
+  };
+  if(afHomeSel) el.innerHTML=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,n).map(card).join("");
+  else {
+    // 사이트에서 팔리는 건 화환과 개업·승진 화분이다(10/25 아버지: 꽃다발·꽃바구니는 손님이 동네 꽃집에서 산다).
+    // '전체'는 종류별 줄(D안): 근조화환 · 축하화환 · 개업·승진 화분, 줄마다 싼 것부터 한 줄(폰 2개, PC 3개).
+    // 관리자 홈 설정에서 대표 상품을 골랐으면 맨 위 '추천' 줄. 꽃다발·꽃바구니는 칩에서 나온다.
+    const k=n===9?3:2, by=c=>cheapest(all.filter(p=>p.cat===c));
+    const pots=by("plant").slice(0,1).concat(by("orchid").slice(0,1), by("plant").slice(1));
+    const rows=[
+      ["추천","",(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).slice(0,k)],
+      ["근조화환","장례식장 당일 배송",by("condolence").slice(0,k)],
+      ["축하화환","결혼·개업·행사",by("congrats").slice(0,k)],
+      ["개업·승진 화분","",pots.slice(0,k)]
+    ].filter(r=>r[2].length);
+    let i=0;
+    el.innerHTML=rows.map(r=>`<div class="hg-rowh">${r[0]}${r[1]?`<small>${r[1]}</small>`:""}</div>`+r[2].map(p=>card(p,i++)).join("")).join("");
+  }
   const more=document.getElementById("homeMore");
   if(more){
     more.href="/catalog.html"+(afHomeSel?"?cat="+encodeURIComponent(afHomeSel):"");
