@@ -149,27 +149,27 @@
   ],
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "xn--49000-te3tz2rfwu.kr" }],
-      "destination": "https://floweranbu.co.kr/:path*?utm_source=domain&utm_medium=49000kr",
+      "destination": "https://floweranbu.co.kr/$1?utm_source=domain&utm_medium=49000kr",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.xn--49000-te3tz2rfwu.kr" }],
-      "destination": "https://floweranbu.co.kr/:path*?utm_source=domain&utm_medium=49000kr",
+      "destination": "https://floweranbu.co.kr/$1?utm_source=domain&utm_medium=49000kr",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "amazonflower.co.kr" }],
-      "destination": "https://floweranbu.co.kr/:path*?utm_source=domain&utm_medium=amazonflower",
+      "destination": "https://floweranbu.co.kr/$1?utm_source=domain&utm_medium=amazonflower",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.amazonflower.co.kr" }],
-      "destination": "https://floweranbu.co.kr/:path*?utm_source=domain&utm_medium=amazonflower",
+      "destination": "https://floweranbu.co.kr/$1?utm_source=domain&utm_medium=amazonflower",
       "permanent": true
     },
     {
