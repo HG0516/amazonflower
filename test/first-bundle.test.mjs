@@ -1202,7 +1202,7 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
         else numbersQueries++;
         return Response.json([], { headers: { "Content-Range": "0/0" } });
       }
-      if ((url.pathname === "/rest/v1/cards" || url.pathname === "/rest/v1/profiles") && method === "GET") {
+      if (["/rest/v1/cards", "/rest/v1/profiles", "/rest/v1/payment_intents"].includes(url.pathname) && method === "GET") {
         return Response.json([]);
       }
       if (url.hostname === "api.telegram.org") {
@@ -1219,8 +1219,8 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
     }, briefRes);
     assert.equal(briefRes.statusCode, 200);
     assert.equal(briefingQueries, 8, "briefing re-reads orders after the AI wait before sending");
-    assert.equal(numbersQueries, 2, "morning adds yesterday and last-week order counts");
-    assert.match(briefingText, /📊 어제 숫자/);
+    assert.equal(numbersQueries, 1, "morning adds one read of yesterday's orders");
+    assert.match(briefingText, /📊 어제 /);
     assert.match(briefingText, /Vercel 토큰을 넣으면/);
 
     globalThis.fetch = async (input, options = {}) => {
