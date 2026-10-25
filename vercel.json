@@ -149,6 +149,18 @@
   ],
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "(?:www\\.)?xn--49000-te3tz2rfwu\\.kr" }],
+      "destination": "https://floweranbu.co.kr/:path*?utm_source=domain&utm_medium=49000kr",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "(?:www\\.)?amazonflower\\.co\\.kr" }],
+      "destination": "https://floweranbu.co.kr/:path*?utm_source=domain&utm_medium=amazonflower",
+      "permanent": true
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html",
       "permanent": false
