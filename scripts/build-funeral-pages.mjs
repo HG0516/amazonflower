@@ -81,6 +81,7 @@ function head(title, desc, canon, extra = "") {
 <meta name="theme-color" content="#1f4733">
 <link rel="icon" href="/favicon.ico">
 <style>${CSS}</style>${extra}
+<script src="/va.js?v=20261025a" defer></script>
 </head>`;
 }
 

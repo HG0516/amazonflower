@@ -5,6 +5,8 @@
   "use strict";
 
   try { localStorage.removeItem("af_admin_pw"); } catch (_) {}
+  // 관리자 화면을 연 기기는 방문 집계(va.js)에서 뺀다 — 가족·직원 방문이 손님 숫자에 섞이지 않게.
+  try { localStorage.setItem("af_va_off", "1"); } catch (_) {}
 
   var READY_TIMEOUT = 12000;
   var client = null;
