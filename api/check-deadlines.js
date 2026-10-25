@@ -23,6 +23,7 @@ import { beginOrderCancellation } from "../lib/order-coordination.mjs";
 import { reconcileDepositOrders } from "../lib/deposit-orders.mjs";
 import { cleanupExpiredCards } from "../lib/cards.mjs";
 import { pointsMode, reconcilePoints } from "../lib/points.mjs";
+import { dailyNumbersSection } from "../lib/daily-numbers.mjs";
 import { compatFetch } from "../lib/schema-compat.mjs";
 
 // 운영 DB에 아직 없는 orders 칸 때문에 조회가 깨지지 않게(lib/schema-compat.mjs).
@@ -645,6 +646,9 @@ async function briefingDigest(todayRows) {
 }
 async function runBriefing(kind, SUPABASE_URL, sbHeaders) {
   const meta = BRIEF_META[kind];
+  // 아침에만 '어제 숫자'(방문·주문 채널·부고장/청첩장·새 회원)를 아래에 붙인다(10/25 형구). AI 요약을 기다리는 동안 같이 읽는다.
+  // 실패해도 브리핑은 그대로 나간다(dailyNumbersSection 은 throw 하지 않고 null).
+  const numbersP = kind === "morning" ? dailyNumbersSection({ supabaseUrl: SUPABASE_URL, headers: sbHeaders }).catch(() => null) : null;
   const [todayS, todayE] = kstDayRangeUtc(0);
   const [yesterS] = kstDayRangeUtc(-1);
   const [tomorS, tomorE] = kstDayRangeUtc(1);
@@ -710,6 +714,8 @@ async function runBriefing(kind, SUPABASE_URL, sbHeaders) {
   }
   L.push(`\n💰 ${salesLabel} ${salesSum.toLocaleString()}원 (${sales.total}건)`);
   if (quiet) L.push("\n오늘은 조용해요. 좋은 하루 되세요 🌿");
+  const numbers = numbersP ? await numbersP : null;
+  if (numbers) L.push(`\n${numbers}`);
   const base = (process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "");
   L.push(`\n주문 관리 → ${base}/admin-orders.html`);
   const ok = await sendTelegram(L.join("\n"));

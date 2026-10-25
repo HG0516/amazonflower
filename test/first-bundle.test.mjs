@@ -1178,10 +1178,11 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
   const oldFetch = globalThis.fetch;
   const envKeys = [
     "CRON_SECRET", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "TELEGRAM_BOT_TOKEN",
-    "TELEGRAM_CHAT_ID", "ANTHROPIC_API_KEY",
+    "TELEGRAM_CHAT_ID", "ANTHROPIC_API_KEY", "VERCEL_ANALYTICS_TOKEN",
   ];
   const oldEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
-  let briefingQueries = 0, warningQueries = 0, warningClaims = 0, telegramCalls = 0;
+  let briefingQueries = 0, numbersQueries = 0, warningQueries = 0, warningClaims = 0, telegramCalls = 0;
+  let briefingText = "";
   try {
     process.env.CRON_SECRET = "cron-test-secret";
     process.env.SUPABASE_URL = "https://project.example.test";
@@ -1189,17 +1190,24 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
     process.env.TELEGRAM_BOT_TOKEN = "telegram-test";
     process.env.TELEGRAM_CHAT_ID = "chat-test";
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.VERCEL_ANALYTICS_TOKEN;
 
     globalThis.fetch = async (input, options = {}) => {
       const url = new URL(String(input));
       const method = String(options.method || "GET").toUpperCase();
       if (url.pathname === "/rest/v1/orders" && method === "GET") {
-        briefingQueries++;
         assert.equal(url.searchParams.get("cancel_requested_at"), "is.null");
+        // 아침 '어제 숫자'(lib/daily-numbers)의 주문 조회는 따로 센다 — 브리핑 본문 조회는 order_id,status… 로 시작한다.
+        if (String(url.searchParams.get("select") || "").startsWith("order_id,status")) briefingQueries++;
+        else numbersQueries++;
         return Response.json([], { headers: { "Content-Range": "0/0" } });
+      }
+      if ((url.pathname === "/rest/v1/cards" || url.pathname === "/rest/v1/profiles") && method === "GET") {
+        return Response.json([]);
       }
       if (url.hostname === "api.telegram.org") {
         telegramCalls++;
+        briefingText = JSON.parse(options.body || "{}").text || "";
         return Response.json({ ok: true });
       }
       throw new Error(`unexpected briefing fetch ${method} ${url}`);
@@ -1211,6 +1219,9 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
     }, briefRes);
     assert.equal(briefRes.statusCode, 200);
     assert.equal(briefingQueries, 8, "briefing re-reads orders after the AI wait before sending");
+    assert.equal(numbersQueries, 2, "morning adds yesterday and last-week order counts");
+    assert.match(briefingText, /📊 어제 숫자/);
+    assert.match(briefingText, /Vercel 토큰을 넣으면/);
 
     globalThis.fetch = async (input, options = {}) => {
       const url = new URL(String(input));

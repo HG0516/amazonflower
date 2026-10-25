@@ -4764,6 +4764,8 @@ function handleWorderParam(){
   if(/^[A-Za-z0-9]{6,12}$/.test(_cid)) order.sourceUrl = location.origin+"/c/"+_cid+(/^[A-Za-z0-9_-]{1,30}$/.test(_ref)?"?ref="+_ref:"");
   // 파트너별로 세려고 유입 칸(utm, 이미 주문 표에 있는 칸)에도 남긴다: source=card, medium=부고/청첩, campaign=파트너 코드(10/20 admin-partner)
   if(/^[A-Za-z0-9]{6,12}$/.test(_cid)) window.AF_CARD_UTM={ s:"card", m:isFun?"bugo":"wedding", c:/^[A-Za-z0-9_-]{1,30}$/.test(_ref)?_ref:"" };
+  // 장례식장 페이지(/funeral/<이름>, from=funeral-page)에서 온 주문도 같은 칸에. 전엔 꼬리표가 없어 '직접'으로 섞였다(10/25).
+  else if(P("from")==="funeral-page") window.AF_CARD_UTM={ s:"funeral", m:"page", c:"" };
   const _witems=getItems("wreath");
   const tier=Math.max(0, Math.min(Math.max(0,_witems.length-1), parseInt(q.get("tier"),10)||0));
   document.getElementById("typePill").innerHTML = "";   // '장례식 · 근조화환' 상자도 같은 이유로 뺐다(10/19)

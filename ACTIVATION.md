@@ -93,6 +93,14 @@ Supabase SQL Editor 에서 **`supabase-signup-2000.sql`** 전체 실행 → 맨 
 4. 3만 원 넘는 상품을 로그인해서 '적립금 쓰기' 체크 → 결제 → 관리자에서 환불 → 5분 안에 적립금이 돌아오는지(내 정보 잔액).
 5. 문제없으면 `POINTS_MODE=on` → Redeploy. 끌 때는 `owner` 로(돌려주기·추천 보상 점검은 계속 돈다). `off` 는 점검까지 멈춘다.
 
+## 0-6. 방문 집계·아침 '어제 숫자' (2026-10-25)
+- 방문 집계: `va.js`(Vercel Web Analytics, 쿠키 없음). Vercel 프로젝트 → Analytics → **Enable** 은 10/25 형구가 눌렀다. 끄면 숫자만 멈추고 화면은 그대로.
+- 아침 8시 브리핑 아래 '어제 숫자'(lib/daily-numbers.mjs): 주문·어디서·부고장/청첩장·새 회원은 바로 나온다.
+- 방문 숫자까지 넣으려면: vercel.com → 계정 Settings → **Tokens** → Create(Scope = 꽃안부 팀, 만료 1년) →
+  프로젝트 Settings → Environment Variables 에 `VERCEL_ANALYTICS_TOKEN`(Production) 으로 붙여 넣기 → 다시 배포.
+  채팅·코드에 붙이지 않는다. 만료되면 브리핑에 '토큰이 만료됐는지 확인' 줄이 뜬다.
+- 가족·직원 폰은 `https://floweranbu.co.kr/?va=0` 을 한 번 열면 집계에서 빠진다(관리자 화면을 연 기기는 자동).
+
 ## 1. 로그인 — Supabase → Authentication → Providers
 각 provider 키는 해당 개발자센터에서 발급 (자세한 절차는 [SETUP-AUTH.md](SETUP-AUTH.md)).
 공통 콜백: `https://ivlfwlbwiijhmwsfljzz.supabase.co/auth/v1/callback`
