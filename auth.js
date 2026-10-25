@@ -454,6 +454,27 @@
   // 어떤 provider가 실제 연결됐는지 미리 확인(모달 열기 전에 죽은 버튼 걸러내기 위함)
   refreshProviderStatus();
 
+  // 추천 링크로 들어와 가입한 사람: 로그인되면 한 번 등록한다(가입 24시간 안만 DB 가 받는다).
+  // 적립금 기능이 꺼져 있으면 묻지 않는다. 결과가 나오면(성공·이미·늦음·잘못된 코드) 다시 묻지 않는다.
+  var refTried = false;
+  function claimReferral(user) {
+    if (!user || refTried) return;
+    var r = null;
+    try { r = JSON.parse(localStorage.getItem('af_ref') || 'null'); } catch (e) {}
+    if (!r || !r.c || !r.t || Date.now() - r.t > 30 * 86400000) return;
+    refTried = true;
+    fetch('/api/confirm-payment?config=1', { cache: 'no-store' }).then(function (x) { return x.ok ? x.json() : null; })
+      .then(function (c) {
+        var m = c && c.points && c.points.mode;
+        var test = false; try { test = localStorage.getItem('af_points_test') === '1'; } catch (e) {}
+        if (m !== 'on' && !(m === 'owner' && test)) return;
+        return sb.rpc('claim_referral', { p_code: r.c }).then(function (res) {
+          var v = res && res.data;
+          if (v && v !== 'login') { try { localStorage.removeItem('af_ref'); } catch (e) {} }
+        });
+      }).catch(function () { refTried = false; });
+  }
+
   // 초기 세션 + 변화 감지
   sb.auth.getSession().then(function (res) {
     var session = res.data.session;
@@ -463,6 +484,7 @@
     refreshAdminAccess(session);
     resumeOrder(user);
     flushGate();
+    claimReferral(user);
   });
   sb.auth.onAuthStateChange(function (_event, session) {
     var user = session ? session.user : null;
@@ -471,6 +493,7 @@
     renderChip(user);
     refreshAdminAccess(session);
     resumeOrder(user);
+    claimReferral(user);
     try { window.dispatchEvent(new Event('af-order-gate')); } catch (e) {}
     if (user) { var gov = document.getElementById('af-auth-ov'); if (gov && gov.querySelector('.af-order-guest')) gov.style.display = 'none'; }
   });

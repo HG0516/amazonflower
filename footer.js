@@ -18,6 +18,15 @@
         t: Date.now()
       }));
     }
+    // 적립금 시험 보기(POINTS_MODE=owner 일 때 시험 계정 화면에만 적립금 칸을 띄운다). 서버가 이메일로 다시 막으니 화면 표시용일 뿐.
+    var pt = q.get('pointstest');
+    if (pt === '1') localStorage.setItem('af_points_test', '1');
+    else if (pt === '0') localStorage.removeItem('af_points_test');
+    // 추천 링크(?ref=코드, 매장 문자는 ?ref=shop). 30일 보관 → 로그인하면 auth.js 가 한 번 등록한다.
+    var ref = q.get('ref');
+    if (ref && /^[A-Za-z0-9]{4,12}$/.test(ref)) {
+      localStorage.setItem('af_ref', JSON.stringify({ c: ref.toUpperCase(), t: Date.now() }));
+    }
   } catch (_e) {}
   var BIZ = {
     company: '꽃안부 · 주식회사 아마존',

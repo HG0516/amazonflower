@@ -39,6 +39,15 @@ import {
   verifyAcceptedPayment,
   virtualAccountEnabled,
 } from "../lib/deposit-orders.mjs";
+import {
+  checkPointsUse,
+  pointsAllowedFor,
+  pointsConfig,
+  pointsExcludedCats,
+  readPointsBalance,
+  reservePoints,
+  restorePoints,
+} from "../lib/points.mjs";
 
 // ── 신규상품(CU-)·토핑 가격 DB 조회 (LIVE_PRICING 킬스위치 뒤) ──
 // static-first: 정적 priceOf/TOPPINGS가 값을 주면 DB를 절대 안 봄(정적 106·legacy 무조회 = 심사 무영향).
@@ -494,6 +503,11 @@ async function insertDepositOrderRow(row) {
 // 로그인 사용자 식별 — Authorization: Bearer <access_token> 을 Supabase로 검증해 user.id 반환.
 // 없거나 검증 실패면 null(비회원 주문). 프론트가 보낸 값을 믿지 않고 서버가 토큰을 직접 검증한다.
 async function getUserId(req) {
+  const u = await getUser(req);
+  return u ? u.id : null;
+}
+// 적립금은 owner 모드에서 이메일로 시험 계정을 가려야 해서 id 와 email 을 같이 돌려준다.
+async function getUser(req) {
   const auth = req.headers.authorization || req.headers.Authorization || "";
   const m = String(auth).match(/^Bearer\s+(.+)$/i);
   if (!m) return null;
@@ -509,7 +523,7 @@ async function getUserId(req) {
     });
     if (!r.ok) return null;
     const u = await r.json();
-    return u && u.id ? u.id : null;
+    return u && u.id ? { id: u.id, email: u.email || "" } : null;
   } catch (e) {
     return null;
   } finally {
@@ -603,7 +617,7 @@ async function checkExistingOrderId(orderId) {
   }
 }
 
-async function validateOrderRequest(req, orderId, amount, order) {
+async function validateOrderRequest(req, orderId, amount, order, opts = {}) {
   if (!validOrderId(orderId)) return { ok: false, status: 400, error: "주문번호가 올바르지 않습니다." };
   const nAmount = Number(amount);
   if (!Number.isInteger(nAmount) || nAmount <= 0 || nAmount > 100000000) {
@@ -622,6 +636,24 @@ async function validateOrderRequest(req, orderId, amount, order) {
 
   const productCode = order.productCode;
   const isCustom = !!order.customPay;
+  // 적립금(lib/points.mjs). 손님 화면이 보낸 값은 '쓰고 싶은 금액'일 뿐이고, 규칙·잔액은 여기서 다시 본다.
+  // 결제 금액 + 적립금 = 서버가 계산한 상품값 일 때만 받는다.
+  const rawPts = order.usePoints;
+  const usePts = rawPts == null || rawPts === "" || Number(rawPts) === 0 ? 0 : Number(rawPts);
+  let ptsUser = null;
+  const checkPts = async (total, cats) => {
+    if (!usePts) return { ok: true };
+    ptsUser = await getUser(req);
+    if (!pointsAllowedFor(ptsUser)) return { ok: false, status: 400, error: "지금은 적립금을 쓸 수 없어요. 적립금 없이 다시 주문해 주세요." };
+    const balance = await readPointsBalance(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, ptsUser.id);
+    if (balance == null) return { ok: false, status: 503, error: "적립금을 확인하지 못했어요. 잠시 후 다시 시도해 주세요." };
+    const rule = checkPointsUse({
+      use: usePts, total, balance, buyerType: order.buyerType, customPay: isCustom, bank: !!opts.bank,
+      cats, exclude: pointsExcludedCats(),
+    });
+    return rule.ok ? { ok: true } : { ok: false, status: 400, error: rule.error };
+  };
+  const catOf = (pc) => (PRODUCTS.find((p) => p.pc === pc) || {}).cat || "";
   let customLabel = null;
   let authoritativePrice = null;
   let sealedToppings = [];
@@ -647,6 +679,7 @@ async function validateOrderRequest(req, orderId, amount, order) {
     }
     // 구형 링크는 label이 서명되지 않았으므로 고객 URL 값을 절대 신뢰하지 않는다.
     customLabel = goodV2 ? requestedLabel : "맞춤 주문 (기존 링크)";
+    if (usePts) return { ok: false, status: 400, error: "맞춤 결제 링크에는 적립금을 쓸 수 없어요." };
   } else if (Array.isArray(order.items) && order.items.length >= 2) {
     // 같은 곳으로 여러 상품(장바구니 '한 번에 주문'). 상품마다 원장 가격·옵션 가격으로 다시 계산해
     // 합계가 결제 금액과 정확히 같을 때만 받는다. 첫 상품이 주문서의 중심(productCode)과 같아야 한다.
@@ -674,7 +707,9 @@ async function validateOrderRequest(req, orderId, amount, order) {
       sealedItems.push({ productCode: pc, name: String(name).slice(0, 60), quantity: q, toppings: tops, unitPrice: bp + ts });
       total += (bp + ts) * q;
     }
-    if (nAmount !== total) {
+    const ptsMulti = await checkPts(total, sealedItems.map((i) => catOf(i.productCode)));
+    if (!ptsMulti.ok) return ptsMulti;
+    if (nAmount + usePts !== total) {
       console.error(`금액 불일치(여러 상품): orderId=${orderId} expected=${total}`);
       return { ok: false, status: 400, error: "결제 금액이 상품 가격과 일치하지 않습니다." };
     }
@@ -706,7 +741,9 @@ async function validateOrderRequest(req, orderId, amount, order) {
       return { ok: false, status: 400, error: "수량이 올바르지 않습니다." };
     }
     const expectedPrice = (basePrice + toppingSum) * quantity;
-    if (nAmount !== expectedPrice) {
+    const ptsOne = await checkPts(expectedPrice, [catOf(productCode)]);
+    if (!ptsOne.ok) return ptsOne;
+    if (nAmount + usePts !== expectedPrice) {
       console.error(`금액 불일치: orderId=${orderId} expected=${expectedPrice}`);
       return { ok: false, status: 400, error: "결제 금액이 상품 가격과 일치하지 않습니다." };
     }
@@ -719,7 +756,7 @@ async function validateOrderRequest(req, orderId, amount, order) {
 
   const canonical = canonicalOrder(order);
   if (!canonical.ok) return { ok: false, status: 400, error: canonical.error };
-  const userId = await getUserId(req);
+  const userId = ptsUser ? ptsUser.id : await getUserId(req);
   const authLabel =
     customLabel
     || PRODUCT_LABELS[productCode]
@@ -735,6 +772,7 @@ async function validateOrderRequest(req, orderId, amount, order) {
     quantity: isCustom ? 1 : sealedQuantity,
     toppings: isCustom ? [] : sealedToppings,
     ...(multiItems ? { items: multiItems } : {}),
+    ...(usePts ? { discount_points: usePts } : {}),
     user_id: userId,
   };
   delete safeOrder.payToken;
@@ -1159,7 +1197,7 @@ export default async function handler(req, res) {
   // 주문서가 결제수단 버튼을 그릴 때 묻는다. Vercel 설정값 하나로 켜고 끈다(코드 배포 없이).
   if (req.method === "GET" && query.config) {
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled() });
+    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled(), points: pointsConfig() });
   }
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST 요청만 지원합니다." });
@@ -1197,6 +1235,7 @@ export default async function handler(req, res) {
       }
       if (amount == null || !order || typeof order !== "object") return res.status(400).json({ error: "주문 정보가 필요합니다." });
       if (order.customPay) return res.status(400).json({ error: "맞춤 결제 링크는 카드·가상계좌로만 결제할 수 있어요." });
+      if (Number(order.usePoints) > 0) return res.status(400).json({ error: "적립금은 카드·간편결제에서만 쓸 수 있어요." });
       // 주문번호는 서버가 새로 만든다 — 손님 쪽 번호를 쓰지 않는다. AFB = 무통장.
       const ymd = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
       const oid = `AFB${ymd}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
@@ -1310,6 +1349,20 @@ export default async function handler(req, res) {
       } else legacy = true;
     }
 
+    // ── 1-2. 적립금 차감 — 토스 승인 직전. 모자라면 돈이 빠져나가기 전에 멈춘다. ──
+    // 같은 주문 재확인은 DB 함수가 'already' 로 그대로 통과시킨다. 승인이 안 되면 아래에서 돌려주고,
+    // 그래도 남은 건 5분 점검(points_reconcile)이 돌려준다.
+    const pointsUsed = Number(orderInfo && orderInfo.discount_points) || 0;
+    if (pointsUsed > 0) {
+      const reserved = await reservePoints(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+        userId: orderInfo.user_id, orderId, amount: pointsUsed, phone: orderInfo.senderPhone,
+      });
+      if (!reserved.ok) return res.status(409).json({ error: reserved.error, code: "POINTS_UNAVAILABLE" });
+    }
+    const givePointsBack = () => (pointsUsed > 0
+      ? restorePoints(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, orderId).catch(() => null)
+      : Promise.resolve(null));
+
     // ── 2. 토스 승인 (멱등키) + 승인불명확 시 orderId 원장조회 ──
     let confirmed;
     const basicAuth = Buffer.from(`${secretKey}:`).toString("base64");
@@ -1331,6 +1384,7 @@ export default async function handler(req, res) {
         // 이미 처리된 건과 만료 경계 건은 승인 POST를 반복하지 않고 토스 원장만 조회한다.
         confirmed = await lookupVerifiedPayment(basicAuth, orderId, nAmount, paymentKey);
         if (!confirmed.ok && expired && !alreadyVerified) {
+          await givePointsBack();
           return res.status(410).json({ error: "결제 확인 시간이 만료됐습니다. 주문번호로 문의해주세요.", code: "PAYMENT_INTENT_EXPIRED" });
         }
       } else {
@@ -1412,6 +1466,8 @@ export default async function handler(req, res) {
         }, "state=in.(prepared,confirming,failed)&payment_key=is.null", 1800);
       }
       const pending = confirmed.code === "PAYMENT_CONFIRM_UNCERTAIN";
+      // 결과가 불명확하면 돌려주지 않는다(결제가 됐을 수 있다). 대사가 정리한 뒤 5분 점검이 판단한다.
+      if (!pending) await givePointsBack();
       return res.status(confirmed.status || 502).json({
         error: pending
           ? "결제 결과를 확인하고 있습니다. 같은 화면에서 잠시 후 다시 시도하거나 주문번호로 문의해주세요."

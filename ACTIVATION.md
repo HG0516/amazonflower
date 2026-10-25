@@ -79,6 +79,20 @@ Supabase SQL Editor 에서 **`supabase-signup-2000.sql`** 전체 실행 → 맨 
 
 ---
 
+## 0-5. 적립금 쓰기·추천인 (2026-10-25 형구 결정, 코드 배포 · 스위치는 꺼진 채)
+
+규칙(lib/points.mjs): 3만 원 이상 주문에 한 번 3,000원까지·1,000원 단위, 카드·간편결제·계좌이체·가상계좌만(무통장·법인 계산서·맞춤 링크 제외),
+같은 전화번호로 다른 계정이 이미 쓴 적 있으면 거절. 추천 링크(`?ref=코드`)·매장 문자(`?ref=shop`)로 가입하면 1,000원 더,
+친구 첫 주문(3만 원 이상)이 배송되고 7일 지나면 추천한 사람 3,000원(30일 5명·1년 3만 원, 같은 전화·주소는 제외).
+
+1. Supabase SQL Editor 에서 `supabase-points-referral.sql` 실행 → 맨 아래 `points_ready = true`.
+2. Vercel: `POINTS_MODE=owner` + `POINTS_TEST_EMAILS=<형구 로그인 이메일>` → Redeploy.
+   (화환 제외로 갈 거면 `POINTS_EXCLUDE_CATS=condolence,congrats` — 10/6 아버지 "할인코드는 화환 제외로 나중에")
+3. 시험할 폰에서 `https://floweranbu.co.kr/?pointstest=1` 을 한 번 연다(그 브라우저에만 적립금 칸이 보임, 끄기는 `?pointstest=0`).
+   화면 표시용일 뿐이고, 실제로 쓸 수 있는지는 서버가 `POINTS_TEST_EMAILS` 로 다시 막는다.
+4. 3만 원 넘는 상품을 로그인해서 '적립금 쓰기' 체크 → 결제 → 관리자에서 환불 → 5분 안에 적립금이 돌아오는지(내 정보 잔액).
+5. 문제없으면 `POINTS_MODE=on` → Redeploy. 끌 때는 `owner` 로(돌려주기·추천 보상 점검은 계속 돈다). `off` 는 점검까지 멈춘다.
+
 ## 1. 로그인 — Supabase → Authentication → Providers
 각 provider 키는 해당 개발자센터에서 발급 (자세한 절차는 [SETUP-AUTH.md](SETUP-AUTH.md)).
 공통 콜백: `https://ivlfwlbwiijhmwsfljzz.supabase.co/auth/v1/callback`

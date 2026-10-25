@@ -603,6 +603,11 @@
   /* ── 결제 ── */
   .total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 16px 0; font-size: 15px; color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
   .total-row .amt { font-size: 30px; font-weight: 700; font-family: var(--font-display); color: var(--ink); }
+  /* 적립금 쓰기(10/25). 쓸 수 있을 때만 보인다 */
+  .pts-row { display: flex; flex-direction: column; gap: 2px; margin: -6px 0 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--accent-soft); }
+  .pts-row label { display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 15px; font-weight: 700; color: var(--accent-deep); cursor: pointer; }
+  .pts-row input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+  .pts-row span.pts-note { padding-left: 30px; font-size: var(--fs-caption); color: var(--ink-soft); }
   #totalAmt { font-size: 24px; font-weight: 800; }
   #payBtn { min-height: 56px; font-size: 17px; }
   #pay-method, #pay-agree { margin-top: 8px; }
@@ -1287,6 +1292,10 @@
     </details>
 
     <div class="total-row"><span>결제 금액</span><span class="amt" id="totalAmt">0원</span></div>
+    <div class="pts-row hidden" id="ptsRow">
+      <label><input type="checkbox" id="ptsUse" onchange="afPtsToggle()"><span id="ptsLabel">적립금 쓰기</span></label>
+      <span class="pts-note" id="ptsNote"></span>
+    </div>
 
     <!-- 결제 전 주문 확인(경조사 받는곳·날짜·시간 오배송 방지). order에서 읽기 전용 -->
     <div id="payReview"></div>
@@ -2309,7 +2318,7 @@ function afSyncTotals(){
   if(typeof updateDesignTotal==="function") updateDesignTotal();
   if(typeof updateBuyBar==="function") updateBuyBar();
   var pc=document.getElementById("payCard"), ta=document.getElementById("totalAmt");
-  if(pc && ta && !pc.classList.contains("hidden")) ta.textContent=orderTotal().toLocaleString()+"원";
+  if(pc && ta && !pc.classList.contains("hidden")) afShowTotal();
   if(typeof renderPayReview==="function") renderPayReview();
 }
 function afRenderExtras(){
@@ -2346,7 +2355,7 @@ function changeQty(delta){
   updateDesignTotal();
   // 결제 카드가 열려 있으면 금액 동기화
   if(!document.getElementById("payCard").classList.contains("hidden")){
-    document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
+    afShowTotal();
     // 결제창은 requestPayment 시점에 금액 전달 — 위젯 setAmount 동기화 불필요
   }
 }
@@ -2378,8 +2387,7 @@ async function toggleTopping(code){
   updateDesignTotal();
   // 결제 카드가 이미 열려 있으면 금액 동기화
   if(!document.getElementById("payCard").classList.contains("hidden")){
-    const total=orderTotal();
-    document.getElementById("totalAmt").textContent=total.toLocaleString()+"원";
+    afShowTotal();
   }
 }
 
@@ -2426,7 +2434,7 @@ function updateBuyBar(){
   const bar=document.getElementById("buyBar"); if(!bar) return;
   const on = document.body.classList.contains("ordering") && Number(order.price)>0;
   if(on){
-    bar.querySelector(".bb-total").textContent = orderTotal().toLocaleString()+"원";
+    bar.querySelector(".bb-total").textContent = afPayTotal().toLocaleString()+"원";
     bar.querySelector(".bb-btn").textContent = "결제하기";
     bar.classList.add("show"); document.body.classList.add("buybar-pad");
     afRefreshPay();
@@ -2842,7 +2850,7 @@ function selTier(i, autoOpen){
   updateDesignTotal();
   // 결제 카드는 명시적 호출일 때만 열림
   if(autoOpen){
-    document.getElementById("totalAmt").textContent=orderTotal().toLocaleString()+"원";
+    afShowTotal();
     document.getElementById("payCard").classList.remove("hidden");
     initPay(orderTotal());
     scrollTo("payCard");
@@ -3175,6 +3183,59 @@ function afAddrDel(i){
 }
 document.addEventListener("DOMContentLoaded", afAddrRender);
 
+// ── 적립금 쓰기(10/25 형구 결정, 규칙 = lib/points.mjs) ──
+// 서버 설정(/api/confirm-payment?config 의 points)이 켜져 있고, 로그인했고, 쓸 수 있는 주문일 때만 칸이 보인다.
+// 여기서 고른 금액은 '쓰고 싶다'는 뜻일 뿐이고, 서버가 규칙·잔액을 다시 보고 승인 직전에 차감한다.
+var AF_PTS = { cfg:null, bal:0, uid:null, on:false };
+function afPtsOpen(){
+  var c=AF_PTS&&AF_PTS.cfg; if(!c) return false;
+  if(c.mode==="on") return true;
+  if(c.mode==="owner"){ try{ return localStorage.getItem("af_points_test")==="1"; }catch(_){ return false; } }
+  return false;
+}
+function afPtsMax(){
+  var c=AF_PTS&&AF_PTS.cfg; if(!c || !afPtsOpen() || !AF_PTS.uid) return 0;
+  if(afPayMethod==="bank" || order.buyerType==="corp" || order.customPay) return 0;
+  var ex=c.exclude||[], cats=[(afProd(order.productCode)||{}).cat||""];
+  AF_EXTRAS.forEach(function(e){ cats.push((afProd(e.pc)||{}).cat||""); });
+  if(cats.some(function(x){ return x && ex.indexOf(x)>=0; })) return 0;
+  var total=orderTotal(); if(!(total>=c.minOrder)) return 0;
+  var n=Math.min(c.maxUse, Math.floor(AF_PTS.bal/c.unit)*c.unit);
+  return n>0 && n<total ? n : 0;
+}
+function afPtsUse(){ return AF_PTS && AF_PTS.on ? afPtsMax() : 0; }
+function afPayTotal(){ return orderTotal() - afPtsUse(); }
+function afShowTotal(){
+  var t=document.getElementById("totalAmt"); if(t) t.textContent=afPayTotal().toLocaleString()+"원";
+  var row=document.getElementById("ptsRow"); if(!row) return;
+  var max=afPtsMax();
+  row.classList.toggle("hidden", !max);
+  if(!max) return;
+  document.getElementById("ptsLabel").textContent="적립금 "+max.toLocaleString()+"원 쓰기";
+  document.getElementById("ptsUse").checked=AF_PTS.on;
+  document.getElementById("ptsNote").textContent = AF_PTS.on
+    ? "상품 "+orderTotal().toLocaleString()+"원에서 "+max.toLocaleString()+"원을 빼고 결제해요"
+    : "가진 적립금 "+AF_PTS.bal.toLocaleString()+"원";
+}
+function afPtsToggle(){
+  AF_PTS.on=!!document.getElementById("ptsUse").checked;
+  afShowTotal();
+  if(typeof updateBuyBar==="function") updateBuyBar();
+}
+function afPtsLoad(){
+  var a=window.afAuth;
+  if(!afPtsOpen() || !a || !a.client){ AF_PTS.uid=null; afShowTotal(); return; }
+  a.client.auth.getSession().then(function(s){
+    var u=s&&s.data&&s.data.session&&s.data.session.user;
+    AF_PTS.uid=u?u.id:null;
+    if(!u){ AF_PTS.bal=0; AF_PTS.on=false; afShowTotal(); return; }
+    return a.client.from("points_balance").select("balance").maybeSingle().then(function(r){
+      AF_PTS.bal=Number(r&&r.data&&r.data.balance)||0; afShowTotal();
+    });
+  }).catch(function(){});
+}
+window.addEventListener("af-order-gate", afPtsLoad);   // 로그인·로그아웃하면 다시
+
 // ── 결제 방법(카드 / 가상계좌 / 무통장) ──
 var afPayMethod = "card";
 var AF_PM_NOTE = {
@@ -3208,6 +3269,7 @@ function afPickMethod(m){
   var nt=document.getElementById("payMethodNote"); if(nt) nt.innerHTML = AF_PM_NOTE[m]||AF_PM_NOTE.card;
   var pb=document.getElementById("payBtn"); if(pb && !pb.disabled) pb.textContent = AF_PM_BTN[m]||AF_PM_BTN.card;
   var dn=document.getElementById("depositorName"); if(m==="bank" && dn && !dn.value) dn.value = (document.getElementById("senderName")||{}).value || "";
+  afShowTotal();   // 무통장이면 적립금 칸을 숨긴다
 }
 function afCrToggle(){
   var v=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
@@ -3219,6 +3281,8 @@ function afLoadPayConfig(){
   fetch("/api/confirm-payment?config=1",{cache:"no-store"}).then(function(r){ return r.ok?r.json():null; }).then(function(c){
     if(!c) return;
     afPayCfg = c;
+    AF_PTS.cfg = c.points || null;
+    afPtsLoad();
     var box=document.getElementById("payMethods");
     if(box){
       var shown=0;
@@ -3625,7 +3689,9 @@ async function requestPay(){
     ? crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase()
     : (Date.now().toString(36)+Math.random().toString(36).slice(2,10)).toUpperCase();
   const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+_rnd;
-  const payAmount=orderTotal();
+  const _pts=afPtsUse();
+  if(_pts) order.usePoints=_pts; else delete order.usePoints;
+  const payAmount=orderTotal()-_pts;
   const payBtn=document.getElementById("payBtn");
   const method=afPayMethod;
   const _items=afOrderItems();
@@ -4051,6 +4117,7 @@ function copyBankAcct(btn){
 function selBuyer(type){
   order.buyerType=type;
   const isCorp=type==="corp";
+  try{ afShowTotal(); }catch(_){}   // 법인 계산서 주문엔 적립금을 못 쓴다
   document.getElementById("buyerPersonal").classList.toggle("on",!isCorp);
   document.getElementById("buyerCorp").classList.toggle("on",isCorp);
   document.getElementById("corpBox").classList.toggle("hidden",!isCorp);
@@ -4507,7 +4574,7 @@ function afOpenPayCard(){
 /** 결제 칸의 금액·'주문 확인'을 지금 입력과 맞춘다(결제 칸이 처음부터 보이니 늘 최신이어야 한다). */
 function afRefreshPay(){
   const pc=document.getElementById("payCard"); if(!pc || pc.classList.contains("hidden")) return;
-  const t=document.getElementById("totalAmt"); if(t) t.textContent=orderTotal().toLocaleString()+"원";
+  afShowTotal();
   renderPayReview();
 }
 let _afRefreshT=null;

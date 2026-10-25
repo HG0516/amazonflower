@@ -22,6 +22,7 @@ import {
 import { beginOrderCancellation } from "../lib/order-coordination.mjs";
 import { reconcileDepositOrders } from "../lib/deposit-orders.mjs";
 import { cleanupExpiredCards } from "../lib/cards.mjs";
+import { pointsMode, reconcilePoints } from "../lib/points.mjs";
 import { compatFetch } from "../lib/schema-compat.mjs";
 
 // 운영 DB에 아직 없는 orders 칸 때문에 조회가 깨지지 않게(lib/schema-compat.mjs).
@@ -777,6 +778,9 @@ export default async function handler(req, res) {
     const startedHeartbeat = await recordReconciliationRuntime(URL, KEY, { startedAt });
     try {
       const out = await runPaymentReconciliation(URL, KEY);
+      // 적립금: 취소·만료·결제 안 된 주문에 쓴 적립금 돌려주기 + 추천 보상(supabase-points-referral.sql).
+      // 결제 대사 결과(ok)에는 섞지 않는다. 기능이 꺼져 있으면(off) 부르지 않는다 — 끄더라도 정리가 필요하면 owner 로 둔다.
+      if (pointsMode() !== "off") out.points = await reconcilePoints(URL, KEY).catch(() => ({ ok: false }));
       const completedHeartbeat = await recordReconciliationRuntime(URL, KEY, { startedAt, result: out });
       if (!startedHeartbeat.ok || !completedHeartbeat.ok) {
         return res.status(502).json({

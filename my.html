@@ -33,6 +33,13 @@
   .me .em { font-size: var(--fs-caption); color: var(--ink-faint); word-break: break-all; }
   .me .out { margin-left: auto; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .pts { display: inline-flex; gap: 6px; align-items: center; margin: 6px 0 2px; padding: 5px 12px; border-radius: 999px; background: #eef5ef; color: #14311f; font-size: 13.5px; font-weight: 700; }
+  .ref { margin: 12px 0 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); }
+  .ref b { display: block; font-size: 15.5px; }
+  .ref p { margin: 2px 0 10px; font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; line-height: 1.6; }
+  .ref .url { padding: 8px 10px; border-radius: var(--radius); background: #f4f2ec; font-size: 14px; word-break: break-all; }
+  .ref .btns { display: flex; gap: 8px; margin-top: 8px; }
+  .ref .btns button { flex: 1; min-height: 44px; border: 1px solid var(--accent); border-radius: var(--radius); background: #fff; color: var(--accent-deep); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+  .ref small { display: block; margin-top: 8px; font-size: var(--fs-caption); color: var(--ink-soft); }
   .promo { margin: 18px 0 4px; padding: 14px 16px; border: 1px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); }
   .promo b { display: block; font-size: 15.5px; }
   .promo p { margin: 2px 0 10px; font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; }
@@ -264,6 +271,7 @@
       + (USER.email ? '<div class="em">' + esc(USER.email) + '</div>' : "")
       + '</div><button type="button" class="out" id="outBtn">로그아웃</button></div>'
       + '<div id="pts"></div>'
+      + '<div id="ref"></div>'
       + '<div class="admin">' + (a.adminHtml ? a.adminHtml() : "") + '</div>';
     $("outBtn").onclick = function () { if (a.logout) a.logout(); };
     loadPoints();
@@ -274,6 +282,31 @@
       if (!rows.length || !$("pts")) return;
       var bal = rows.reduce(function (s, r) { return s + (Number(r.amount) || 0); }, 0);
       $("pts").innerHTML = '<span class="pts">🌱 적립금 ' + won(bal) + '</span>';
+    }).catch(function () {});
+    loadRef();
+  }
+  // 친구 추천(10/25). 적립금 기능이 켜진 사람에게만 보인다. 규칙 = lib/points.mjs · supabase-points-referral.sql
+  function loadRef() {
+    fetch("/api/confirm-payment?config=1", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (c) {
+      var P = c && c.points, m = P && P.mode, test = false;
+      try { test = localStorage.getItem("af_points_test") === "1"; } catch (e) {}
+      if (!P || (m !== "on" && !(m === "owner" && test))) return;
+      return SB().rpc("my_ref_info").then(function (res) {
+        var d = res && res.data;
+        if (!d || !d.code || !$("ref")) return;
+        var url = "https://floweranbu.co.kr/?ref=" + d.code;
+        $("ref").innerHTML = '<div class="ref"><b>친구에게 꽃안부 알려 주기</b>'
+          + '<p>이 링크로 친구가 가입하면 친구는 ' + won(P.referJoin + 2000) + '을 받아요. 친구의 첫 주문이 배송되고 7일이 지나면 나도 ' + won(P.referReward) + '을 받아요. 한 달 5명, 1년 3만 원까지예요.</p>'
+          + '<div class="url">' + esc(url) + '</div>'
+          + '<div class="btns"><button type="button" id="refCopy">링크 복사</button><button type="button" id="refShare">보내기</button></div>'
+          + '<small>적립금은 ' + won(P.minOrder) + ' 이상 주문에 한 번에 ' + won(P.maxUse) + '까지 쓸 수 있어요(카드·간편결제).'
+          + (d.invited ? ' 추천한 친구 ' + d.invited + '명 · 받은 적립금 ' + won(d.earned) : '') + '</small></div>';
+        $("refCopy").onclick = function () { copyText(url).then(function () { alert("링크를 복사했어요. 카톡에 붙여 보내 주세요."); }); };
+        $("refShare").onclick = function () {
+          if (navigator.share) { navigator.share({ title: "꽃안부", url: url }).catch(function () {}); return; }
+          copyText(url).then(function () { alert("링크를 복사했어요. 카톡에 붙여 보내 주세요."); });
+        };
+      });
     }).catch(function () {});
   }
 

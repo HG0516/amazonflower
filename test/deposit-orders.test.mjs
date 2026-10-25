@@ -136,7 +136,9 @@ test("결제수단 설정 조회는 스위치를 그대로 알려준다", { conc
   withEnv({ ...BASE_ENV, BANK_TRANSFER_ENABLED: "1" }, async () => {
     const res = mockResponse();
     await confirmPayment({ method: "GET", headers: {}, query: { config: "1" } }, res);
-    assert.deepEqual(res.body, { virtualAccount: false, bankTransfer: true, transfer: false });
+    const { points, ...methods } = res.body;
+    assert.deepEqual(methods, { virtualAccount: false, bankTransfer: true, transfer: false });
+    assert.equal(points.mode, "off", "적립금은 설정값이 없으면 꺼져 있다");
     const on = mockResponse();
     process.env.TRANSFER_ENABLED = "1";
     await confirmPayment({ method: "GET", headers: {}, query: { config: "1" } }, on);
