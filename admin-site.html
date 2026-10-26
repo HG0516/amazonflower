@@ -58,8 +58,8 @@
   <div class="hint">맨 위 인사말과 상품 고르는 칸은 늘 그 자리예요. 기업 주문과 배송 사진은 맨 아래에 있고 숨기기만 돼요.</div>
   <div id="secs"></div>
 
-  <div class="sect-title">사장님 추천 맨 앞 상품 (최대 3개)</div>
-  <div class="hint">비워 두면 지금처럼 꽃다발·꽃바구니가 섞여 나와요. 품절이거나 사진 없는 상품은 건너뛰어요.</div>
+  <div class="sect-title">홈 맨 위 '추천' 줄 상품 (최대 3개)</div>
+  <div class="hint">고르면 홈 상품 칸 맨 위에 '추천' 줄로 나와요. 비워 두면 그 줄이 없어요. 품절이거나 사진 없는 상품은 건너뛰어요.</div>
   <div class="card">
     <div class="picks" id="picks"></div>
     <label for="pq">상품 찾기</label>
@@ -94,13 +94,11 @@
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-// index.html data-home 와 같은 이름. 앞 6개는 순서를 바꾸고, 뒤 2개는 자리 고정.
+// index.html data-home 와 같은 이름. 앞 3개는 순서를 바꾸고, 뒤 2개는 자리 고정.
+// 주문하는 방법(ways)·결제 안내(payguide)·사장님 추천(best) 칸은 10/26 홈에서 뺐다(위 상품 줄과 겹침).
 const MOVABLE = [
   ["occ","무슨 일로 보내세요?","경조사별로 고르는 칸"],
-  ["ways","주문하는 방법","전화·카톡·사이트 고르는 칸"],
   ["paste","부고·청첩장 붙여넣기","받는 곳을 바로 채우는 칸"],
-  ["payguide","결제 안내","카드·계좌·후불 안내"],
-  ["best","사장님 추천","추천 상품 3개"],
   ["wed","웨딩 꽃","결혼식 꽃 안내"],
 ];
 const FIXED = [["corp","기업 주문","맨 아래"],["reviews","잘 전했습니다 (배송 사진)","맨 아래"]];

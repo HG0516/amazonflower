@@ -65,6 +65,7 @@
   /* 하단 고정 주문바 */
   #buyBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; display: none; align-items: center; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-top: 1px solid var(--line); box-shadow: 0 -4px 20px rgba(0,0,0,.10); }
   #buyBar.show { display: flex; }
+  #buyBar.show.bb-off { display: none; }
   #buyBar .bb-total-wrap { flex: 1; min-width: 0; }
   #buyBar .bb-total-label { font-size: var(--fs-caption); color: var(--ink-faint); }
   #buyBar .bb-total { font-size: 22px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -101,17 +102,6 @@
   .promise li { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); }
   .promise li b { font-size: var(--fs-body); font-weight: 700; color: var(--accent-deep); word-break: keep-all; }
   .promise li span { font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; }
-  /* 주문 세 갈래 진입 */
-  .way { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 14px 16px; border-radius: var(--radius); text-decoration: none; border: 1px solid var(--line); background: var(--paper); }
-  .way + .way { margin-top: 10px; }
-  .way .way-ic { font-size: 22px; flex: 0 0 auto; line-height: 1; }
-  .way .way-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .way .way-txt b { font-size: var(--fs-body); font-weight: 800; color: var(--ink); }
-  .way .way-txt span { font-size: var(--fs-caption); color: var(--ink-soft); word-break: keep-all; line-height: 1.5; }
-  .way-tel { border-color: var(--accent); background: var(--accent-soft); }
-  .way-tel .way-txt b { color: var(--accent-deep); font-family: var(--font-display); font-size: var(--fs-h2); }
-  .way-pick { border-color: var(--ink); }
-  .way:active { transform: scale(.995); }
 
   /* ── 가는 구분선 ── */
   .divider { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
@@ -151,30 +141,6 @@
   body.ordering .home-sect { display: none; }
   .home-off { display: none !important; }
   .home-banner { display: block; margin: 12px 0 0; padding: 12px 16px; border-radius: var(--radius); background: #1f4733; color: #fff; text-align: center; font-weight: 700; font-size: 15px; text-decoration: none; }
-  /* 신뢰 한 줄(marks 축소) */
-  .trust-line { margin-top: 10px; text-align: center; font-size: 14px; color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 10px 12px; }
-  .trust-line b { color: var(--accent-deep); }
-  .trust-line .tl-photo { display: block; font-size: 16px; font-weight: 700; color: var(--accent-deep); margin-bottom: 6px; line-height: 1.5; word-break: keep-all; }
-  .trust-line .tl-facts { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
-  /* 결제수단은 결제 단계에서야 알게 되던 것을 첫 화면에서 알린다 */
-  .trust-line .tl-pay { display: block; font-size: 14px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); }
-  /* 결제 안내 — 홈피 보고 전화 주문하는 손님이 결제수단·계좌·영수증을 첫 화면에서 보게(2026-09-12, 아버지 피드백) */
-  .payguide { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .pg { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px 13px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); min-height: 96px; }
-  .pg .pg-n { font-size: var(--fs-caption); font-weight: 700; color: var(--ink-faint); letter-spacing: .5px; }
-  .pg .pg-t { font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.3; word-break: keep-all; }
-  .pg .pg-d { font-size: 14px; color: var(--ink-soft); line-height: 1.55; word-break: keep-all; }
-  .pg .pg-d b { color: var(--accent-deep); font-weight: 700; }
-  .pg.bank { grid-column: 1 / -1; background: var(--accent-soft); border-color: var(--accent); }
-  .pg.bank .pg-acct { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 12px 14px; background: #fff; border: 1px solid var(--accent); border-radius: var(--radius); }
-  .pg.bank .pg-acct .no { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: .3px; line-height: 1.3; }
-  .pg.bank .pg-acct .no small { display: block; font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 600; color: var(--ink-soft); letter-spacing: 0; }
-  .pg.bank .pg-acct button { flex: 0 0 auto; min-height: 44px; padding: 8px 14px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; font-family: var(--font-body); cursor: pointer; white-space: nowrap; }
-  .pg.bank .pg-acct button:active { transform: scale(.97); }
-  .pg .pg-escrow-sub { display: block; margin-top: 4px; font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.55; word-break: keep-all; }
-  .pg .pg-escrow-sub a { color: var(--ink-soft); text-decoration: underline; }
-  .pg .pg-escrow { display: inline-block; margin-top: 6px; font-size: var(--fs-caption); color: var(--accent-deep); font-weight: 700; text-decoration: underline; word-break: keep-all; }
-  .pg .pg-tel { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: var(--accent-deep); font-weight: 800; text-decoration: none; font-size: 15px; white-space: nowrap; }
   .pay-note { font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.6; word-break: keep-all; }
   .pay-note b { color: var(--accent-deep); font-weight: 600; }
   /* 전화 주문 CTA — 텍스트 버튼(첫 화면 신뢰: 연락 가능성) */
@@ -191,10 +157,6 @@
   .af-fold > *:not(summary) { padding: 0 16px 16px; }
   .af-fold-corp { background: var(--accent-soft); border-color: var(--accent); }
   .af-fold-corp > summary { color: var(--accent-deep); }
-  /* 이번 주 베스트 — 가로로 자연스럽게 흐르는 슬라이드(마퀴) */
-  /* 가로 자동 흐름(마퀴)을 세로 2열 그리드로 — 스크롤 없이 한눈에 보이게. */
-  .best-slider { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (min-width: 1000px) { .best-slider { grid-template-columns: repeat(3, 1fr); } }
   /* 좌우 화살표 */
   .cat-tile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; cursor: pointer; transition: border-color var(--dur-fast), transform var(--dur-fast); user-select: none; }
   .cat-tile:hover { border-color: var(--ink); box-shadow: 0 4px 16px rgba(31,29,24,.08); }
@@ -407,9 +369,12 @@
   /* 약관 동의 묶음 — 맨 위 '모두 동의', 아래 필수 4개(각각 '보기'로 펼침) */
   .agree { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #f7f7f3; overflow: hidden; }
   .agree input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
-  .agree-all { display: flex; align-items: center; gap: 10px; padding: 14px; background: var(--accent-soft); border-bottom: 1px solid var(--line); cursor: pointer; }
+  .agree-all { display: flex; align-items: center; gap: 6px; padding: 8px 10px 8px 14px; background: var(--accent-soft); }
+  .agree-all > label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+  .agree-all em { font-style: normal; font-weight: 700; }
+  #agreeList { border-top: 1px solid var(--line); }
   .agree-all input[type=checkbox] { width: 22px; height: 22px; }
-  .agree-all span { font-size: var(--fs-sub); font-weight: 800; color: var(--accent-deep); }
+  .agree-all span { font-size: 15px; font-weight: 800; color: var(--accent-deep); line-height: 1.45; word-break: keep-all; }
   .agree-item { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; padding: 6px 14px; }
   .agree-item + .agree-item { border-top: 1px solid #ebe8df; }
   .agree-item > label { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; font-size: 15px; color: var(--ink); line-height: 1.45; word-break: keep-all; }
@@ -983,21 +948,8 @@
     <a class="hg-more" id="homeMore" href="/catalog.html">전체 상품 보기 →</a>
   </section>
 
-  <!-- 전화 주문 CTA는 아래 '자동주문' 박스 안내문(전화가 편하시면…)과 하단 네비 전화 버튼으로
-       충분 → 독립 박스 제거(첫 화면 전화번호 중복 정리, 2026-07-18). -->
-
-  <!-- 주문 세 갈래 — 손님 비중 순서(전화 → 골라서 → 링크). 예전엔 '링크 붙여넣기'가 첫 화면
-       주인공이라 고령 손님에겐 낯선 동작이 맨 앞에 있었다. 링크 입력은 접어서 세 번째로 내린다. -->
-  <section class="home-sect" data-home="ways" id="startWays" style="margin-top:var(--space-sect);">
-    <a class="way way-tel" href="tel:1577-2286">
-      <span class="way-ic" aria-hidden="true">📞</span>
-      <span class="way-txt"><b>전화로 주문</b><span>1577-2286 · 상품부터 리본 문구까지 같이 정해 드려요</span></span>
-    </a>
-    <a class="way way-pick" href="/catalog.html">
-      <span class="way-ic" aria-hidden="true">🌷</span>
-      <span class="way-txt"><b>사진 보고 골라서 주문</b><span>전 품목 정찰제 · 회원가입 없이 주문</span></span>
-    </a>
-  </section>
+  <!-- 홈 아래쪽 '전화로 주문·사진 보고 골라서 주문'·신뢰 한 줄·'결제는 이렇게'·'사장님 추천'은 뺐다(10/26 형구):
+       위 상품 줄과 겹치고 첫 화면이 중간에 끊긴다. 전화는 하단 바·푸터, 입금 계좌는 푸터(footer.js)에 있다. -->
 
   <!-- 링크로 바로 시작(10/19 형구 A-2). 예전엔 본문 중간 상자라 스크롤해야 보였다 → 하단 탭 위 고정 바로 두고,
        누르면 아래에서 시트가 열린다. 붙여넣기를 누르면 시트를 열면서 바로 읽기까지 한다.
@@ -1050,63 +1002,9 @@
     </section>
   </div>
 
-  <!-- 신뢰 한 줄(구 marks 배지 3개 → 한 줄로 축소, 첫 화면 신뢰신호) -->
-  <div class="trust-line home-sect"><span class="tl-pay">회원가입 없이 주문 · <b>카드 · 간편결제 · 계좌이체</b> <a href="#payguide" style="color:var(--accent-deep);font-weight:700;">결제 안내 ↓</a></span><span class="tl-facts">전 품목 정찰제 49,000원~ · 도서·산간은 추가 배송비가 있을 수 있어요</span></div>
-
-  <!-- 결제 안내 4칸 — 카드·간편결제 / 계좌이체(무통장, 계좌 명시) / 영수증·계산서 / 전화주문 절차.
-       결제수단이 6단계 결제 직전에야 보여 "홈피 보고 전화하는 손님"이 계좌를 못 찾던 문제(2026-09-12). -->
-  <section class="home-sect" data-home="payguide" id="payguide" style="margin-top:var(--space-sect);scroll-margin-top:16px;">
-    <div class="occ-title">결제는 이렇게</div>
-    <div class="payguide">
-      <div class="pg">
-        <div class="pg-n">1</div>
-        <div class="pg-t">카드 · 간편결제</div>
-        <div class="pg-d">주문서 맨 아래 결제 칸에서 <b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중 골라 결제</div>
-      </div>
-      <div class="pg">
-        <div class="pg-n">2</div>
-        <div class="pg-t">전화 주문</div>
-        <div class="pg-d">상품·받는 곳을 전화로 정하고, 계좌이체 또는 문자로 받은 결제 링크로</div>
-        <a class="pg-tel" href="tel:1577-2286">📞 1577-2286</a>
-      </div>
-      <div class="pg bank">
-        <div class="pg-n">3</div>
-        <div class="pg-t">계좌이체 · 무통장입금</div>
-        <div class="pg-d">입금 후 전화나 문자로 <b>입금자명·받는 곳</b>을 알려 주시면 바로 준비합니다</div>
-        <div class="pg-acct">
-          <div class="no" id="bankAcct">기업은행 169-165982-04-025<small>예금주 (주)아마존</small></div>
-          <button type="button" onclick="copyBankAcct(this)">계좌 복사</button>
-        </div>
-      </div>
-      <div class="pg">
-        <div class="pg-n">4</div>
-        <div class="pg-t">영수증 · 계산서</div>
-        <div class="pg-d">카드 매출전표는 결제 완료 화면에서, <b>계산서</b>는 주문 시 '법인·계산서'를 고르면 이메일로 발행</div>
-        <a class="pg-escrow" href="https://consumer.tosspayments.com/escrow/detail?businessNumber=2348600344&serviceId=A08-260928-0001" target="_blank" rel="noopener" onclick="return window.afEscrowPop ? afEscrowPop(this.href) : true">구매안전서비스 가입 확인</a>
-        <span class="pg-escrow-sub">계좌이체·가상계좌 결제는 토스페이먼츠 구매안전서비스로 보호됩니다 · <a href="/escrow-certificate.pdf" target="_blank" rel="noopener">확인증 원본</a></span>
-      </div>
-      <div class="pg">
-        <div class="pg-n">5</div>
-        <div class="pg-t">현금영수증</div>
-        <div class="pg-d">계좌이체·무통장 입금은 요청하시면 발급해 드립니다(전화·문자로 번호 알려 주세요)</div>
-      </div>
-    </div>
-  </section>
 
   <!-- 로그인 회원 원탭 재주문 진입(로그인 상태에서만 JS로 노출) -->
   <div id="reorderBanner" class="hidden home-sect" style="margin-top:var(--space-sect);"></div>
-
-  <!-- 사장님 추천(1열 가로 슬라이드 유지) -->
-  <section class="home-sect" data-home="best" style="margin-top:var(--space-sect);">
-    <div class="occ-title">사장님 추천</div>
-    <div id="bestArea" class="best-slider"></div>
-  </section>
-
-  <!-- 카테고리 2×2 섹션은 제거(2026-09) — 위 '무슨 일로 보내세요?' 6칸과 같은 곳으로 가는
-       문이 두 벌이었다. 전체 둘러보기는 전체상품(catalog) 한 곳으로 일원화. -->
-  <section class="home-sect" style="margin-top:var(--space-sect);">
-    <a class="catalogue-link" href="/catalog.html">전체 상품 · 가격 자세히 보기 →</a>
-  </section>
 
   <!-- 신부 부케(웨딩) 전용 섹션 — 축하화환(남에게 보내는 것)과 구분되는, 신부 본인이 쓰는 생화 수제 부케.
        첫 화면(히어로)엔 안 넣음: 근조 등 다양한 손님이 첫 화면부터 웨딩을 마주치지 않게. -->
@@ -1300,13 +1198,13 @@
 
     <!-- 결제 전 주문 확인(경조사 받는곳·날짜·시간 오배송 방지). order에서 읽기 전용 -->
     <div id="payReview"></div>
-    <!-- 견적서 출력(아버지 비교표 10/5 4번) — 법인·단체 품의용. 새 탭에서 인쇄·PDF 저장. -->
-    <button type="button" class="quote-btn" onclick="afOpenQuote()">견적서 출력 <span>법인·단체 품의용 · PDF 저장</span></button>
 
     <!-- 개인이 기본. 법인(계산서)은 필요한 사람만 펼치게 — 개인 손님이 고민할 선택지를 줄인다. -->
     <details class="af-fold" id="buyerFold" style="margin-bottom:12px;" ontoggle="if(!this.open)selBuyer('personal')">
-      <summary>법인·단체 계산서 받기</summary>
-      <div class="buyer-tabs" style="margin-top:0;">
+      <summary>법인·단체: 계산서 받기 · 견적서 출력</summary>
+      <!-- 견적서 출력(아버지 비교표 10/5 4번) — 법인·단체 품의용. 새 탭에서 인쇄·PDF 저장. 개인 손님 칸을 줄이려고 이 접힘 안으로(10/26). -->
+      <button type="button" class="quote-btn" onclick="afOpenQuote()" style="margin-top:0;">견적서 출력 <span>법인·단체 품의용 · PDF 저장</span></button>
+      <div class="buyer-tabs" style="margin-top:10px;">
         <div class="buyer-tab on" id="buyerPersonal" onclick="selBuyer('personal')">개인</div>
         <div class="buyer-tab" id="buyerCorp" onclick="selBuyer('corp')">법인 · 계산서</div>
       </div>
@@ -1359,13 +1257,13 @@
       </div>
     </div>
 
-    <div class="delivery-note" id="payMethodNote" style="text-align:center;">아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중에서 고르실 수 있어요.</div>
+    <div class="delivery-note" id="payMethodNote" style="text-align:center;" hidden></div>
 
-    <div class="delivery-note">
-      <b>안심 배송 · 보증</b><br>
-      <b style="color:var(--accent-deep);">오배송이거나 상품이 훼손되어 도착하면 재제작 또는 환불해 드립니다.</b> 받으신 뒤 사진과 함께 연락 주세요.<br>
-      평일 18시 / 주말 16시까지 주문 시 당일 배송됩니다. 기본 배송비는 무료이나, 도서·산간·원거리(군 단위 등) 지역은 최소 5,000원~최대 30,000원의 추가 배송비가 발생하거나 배송이 어려울 수 있으며, 주문 접수 후 사장님이 확인해 별도 안내드립니다. 꽃은 생물이라 단순 변심에 의한 제작·출고 후 환불은 어렵습니다.<br>
-      <a href="#" onclick="showPolicy('delivery');return false;" style="color:var(--ink);font-weight:600;text-decoration:underline;">전체 배송 안내 보기 →</a>
+    <!-- 안심 배송·보증(10/26 줄임): 꽃은 생물이라 만든 뒤 단순 변심 환불이 어렵다는 것(전자상거래법 제17조 제2항 단서)과
+         도서·산간 추가 배송비는 결제 전에 보여야 해서 남기고, 나머지는 '배송 안내 보기'로. -->
+    <div class="delivery-note" style="text-align:center;">
+      생화라 만든 뒤에는 단순 변심 환불이 어려워요. 오배송·훼손이면 다시 만들거나 환불해 드려요.<br>
+      도서·산간은 추가 배송비가 있을 수 있어요. <a href="#" onclick="showPolicy('delivery');return false;" style="color:var(--ink);font-weight:600;text-decoration:underline;">배송 안내 보기</a>
     </div>
 
     <!-- 약관 동의 — 아버지 비교표(10/5) 7번: 이용약관·개인정보 처리위탁 추가(예전엔 개인정보 수집·이용 + 주문 확인 2개).
@@ -1373,11 +1271,14 @@
          · 개인정보 수집·이용(개인정보 보호법 제15조) — 항목·목적·보유기간·거부권을 '보기'에 다 적는다. 비회원 구매 필수(토스 휴대폰결제 심사 요건)
          · 처리위탁 — 법은 공개(처리방침 4번)를 요구하고 동의는 필수가 아니지만, 참고 사이트들처럼 주문 전에 한 번 더 알린다
          · 주문 확인·결제(전자상거래법 제8조 제2항) — 위 '주문 확인'(payReview)이 고지, 이 체크가 확인 절차 -->
+    <!-- 10/26 형구: 칸이 많다 → '모두 동의' 한 줄만 보이고 4개 항목은 '자세히'로 접는다. 항목·문구·필수 검사는 그대로(토스 심사·아버지 10/5). -->
     <div class="agree" id="agreeBox">
-      <label class="agree-all">
-        <input type="checkbox" id="allAgree" onchange="afAllAgree(this.checked)">
-        <span>아래 내용에 모두 동의합니다</span>
-      </label>
+      <div class="agree-all">
+        <label><input type="checkbox" id="allAgree" onchange="afAllAgree(this.checked)">
+        <span>주문 내용을 확인했고, 약관·개인정보 처리에 모두 동의해요 <em>(필수)</em></span></label>
+        <button type="button" class="agree-more" id="agreeListBtn" onclick="afAgreeList()" aria-expanded="false" aria-controls="agreeList">자세히</button>
+      </div>
+      <div id="agreeList" hidden>
       <div class="agree-item">
         <label><input type="checkbox" id="termsAgree"><span><b>[필수]</b> 이용약관 동의</span></label>
         <a class="agree-more" href="/terms.html" target="_blank" rel="noopener">보기</a>
@@ -1409,8 +1310,10 @@
         <button type="button" class="agree-more" onclick="afAgreeMore(this)" aria-expanded="false">보기</button>
         <div class="agree-desc" hidden>위 상품·받는 곳·날짜·결제 금액을 확인했으며, 이 내용으로 결제하는 데 동의합니다. (전자상거래법 제8조 제2항)</div>
       </div>
+      </div>
     </div>
     <button class="btn" id="payBtn" onclick="requestPay()" style="margin-top:12px;">동의하고 결제하기</button>
+    <!-- 결제수단 칩 — 카드 하나뿐이면 위 '결제 방법' 칸이 숨어서(10/6 아버지) 여기가 결제수단을 보여 주는 유일한 곳이다. 빼지 말 것. -->
     <div class="paychips center" data-paychips="pays" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></div>
     <div class="err hidden" id="payErr"></div>
     <div class="notice">결제가 끝나면 사장님이 주문을 확인하고 준비해요. 꽃이 닿으면 도착 사진을 적어 주신 번호로 보내 드려요.</div>
@@ -2436,7 +2339,7 @@ function updateBuyBar(){
   const on = document.body.classList.contains("ordering") && Number(order.price)>0;
   if(on){
     bar.querySelector(".bb-total").textContent = afPayTotal().toLocaleString()+"원";
-    bar.querySelector(".bb-btn").textContent = "결제하기";
+    bar.querySelector(".bb-btn").textContent = ((window.AF_PM_BTN||{})[window.afPayMethod]||"결제하기").replace(/^동의하고 /,"");   // 결제하기 · 주문하기 · 입금 계좌 받기(아래 var 가 아직 안 읽혔어도 안전)
     bar.classList.add("show"); document.body.classList.add("buybar-pad");
     afRefreshPay();
   }else{
@@ -2444,9 +2347,25 @@ function updateBuyBar(){
   }
 }
 function buyBarGo(){
-  // 하단 '결제하기' — 빠진 칸이 있으면 한 번에 모아 보여주고, 다 채웠으면 결제 칸(약관·결제 버튼)으로.
-  afGoNext(true);
+  // 하단 '결제하기' — 빠진 칸이 있으면 한 번에 모아 보여주고, 다 채웠으면 결제 버튼과 똑같이 결제창을 연다.
+  // (10/26 형구: 예전엔 결제 칸으로 데려가기만 해서, 결제 칸에서 누르면 아무 일이 없어 보였다.)
+  // 동의가 빠졌으면 requestPay 가 결제 버튼 바로 위에 알려 준다. 결제 중(버튼 잠김)엔 두 번 열지 않는다.
+  const pb=document.getElementById("payBtn"); if(pb && pb.disabled) return;
+  if(buyBarGo.busy) return;
+  afSyncFormToOrder();
+  afOpenPayCard();
+  afRenderConfirmNote();
+  const miss=afValidateOrder().filter(e=>e.card!=="payCard");
+  if(miss.length){ afShowErrors(miss); return; }
+  buyBarGo.busy=true;
+  Promise.resolve().then(requestPay).catch(()=>{}).then(()=>{ buyBarGo.busy=false; });
 }
+// 결제 칸의 결제 버튼이 화면에 보이는 동안엔 아래 고정 줄을 숨긴다 — 같은 버튼이 두 개 보이면 어느 걸 눌러야 할지 헷갈린다(10/26 형구).
+(function(){
+  const pb=document.getElementById("payBtn"), bar=document.getElementById("buyBar");
+  if(!pb || !bar || !("IntersectionObserver" in window)) return;
+  new IntersectionObserver(es=>{ bar.classList.toggle("bb-off", !!(es[0] && es[0].isIntersecting)); }).observe(pb);
+})();
 
 // 토핑 조합 연출 사진이 있으면 교체, 없으면 기본 사진 유지
 function updateDesignPhoto(){
@@ -2467,24 +2386,6 @@ function updateDesignPhoto(){
 function goCatalog(cat){ location.href = "/catalog.html?cat=" + encodeURIComponent(cat); }
 
 // 홈 '이번 주 베스트' — 실물 꽃다발·바구니 5~9만원대에서 6개(products.js). 클릭 시 개별상품 주문.
-function renderBest(){
-  const el=document.getElementById("bestArea");
-  const list=(window.PRODUCTS||[]).filter(p=>(p.cat==="bouquet"||p.cat==="basket") && p.price>=57000 && p.price<=89000);
-  if(!el || !list.length){ if(el) el.closest("section").style.display="none"; return; }
-  // 꽃다발·바구니 번갈아 섞어 다양하게, 6개
-  // 관리자 '홈 화면 관리'에서 고른 대표 상품(최대 3)을 맨 앞에. 품절이거나 없는 코드는 건너뛴다.
-  const mix=(window.AF_HOME_FEATURED||[]).map(pc=>(window.PRODUCTS||[]).find(p=>p.pc===pc)).filter(p=>p && p.status!=="품절" && (p.photos||[]).length).slice(0,3);
-  const bq=list.filter(p=>p.cat==="bouquet"&&!mix.includes(p)), bs=list.filter(p=>p.cat==="basket"&&!mix.includes(p));
-  for(let i=0;i<Math.max(bq.length,bs.length) && mix.length<8;i++){ if(bq[i])mix.push(bq[i]); if(bs[i]&&mix.length<8)mix.push(bs[i]); }
-  // 이름 → 가격 순으로 읽게(가격이 앞서면 이름이 묻힌다). 6개 세로 2열.
-  el.innerHTML=mix.slice(0,6).map(p=>`
-    <div class="cat-tile" onclick="location.href='/?pc=${encodeURIComponent(p.pc)}'">
-      <div class="cat-photo"><img src="${p.photos[0]||''}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.style.display='none'"></div>
-      <div class="cat-name">${escapeHtml(p.name)}</div>
-      <div class="cat-desc">${escapeHtml(p.subtitle||p.sub)} · ${p.price.toLocaleString()}원</div>
-    </div>`).join("");
-}
-// 사장님 추천은 세로 2열 그리드(2026-09). 가로 자동 흐름(마퀴)과 좌우 화살표는 제거했다.
 
 // 홈 첫 화면 상품 칸(10/19 형구 A-2). '전체'는 관리자가 고른 대표 상품(최대 3) 다음에 종류마다 가장 싼 것 하나씩,
 // 칩을 누르면 그 종류를 싼 순서로 6개. 품절·사진 없는 상품은 뺀다. 누르면 ?pc= 개별상품 주문으로 간다.
@@ -2496,6 +2397,16 @@ function afHomeName(p){
   if(p.cat==="condolence"||p.cat==="congrats") return nm.replace(/^(근조|축하)\s+/,"$1화환 ");
   if((p.cat==="basket"||p.cat==="bouquet") && p.sub && nm.indexOf(p.sub)<0) return p.sub+" "+nm;
   return nm;
+}
+// 홈 '관엽' 줄(10/26 형구): 보석금전수 60,000 · 몬스테라 66,000 · 스투키 68,000 을 앞에, 나머지는 싼 순서.
+// 인도고무나무·녹보수는 손님이 덜 찾아 홈에서만 뺀다(전체 상품엔 그대로). 보석금전수는 관리자 '새 상품'(CU-)으로 올라와서 이름으로 찾는다.
+var AF_HOME_PLANT_FIRST=[p=>String(p.name||"").replace(/\s/g,"")==="보석금전수", p=>p.pc==="PL-015", p=>p.pc==="PL-019"];
+var AF_HOME_PLANT_SKIP=["인도고무나무","녹보수"];
+function afHomePlants(all, cheapest){
+  const pl=cheapest(all.filter(p=>p.cat==="plant" && AF_HOME_PLANT_SKIP.indexOf(String(p.name||"").replace(/\s/g,""))<0));
+  const first=[];
+  AF_HOME_PLANT_FIRST.forEach(f=>{ const p=pl.find(x=>f(x) && first.indexOf(x)<0); if(p) first.push(p); });
+  return first.concat(pl.filter(p=>first.indexOf(p)<0));
 }
 function afRenderHomeGrid(){
   const el=document.getElementById("homeGrid"); if(!el) return;
@@ -2510,16 +2421,18 @@ function afRenderHomeGrid(){
   };
   if(afHomeSel) el.innerHTML=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,n).map(card).join("");
   else {
-    // 사이트에서 팔리는 건 화환과 개업·승진 화분이다(10/25 아버지: 꽃다발·꽃바구니는 손님이 동네 꽃집에서 산다).
-    // '전체'는 종류별 줄(D안): 근조화환 · 축하화환 · 개업·승진 화분, 줄마다 싼 것부터 한 줄(폰 2개, PC 3개).
-    // 관리자 홈 설정에서 대표 상품을 골랐으면 맨 위 '추천' 줄. 꽃다발·꽃바구니는 칩에서 나온다.
+    // '전체'는 종류별 줄(D안): 근조화환 · 축하화환 · 꽃다발 · 꽃바구니 · 서양란 · 관엽, 줄마다 싼 것부터(폰 2개, PC 3개).
+    // 10/25엔 화환·개업 화분만 뒀다가(아버지: 꽃다발·꽃바구니는 동네 꽃집에서 산다) 10/26 형구가 아래 '결제 안내'·'사장님 추천'을
+    // 빼면서 꽃다발·꽃바구니·서양란·관엽 줄로 이어 붙였다. 관리자 홈 설정에서 대표 상품을 골랐으면 맨 위 '추천' 줄.
     const k=n===9?3:2, by=c=>cheapest(all.filter(p=>p.cat===c));
-    const pots=by("plant").slice(0,1).concat(by("orchid").slice(0,1), by("plant").slice(1));
     const rows=[
       ["추천","",(window.AF_HOME_FEATURED||[]).map(afProd).filter(ok).slice(0,k)],
       ["근조화환","장례식장 당일 배송",by("condolence").slice(0,k)],
       ["축하화환","결혼·개업·행사",by("congrats").slice(0,k)],
-      ["개업·승진 화분","",pots.slice(0,k)]
+      ["꽃다발","병문안·생일",by("bouquet").slice(0,k)],
+      ["꽃바구니","생신·회갑",by("basket").slice(0,k)],
+      ["서양란","승진·취임",cheapest(all.filter(p=>p.cat==="orchid" && p.sub==="서양란")).slice(0,k)],
+      ["관엽","개업·이전",afHomePlants(all, cheapest).slice(0,k)]
     ].filter(r=>r[2].length);
     let i=0;
     el.innerHTML=rows.map(r=>`<div class="hg-rowh">${r[0]}${r[1]?`<small>${r[1]}</small>`:""}</div>`+r[2].map(p=>card(p,i++)).join("")).join("");
@@ -3240,7 +3153,7 @@ window.addEventListener("af-order-gate", afPtsLoad);   // 로그인·로그아�
 // ── 결제 방법(카드 / 가상계좌 / 무통장) ──
 var afPayMethod = "card";
 var AF_PM_NOTE = {
-  card: '아래 버튼을 누르면 안전한 <b>토스페이먼츠 결제창</b>이 열립니다.<br><b>신용카드 · 네이버페이 · 카카오페이 · 토스페이</b> 중에서 고르실 수 있어요.',
+  card: '',   // 결제 버튼 아래 칩(네이버페이·카카오페이·토스페이)과 같은 말이라 또 쓰지 않는다(10/26)
   transfer: '아래 버튼을 누르면 <b>토스페이먼츠 계좌이체</b> 창이 열려요.<br>은행을 고르고 이체하면 바로 결제가 끝나고, <b>현금영수증</b>도 그 자리에서 신청돼요.',
   va: '아래 버튼을 누르면 <b>토스페이먼츠</b>에서 이 주문 전용 <b>입금 계좌</b>를 만들어 드려요.<br>24시간 안에 입금하시면 자동으로 확인돼요.',
   bank: '아래 버튼을 누르면 주문이 접수되고 <b>입금하실 계좌</b>가 나와요.<br>입금 확인은 사장님이 통장을 보고 문자로 알려 드려요.'
@@ -3267,10 +3180,11 @@ function afPickMethod(m){
   afPayMethod = m;
   document.querySelectorAll("#payMethods .pm-btn").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-m")===m); });
   var bx=document.getElementById("bankExtra"); if(bx) bx.classList.toggle("hidden", m!=="bank");
-  var nt=document.getElementById("payMethodNote"); if(nt) nt.innerHTML = AF_PM_NOTE[m]||AF_PM_NOTE.card;
+  var nt=document.getElementById("payMethodNote"); if(nt){ nt.innerHTML = AF_PM_NOTE[m]||""; nt.hidden = !nt.innerHTML; }
   var pb=document.getElementById("payBtn"); if(pb && !pb.disabled) pb.textContent = AF_PM_BTN[m]||AF_PM_BTN.card;
   var dn=document.getElementById("depositorName"); if(m==="bank" && dn && !dn.value) dn.value = (document.getElementById("senderName")||{}).value || "";
   afShowTotal();   // 무통장이면 적립금 칸을 숨긴다
+  try{ updateBuyBar(); }catch(_){}   // 아래 고정 버튼 글(결제하기·주문하기…)
 }
 function afCrToggle(){
   var v=(document.querySelector('input[name="crType"]:checked')||{}).value||"";
@@ -3391,6 +3305,12 @@ document.addEventListener("change", function(e){
   var all=document.getElementById("allAgree");
   if(all) all.checked=AF_AGREE.every(function(a){ var el=document.getElementById(a[0]); return !el || el.checked; });
 });
+function afAgreeList(open){
+  var l=document.getElementById("agreeList"), b=document.getElementById("agreeListBtn"); if(!l) return;
+  var on = open===undefined ? l.hasAttribute("hidden") : !!open;
+  if(on) l.removeAttribute("hidden"); else l.setAttribute("hidden","");
+  if(b){ b.setAttribute("aria-expanded", String(on)); b.textContent = on ? "접기" : "자세히"; }
+}
 function afAgreeMore(btn){
   var d=btn.parentNode.querySelector(".agree-desc"); if(!d) return;
   var open=d.hasAttribute("hidden");
@@ -3594,7 +3514,7 @@ function afValidateOrder(scope){
     add("메시지 카드에 적을 말을 써 주세요. 카드가 필요 없으면 '안 넣기'를 눌러 주세요.","cardMessage","senderCard");
   // 약관 — 둘 이상 빠졌으면 '모두 동의' 한 줄로(네 줄을 늘어놓지 않는다)
   const missAgree=AF_AGREE.filter(a=>{ const el=document.getElementById(a[0]); return el && !el.checked; });
-  if(missAgree.length>=2) add("결제 전에 약관에 동의해 주세요. '아래 내용에 모두 동의합니다'를 누르시면 돼요.","allAgree","payCard");
+  if(missAgree.length>=2) add("결제 버튼 위 '모두 동의해요'에 체크해 주세요. (필수)","allAgree","payCard");
   else if(missAgree.length===1) add(missAgree[0][1]+"에 동의해 주세요. (필수)",missAgree[0][0],"payCard");
   return errs;
 }
@@ -3606,6 +3526,7 @@ function afShowPayErrors(errs){
   document.querySelectorAll(".input-error").forEach(el=>el.classList.remove("input-error"));
   const old=document.getElementById("orderErr"); if(old) old.remove();
   errs.forEach(e=>{ const el=e.id&&document.getElementById(e.id); if(el&&el.tagName==="INPUT") el.classList.add("input-error"); });
+  if(errs.some(e=>e.id && e.id!=="allAgree" && AF_AGREE.some(a=>a[0]===e.id))) afAgreeList(true);   // 접힌 항목 하나만 빠졌으면 펼쳐 보인다
   const pe=document.getElementById("payErr"); if(!pe) return afShowErrors(errs);
   pe.innerHTML='<b>결제 전에 '+errs.length+'가지만 채워 주세요</b> <span style="font-weight:400;">(누르면 그 칸으로 가요)</span>'
     +'<ul style="margin:6px 0 0;padding-left:0;list-style:none;line-height:1.5;">'
@@ -4103,16 +4024,6 @@ function renderDone(data,o){
         나중에 다시 보시려면 하단 <b>내 정보</b>에서 주문번호와 연락처 뒷 4자리를 넣으시면 됩니다.
       </div>
     </section>`;
-}
-
-// 홈 '결제는 이렇게' 계좌 복사 — 고령 손님이 숫자를 옮겨 적다 틀리지 않게
-function copyBankAcct(btn){
-  const txt="기업은행 169-165982-04-025 (주)아마존";
-  const done=()=>{ const o=btn.textContent; btn.textContent="복사됨 ✓"; setTimeout(()=>{ btn.textContent=o; },1800); };
-  try{
-    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ prompt("계좌번호를 길게 눌러 복사하세요", txt); }); }
-    else prompt("계좌번호를 길게 눌러 복사하세요", txt);
-  }catch(_){ prompt("계좌번호를 길게 눌러 복사하세요", txt); }
 }
 
 function selBuyer(type){
@@ -4821,7 +4732,6 @@ function handleCatalogParam(){
 
 afBootCart();              // /?cart=1 → 첫 상품 딥링크로 바꾸고 나머지를 함께 보내는 상품으로
 handleRedirect();
-renderBest();
 afRenderHomeGrid();
 handleProductParam();
 handleWorderParam();
@@ -4899,21 +4809,19 @@ document.addEventListener("DOMContentLoaded", function(){
 window.afApplyHome=function(v){
   if(!v) return;
   var sec=function(k){ return document.querySelector('[data-home="'+k+'"]'); };
-  var MOV=["occ","ways","paste","payguide","best","wed"];
+  var MOV=["occ","paste","wed"];   // ways·payguide·best 칸은 10/26 뺐다(예전 설정에 남은 이름은 건너뛴다)
   var order=(v.order||[]).filter(function(k){ return MOV.indexOf(k)>=0; });
   MOV.forEach(function(k){ if(order.indexOf(k)<0) order.push(k); });
   var anchor=document.getElementById("prodCard");
   if(anchor) order.forEach(function(k){
     var el=sec(k); if(!el) return;
     var grp=[el];
-    if(k==="paste"){ var t=document.querySelector(".trust-line"); if(t) grp.push(t); }        // 링크 칸 밑 신뢰 한 줄은 따라다닌다
-    if(k==="best"){ var c=document.querySelector(".catalogue-link"); if(c) grp.push(c.closest("section")); }
     grp.forEach(function(n){ anchor.parentNode.insertBefore(n, anchor); });
   });
   document.querySelectorAll("[data-home].home-off").forEach(function(el){ el.classList.remove("home-off"); });
   (v.hidden||[]).forEach(function(k){ var el=sec(k); if(el) el.classList.add("home-off"); });
   document.body.classList.toggle("af-start-on", (v.hidden||[]).indexOf("paste")<0);   // 시작 바를 숨기면 그 자리 여백도 뺀다
-  if(Array.isArray(v.featured) && v.featured.length){ window.AF_HOME_FEATURED=v.featured; try{ renderBest(); afRenderHomeGrid(); }catch(_){} }
+  if(Array.isArray(v.featured) && v.featured.length){ window.AF_HOME_FEATURED=v.featured; try{ afRenderHomeGrid(); }catch(_){} }
   var b=v.banner||{}, old=document.getElementById("af-home-banner"); if(old) old.remove();
   var now=new Date(Date.now()+9*3600000).toISOString().slice(0,10);   // 한국 날짜
   if(b.on && b.text && (!b.from || now>=b.from) && (!b.to || now<=b.to)){
