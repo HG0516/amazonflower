@@ -3505,7 +3505,48 @@ function afConfirmNeeds(){
 
   const mm=afPlaceMismatch();
   if(mm) out.push({tag:"상품", msg:mm});
+
+  // 지정 상품만 들어가는 곳(regions.js VENUE_RULES = 약관 목록). 상품이 맞지 않으면 손님에게 알리고 사장님 알림에 '반입'.
+  const vr=(typeof venueRule==="function") ? venueRule(place, isFuneral) : null;
+  if(vr && !afVrOk(vr.k)) out.push({tag:"반입", vr:vr});
+  // 병원(장례식장 빼고)으로 가는 꽃: 병실 반입을 막는 병원이 많아 한 줄만 알린다(사장님 알림 없음).
+  if(!isWreath && /(병원|의료원)/.test(place) && !AF_FUNERAL_PLACE.test(place)) out.push({tag:"", hosp:true});
   return out;
+}
+
+/** 지정 상품만 들어가는 곳에 지금 상품이 맞는지. 근조바구니·예식장 자체 쌀화환은 사장님이 맞춘다(false). */
+function afVrProd(re, cat){ return (window.PRODUCTS||[]).find(p=>p.cat===cat && re.test(p.name||"")); }
+function afVrOk(k){
+  const p=afProd(order.productCode)||{}, nm=(p.name||"")+" "+(p.subtitle||"");
+  if(k==="nowreath") return order.category!=="wreath";
+  if(k==="objet") return p.cat==="condolence" && /오브제/.test(nm);
+  if(k==="rice") return /쌀/.test(nm);
+  if(k==="orchid") return p.cat==="orchid" && p.sub==="서양란";
+  if(k==="whiteorchid") return p.cat==="orchid" && p.sub==="서양란" && /흰|화이트|백/.test(nm);
+  return false;
+}
+function afJosa(w,a,b){ const c=String(w).slice(-1).charCodeAt(0)-0xac00; return w+(c>=0&&c<11172&&c%28?a:b); }
+/** 손님에게 보일 한 줄 + 바로 바꿀 수 있는 상품(있으면). */
+function afVrNote(vr){
+  const where = vr.area ? vr.n+" 지역 장례식장" : vr.n;
+  const W={ nowreath:afJosa(where,"은","는")+" 화환을 받지 않는 곳이에요. 꽃바구니나 난으로 바꿔 보내실 수 있어요.",
+    objet:where+"에는 근조 오브제만 들어가요.", rice:where+"에는 쌀화환만 들어가요.",
+    ownrice:afJosa(where,"은","는")+" 예식장에서 파는 쌀화환만 받아요.", basket:where+"에는 근조바구니만 들어가요.",
+    orchid:where+"에는 서양란만 들어가요.", whiteorchid:where+"에는 흰 서양란만 들어가요." };
+  let swap=null;
+  if(order.category==="wreath"){
+    if(vr.k==="objet" && order.type==="funeral") swap=afVrProd(/오브제/,"condolence");
+    if(vr.k==="rice" && order.type!=="funeral") swap=afVrProd(/쌀/,"congrats");
+  }
+  return { msg:W[vr.k]||(where+"에는 지정된 상품만 들어가요."), swap };
+}
+/** '○○로 바꾸기' — 같은 화환 등급표 안에서 그 상품으로 바꾼다. */
+function afVrSwap(pc){
+  const i=getItems("wreath").findIndex(t=>t.pc===pc);
+  if(i<0) return;
+  selTier(i,false);
+  afShowTotal();
+  afRenderConfirmNote();
 }
 
 /** 지금 주소에 맞는 배송 할증 토핑 코드. 해당 없으면 "". */
@@ -3546,7 +3587,7 @@ function afPlaceMismatch(){
 
 /** 확정 필요 안내를 받는 곳 카드 아래에 띄운다. 막지 않고 알리기만 한다. */
 function afRenderConfirmNote(){
-  ["confirmNeed","confirmNeed2"].forEach(id=>{ const o=document.getElementById(id); if(o) o.remove(); });
+  ["confirmNeed","confirmNeed2","confirmNeed3","confirmNeed4"].forEach(id=>{ const o=document.getElementById(id); if(o) o.remove(); });
   const all=afConfirmNeeds();
   const card=document.getElementById("confirmCard");
   // 추가지역: 배송비를 결제 금액에 넣어 뒀다고 알린다. 목록 밖 읍면리는 약하게만.
@@ -3566,7 +3607,32 @@ function afRenderConfirmNote(){
     for(let k=0;up && k<3;k++){ const sb=up.parentElement && up.parentElement.querySelector(".addr-search-btn"); if(sb){ anchor=sb.closest(".addr-row")||sb; break; } up=up.parentElement; }
     if(anchor && card.contains(anchor)) anchor.insertAdjacentElement("afterend",fb); else card.appendChild(fb);
   }
-  const needs=all.filter(n=>!n.fee && !n.soft); if(!needs.length) return;
+  // 지정 상품만 들어가는 곳 · 병원 안내: 주소 바로 아래(배송비 안내 다음)에.
+  const under=el=>{
+    let anchor=document.getElementById("confirmNeed")||document.getElementById("af_address"), up=anchor;
+    if(anchor && anchor.id==="af_address"){
+      for(let k=0;up && k<3;k++){ const sb=up.parentElement && up.parentElement.querySelector(".addr-search-btn"); if(sb){ anchor=sb.closest(".addr-row")||sb; break; } up=up.parentElement; }
+    }
+    if(anchor && card && card.contains(anchor)) anchor.insertAdjacentElement("afterend",el); else if(card) card.appendChild(el);
+  };
+  const vrn=all.find(n=>n.vr), hosp=all.find(n=>n.hosp);
+  if(card && vrn){
+    const v=afVrNote(vrn.vr), el=document.createElement("div");
+    el.id="confirmNeed3";
+    el.style.cssText="border:1px solid #c8863c;background:#fdf7ee;border-radius:var(--radius);padding:12px 14px;margin-top:12px;font-size:var(--fs-caption);color:#8a5a18;line-height:1.7;";
+    el.innerHTML="📍 "+escapeHtml(v.msg)
+      +(v.swap?'<br><button type="button" class="btn" style="margin-top:8px;min-height:40px;padding:0 14px;font-size:14px;" onclick="afVrSwap(\''+escapeAttr(v.swap.pc)+'\')">'+escapeHtml(v.swap.name)+'로 바꾸기 · '+v.swap.price.toLocaleString()+'원</button>'
+        :"<br>그대로 주문하시면 사장님이 연락드려 맞는 상품으로 바꿔 드려요.");
+    under(el);
+  }
+  if(card && hosp){
+    const el=document.createElement("div");
+    el.id="confirmNeed4";
+    el.style.cssText="border:1px solid var(--line);background:#f7f7f3;border-radius:var(--radius);padding:10px 14px;margin-top:12px;font-size:var(--fs-caption);color:var(--ink-soft);line-height:1.7;";
+    el.textContent="병문안이면 받는 분께 먼저 물어봐 주세요. 병실에 생화를 못 들이는 병원이 많아요.";
+    under(el);
+  }
+  const needs=all.filter(n=>!n.fee && !n.soft && !n.vr && !n.hosp); if(!needs.length) return;
   const box=document.createElement("div");
   box.id="confirmNeed2";
   box.style.cssText="border:1px solid var(--warn,#c8863c);background:#fdf7ee;border-radius:var(--radius);padding:12px 14px;margin-top:12px;";

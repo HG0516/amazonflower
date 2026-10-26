@@ -53,6 +53,62 @@
 
   const FEE_TOPPING = { 10000: "top_deliv1", 20000: "top_deliv_far", 30000: "top_deliv2" };
 
+  // 지정 상품만 들어가는 곳(약관 '[ 지정 상품만 배송 가능한 장소 ]'와 같은 목록, 10/27).
+  // 전엔 약관 글로만 있어서 손님이 모르고 주문하면 사장님이 전화해 상품을 바꿨다. 주문서가 결제 전에 알린다.
+  // k: nowreath 화환 금지 · objet 근조 오브제만 · rice 쌀화환만 · ownrice 예식장 자체 쌀화환만
+  //    basket 근조바구니만 · orchid 서양란만 · whiteorchid 흰 서양란만
+  // w: 장소·주소를 붙여 쓴 글에 모두 들어 있어야 하는 말. area: 지역 전체 규칙(근조 주문에만 적용). prov: 도 힌트.
+  const VENUE_RULES = [
+    { k: "rice", n: "한강성당", w: ["한강성당"], prov: ["서울"] },
+    { k: "rice", n: "정동 프란체스코성당", w: ["프란체스코"], prov: ["서울"] },
+    { k: "rice", n: "서초동성당", w: ["서초동성당"] },
+    { k: "rice", n: "방배동성당", w: ["방배동성당"] },
+    { k: "nowreath", n: "역삼동 라움", w: ["언주로564"] },
+    { k: "nowreath", n: "역삼동 라움", w: ["라움아트센터"] },
+    { k: "nowreath", n: "서울주교좌성당", w: ["주교좌성당"], prov: ["서울"] },
+    { k: "nowreath", n: "양천성당", w: ["양천성당"] },
+    { k: "nowreath", n: "종로성당", w: ["종로성당"] },
+    { k: "nowreath", n: "혜화동성당", w: ["혜화동성당"] },
+    { k: "nowreath", n: "당산동성당", w: ["당산동성당"] },
+    { k: "nowreath", n: "영락교회", w: ["영락교회"], prov: ["서울"] },
+    { k: "nowreath", n: "명동성당", w: ["명동성당"] },
+    { k: "nowreath", n: "장안평성당", w: ["장안평성당"] },
+    { k: "nowreath", n: "대치2동성당", w: ["대치2동성당"] },
+    { k: "nowreath", n: "사랑의교회", w: ["사랑의교회"], prov: ["서초"] },
+    { k: "objet", n: "더조은요양병원", w: ["더조은요양병원"] },
+    { k: "nowreath", n: "진건성당", w: ["진건성당"] },
+    { k: "objet", n: "수원 연화장", w: ["연화장"], prov: ["수원"] },
+    { k: "whiteorchid", n: "분당 성요한성당", w: ["성요한성당"] },
+    { k: "orchid", n: "분당우리교회", w: ["분당우리교회"] },
+    { k: "rice", n: "전민동성당", w: ["전민동성당"] },
+    { k: "objet", n: "유성한가족병원", w: ["한가족병원"], prov: ["유성"] },
+    { k: "objet", n: "부산영락공원", w: ["영락공원"], prov: ["부산"] },
+    { k: "objet", n: "기장 원자력병원", w: ["원자력병원"], prov: ["기장"] },
+    { k: "objet", n: "착한전문장례식장", w: ["착한전문장례식장"] },
+    { k: "rice", n: "밀양 한솔병원", w: ["한솔병원"], prov: ["밀양"] },
+    { k: "objet", n: "양산장례식장", w: ["양산장례식장"] },
+    { k: "basket", n: "창원 삼북공원장례식장", w: ["삼북공원"] },
+    { k: "basket", n: "마산의료원 장례식장", w: ["마산의료원"] },
+    { k: "basket", n: "함안 하늘공원", w: ["하늘공원"], prov: ["함안"] },
+    { k: "ownrice", n: "창원 리베라컨벤션", w: ["리베라컨벤션"], prov: ["창원"] },
+    { k: "ownrice", n: "창원 엘시티", w: ["엘시티"], prov: ["창원"] },
+    { k: "ownrice", n: "창원 유로스퀘어", w: ["유로스퀘어"], prov: ["창원"] },
+    { k: "ownrice", n: "창원 스카이웨딩홀", w: ["스카이웨딩"], prov: ["창원"] },
+    { k: "ownrice", n: "진해 더연리지", w: ["연리지"], prov: ["진해", "창원"] },
+    { k: "objet", n: "울산 하늘공원장례식장", w: ["하늘공원"], prov: ["울산"] },
+    { k: "rice", n: "더빈컨벤션", w: ["더빈컨벤션"] },
+    { k: "rice", n: "청주 아모르컨벤션웨딩", w: ["아모르컨벤션"], prov: ["청주"] },
+    { k: "nowreath", n: "청주 교자성당", w: ["교자성당"] },
+    { k: "objet", n: "세종 은하수공원장례식장", w: ["은하수공원"], prov: ["세종"] },
+    { k: "rice", n: "완도장례식장", w: ["완도장례식장"] },
+    { k: "objet", n: "거창", area: "거창", prov: ["경남", "경상남"] },
+    { k: "rice", n: "청도", area: "청도", prov: ["경북", "경상북"] },
+    { k: "basket", n: "고령", area: "고령", prov: ["경북", "경상북"] },
+    { k: "objet", n: "여수", area: "여수", prov: ["전남", "전라남"] },
+    { k: "objet", n: "부안", area: "부안", prov: ["전북", "전라북"] },
+    { k: "objet", n: "정읍", area: "정읍", prov: ["전북", "전라북"] },
+  ];
+
   function norm(s) {
     return String(s == null ? "" : s).replace(/\s+/g, " ").trim();
   }
@@ -129,6 +185,30 @@
     return null;
   }
 
+  /**
+   * 장소·주소 글(장소 이름 + 주소 + 빈소/홀)을 보고 지정 상품만 들어가는 곳인지 알려준다.
+   * @param {string} place  장소·주소를 이어 붙인 글
+   * @param {boolean} isFuneral  근조 주문인지. 지역 전체 규칙(거창·여수 등)은 근조 주문에만 건다.
+   * @returns {null|{k:string, n:string, area:boolean}}
+   */
+  function venueRule(place, isFuneral) {
+    const addr = norm(place), flat = addr.replace(/\s+/g, "");
+    if (flat.length < 2) return null;
+    for (let i = 0; i < VENUE_RULES.length; i++) {
+      const r = VENUE_RULES[i];
+      if (r.area) {
+        if (!isFuneral || !nameHit(addr, r.area) || !provHit(flat, r.prov)) continue;
+        return { k: r.k, n: r.n, area: true };
+      }
+      if (!r.w.every(function (w) { return flat.indexOf(w) >= 0; })) continue;
+      if (!provHit(flat, r.prov)) continue;
+      if (r.also && !r.also.some(function (w) { return flat.indexOf(w) >= 0; })) continue;
+      return { k: r.k, n: r.n, area: false };
+    }
+    return null;
+  }
+
   global.regionCheck = regionCheck;
-  global.REGION_DATA = { EXTRA: EXTRA, BLOCKED: BLOCKED, FEE_TOPPING: FEE_TOPPING };
+  global.venueRule = venueRule;
+  global.REGION_DATA = { EXTRA: EXTRA, BLOCKED: BLOCKED, FEE_TOPPING: FEE_TOPPING, VENUE_RULES: VENUE_RULES };
 })(typeof window !== "undefined" ? window : globalThis);

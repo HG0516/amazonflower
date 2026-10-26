@@ -247,7 +247,7 @@ export default async function handler(req, res) {
     }
 
     // ── 주소 추천 (행정안전부 도로명주소 검색 API 프록시, 10/26) ──
-    // body: {action:"addr", q:"화양동 46-5"} → {ok, items:[{road, jibun, zip, bd}]}
+    // body: {action:"addr", q:"화양동 46-5"} → {ok, items:[{road, jibun, zip, bd, emd}]}
     // 주문서 주소칸에 치는 동안 아래에 실제 주소를 띄운다. 동네만 쳐도 시·군·구까지 맞춰져 먼 지역 배송비가 빠지지 않는다.
     // JUSO_API_KEY(business.juso.go.kr 운영 승인키) 미설정·장애 시 빈 목록(fail-open) — 다음 우편번호 검색 버튼은 그대로 쓴다.
     if (early && early.action === "addr") {
@@ -274,7 +274,7 @@ export default async function handler(req, res) {
         }
         const s = (v, n) => String(v || "").replace(/\s+/g, " ").trim().slice(0, n);
         const items = (Array.isArray(j.results.juso) ? j.results.juso : []).slice(0, 7)
-          .map((x) => ({ road: s(x.roadAddrPart1, 80), jibun: s(x.jibunAddr, 80), zip: /^\d{5}$/.test(String(x.zipNo)) ? String(x.zipNo) : "", bd: s(x.bdNm, 40) }))
+          .map((x) => ({ road: s(x.roadAddrPart1, 80), jibun: s(x.jibunAddr, 80), zip: /^\d{5}$/.test(String(x.zipNo)) ? String(x.zipNo) : "", bd: s(x.bdNm, 40), emd: s(x.emdNm, 20) }))
           .filter((x) => x.road);
         return res.status(200).json({ ok: true, items, total: Number(c.totalCount) || items.length });
       } catch (e) {
