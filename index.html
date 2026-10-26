@@ -701,6 +701,13 @@
   .qs-big { width: 100%; min-height: 54px; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: var(--radius-lg); background: var(--accent); color: #fff; font-family: var(--font-body); font-size: 16px; font-weight: 800; cursor: pointer; }
   /* 부고·청첩 캡처 사진으로 읽기(10/20 형구). 단톡방 부고는 링크보다 이미지로 많이 온다. */
   .qs-img { width: 100%; min-height: 48px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid var(--accent); border-radius: var(--radius-lg); background: var(--paper); color: var(--accent-deep); font-family: var(--font-body); font-size: 15.5px; font-weight: 800; cursor: pointer; }
+  .af-out { margin: 0 0 12px; padding: 10px 13px; border-radius: var(--radius-sm); background: #eef4ef; border: 1px solid #cfe0d3; color: var(--ink); line-height: 1.6; word-break: keep-all; }
+  .af-mourners { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .af-m-sub { width: 100%; font-size: var(--fs-caption); color: var(--ink-faint); }
+  .af-m { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: transparent; font-size: 15px; color: var(--ink); cursor: pointer; }
+  .af-m small { margin-left: 3px; font-size: 12px; color: var(--ink-faint); }
+  .af-m.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .af-m.on small { color: inherit; opacity: .8; }
   .af-name-warn { margin-top: 6px; font-size: var(--fs-caption); color: #9a5b12; line-height: 1.55; }
   .af-nowreath { margin: 0 0 10px; padding: 11px 13px; border-radius: var(--radius-sm); background: #fdf3e7; border: 1px solid #ecc99a; color: var(--ink); line-height: 1.65; }
   .hg-card { display: flex; flex-direction: column; gap: 2px; margin: 12px 0 0; padding: 12px 14px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; }
@@ -1118,6 +1125,7 @@
 
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
     <div class="name-quick">
+      <button type="button" id="senderLastBtn" class="same-btn mine" style="display:none;" onclick="afUseLastSender()"></button>
       <button type="button" id="senderNameHint" class="same-btn mine" style="display:none;" onclick="afUseAccountName()"></button>
       <button type="button" id="sameAsRcpt" class="same-btn" style="display:none;" onclick="afSameAsRecipient(this)">받는 분 성함 그대로</button>
     </div>
@@ -1642,6 +1650,7 @@ function dtRender(){
     + '<div class="dt-slots">'+slotHtml+'</div>'+custom
     + (hint?'<div class="dt-hint">'+hint+'</div>':'')+'</div>'
     + afEventTimeHtml();
+  try{ afOutLine(); }catch(_){}
 }
 // 발인·예식·행사 시각 — 도착 시간과 다르다. 참고 사이트들은 따로 받는다(10/4 비교표).
 // 사장님은 이 시각 '전에' 닿게 보낸다. 몰라도 되는 선택 칸.
@@ -1689,6 +1698,42 @@ function afParsedWhen(r, keepDate){
   }
   dtCalYear=null;   // 정해진 날짜의 달로 달력이 열리게
 }
+// 발인을 알면 받는 곳 칸 위에 한 줄로 알린다(10/26). 도착이 발인 날이거나 뒤면 결제 전 안내(afConfirmNeeds)가 대신 말한다.
+function afOutLine(){
+  var el=document.getElementById("afOutLine"), f=document.getElementById("afFields");
+  var ev=order.type==="funeral" && /^\d{4}-\d{2}-\d{2}$/.test(order.eventDate||"") ? order.eventDate : "";
+  if(!f || !ev || !order.date || order.date>=ev){ if(el) el.remove(); return; }
+  if(!el){ el=document.createElement("div"); el.id="afOutLine"; el.className="af-out"; f.parentNode.insertBefore(el,f); }
+  var d=new Date(ev+"T00:00:00"), hm=afToHm(order.eventTime), t="";
+  if(hm){ var h=+hm.slice(0,2), mi=+hm.slice(3); t=" "+(h<12?"오전 ":"오후 ")+(h%12||12)+"시"+(mi?" "+mi+"분":""); }
+  el.innerHTML='<b>발인 '+(d.getMonth()+1)+'/'+d.getDate()+'('+"일월화수목금토"[d.getDay()]+')'+t+'</b> 전에 빈소로 보내 드려요.';
+}
+// 부고에 상주가 여럿이면(배우자·아들·딸) 이름 버튼으로 보여 주고, 손님이 아는 분을 누르면 상주 칸이 바뀐다(10/26).
+// 이름과 관계만 쓴다. 상주 전화번호는 부고 사이트에 있어도 가져오지 않는다(api/parse-url mourners).
+function afMournerPick(list){
+  var b=document.getElementById("af_chiefMourner"), old=document.getElementById("afMourners");
+  if(old) old.remove();
+  if(!b) return;
+  list=(Array.isArray(list)?list:[]).filter(function(m){ return m && m.name; }).slice(0,8);
+  if(list.length<2) return;
+  var f=b.closest(".af-field"), w=document.getElementById("afNameWarn");
+  var box=document.createElement("div"); box.id="afMourners"; box.className="af-mourners";
+  box.innerHTML='<div class="af-m-sub">아는 분을 누르면 상주 칸에 들어가요</div>'+list.map(function(m){
+    return '<button type="button" class="af-m" data-n="'+escapeAttr(m.name)+'">'+escapeHtml(m.name)+(m.rel?'<small>'+escapeHtml(m.rel)+'</small>':'')+'</button>';
+  }).join("");
+  f.insertBefore(box, w && w.parentNode===f ? w : null);
+  box.addEventListener("click", function(e){
+    var t=e.target.closest(".af-m"); if(!t) return;
+    b.value=t.getAttribute("data-n"); order.chiefMourner=b.value; afNameNote="";
+    var wrap=b.closest(".af-input-wrap"), au=wrap && wrap.querySelector(".af-auto"); if(au) au.remove();
+    afMournerMark(); afNameCheck();
+  });
+  afMournerMark();
+}
+function afMournerMark(){
+  var b=document.getElementById("af_chiefMourner");
+  document.querySelectorAll("#afMourners .af-m").forEach(function(x){ x.classList.toggle("on", !!b && afNameSame(x.getAttribute("data-n"), b.value)); });
+}
 // 고인과 상주는 같은 사람일 수 없다(10/26 형구). 부고에 이름이 하나뿐이면 자동읽기가 두 칸에 같이 넣는 일이 있었다.
 // 막지는 않고 상주 칸 아래에 알린다. note 는 서버가 한 칸을 비웠을 때(api/parse-url nameCheck).
 var afNameNote="";
@@ -1710,7 +1755,7 @@ function afNameCheck(){
 }
 document.addEventListener("input", function(e){
   var id=e.target && e.target.id;
-  if(id==="af_recipientName"||id==="af_chiefMourner"){ afNameNote=""; afNameCheck(); }
+  if(id==="af_recipientName"||id==="af_chiefMourner"){ afNameNote=""; afNameCheck(); afMournerMark(); }
 });
 function dtPick(iso){ order.date=iso; dtRender(); }
 function dtMove(delta){
@@ -1920,7 +1965,7 @@ function applyParsed(r){
   html+=afField("date","날짜",order.date);   // 네이티브 달력(형식 맞으면 자동값 유지)
   html+=afField("time","시간",order.time);
   document.getElementById("afFields").innerHTML=html;
-  afNameCheck();
+  afMournerPick(isFun ? r.mourners : null); afNameCheck(); afOutLine();
   document.getElementById("confirmCard").classList.remove("hidden");
   // 실제로 뭔가 읽어냈을 때만 '자동으로 읽었다'고 안내(기대-현실 불일치 방지) + 못 읽으면 전화 대안
   const _cs=document.getElementById("confirmSub");
@@ -2085,7 +2130,9 @@ function afApplyToConfirm(r){
   set("groomName", r.groomName); set("brideName", r.brideName); set("chiefMourner", r.chiefMourner);
   set("venue", r.venueName); set("venueDetail", r.venueDetail); set("address", r.venueAddress);
   afParsedWhen(r, true);
-  afNameNote = r.nameCheck || ""; afNameCheck();
+  afNameNote = r.nameCheck || "";
+  if(r.type==="funeral" || order.type==="funeral") afMournerPick(r.mourners);
+  afNameCheck(); afOutLine();
   // 결혼으로 읽혔으면 신랑/신부 노출
   if(r.type==="wedding"){
     order.type="wedding";
@@ -2250,9 +2297,28 @@ function afAccountName(){
   return (nm && !/^[^@]+@/.test(nm)) ? nm : "";
 }
 function afNameHint(){
+  afLastSenderHint();
   const b=document.getElementById("senderNameHint"), sn=document.getElementById("senderName"); if(!b||!sn) return;
-  const nm=afAccountName();
-  if(nm && !sn.value.trim()){ b.textContent=nm+" 넣기"; b.style.display=""; } else b.style.display="none";
+  const nm=afAccountName(), last=afLastSender();
+  if(nm && !sn.value.trim() && !(last && last.n===nm)){ b.textContent=nm+" 넣기"; b.style.display=""; } else b.style.display="none";
+}
+// 지난번 보낸 분 한 번에(10/26). 회사에서는 매번 '○○부 임직원 일동'과 같은 번호를 다시 적는다.
+// 이 기기에서 마지막으로 주문한 보내는 분·연락처·리본 왼쪽(renderDone 이 저장). 위와 같이 미리 채우지 않고 눌러야 들어간다.
+function afLastSender(){ try{ var s=JSON.parse(localStorage.getItem("af_last_sender")||"null"); return s && s.n ? s : null; }catch(_){ return null; } }
+function afLastSenderHint(){
+  var b=document.getElementById("senderLastBtn"), sn=document.getElementById("senderName"), s=afLastSender(); if(!b||!sn) return;
+  if(s && !sn.value.trim()){ var n=String(s.n); b.textContent="지난번처럼 넣기 ("+(n.length>14?n.slice(0,14)+"…":n)+")"; b.style.display=""; }
+  else b.style.display="none";
+}
+function afUseLastSender(){
+  var s=afLastSender(); if(!s) return;
+  var sn=document.getElementById("senderName"), sp=document.getElementById("senderPhone"), rl=document.getElementById("ribbonLeft");
+  if(!sn) return;
+  sn.value=s.n; if(typeof clearErr==="function") clearErr(sn);
+  try{ syncRibbonLeft(); }catch(_){}
+  if(sp && s.p && !sp.value.trim()){ sp.value=s.p; if(typeof formatPhone==="function") formatPhone(sp); order.senderPhone=sp.value; if(typeof clearErr==="function") clearErr(sp); }
+  if(rl && s.r && s.r!==s.n){ rl.value=s.r; rl.dataset.touched="1"; order.ribbonLeft=s.r; }
+  afNameHint();
 }
 function afUseAccountName(){
   const sn=document.getElementById("senderName"), nm=afAccountName(); if(!sn||!nm) return;
@@ -3942,6 +4008,7 @@ function renderDone(data,o){
   document.body.classList.remove("ordering","buybar-pad");
   var _bb=document.getElementById("buyBar"); if(_bb) _bb.classList.remove("show");
   // 비회원도 다음에 원탭 재주문할 수 있게 지난 주문을 로컬에 저장(afReorder가 읽는 snake_case 형태)
+  try{ if(o.senderName) localStorage.setItem("af_last_sender", JSON.stringify({ n:String(o.senderName).slice(0,80), p:String(o.senderPhone||"").slice(0,20), r:String(o.ribbonLeft||"").slice(0,120) })); }catch(_e){}
   try{ localStorage.setItem("af_last_order", JSON.stringify({
     product_code:o.productCode||"", order_type:o.type||"", recipient_name:o.recipientName||"",
     venue:[o.venue,o.venueDetail].filter(Boolean).join(" ")||"", address:o.address||"",

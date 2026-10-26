@@ -126,3 +126,13 @@ test("링크가 안 열려도 붙여넣은 글로 읽는다. 링크만 보냈으
   assert.equal(b.res.statusCode, 500);
   assert.equal(b.sent.length, 0);
 });
+
+test("상주 명단: 이름·관계만 남기고 숫자는 버린다, 장례식 아니면 빈 목록", () => {
+  const j = fixParsed({ type: "funeral", recipientName: "손원", chiefMourner: "손준호", mourners: [
+    { rel: "배우자", name: "유옥자" }, { rel: "아들", name: "손준호 010-1234-5678" }, { rel: "딸", name: "손유진" },
+    { rel: "아들", name: "손준호" }, { rel: "제", name: "손" }, null, { rel: "계좌", name: "123-45-6789" },
+  ] }, "");
+  assert.deepEqual(j.mourners, [{ rel: "배우자", name: "유옥자" }, { rel: "아들", name: "손준호" }, { rel: "딸", name: "손유진" }]);
+  assert.deepEqual(fixParsed({ type: "wedding", mourners: [{ rel: "아들", name: "김민수" }] }, "").mourners, []);
+  assert.deepEqual(fixParsed({ type: "funeral" }, "").mourners, []);
+});
