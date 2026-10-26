@@ -29,7 +29,7 @@ const ld = (o) => `<script type="application/ld+json">${JSON.stringify(o).replac
 // 사업자 정보: footer.js 의 BIZ 와 같은 값(전자상거래법 표시). 바뀌면 둘 다 고칠 것.
 export const SHOP = {
   name: "꽃안부", company: "주식회사 아마존", owner: "권점숙", bizNo: "234-86-00344",
-  mailOrderNo: "제2026-경기시흥-1357호", addr: "경기 시흥시 신천3길 23, 103호", tel: "1577-2286",
+  mailOrderNo: "제2026-경기시흥-1357호", addr: "경기 시흥시 신천3길 23, 103호", tel: "1577-2286", email: "amazonflower@naver.com",
   insta: "https://instagram.com/floweranbu_", kakao: "https://pf.kakao.com/_AXXBX",
 };
 const SHOP_ID = BASE + "/#shop";
@@ -119,7 +119,7 @@ ${extra}
 }
 
 const topBar = `<div class="top"><a href="/">꽃안부</a><a href="tel:1577-2286">전화 1577-2286</a></div>`;
-const bizLine = `${SHOP.name} · ${SHOP.company} · 대표 ${SHOP.owner} · 사업자등록번호 ${SHOP.bizNo} · 통신판매업 ${SHOP.mailOrderNo} · ${SHOP.addr} · ${SHOP.tel}`;
+const bizLine = `${SHOP.name} · ${SHOP.company} · 대표 ${SHOP.owner} · 사업자등록번호 ${SHOP.bizNo} · 통신판매업 ${SHOP.mailOrderNo} · ${SHOP.addr} · ${SHOP.tel} · ${SHOP.email}`;
 const footHtml = (more) => `<p class="foot">${more}<br>${esc(bizLine)}</p>`;
 const factsBox = `<div class="box"><dl class="kv">
 <dt>주문 마감</dt><dd>평일 18시, 주말 16시까지 주문하면 오늘 도착해요.</dd>
@@ -218,7 +218,7 @@ export function llmsTxt() {
 - 법인: 계산서 발행, 후불·월 정산 거래처 등록 가능
 - 취소: 배송 시작 전이면 전액 환불
 - 무료 모바일 부고장·청첩장: 회원가입과 광고 없음, 보낸 뒤에도 고칠 수 있음. 부고장·청첩장 링크나 캡처를 넣으면 주문서가 채워짐
-- 상호: ${SHOP.company} (사업자등록번호 ${SHOP.bizNo}), ${SHOP.addr}
+- 상호: ${SHOP.company} (사업자등록번호 ${SHOP.bizNo}), ${SHOP.addr}, 이메일 ${SHOP.email}
 
 ## 가격
 ${CATS.map(rangeLine).filter(Boolean).join("\n")}
