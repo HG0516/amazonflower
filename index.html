@@ -1813,7 +1813,7 @@ function afConfirmSubEmpty(){ const c=document.getElementById("confirmSub"); if(
 // 칸마다 비어 있을 때 보이는 예시. 장례·결혼·그 밖을 나눠 보여 준다(10/19).
 function afPh(key){
   const fun=order.type==="funeral", wed=order.type==="wedding";
-  if(key==="address") return "주소 검색을 눌러 주세요";
+  if(key==="address") return "동네·번지를 치고 주소 검색";
   if(key==="recipientName") return fun?"예) 故 김OO":wed?"예) 신랑 김OO":"예) 김민수";
   if(key==="chiefMourner") return "예) 장남 김OO";
   if(key==="groomName") return "예) 김OO";

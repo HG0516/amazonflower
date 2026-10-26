@@ -41,12 +41,19 @@
     document.head.appendChild(s);
   }
 
+  // 주소칸에 이미 친 말(예: '화양동 46-5')로 바로 찾는다. 전엔 검색창이 빈 채로 열려 같은 말을 또 쳐야 했다(10/26 형구).
+  // 이미 찾아 넣은 주소([우편번호]로 시작)는 새로 찾으려는 것으로 보고 빈 검색창을 연다.
+  function queryOf(v) {
+    v = String(v || '').trim();
+    return /^\[\d{5}\]/.test(v) ? '' : v.slice(0, 60);
+  }
+
   function closeModal() {
     var ov = document.getElementById('af-addr-overlay');
     if (ov) ov.style.display = 'none';
   }
 
-  function showModal() {
+  function showModal(q) {
     injectStyles();
     var overlay = document.getElementById('af-addr-overlay');
     if (!overlay) {
@@ -67,7 +74,7 @@
 
     var box = document.getElementById('af-addr-box');
     box.innerHTML = '';
-    new daum.Postcode({
+    var pc = new daum.Postcode({
       oncomplete: function (data) {
         var addr = data.roadAddress || data.jibunAddress || data.address || '';
         if (data.buildingName) addr += ' (' + data.buildingName + ')';
@@ -88,7 +95,8 @@
       onclose: function () { /* 사용자가 닫음 */ },
       width: '100%',
       height: '100%'
-    }).embed(box);
+    });
+    if (q) pc.embed(box, { q: q }); else pc.embed(box);
   }
 
   // 버튼 모양도 이 스타일에 들어 있다 → 첫 클릭 전에도 보이게 처음부터 넣는다(전엔 회색 기본 버튼으로 보였음, 10/19).
@@ -98,6 +106,23 @@
   window.openPostcode = function (inputId) {
     targetInput = document.getElementById(inputId);
     if (!targetInput) return;
-    ensureScript(showModal);
+    var q = queryOf(targetInput.value);
+    ensureScript(function () { showModal(q); });
   };
+
+  // 주문서 주소칸: 치고 엔터(키보드 '다음')를 누르면 그 말로 바로 찾고, 치는 동안 안내 한 줄을 바꿔 준다.
+  var HINT = '동·호수는 찾은 뒤 이어서 적어 주세요';
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (!t || t.id !== 'af_address' || e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return;
+    if (!queryOf(t.value)) return;
+    e.preventDefault();
+    window.openPostcode('af_address');
+  }, true);
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (!t || t.id !== 'af_address') return;
+    var f = t.closest('.af-field'), h = f && f.querySelector('.addr-hint');
+    if (h) h.textContent = queryOf(t.value) ? '주소 검색을 누르면 이 주소로 바로 찾아요' : HINT;
+  });
 })();
