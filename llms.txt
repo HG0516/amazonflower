@@ -39,6 +39,7 @@
 ## 페이지
 - [전체 상품 가격](https://floweranbu.co.kr/prices): 107가지 상품의 이름, 가격, 주문 링크
 - [자주 묻는 것](https://floweranbu.co.kr/faq): 마감, 배송비, 빈소 호실, 리본, 계산서, 환불
+- [리본 문구 모음](https://floweranbu.co.kr/ribbon/): 근조화환, 결혼 축하화환, 개업·승진·생신 리본 문구
 - [전국 장례식장 근조화환](https://floweranbu.co.kr/funeral/): 장례식장별 주소, 배송비, 주문 링크
 - [무료 모바일 부고장](https://floweranbu.co.kr/bugo): 장례식장 이름만 치면 주소가 채워지는 부고장
 - [무료 모바일 청첩장](https://floweranbu.co.kr/wedding-card)

@@ -66,3 +66,15 @@ test("홈 가게 데이터가 읽힌다", () => {
   assert.equal(shop["@id"], "https://floweranbu.co.kr/#shop");
   assert.equal(shop.telephone, "+82-1577-2286");
 });
+
+import { RIBBON, RIBBON_PAGES, ribbonHtml } from "../scripts/build-ai.mjs";
+test("리본 문구 페이지: 주문서에 있는 문구만, 올린 파일이 최신", () => {
+  const all = new Set(Object.values(RIBBON).flatMap((g) => Object.entries(g).filter(([k]) => k !== "tones").flatMap(([, l]) => l)));
+  all.add("진심으로 축하드립니다");   // 승진·취임 묶음에 더한 한 줄(주문서 general.congrat 에 있음)
+  for (const pg of RIBBON_PAGES) {
+    const groups = pg.groups();
+    assert.ok(groups.every(([, l]) => l.length), pg.slug + " 빈 묶음");
+    for (const [, l] of groups) for (const t of l) assert.ok(all.has(t), `${pg.slug}: 주문서에 없는 문구 ${t}`);
+    assert.equal(fs.readFileSync(new URL(`../ribbon/${pg.slug}.html`, import.meta.url), "utf8"), ribbonHtml(pg));
+  }
+});

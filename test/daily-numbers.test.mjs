@@ -187,3 +187,47 @@ test("장례식장 페이지의 주문 버튼은 from=funeral-page, 홈 주문�
   const index = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   assert.match(index, /P\("from"\)==="funeral-page"\) window\.AF_CARD_UTM=\{ s:"funeral", m:"page"/);
 });
+
+// ── 월요일 주간 보고(11/9부터) ──
+import { formatWeeklyNumbers, isWeeklyDay, weeklyNumbersSection } from "../lib/daily-numbers.mjs";
+
+test("주간 보고는 2026-11-09 이후 월요일 아침에만", () => {
+  assert.equal(isWeeklyDay(Date.parse("2026-11-09T08:00:00+09:00")), true);
+  assert.equal(isWeeklyDay(Date.parse("2026-11-16T08:00:00+09:00")), true);
+  assert.equal(isWeeklyDay(Date.parse("2026-11-02T08:00:00+09:00")), false, "시작일 전 월요일");
+  assert.equal(isWeeklyDay(Date.parse("2026-11-10T08:00:00+09:00")), false, "화요일");
+  assert.equal(isWeeklyDay(Date.parse("2026-11-08T23:30:00Z")), true, "UTC 일요일이어도 KST 로는 월요일 아침");
+});
+
+test("월요일이 아니면 밖으로 묻지도 않는다", async () => {
+  let called = 0;
+  const out = await weeklyNumbersSection({ supabaseUrl: "https://sb.test", headers: {}, env: {}, now: NOW, fetchImpl: async () => { called++; } });
+  assert.equal(out, null);
+  assert.equal(called, 0);
+});
+
+test("지난주 묶음: 방문·주문·많이 팔린 것·많이 본 장례식장·부고장에서 온 화환", () => {
+  const since = Date.parse("2026-11-02T00:00:00+09:00"), until = Date.parse("2026-11-09T00:00:00+09:00");
+  const out = formatWeeklyNumbers({
+    since, until,
+    visits: { visitors: 210, lwVisitors: 150, pages: [], refs: [], funeralPages: [["시흥장례식장", 12], ["수협장례식장", 8]] },
+    site: {
+      orders: [
+        { paid_amount: 49000, utm_source: "funeral", product_label: "근조 보통 (WC-01)" },
+        { paid_amount: 49000, utm_source: "card", product_label: "근조 보통 (WC-01)" },
+        { paid_amount: 79000, utm_source: "", product_label: "축하 일반 (WG-03)" },
+      ],
+      intents: [{ state: "paid" }, { state: "paid" }, { state: "paid" }, { state: "prepared" }],
+      cards: [{ kind: "f" }, { kind: "f" }, { kind: "w" }], members: 2,
+    },
+  });
+  assert.equal(out, [
+    "📈 지난주 11/2(월)~11/8(일)",
+    "방문 210명 (그 전 주 150) → 주문 3건 177,000원 (1%)",
+    "주문 어디서: 장례식장 페이지 1, 부고장·청첩장 1, 직접 1",
+    "결제창 4번 → 결제 3건",
+    "많이 팔린 것: 근조 보통 2, 축하 일반 1",
+    "많이 본 장례식장: 시흥장례식장 12, 수협장례식장 8",
+    "부고장 2 · 청첩장 1 → 화환 1건 · 새 회원 2",
+  ].join("\n"));
+});

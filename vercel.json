@@ -255,6 +255,10 @@
       "destination": "/prices.html"
     },
     {
+      "source": "/ribbon/:name",
+      "destination": "/ribbon/:name.html"
+    },
+    {
       "source": "/faq",
       "destination": "/faq.html"
     },

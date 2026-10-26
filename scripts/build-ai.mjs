@@ -4,6 +4,7 @@
 //   faq.html      자주 묻는 것 (/faq). FAQPage 데이터 포함.
 //   llms.txt      AI 가 먼저 읽는 안내 한 장. 주문 링크 만드는 법까지.
 //   llms-full.txt 위 내용 + 전 상품 + 자주 묻는 것 + 추가 배송비 지역.
+//   ribbon/*.html 리본 문구 모음(근조·결혼·개업 승진 생신). 문구는 주문서(index.html 의 RIBBON)와 같은 것(10/27).
 //
 // 가격·이름은 products.mjs, 추가 배송비는 regions.js 에서 읽는다. 손으로 고치지 말고 다시 돌릴 것.
 // 실행: node scripts/build-ai.mjs   (build-products.mjs 가 끝에서 자동 호출)
@@ -21,6 +22,14 @@ const ctx = { globalThis: {} };
 ctx.window = ctx.globalThis;
 vm.runInNewContext(fs.readFileSync(path.join(ROOT, "regions.js"), "utf8"), ctx);
 const REGION = ctx.globalThis.REGION_DATA;
+
+// 주문서의 리본 문구(index.html const RIBBON)를 그대로 읽는다. 주문서에서 고를 수 있는 문구만 싣기 위해서.
+export const RIBBON = (() => {
+  const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  const m = html.match(/const RIBBON = (\{[\s\S]*?\n\});/);
+  if (!m) throw new Error("index.html 에서 RIBBON 을 못 찾았어요");
+  return vm.runInNewContext("(" + m[1] + ")");
+})();
 
 const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const won = (n) => n.toLocaleString("ko-KR") + "원";
@@ -62,7 +71,7 @@ export const FAQ = [
   ["장례식장 빈소 호실을 몰라도 되나요?", "비워 두셔도 돼요. 사장님이 장례식장에 확인해서 보내 드려요."],
   ["부고장이나 청첩장 링크만 있는데 주문할 수 있나요?", "링크나 캡처 사진을 첫 화면 칸에 넣으면 내용을 읽어 주문서를 채워 드려요. 부고장은 고인 성함, 장례식장, 발인 시간을 읽고 청첩장은 두 분 이름, 예식장, 예식 시간을 읽어요. 채워진 내용을 한 번 보고 결제하시면 돼요."],
   ["발인이 내일 아침이에요.", "전화(1577-2286)로 주문해 주세요. 발인 전에 닿도록 바로 보내 드려요."],
-  ["리본 문구는 어떻게 정하나요?", "주문서에서 고르거나, 받는 분과의 관계를 적으면 맞는 문구를 골라 드려요. 보내는 분 이름도 리본에 들어가요."],
+  ["리본 문구는 어떻게 정하나요?", "주문서에서 고르거나, 받는 분과의 관계를 적으면 맞는 문구를 골라 드려요. 보내는 분 이름도 리본에 들어가요. 많이 쓰는 문구는 https://floweranbu.co.kr/ribbon/ 에 모아 뒀어요."],
   ["도착했는지 알 수 있나요?", "배송하고 바로 도착 사진을 문자로 보내 드려요."],
   ["결제는 어떻게 하나요?", "카드, 네이버페이, 카카오페이, 토스페이로 결제할 수 있어요. 회원가입 없이 주문할 수 있고 전화 주문도 받아요."],
   ["회사 이름으로 보내고 계산서를 받을 수 있나요?", "주문서에서 법인·단체를 펼쳐 사업자 정보를 넣으면 계산서를 발행해 드려요. 자주 보내는 회사는 후불과 월 정산 거래처로 등록할 수 있어요(1577-2286)."],
@@ -188,6 +197,89 @@ ${footHtml(`<a href="/">처음으로</a> · <a href="/funeral/">전국 장례식
 `;
 }
 
+// ── 리본 문구 모음 ──
+const uniq = (a) => [...new Set(a)];
+const pick = (a, re) => a.filter((t) => re.test(t));
+export const RIBBON_PAGES = [
+  { slug: "condolence", h1: "근조화환 리본 문구", short: "근조화환",
+    title: "근조화환 리본 문구 모음 | 장례식장 화환 문구 쓰는 법",
+    desc: "근조화환 리본에 많이 쓰는 문구를 격식, 회사·거래처, 지인·친지로 나눠 모았어요. 보내는 분 이름 쓰는 법과 한자 읽는 법도 같이 적었어요.",
+    lead: "근조화환에는 리본이 두 줄 달려요. 한 줄에는 위로의 문구를, 다른 한 줄에는 보내는 분 이름을 적어요. 아래 문구는 꽃안부 주문서에서 그대로 고를 수 있어요.",
+    groups: () => [
+      ["가장 많이 쓰는 문구", RIBBON.funeral.formal],
+      ["회사·거래처 이름으로 보낼 때", RIBBON.funeral.work],
+      ["지인·친지가 보낼 때", RIBBON.funeral.personal],
+    ],
+    names: ["주식회사 ○○ 대표이사 ○○○", "○○주식회사 임직원 일동", "○○팀 일동", "○○고등학교 ○회 동창 일동", "○○○ (개인 이름)"],
+    cta: ["근조화환 보내기", "/?worder=funeral&utm_source=ribbon", "condolence"] },
+  { slug: "wedding", h1: "결혼 축하화환 리본 문구", short: "결혼 축하",
+    title: "결혼 축하화환 리본 문구 모음 | 축결혼·축화혼 차이",
+    desc: "결혼식 축하화환 리본 문구를 한자, 한글, 회사·거래처로 나눠 모았어요. 신랑 쪽은 축 결혼, 신부 쪽은 축 화혼을 써요.",
+    lead: "축하화환에도 리본이 두 줄 달려요. 한 줄에는 축하 문구를, 다른 한 줄에는 보내는 분 이름을 적어요. 신랑 쪽에 보내면 祝 結婚(축 결혼), 신부 쪽에 보내면 祝 華婚(축 화혼)을 많이 써요. 꽃안부 주문서는 고른 쪽에 맞춰 바꿔 드려요.",
+    groups: () => [
+      ["한자 문구", pick(RIBBON.wedding.hanja, /結婚|華婚/)],
+      ["한글 문구", RIBBON.wedding.hangul],
+      ["회사·거래처 이름으로 보낼 때", uniq([...pick(RIBBON.wedding.work, /結婚|축하|출발/)])],
+    ],
+    names: ["주식회사 ○○ 대표이사 ○○○", "○○팀 일동", "신랑 친구 일동", "○○○ (개인 이름)"],
+    cta: ["결혼 축하화환 보내기", "/?worder=wedding&utm_source=ribbon", "congrats"] },
+  { slug: "celebration", h1: "개업·승진·생신 축하 리본 문구", short: "개업·승진·생신",
+    title: "개업·승진 축하 리본 문구 모음 | 화분·난·축하화환 문구",
+    desc: "개업, 이전, 승진, 취임, 생신에 보내는 화분·난·축하화환 리본 문구를 모았어요. 꽃안부 주문서에서 그대로 고를 수 있어요.",
+    lead: "개업 화분이나 승진 난에도 리본을 달아 보내요. 한 줄에는 축하 문구를, 다른 한 줄에는 보내는 분 이름을 적어요.",
+    groups: () => [
+      ["개업·이전", uniq([...pick(RIBBON.wedding.hanja, /開業/), ...pick(RIBBON.general.work, /發展|번창|출발/)])],
+      ["승진·취임·영전", uniq([...pick(RIBBON.wedding.hanja, /昇進|榮轉|就任/), "진심으로 축하드립니다"])],
+      ["생신·기념일", uniq([...RIBBON.general.hangul, ...pick(RIBBON.general.congrat, /건강/)])],
+      ["어디에나 쓰는 문구", uniq([...pick(RIBBON.general.congrat, /^축하합니다$|祝/), "진심으로 축하드립니다"])],
+    ],
+    names: ["주식회사 ○○ 대표이사 ○○○", "○○팀 일동", "○○○ (개인 이름)"],
+    cta: ["개업·승진 화분과 난 보기", "/prices#plant", "plant"] },
+];
+
+const RIBBON_CSS = `.grp{margin-top:6px}.ph{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.ph span{flex:1;min-width:0;font-size:16px}.ph button{flex:0 0 auto;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+ul.nm{margin:6px 0 0;padding-left:18px;color:var(--soft)}`;
+const COPY_JS = `<script>document.addEventListener("click",function(e){var b=e.target.closest("button[data-copy]");if(!b)return;var t=b.getAttribute("data-copy");
+function done(){b.textContent="복사했어요";setTimeout(function(){b.textContent="복사"},1500)}
+if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,function(){window.prompt("복사해 주세요",t)});else window.prompt("복사해 주세요",t)});</script>`;
+
+export function ribbonHtml(pg) {
+  const url = `${BASE}/ribbon/${pg.slug}`;
+  const groups = pg.groups().filter(([, l]) => l && l.length);
+  const crumb = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "꽃안부", item: BASE + "/" },
+    { "@type": "ListItem", position: 2, name: "리본 문구", item: BASE + "/ribbon/" },
+    { "@type": "ListItem", position: 3, name: pg.h1, item: url } ] };
+  const others = RIBBON_PAGES.filter((x) => x.slug !== pg.slug).map((x) => `<a href="/ribbon/${x.slug}">${esc(x.h1)}</a>`).join(" · ");
+  const from = range(pg.cta[2]);
+  return head(pg.title, pg.desc, url, ld(crumb) + `\n<style>${RIBBON_CSS}</style>`) + `
+<body><div class="w">
+${topBar}
+<h1>${esc(pg.h1)}</h1>
+<p class="lead">${esc(pg.lead)}</p>
+${groups.map(([g, list]) => `<h2>${esc(g)}</h2><div class="grp">${list.map((t) => `<div class="ph"><span>${esc(t)}</span><button type="button" data-copy="${esc(t)}">복사</button></div>`).join("")}</div>`).join("\n")}
+<h2>보내는 분 이름은 이렇게 적어요</h2>
+<ul class="nm">${pg.names.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
+<a class="go" href="${esc(pg.cta[1])}">${esc(pg.cta[0])}${from ? ` · ${won(from[0])}부터` : ""}</a>
+${footHtml(`${others} · <a href="/prices">전체 상품 가격</a> · <a href="/faq">자주 묻는 것</a>`)}
+</div>${COPY_JS}</body></html>
+`;
+}
+
+export function ribbonIndexHtml() {
+  const url = `${BASE}/ribbon/`;
+  return head("화환 리본 문구 모음 | 근조·결혼·개업·승진", "근조화환, 결혼 축하화환, 개업·승진 화분에 많이 쓰는 리본 문구를 모았어요.", url) + `
+<body><div class="w">
+${topBar}
+<h1>화환 리본 문구 모음</h1>
+<p class="lead">꽃안부 주문서에서 고를 수 있는 문구를 자리별로 모았어요. 마음에 드는 문구를 눌러 복사할 수 있어요.</p>
+<div class="jump" style="margin-top:18px">${RIBBON_PAGES.map((x) => `<a href="/ribbon/${x.slug}">${esc(x.h1)}</a>`).join("")}</div>
+${footHtml(`<a href="/prices">전체 상품 가격</a> · <a href="/faq">자주 묻는 것</a> · <a href="/funeral/">전국 장례식장 근조화환</a>`)}
+</div></body></html>
+`;
+}
+
 const rangeLine = ([c, label]) => { const r = range(c); return r ? `- ${label}: ${won(r[0])}~${won(r[1])} (${byCat(c).length}가지)` : ""; };
 
 const ORDER_LINKS = `## AI 비서가 주문 링크를 만들 때
@@ -229,6 +321,7 @@ ${ORDER_LINKS}
 ## 페이지
 - [전체 상품 가격](${BASE}/prices): ${onSale.length}가지 상품의 이름, 가격, 주문 링크
 - [자주 묻는 것](${BASE}/faq): 마감, 배송비, 빈소 호실, 리본, 계산서, 환불
+- [리본 문구 모음](${BASE}/ribbon/): 근조화환, 결혼 축하화환, 개업·승진·생신 리본 문구
 - [전국 장례식장 근조화환](${BASE}/funeral/): 장례식장별 주소, 배송비, 주문 링크
 - [무료 모바일 부고장](${BASE}/bugo): 장례식장 이름만 치면 주소가 채워지는 부고장
 - [무료 모바일 청첩장](${BASE}/wedding-card)
@@ -253,6 +346,9 @@ ${CATS.map(([c, label]) => { const l = byCat(c); return l.length ? `### ${label}
 ## 자주 묻는 것
 ${FAQ.map(([q, a]) => `### ${q}\n${a}`).join("\n\n")}
 
+## 리본 문구
+${RIBBON_PAGES.map((pg) => `### ${pg.h1} (${BASE}/ribbon/${pg.slug})\n${pg.groups().filter(([, l]) => l && l.length).map(([g, l]) => `- ${g}: ${l.join(" / ")}`).join("\n")}`).join("\n\n")}
+
 ## 추가 배송비 지역
 주소에 아래 지역이 들어 있으면 배송비가 더해져요. 주문서가 주소를 보고 자동으로 넣어요.
 ${Object.keys(fee).sort((a, b) => a - b).map((amt) => `- ${won(+amt)}: ${fee[amt].join(", ")}`).join("\n")}
@@ -261,7 +357,10 @@ ${Object.keys(fee).sort((a, b) => a - b).map((amt) => `- ${won(+amt)}: ${fee[amt
 }
 
 export function buildAi() {
-  const out = { "prices.html": pricesHtml(), "faq.html": faqHtml(), "llms.txt": llmsTxt(), "llms-full.txt": llmsFullTxt() };
+  const out = { "prices.html": pricesHtml(), "faq.html": faqHtml(), "llms.txt": llmsTxt(), "llms-full.txt": llmsFullTxt(),
+    "ribbon/index.html": ribbonIndexHtml() };
+  for (const pg of RIBBON_PAGES) out[`ribbon/${pg.slug}.html`] = ribbonHtml(pg);
+  fs.mkdirSync(path.join(ROOT, "ribbon"), { recursive: true });
   for (const [f, s] of Object.entries(out)) fs.writeFileSync(path.join(ROOT, f), s);
   return Object.keys(out);
 }
