@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import parseUrl from "../api/parse-url.js";
-import { fixNames, fixParsed, fixYear, kstToday } from "../lib/parse-fix.mjs";
+import { crossCheck, fixNames, fixParsed, fixYear, kstToday, matchHome, pageToText, ruleDeceased, ruleOuts, sameArea } from "../lib/parse-fix.mjs";
 
 const TODAY = "2026-10-26";
 
@@ -81,14 +81,14 @@ function mockResponse() {
   };
 }
 
-async function runParse(body, page) {
+const FUNERAL_OUT = { type: "funeral", recipientName: "김철수", chiefMourner: "김철수", date: "2025-10-28", time: "08:00" };
+async function runParse(body, page, out = FUNERAL_OUT) {
   const oldFetch = globalThis.fetch, oldKey = process.env.ANTHROPIC_API_KEY;
   const sent = [];
   process.env.ANTHROPIC_API_KEY = "test-key";
   globalThis.fetch = async (url, init) => {
     if (String(url).startsWith("https://api.anthropic.com/")) {
       sent.push(JSON.parse(init.body).messages[0].content);
-      const out = { type: "funeral", recipientName: "김철수", chiefMourner: "김철수", date: "2025-10-28", time: "08:00" };
       return new Response(JSON.stringify({ content: [{ type: "text", text: JSON.stringify(out) }] }), { status: 200 });
     }
     return page();
@@ -107,7 +107,7 @@ const TEXT = "[부고] 영업2팀 김철수 과장 부친상\n발인 10월 28일
 
 test("글과 링크를 같이 보내면 둘 다 AI 에 넘기고, 결과를 바로잡아 돌려준다", async () => {
   const { res, sent } = await runParse({ url: "https://bugo.example.test/v/1", text: TEXT },
-    () => new Response("<html><body><p>빈소 안산장례식장 3호실</p></body></html>", { status: 200 }));
+    () => new Response("<html><body><p>빈소 안산장례식장 3호실, 발인 10월 28일 오전 8시</p></body></html>", { status: 200 }));
   assert.equal(res.statusCode, 200);
   assert.match(sent[0], /^오늘은 \d{4}-\d{2}-\d{2} 입니다\./);
   assert.match(sent[0], /\[링크 페이지\][\s\S]*안산장례식장 3호실[\s\S]*\[붙여넣은 글\][\s\S]*과장 부친상/);
@@ -135,4 +135,105 @@ test("상주 명단: 이름·관계만 남기고 숫자는 버린다, 장례식 
   assert.deepEqual(j.mourners, [{ rel: "배우자", name: "유옥자" }, { rel: "아들", name: "손준호" }, { rel: "딸", name: "손유진" }]);
   assert.deepEqual(fixParsed({ type: "wedding", mourners: [{ rel: "아들", name: "김민수" }] }, "").mourners, []);
   assert.deepEqual(fixParsed({ type: "funeral" }, "").mourners, []);
+});
+
+// ── 링크 페이지 읽기·교차 확인(10/26). 사이트 모양만 본뜬 가짜 이름이다. ──
+
+test("미리보기 요약(og:description)과 페이지 안 데이터까지 읽는다", () => {
+  const a = pageToText(`<html><head><title>부고 - 홍길동 별세</title>
+    <meta property="og:description" content="홍길동 별세 | 백병원장례식장 특실 | 발인 2026.10.28(수) 22:00">
+    <meta name="description" content="홍길동 별세 | 백병원장례식장 특실 | 발인 2026.10.28(수) 22:00"></head>
+    <body><div>&#9776; 메뉴 &#127808; 화환 보내기</div></body></html>`);
+  assert.match(a.text, /^\[페이지 요약\]\n부고 - 홍길동 별세\n홍길동 별세 \| 백병원장례식장 특실 \| 발인 2026\.10\.28\(수\) 22:00\n\n\[본문\]/);
+  assert.equal((a.text.match(/백병원장례식장 특실/g) || []).length, 1, "같은 요약은 한 번만");
+  assert.match(a.text, /☰ 메뉴/);
+  const b = pageToText(`<div id="app"></div><script>window.__D={"deceasedName":"홍길동","hallName":"시흥장례식장",
+    "hallRoom":"3호실","burialDatetime":"2026-10-28 07:00","theme":"dark","token":"abc123"}</script>`);
+  assert.match(b.text, /\[페이지 데이터\]\ndeceasedName: 홍길동\nhallName: 시흥장례식장\nhallRoom: 3호실\nburialDatetime: 2026-10-28 07:00$/);
+  assert.ok(b.hangul >= 8);
+  assert.ok(pageToText(`<html><head><title>의전나라</title></head><body><div id="app"></div><script src="/assets/index.js"></script></body></html>`).hangul < 8);
+});
+
+test("발인 줄을 규칙으로 읽는다(부고장마다 다른 모양)", () => {
+  const t = "2026-10-26";
+  const one = (s) => ruleOuts(s, t)[0] || null;
+  assert.deepEqual(one("발인 2026.10.26(월) 22:00"), { date: "2026-10-26", time: "22:00" });
+  assert.deepEqual(one("빈소: 낙원장례식장 5호실 | 발인: 2026.09.26 07:00"), { date: "2026-09-26", time: "07:00" });
+  assert.deepEqual(one("입관일 2026년 10월 27일(화) 10시 30분 발인일 2026년 10월 28일(수) 09시 00분 발인까지 2일 남았습니다"), { date: "2026-10-28", time: "09:00" });
+  assert.deepEqual(one("발인 10월 28일 오전 7시"), { date: "2026-10-28", time: "07:00" });
+  assert.deepEqual(one("■ 발인 : 2025년 02월 26일(수) 05시 20분"), { date: "2025-02-26", time: "05:20" });
+  assert.deepEqual(one("발인 12월 3일 저녁 7시 30분"), { date: "2026-12-03", time: "19:30" });
+  assert.deepEqual(one("△발인 : 2023년 10월 18일(수)"), { date: "2023-10-18", time: "" });
+  assert.equal(one("발인 3일 (032)890-3180"), null);
+  assert.equal(one("발인까지 2일 남았습니다"), null);
+});
+
+test("故 뒤 이름을 읽는다", () => {
+  assert.equal(ruleDeceased("故 손 원님께서 별세"), "손 원");
+  assert.equal(ruleDeceased("故 임미자님 부고"), "임미자");
+  assert.equal(ruleDeceased("故김영수 권사 소천"), "김영수");
+  assert.equal(ruleDeceased("故 남궁민수님의 명복을"), "남궁민수");
+  assert.equal(ruleDeceased("영업2팀 김철수 과장 부친상"), "");
+});
+
+const HOMES = [
+  { n: "시흥장례식장", a: "경기도 시흥시 비둘기공원7길 50", t: "031-000-0000" },
+  { n: "시민장례식장", a: "경기도 안산시 단원구 원포공원1로 31", t: "031-000-0001" },
+  { n: "시민장례식장", a: "전북특별자치도 전주시 완산구 용머리로 100", t: "063-000-0000" },
+  { n: "서울아산병원 장례식장", a: "서울특별시 송파구 올림픽로43길 88", t: "02-0000-0000" },
+];
+
+test("장례식장 목록과 맞춰 본다: 같은 이름이 여럿이면 주소의 시·군·구로 고른다", () => {
+  assert.equal(matchHome("서울아산병원장례식장", "", HOMES).t, "02-0000-0000");
+  assert.equal(matchHome("시민장례식장", "", HOMES), null);
+  assert.equal(matchHome("시민장례식장", "전북 전주시 완산구 용머리로", HOMES).t, "063-000-0000");
+  assert.equal(matchHome("아산", "", HOMES), null, "너무 짧은 이름은 맞추지 않는다");
+  assert.ok(sameArea("서울특별시 송파구 올림픽로43길 88", "서울 송파구 풍납동"));
+  assert.ok(!sameArea("경기도 시흥시 비둘기공원7길", "서울특별시 강남구 테헤란로"));
+});
+
+const T = "2026-10-26";
+const fj = (o) => ({ type: "funeral", recipientName: "", chiefMourner: "", date: "", time: "", venueName: "", venueAddress: "", ...o });
+
+test("교차 확인: 글에 적힌 발인을 따르고, 두 곳이 다르면 확인을 부탁한다", () => {
+  const a = crossCheck(fj({ date: "2026-10-27", time: "10:30" }), "입관 2026.10.27 10:30 발인 2026.10.28 09:00", T, []);
+  assert.deepEqual([a.date, a.time, a.check], ["2026-10-28", "09:00", []]);
+  const b = crossCheck(fj({ date: "2026-10-28", time: "07:00" }),
+    "[링크 페이지]\n발인 2026.10.28(수) 09:00\n\n[붙여넣은 글]\n발인 10월 28일 오전 7시", T, []);
+  assert.deepEqual([b.date, b.time, b.check], ["2026-10-28", "09:00", ["발인"]]);
+  const c = crossCheck(fj({ date: "2026-10-28", time: "09:00" }), "[페이지 요약]\n발인 2026.10.28 09:00\n\n[본문]\n발인일 2026년 10월 28일 09시 00분", T, []);
+  assert.deepEqual(c.check, [], "같은 발인이 여러 번 적힌 건 문제 아님");
+});
+
+test("교차 확인: 고인 이름을 채우거나 다르면 확인, 장례식장 주소를 채우거나 지역이 다르면 확인", () => {
+  const a = crossCheck(fj({ chiefMourner: "김철수" }), "故 김영수님 별세. 김철수 과장 부친상", T, []);
+  assert.deepEqual([a.recipientName, a.check], ["김영수", []]);
+  const b = crossCheck(fj({ recipientName: "김영자" }), "故 김영수님 별세", T, []);
+  assert.deepEqual(b.check, ["고인"]);
+  const c = crossCheck(fj({ venueName: "시흥장례식장" }), "", T, HOMES);
+  assert.deepEqual([c.venueAddress, c.check], ["경기도 시흥시 비둘기공원7길 50", []]);
+  const d = crossCheck(fj({ venueName: "시흥 장례식장", venueAddress: "서울특별시 강남구 테헤란로 1" }), "", T, HOMES);
+  assert.deepEqual(d.check, ["장소"]);
+  const w = crossCheck({ type: "wedding", date: "2026-11-14" }, "발인 2026.10.28", T, HOMES);
+  assert.equal(w.date, "2026-11-14", "결혼식은 건드리지 않는다");
+});
+
+test("빈 화면만 오는 링크: 글이 없으면 캡처·문자 안내, 글이 있으면 글로 읽는다", async () => {
+  const spa = () => new Response(`<html><head><title>의전나라</title></head><body><div id="app"></div></body></html>`, { status: 200 });
+  const a = await runParse({ url: "https://fd.example.test/share/1" }, spa);
+  assert.equal(a.res.statusCode, 422);
+  assert.equal(a.res.body.code, "thin");
+  assert.match(a.res.body.error, /캡처/);
+  assert.equal(a.sent.length, 0);
+  const b = await runParse({ url: "https://fd.example.test/share/1", text: TEXT }, spa);
+  assert.equal(b.res.statusCode, 200);
+  assert.doesNotMatch(b.sent[0], /의전나라/);
+});
+
+test("서버가 장례식장 목록을 읽어 주소를 채운다", async () => {
+  const out = { type: "funeral", recipientName: "홍길동", chiefMourner: "홍철수", venueName: "21C한일병원장례식장", venueAddress: "", date: "", time: "" };
+  const page = () => new Response("<html><body>故 홍길동님 부고. 빈소 21C한일병원장례식장 2호실. 상주 홍철수</body></html>", { status: 200 });
+  const { res } = await runParse({ url: "https://bugo.example.test/v/2" }, page, out);
+  assert.equal(res.statusCode, 200);
+  assert.match(res.body.result.venueAddress, /^경상남도 거제시/);
 });

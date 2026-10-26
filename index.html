@@ -708,6 +708,7 @@
   .af-m small { margin-left: 3px; font-size: 12px; color: var(--ink-faint); }
   .af-m.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .af-m.on small { color: inherit; opacity: .8; }
+  .af-auto.af-chk { color: #9a5b12; background: #fdf3e7; }
   .af-name-warn { margin-top: 6px; font-size: var(--fs-caption); color: #9a5b12; line-height: 1.55; }
   .af-nowreath { margin: 0 0 10px; padding: 11px 13px; border-radius: var(--radius-sm); background: #fdf3e7; border: 1px solid #ecc99a; color: var(--ink); line-height: 1.65; }
   .hg-card { display: flex; flex-direction: column; gap: 2px; margin: 12px 0 0; padding: 12px 14px; border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; }
@@ -1734,6 +1735,18 @@ function afMournerMark(){
   var b=document.getElementById("af_chiefMourner");
   document.querySelectorAll("#afMourners .af-m").forEach(function(x){ x.classList.toggle("on", !!b && afNameSame(x.getAttribute("data-n"), b.value)); });
 }
+// 부고장 안에 서로 다르게 적힌 곳(api/parse-url 교차 확인 check) — 그 칸의 '자동' 표시를 '확인'으로 바꾸고 한 줄로 알린다(10/26).
+var AF_CHECK_LABEL={"발인":"발인 시간", "고인":"고인 성함", "장소":"장례식장 주소"};
+function afCheckMarks(check){
+  var c=(Array.isArray(check)?check:[]).filter(function(k){ return AF_CHECK_LABEL[k]; });
+  var ids={"고인":["af_recipientName"], "장소":["af_venue","af_address"]};
+  c.forEach(function(k){ (ids[k]||[]).forEach(function(id){
+    var el=document.getElementById(id), w=el && el.closest(".af-input-wrap"); if(!w) return;
+    var b=w.querySelector(".af-auto"); if(!b){ b=document.createElement("span"); b.className="af-auto"; w.appendChild(b); }
+    b.textContent="확인"; b.classList.add("af-chk");
+  }); });
+  return c.length ? "부고장에 서로 다르게 적힌 곳이 있어요. 확인할 곳: "+c.map(function(k){ return AF_CHECK_LABEL[k]; }).join(", ") : "";
+}
 // 고인과 상주는 같은 사람일 수 없다(10/26 형구). 부고에 이름이 하나뿐이면 자동읽기가 두 칸에 같이 넣는 일이 있었다.
 // 막지는 않고 상주 칸 아래에 알린다. note 는 서버가 한 칸을 비웠을 때(api/parse-url nameCheck).
 var afNameNote="";
@@ -1966,6 +1979,7 @@ function applyParsed(r){
   html+=afField("time","시간",order.time);
   document.getElementById("afFields").innerHTML=html;
   afMournerPick(isFun ? r.mourners : null); afNameCheck(); afOutLine();
+  const _ck=afCheckMarks(r.check);
   document.getElementById("confirmCard").classList.remove("hidden");
   // 실제로 뭔가 읽어냈을 때만 '자동으로 읽었다'고 안내(기대-현실 불일치 방지) + 못 읽으면 전화 대안
   const _cs=document.getElementById("confirmSub");
@@ -1974,6 +1988,7 @@ function applyParsed(r){
     ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요. 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 돼요.'
     : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b>. 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;">전화(1577-2286)</a>로 주문하셔도 돼요.';
   // 부고·청첩장에 '화환은 정중히 사양' 같은 말이 있으면 주문 전에 먼저 알린다(10/20). 막지는 않는다.
+  if(_cs && _ck) _cs.innerHTML = '<div class="af-nowreath">'+escapeHtml(_ck)+'</div>' + _cs.innerHTML;
   if(_cs && r.noWreath) _cs.innerHTML = '<div class="af-nowreath"><b>안내문에 화환을 사양한다는 말이 있어요.</b> 유족·혼주의 뜻일 수 있으니 한 번 확인해 주세요. 마음을 전하고 싶으시면 꽃바구니나 조의 메시지로 대신하는 분도 많아요.'
     + (r.noWreathText ? '<br><span style="color:var(--ink-faint)">“'+escapeHtml(String(r.noWreathText).slice(0,60))+'”</span>' : '') + '</div>' + _cs.innerHTML;
   const parsedOrderLabel = order.category==="wreath"
@@ -2106,12 +2121,12 @@ async function afLinkParse(){
     const body = isUrl(val) ? {url:val} : lm ? {url:lm[0], text:val} : {text:val};
     const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const data=await res.json();
-    if(!res.ok) throw new Error(data.error||"분석 실패");
-    afApplyToConfirm(data.result||{});
-    msg.textContent="✓ 받는 곳을 자동으로 채웠어요. 맞는지 한 번 더 확인해 주세요.";
+    if(!res.ok){ const er=new Error(data.error||"분석 실패"); er.code=data.code; throw er; }
+    const ck=afApplyToConfirm(data.result||{});
+    msg.textContent="✓ 받는 곳을 자동으로 채웠어요. 맞는지 한 번 더 확인해 주세요."+(ck?" "+ck:"");
     msg.className="af-lb-msg ok";
   }catch(e){
-    msg.textContent="자동으로 못 읽었어요. 아래에 직접 입력해 주세요.";
+    msg.textContent= e && e.code==="thin" ? e.message : "자동으로 못 읽었어요. 아래에 직접 입력해 주세요.";
     msg.className="af-lb-msg err";
   }finally{ btn.disabled=false; btn.textContent=old; }
 }
@@ -2133,6 +2148,7 @@ function afApplyToConfirm(r){
   afNameNote = r.nameCheck || "";
   if(r.type==="funeral" || order.type==="funeral") afMournerPick(r.mourners);
   afNameCheck(); afOutLine();
+  return afCheckMarks(r.check);
   // 결혼으로 읽혔으면 신랑/신부 노출
   if(r.type==="wedding"){
     order.type="wedding";

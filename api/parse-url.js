@@ -7,7 +7,17 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { askClaude, extractJson, AI_MODEL } from "../lib/ai.mjs";
-import { fixParsed, kstToday } from "../lib/parse-fix.mjs";
+import { createRequire } from "node:module";
+import { fixParsed, kstToday, pageToText } from "../lib/parse-fix.mjs";
+
+// 장례식장 목록(공공데이터 1,117곳, 부고장 만들기와 같은 목록) — 자동읽기 결과의 장례식장 주소를 맞춰 본다.
+let HOMES = null;
+function funeralHomes() {
+  if (HOMES) return HOMES;
+  try { HOMES = createRequire(import.meta.url)("../data/funeral-homes.json").items || []; } catch { HOMES = []; }
+  return HOMES;
+}
+const THIN_MSG = "이 링크는 열어도 내용이 바로 보이지 않는 곳이에요. 화면을 캡처해 사진으로 올리시거나, 받으신 문자를 통째로 붙여넣어 주세요.";
 
 export const config = {
   runtime: "nodejs",
@@ -15,20 +25,6 @@ export const config = {
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = AI_MODEL;
-
-// 페이지 HTML에서 본문 텍스트만 대략 추출 (태그/스크립트 제거)
-function htmlToText(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 async function fetchPageText(url) {
   const res = await fetch(url, {
@@ -38,14 +34,15 @@ async function fetchPageText(url) {
       Accept: "text/html,application/xhtml+xml",
     },
     redirect: "follow",
+    signal: AbortSignal.timeout(9000),
   });
   if (!res.ok) {
     throw new Error(`페이지를 불러오지 못했습니다 (HTTP ${res.status})`);
   }
   const html = await res.text();
-  const text = htmlToText(html);
-  // 너무 길면 앞부분만 (토큰 절약)
-  return text.slice(0, 8000);
+  // 미리보기 요약·본문·페이지 안 데이터를 같이 읽는다(lib/parse-fix.mjs pageToText). 너무 길면 앞부분만(토큰 절약).
+  const { text, hangul } = pageToText(html);
+  return { text: text.slice(0, 10000), hangul };
 }
 
 const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(장례식) 안내문에서 화환 배송에 필요한 정보를 추출하는 도우미입니다.
@@ -73,6 +70,8 @@ const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(�
 - 날짜는 반드시 YYYY-MM-DD로 변환. 연도가 없으면 맨 앞에 적힌 오늘 날짜 기준으로 가장 가까운 날로 정한다.
 - 장례식 이름: "故 ○○", "고 ○○", "○○님께서 별세(소천)", "○○ 본인상"의 ○○는 고인. "○○ 부친상·모친상·빙부상·빙모상·시부상·시모상·조부상·조모상·배우자상", "○○의 부친"의 ○○는 상주이고, 고인 이름이 따로 없으면 recipientName 은 빈 문자열.
 - mourners 는 장례식 상주·유족 명단을 적힌 순서대로 최대 8명. 한 관계에 여러 명이면 사람마다 따로 적는다. 전화번호·계좌는 절대 넣지 않는다. 결혼식이거나 명단이 없으면 [].
+- chiefMourner(대표 상주)는 "○○ 드림"에 적힌 사람, 없으면 맏아들(장남, 아들 가운데 첫 사람), 아들이 없으면 명단의 첫 사람.
+- [링크 페이지]와 [붙여넣은 글]이 같이 오면 링크 페이지가 더 최근이다. 둘이 다르면 링크 페이지를 따른다. [페이지 요약]은 그 부고장이 스스로 정리한 핵심이다.
 - 장례식에 이름이 하나뿐이고 위 단서가 없으면 고인으로 본다. 고인과 상주는 같은 사람일 수 없으니 두 칸에 같은 이름을 넣지 않는다.
 - 확실하지 않은 필드는 추측하지 말고 빈 문자열로 둔다.
 - 정보가 거의 없으면 confidence를 "low"로.
@@ -583,7 +582,7 @@ export default async function handler(req, res) {
       });
       const j = r.ok ? extractJson(r.text) : null;
       if (!j || typeof j !== "object") return res.status(422).json({ error: "사진에서 내용을 읽지 못했어요. 링크를 붙여넣거나 전화(1577-2286) 주세요." });
-      return res.status(200).json({ ok: true, result: fixParsed(j, "") });
+      return res.status(200).json({ ok: true, result: fixParsed(j, "", Date.now(), funeralHomes()) });
     }
 
     // 카톡 부고 문자처럼 글과 링크가 같이 오면 둘 다 읽는다. 링크 페이지가 비어 있거나 못 열려도 글로 채운다(10/26).
@@ -601,7 +600,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "http/https URL만 지원합니다." });
       }
       try {
-        sourceText = await fetchPageText(parsed.toString());
+        const page = await fetchPageText(parsed.toString());
+        // 빈 화면만 오는 부고장(브라우저에서 그리는 곳)은 읽을 게 없다. 글이 같이 왔으면 글로, 아니면 캡처·문자를 안내한다.
+        if (page.hangul >= 8) sourceText = page.text;
+        else if (!pasted) return res.status(422).json({ error: THIN_MSG, code: "thin" });
       } catch (e) {
         if (!pasted) throw e;
       }
@@ -656,7 +658,7 @@ export default async function handler(req, res) {
 
     const parsed = safeJsonParse(aiText);
 
-    return res.status(200).json({ ok: true, result: fixParsed(parsed, sourceText) });
+    return res.status(200).json({ ok: true, result: fixParsed(parsed, sourceText, Date.now(), funeralHomes()) });
   } catch (err) {
     console.error("parse-url error:", err);
     return res
