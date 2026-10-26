@@ -246,6 +246,42 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── 주소 추천 (행정안전부 도로명주소 검색 API 프록시, 10/26) ──
+    // body: {action:"addr", q:"화양동 46-5"} → {ok, items:[{road, jibun, zip, bd}]}
+    // 주문서 주소칸에 치는 동안 아래에 실제 주소를 띄운다. 동네만 쳐도 시·군·구까지 맞춰져 먼 지역 배송비가 빠지지 않는다.
+    // JUSO_API_KEY(business.juso.go.kr 운영 승인키) 미설정·장애 시 빈 목록(fail-open) — 다음 우편번호 검색 버튼은 그대로 쓴다.
+    if (early && early.action === "addr") {
+      // 도로명주소 API 는 특수문자와 SQL 예약어가 든 검색어를 오류로 돌려보낸다.
+      const q = String(early.q || "")
+        .replace(/[%=<>\[\]{}"'`;\\]/g, " ")
+        .replace(/\b(OR|SELECT|INSERT|DELETE|UPDATE|CREATE|DROP|EXEC|UNION|FETCH|DECLARE|TRUNCATE)\b/gi, " ")
+        .replace(/\s+/g, " ").trim().slice(0, 60);
+      if (q.length < 2 || !/[가-힣0-9]/.test(q)) return res.status(200).json({ ok: true, items: [] });
+      const key = process.env.JUSO_API_KEY;
+      if (!key) return res.status(200).json({ ok: true, items: [], skip: true });
+      try {
+        const r = await fetch(
+          `https://business.juso.go.kr/addrlink/addrLinkApi.do?confmKey=${encodeURIComponent(key)}&currentPage=1&countPerPage=7&keyword=${encodeURIComponent(q)}&resultType=json`,
+          { signal: AbortSignal.timeout(4000) }
+        );
+        if (!r.ok) return res.status(200).json({ ok: true, items: [], skip: true });
+        const j = await r.json();
+        const c = (j && j.results && j.results.common) || {};
+        if (String(c.errorCode) !== "0") {
+          console.error("addr juso:", c.errorCode, c.errorMessage);
+          return res.status(200).json({ ok: true, items: [], skip: true });
+        }
+        const s = (v, n) => String(v || "").replace(/\s+/g, " ").trim().slice(0, n);
+        const items = (Array.isArray(j.results.juso) ? j.results.juso : []).slice(0, 7)
+          .map((x) => ({ road: s(x.roadAddrPart1, 80), jibun: s(x.jibunAddr, 80), zip: /^\d{5}$/.test(String(x.zipNo)) ? String(x.zipNo) : "", bd: s(x.bdNm, 40) }))
+          .filter((x) => x.road);
+        return res.status(200).json({ ok: true, items, total: Number(c.totalCount) || items.length });
+      } catch (e) {
+        console.error("addr error:", e && e.message);
+        return res.status(200).json({ ok: true, items: [], skip: true });
+      }
+    }
+
     // ── 거래처 전용 링크 수신 (?corp=<사업자번호>&t=<토큰>) ──
     // body: {action:"corpinfo", regno, token} → {ok, corp:{name,regno,email,ceo,addr}}
     // 사장님이 그 거래처에만 준 링크의 서명 토큰이 맞을 때만 응답한다.
