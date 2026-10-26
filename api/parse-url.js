@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { askClaude, extractJson, AI_MODEL } from "../lib/ai.mjs";
+import { fixParsed, kstToday } from "../lib/parse-fix.mjs";
 
 export const config = {
   runtime: "nodejs",
@@ -52,15 +53,15 @@ const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(�
 
 {
   "type": "wedding" | "funeral" | "unknown",
-  "recipientName": "수신인(신랑신부 또는 고인/상주) 이름. 모르면 빈 문자열",
-  "date": "행사 날짜 (YYYY-MM-DD 형식, 모르면 빈 문자열)",
-  "time": "행사 시간 (HH:MM 형식, 모르면 빈 문자열)",
+  "recipientName": "결혼식은 신랑·신부 이름, 장례식은 고인 성함만(故 없이), 그 밖은 받는 분. 장례식에서 상주 이름을 여기에 넣지 않는다. 모르면 빈 문자열",
+  "date": "결혼식은 예식 날짜, 장례식은 발인 날짜 (YYYY-MM-DD 형식, 모르면 빈 문자열)",
+  "time": "결혼식은 예식 시간, 장례식은 발인 시간 (HH:MM 형식, 모르면 빈 문자열)",
   "venueName": "예식장/장례식장 이름. 모르면 빈 문자열",
   "venueAddress": "장소 주소. 모르면 빈 문자열",
   "venueDetail": "층/홀/호실 등 세부 위치 (예: 3층 그랜드홀, 특실 201호). 모르면 빈 문자열",
   "groomName": "신랑 이름 (결혼식인 경우만, 아니면 빈 문자열)",
   "brideName": "신부 이름 (결혼식인 경우만, 아니면 빈 문자열)",
-  "chiefMourner": "상주 이름 (장례식인 경우만, 아니면 빈 문자열)",
+  "chiefMourner": "대표 상주 한 명 (장례식인 경우만, 아니면 빈 문자열). '○○ 드림'에 적힌 사람이 있으면 그 사람, 없으면 상주 명단의 첫 사람",
   "noWreath": true | false,
   "noWreathText": "화환·조화를 사양한다는 원문 한 줄. 없으면 빈 문자열",
   "confidence": "high" | "medium" | "low"
@@ -68,7 +69,9 @@ const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(�
 
 규칙:
 - 결혼식 안내면 type을 "wedding", 장례/부고면 "funeral"로 설정.
-- 날짜는 반드시 YYYY-MM-DD로 변환. 연도가 없으면 가장 가까운 미래 연도로 추정.
+- 날짜는 반드시 YYYY-MM-DD로 변환. 연도가 없으면 맨 앞에 적힌 오늘 날짜 기준으로 가장 가까운 날로 정한다.
+- 장례식 이름: "故 ○○", "고 ○○", "○○님께서 별세(소천)", "○○ 본인상"의 ○○는 고인. "○○ 부친상·모친상·빙부상·빙모상·시부상·시모상·조부상·조모상·배우자상", "○○의 부친"의 ○○는 상주이고, 고인 이름이 따로 없으면 recipientName 은 빈 문자열.
+- 장례식에 이름이 하나뿐이고 위 단서가 없으면 고인으로 본다. 고인과 상주는 같은 사람일 수 없으니 두 칸에 같은 이름을 넣지 않는다.
 - 확실하지 않은 필드는 추측하지 말고 빈 문자열로 둔다.
 - 정보가 거의 없으면 confidence를 "low"로.
 - "화환은 정중히 사양합니다", "조화 사절", "부의금·화환 받지 않습니다"처럼 화환을 받지 않는다는 말이 분명히 있을 때만 noWreath 를 true 로. 애매하면 false.
@@ -573,14 +576,16 @@ export default async function handler(req, res) {
         system: SYSTEM_PROMPT, maxTokens: 1024, timeoutMs: 25000,
         content: [
           { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } },
-          { type: "text", text: "이 이미지는 청첩장·부고 캡처입니다. 화환 배송 정보를 추출해 JSON으로만 응답하세요." },
+          { type: "text", text: `오늘은 ${kstToday()} 입니다. 이 이미지는 청첩장·부고 캡처입니다. 화환 배송 정보를 추출해 JSON으로만 응답하세요.` },
         ],
       });
       const j = r.ok ? extractJson(r.text) : null;
       if (!j || typeof j !== "object") return res.status(422).json({ error: "사진에서 내용을 읽지 못했어요. 링크를 붙여넣거나 전화(1577-2286) 주세요." });
-      return res.status(200).json({ ok: true, result: j });
+      return res.status(200).json({ ok: true, result: fixParsed(j, "") });
     }
 
+    // 카톡 부고 문자처럼 글과 링크가 같이 오면 둘 다 읽는다. 링크 페이지가 비어 있거나 못 열려도 글로 채운다(10/26).
+    const pasted = typeof text === "string" ? text.trim().slice(0, 4000) : "";
     let sourceText = "";
     if (url && typeof url === "string" && url.trim()) {
       // 기본 URL 형식 검증
@@ -593,7 +598,12 @@ export default async function handler(req, res) {
       if (!["http:", "https:"].includes(parsed.protocol)) {
         return res.status(400).json({ error: "http/https URL만 지원합니다." });
       }
-      sourceText = await fetchPageText(parsed.toString());
+      try {
+        sourceText = await fetchPageText(parsed.toString());
+      } catch (e) {
+        if (!pasted) throw e;
+      }
+      if (pasted) sourceText = (sourceText ? `[링크 페이지]\n${sourceText}\n\n` : "") + `[붙여넣은 글]\n${pasted}`;
     } else if (text && typeof text === "string" && text.trim()) {
       sourceText = text.trim().slice(0, 8000);
     } else {
@@ -622,7 +632,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "user",
-            content: `다음 안내문에서 화환 배송 정보를 추출해 JSON으로만 응답하세요:\n\n${sourceText}`,
+            content: `오늘은 ${kstToday()} 입니다. 다음 안내문에서 화환 배송 정보를 추출해 JSON으로만 응답하세요:\n\n${sourceText}`,
           },
         ],
       }),
@@ -644,7 +654,7 @@ export default async function handler(req, res) {
 
     const parsed = safeJsonParse(aiText);
 
-    return res.status(200).json({ ok: true, result: parsed });
+    return res.status(200).json({ ok: true, result: fixParsed(parsed, sourceText) });
   } catch (err) {
     console.error("parse-url error:", err);
     return res
