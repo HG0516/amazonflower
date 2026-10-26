@@ -258,18 +258,19 @@ export default async function handler(req, res) {
         .replace(/\s+/g, " ").trim().slice(0, 60);
       if (q.length < 2 || !/[가-힣0-9]/.test(q)) return res.status(200).json({ ok: true, items: [] });
       const key = process.env.JUSO_API_KEY;
-      if (!key) return res.status(200).json({ ok: true, items: [], skip: true });
+      // why: 왜 비었는지(키 없음·HTTP·API 오류 코드). 키 값은 절대 싣지 않는다.
+      if (!key) return res.status(200).json({ ok: true, items: [], skip: true, why: "nokey" });
       try {
         const r = await fetch(
           `https://business.juso.go.kr/addrlink/addrLinkApi.do?confmKey=${encodeURIComponent(key)}&currentPage=1&countPerPage=7&keyword=${encodeURIComponent(q)}&resultType=json`,
           { signal: AbortSignal.timeout(4000) }
         );
-        if (!r.ok) return res.status(200).json({ ok: true, items: [], skip: true });
+        if (!r.ok) return res.status(200).json({ ok: true, items: [], skip: true, why: "http" + r.status });
         const j = await r.json();
         const c = (j && j.results && j.results.common) || {};
         if (String(c.errorCode) !== "0") {
           console.error("addr juso:", c.errorCode, c.errorMessage);
-          return res.status(200).json({ ok: true, items: [], skip: true });
+          return res.status(200).json({ ok: true, items: [], skip: true, why: "juso:" + String(c.errorCode || "?").slice(0, 10) + " " + String(c.errorMessage || "").slice(0, 60) });
         }
         const s = (v, n) => String(v || "").replace(/\s+/g, " ").trim().slice(0, n);
         const items = (Array.isArray(j.results.juso) ? j.results.juso : []).slice(0, 7)
@@ -278,7 +279,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true, items, total: Number(c.totalCount) || items.length });
       } catch (e) {
         console.error("addr error:", e && e.message);
-        return res.status(200).json({ ok: true, items: [], skip: true });
+        return res.status(200).json({ ok: true, items: [], skip: true, why: "error " + String((e && e.name) || "").slice(0, 30) });
       }
     }
 

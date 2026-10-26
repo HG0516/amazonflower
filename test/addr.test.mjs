@@ -30,7 +30,7 @@ const OK = { results: { common: { errorCode: "0", totalCount: "1" }, juso: [
 
 test("키가 없으면 밖으로 묻지 않고 빈 목록", async () => {
   const { body, urls } = await run("화양동 46-5", { key: "" });
-  assert.deepEqual(body, { ok: true, items: [], skip: true });
+  assert.deepEqual(body, { ok: true, items: [], skip: true, why: "nokey" });
   assert.equal(urls.length, 0);
 });
 
@@ -51,5 +51,5 @@ test("API 가 거절하는 특수문자·예약어는 빼고 묻는다", async (
 test("너무 짧거나 API 오류면 빈 목록(주문은 그대로)", async () => {
   assert.deepEqual((await run("화", { reply: OK })).body.items, []);
   const err = await run("화양동", { reply: { results: { common: { errorCode: "E0001", errorMessage: "승인되지 않은 KEY" } } } });
-  assert.deepEqual(err.body, { ok: true, items: [], skip: true });
+  assert.deepEqual(err.body, { ok: true, items: [], skip: true, why: "juso:E0001 승인되지 않은 KEY" });
 });
