@@ -251,6 +251,14 @@
       "destination": "/bugo.html"
     },
     {
+      "source": "/prices",
+      "destination": "/prices.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/faq.html"
+    },
+    {
       "source": "/my",
       "destination": "/my.html"
     },

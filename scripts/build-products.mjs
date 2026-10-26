@@ -327,6 +327,11 @@ if (report.notes.length) dump("참고", report.notes);
   const n = buildShare();
   console.log(`공유 페이지 ${n}개 갱신 → s/*.html`);
 }
+// AI 검색용 가격표·안내 파일(prices.html, faq.html, llms.txt, llms-full.txt)도 같은 가격으로 다시 쓴다.
+{
+  const { buildAi } = await import("./build-ai.mjs?t=" + Date.now());
+  console.log(`AI 안내 파일 갱신 → ${buildAi().join(", ")}`);
+}
 
 console.log(`\n산출: products.js / ids.json / photo-manifest.json`);
 console.log(`다음: python scripts/optimize-photos.py  (사진 ${manifest.length}장 → photos/products/)`);

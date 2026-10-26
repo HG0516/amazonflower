@@ -1,4 +1,19 @@
+# AI 검색·AI 비서 로봇도 같은 규칙으로 들인다(10/26). 이름을 적어 두면 '막지 않았다'가 분명해진다.
+# 사이트 안내 한 장: https://floweranbu.co.kr/llms.txt
 User-agent: *
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: Yeti
+User-agent: Daumoa
 Allow: /
 Disallow: /admin
 Disallow: /admin.html

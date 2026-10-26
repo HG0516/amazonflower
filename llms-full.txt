@@ -1,0 +1,221 @@
+# 꽃안부
+
+> 경기 시흥에서 1993년부터 같은 사장님이 운영하는 꽃집의 온라인 주문 사이트예요. 근조화환, 축하화환, 꽃다발, 꽃바구니, 난, 관엽식물을 전국 당일 배송해요.
+> Floweranbu (꽃안부) is a Korean florist (since 1993, Siheung, Gyeonggi) offering nationwide same-day delivery of funeral wreaths, congratulatory wreaths, bouquets, orchids and plants. Order online without sign-up, or call +82-1577-2286.
+
+## 핵심
+- 주문 마감: 평일 18시, 주말 16시까지 주문하면 오늘 도착
+- 배송: 전국. 가격에 기본 배송비 포함, 먼 일부 지역은 1만~3만 원 추가(주문서가 주소로 자동 계산)
+- 도착 사진을 문자로 보내 줌
+- 결제: 카드, 네이버페이, 카카오페이, 토스페이. 회원가입 없이 주문. 전화 주문 1577-2286
+- 법인: 계산서 발행, 후불·월 정산 거래처 등록 가능
+- 취소: 배송 시작 전이면 전액 환불
+- 상호: 주식회사 아마존 (사업자등록번호 234-86-00344), 경기 시흥시 신천3길 23, 103호
+
+## 가격
+- 근조화환: 49,000원~149,000원 (6가지)
+- 축하화환: 49,000원~149,000원 (6가지)
+- 꽃다발: 55,000원~78,000원 (12가지)
+- 꽃바구니: 57,000원~147,000원 (15가지)
+- 난: 63,000원~197,000원 (19가지)
+- 관엽식물: 57,000원~247,000원 (49가지)
+- 전체 가격표: https://floweranbu.co.kr/prices
+
+## AI 비서가 주문 링크를 만들 때
+
+손님 대신 결제할 수는 없어요. 아래 링크를 만들어 건네면 받는 곳이 채워진 주문서가 열리고, 손님이 상품과 보내는 분을 고른 뒤 직접 결제해요. 값은 URL 인코딩하고, 모르는 값은 빼요.
+
+- 근조화환(장례식장): https://floweranbu.co.kr/?worder=funeral&v={장례식장 이름}&a={주소}&rn={고인 성함}&cm={상주}&vd={빈소 호실}&utm_source=ai
+  - v 와 a 중 하나는 있어야 해요. 고인 성함에 '故'는 붙이지 않아요.
+  - 받는 날은 오늘로 잡혀요. 마감(평일 18시, 주말 16시)이 지났으면 내일이에요.
+- 축하화환(결혼식): https://floweranbu.co.kr/?worder=wedding&v={예식장}&a={주소}&d={예식 날짜 YYYY-MM-DD}&et={예식 시각 HH:MM}&gn={신랑}&bn={신부}&vd={홀}&utm_source=ai
+  - 예식 1시간 전에 도착하도록 잡혀요.
+- 상품 하나를 골라 주문: https://floweranbu.co.kr/?pc={상품 코드}&utm_source=ai
+  - 상품 코드는 https://floweranbu.co.kr/prices 와 https://floweranbu.co.kr/llms-full.txt 에 있어요. 예: 근조화환 49,000원짜리는 WC-01.
+- 장례식장마다 안내 페이지가 있어요: https://floweranbu.co.kr/funeral/{장례식장 이름} (목록 https://floweranbu.co.kr/funeral/)
+- 부고장 링크나 캡처만 있으면 https://floweranbu.co.kr/ 첫 화면 칸에 붙여 넣게 안내해 주세요. 고인, 장례식장, 발인을 읽어 주문서를 채워요.
+
+## 페이지
+- [전체 상품 가격](https://floweranbu.co.kr/prices): 107가지 상품의 이름, 가격, 주문 링크
+- [자주 묻는 것](https://floweranbu.co.kr/faq): 마감, 배송비, 빈소 호실, 리본, 계산서, 환불
+- [전국 장례식장 근조화환](https://floweranbu.co.kr/funeral/): 장례식장별 주소, 배송비, 주문 링크
+- [무료 모바일 부고장](https://floweranbu.co.kr/bugo): 장례식장 이름만 치면 주소가 채워지는 부고장
+- [무료 모바일 청첩장](https://floweranbu.co.kr/wedding-card)
+- [신부 부케 예약](https://floweranbu.co.kr/wedding.html): 토·일 각 1~2건 예약제
+- [이용약관](https://floweranbu.co.kr/terms.html)
+
+## Optional
+- [전체 내용](https://floweranbu.co.kr/llms-full.txt): 전 상품 목록, 자주 묻는 것 전문, 추가 배송비 지역
+
+## 전 상품 (코드 · 이름 · 가격)
+### 근조화환
+- WC-01 · 근조 보통 · 49,000원 · 주문 https://floweranbu.co.kr/?pc=WC-01
+- WC-04 · 근조 일반1호 · 79,000원 · 주문 https://floweranbu.co.kr/?pc=WC-04
+- WC-03 · 근조 오브제 · 99,000원 · 주문 https://floweranbu.co.kr/?pc=WC-03
+- WC-05 · 근조 일반2호 · 99,000원 · 주문 https://floweranbu.co.kr/?pc=WC-05
+- WC-02 · 근조 스페셜 · 119,000원 · 주문 https://floweranbu.co.kr/?pc=WC-02
+- WC-06 · 근조 특대 · 149,000원 · 주문 https://floweranbu.co.kr/?pc=WC-06
+
+### 축하화환
+- WG-01 · 축하 보통 · 49,000원 · 주문 https://floweranbu.co.kr/?pc=WG-01
+- WG-03 · 축하 일반 · 79,000원 · 주문 https://floweranbu.co.kr/?pc=WG-03
+- WG-02 · 축하 스페셜1호 · 99,000원 · 주문 https://floweranbu.co.kr/?pc=WG-02
+- WG-06 · 축하 쌀화환10KG · 99,000원 · 주문 https://floweranbu.co.kr/?pc=WG-06
+- WG-05 · 축하 특일반 · 119,000원 · 주문 https://floweranbu.co.kr/?pc=WG-05
+- WG-04 · 축하 특상 · 149,000원 · 주문 https://floweranbu.co.kr/?pc=WG-04
+
+### 꽃다발
+- BQ-004 · 봄마중 (분홍튤립 다발) · 55,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-004
+- BQ-001 · 복주머니 (용돈꽃다발) · 58,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-001
+- BQ-005 · 활짝 (보라거베라 다발) · 58,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-005
+- BQ-002 · 다정 (분홍거베라 다발) · 67,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-002
+- BQ-003 · 웃음꽃 (주황장미 다발) · 67,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-003
+- BQ-006 · 발그레 (분홍장미 다발) · 67,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-006
+- BQ-009 · 들꽃편지 (꽃도라지 다발) · 68,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-009
+- BQ-010 · 물빛 (파란수국 다발) · 73,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-010
+- BQ-011 · 뭉게구름 (수국장미 다발) · 73,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-011
+- BQ-012 · 봄햇살 (주황튤립 다발) · 73,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-012
+- BQ-007 · 온마음 (빨간장미 다발) · 78,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-007
+- BQ-008 · 그리움 (보라모둠 다발) · 78,000원 · 주문 https://floweranbu.co.kr/?pc=BQ-008
+
+### 꽃바구니
+- BS-001 · 고마움 (빨간장미 바구니) · 57,000원 · 주문 https://floweranbu.co.kr/?pc=BS-001
+- BS-003 · 봄소풍 (봄꽃모둠 바구니) · 57,000원 · 주문 https://floweranbu.co.kr/?pc=BS-003
+- BS-009 · 맑은날 (주황장미 바구니) · 57,000원 · 주문 https://floweranbu.co.kr/?pc=BS-009
+- BS-012 · 버들강아지 (분홍장미 바구니) · 67,000원 · 주문 https://floweranbu.co.kr/?pc=BS-012
+- BS-013 · 연지곤지 (카네이션 바구니) · 67,000원 · 주문 https://floweranbu.co.kr/?pc=BS-013
+- BS-014 · 꽃단장 (카네이션백합 바구니) · 67,000원 · 주문 https://floweranbu.co.kr/?pc=BS-014
+- BS-002 · 노을빛 (연분홍작약 바구니) · 77,000원 · 주문 https://floweranbu.co.kr/?pc=BS-002
+- BS-007 · 솜사탕 (보라알리움 바구니) · 77,000원 · 주문 https://floweranbu.co.kr/?pc=BS-007
+- BS-008 · 햇살가득 (해바라기 바구니) · 77,000원 · 주문 https://floweranbu.co.kr/?pc=BS-008
+- BS-015 · 도란도란 (홍백장미 바구니) · 77,000원 · 주문 https://floweranbu.co.kr/?pc=BS-015
+- BS-005 · 함박웃음 (분홍작약 큰바구니) · 107,000원 · 주문 https://floweranbu.co.kr/?pc=BS-005
+- BS-006 · 꽃잔치 (작약백합 큰바구니) · 107,000원 · 주문 https://floweranbu.co.kr/?pc=BS-006
+- BS-011 · 향기가득 (프리지어 큰바구니) · 107,000원 · 주문 https://floweranbu.co.kr/?pc=BS-011
+- BS-004 · 복바구니 (특대 용돈바구니) · 147,000원 · 주문 https://floweranbu.co.kr/?pc=BS-004
+- BS-010 · 꽃대궐 (해바라기 특대바구니) · 147,000원 · 주문 https://floweranbu.co.kr/?pc=BS-010
+
+### 난
+- OR-003 · 철골소심 · 동양란 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=OR-003
+- OR-008 · 호접란 · 서양란 · 67,000원 · 주문 https://floweranbu.co.kr/?pc=OR-008
+- OR-019 · 호접란 · 서양란 · 67,000원 · 주문 https://floweranbu.co.kr/?pc=OR-019
+- OR-009 · 호접란 · 서양란 · 78,000원 · 주문 https://floweranbu.co.kr/?pc=OR-009
+- OR-010 · 호접란 · 서양란 · 78,000원 · 주문 https://floweranbu.co.kr/?pc=OR-010
+- OR-015 · 호접란 · 서양란 · 78,000원 · 주문 https://floweranbu.co.kr/?pc=OR-015
+- OR-016 · 호접란 · 서양란 · 78,000원 · 주문 https://floweranbu.co.kr/?pc=OR-016
+- OR-007 · 황룡금 · 동양란 · 98,000원 · 주문 https://floweranbu.co.kr/?pc=OR-007
+- OR-006 · 황룡금 · 동양란 · 108,000원 · 주문 https://floweranbu.co.kr/?pc=OR-006
+- OR-005 · 황룡금 · 동양란 · 117,000원 · 주문 https://floweranbu.co.kr/?pc=OR-005
+- OR-001 · 대국 · 동양란 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=OR-001
+- OR-004 · 태양금 · 동양란 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=OR-004
+- OR-011 · 호접란 · 서양란 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=OR-011
+- OR-014 · 호접란 · 서양란 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=OR-014
+- OR-017 · 호접란 · 서양란 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=OR-017
+- OR-018 · 호접란 · 서양란 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=OR-018
+- OR-002 · 대국 · 동양란 · 147,000원 · 주문 https://floweranbu.co.kr/?pc=OR-002
+- OR-012 · 호접란 · 서양란 · 150,000원 · 주문 https://floweranbu.co.kr/?pc=OR-012
+- OR-013 · 호접란 · 서양란 · 197,000원 · 주문 https://floweranbu.co.kr/?pc=OR-013
+
+### 관엽식물
+- PL-029 · 인도고무나무 · 57,000원 · 주문 https://floweranbu.co.kr/?pc=PL-029
+- PL-009 · 녹보수 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-009
+- PL-024 · 안시디움 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-024
+- PL-028 · 율마 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-028
+- PL-035 · 초록몬스테라 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-035
+- PL-046 · 홍콩야자 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-046
+- PL-049 · 황금죽 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-049
+- PL-050 · 스파티필룸 · 63,000원 · 주문 https://floweranbu.co.kr/?pc=PL-050
+- PL-015 · 몬스테라 · 66,000원 · 주문 https://floweranbu.co.kr/?pc=PL-015
+- PL-032 · 인삼벤자민 · 66,000원 · 주문 https://floweranbu.co.kr/?pc=PL-032
+- PL-003 · 금전수 · 67,000원 · 주문 https://floweranbu.co.kr/?pc=PL-003
+- PL-019 · 스투키 · 68,000원 · 주문 https://floweranbu.co.kr/?pc=PL-019
+- PL-051 · 자마이카 · 높이 약 110cm · 68,000원 · 주문 https://floweranbu.co.kr/?pc=PL-051
+- PL-044 · 행운목 · 높이 약 110cm · 76,000원 · 주문 https://floweranbu.co.kr/?pc=PL-044
+- PL-007 · 금전수 · 높이 약 100cm · 77,000원 · 주문 https://floweranbu.co.kr/?pc=PL-007
+- PL-047 · 황금죽 · 높이 약 100cm · 83,000원 · 주문 https://floweranbu.co.kr/?pc=PL-047
+- PL-045 · 행운목괴목 · 높이 약 110cm · 88,000원 · 주문 https://floweranbu.co.kr/?pc=PL-045
+- PL-004 · 금전수 · 높이 약 120cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-004
+- PL-005 · 금전수 · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-005
+- PL-010 · 녹보수 · 높이 약 150cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-010
+- PL-017 · 뱅갈고무나무 · 높이 약 140cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-017
+- PL-018 · 스투키 · 높이 약 110cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-018
+- PL-025 · 알로카시아 · 높이 약 150cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-025
+- PL-030 · 인도고무나무 · 높이 약 140cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-030
+- PL-037 · 크로톤 · 높이 약 90cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-037
+- PL-039 · 킹벤자민 · 높이 약 120cm · 98,000원 · 주문 https://floweranbu.co.kr/?pc=PL-039
+- PL-013 · 드라코 · 높이 약 140cm · 99,000원 · 주문 https://floweranbu.co.kr/?pc=PL-013
+- PL-020 · 스투키 · 높이 약 110cm · 99,000원 · 주문 https://floweranbu.co.kr/?pc=PL-020
+- PL-011 · 녹보수 · 높이 약 150cm · 108,000원 · 주문 https://floweranbu.co.kr/?pc=PL-011
+- PL-027 · 여인초 · 높이 약 150cm · 108,000원 · 주문 https://floweranbu.co.kr/?pc=PL-027
+- PL-031 · 인도고무나무 · 높이 약 150cm · 108,000원 · 주문 https://floweranbu.co.kr/?pc=PL-031
+- PL-048 · 황금죽 · 높이 약 150cm · 108,000원 · 주문 https://floweranbu.co.kr/?pc=PL-048
+- PL-012 · 드라세나마지나타 · 높이 약 150cm · 110,000원 · 주문 https://floweranbu.co.kr/?pc=PL-012
+- PL-006 · 금전수 · 118,000원 · 주문 https://floweranbu.co.kr/?pc=PL-006
+- PL-034 · 자바 · 높이 약 180cm · 118,000원 · 주문 https://floweranbu.co.kr/?pc=PL-034
+- PL-040 · 파키라 · 높이 약 150cm · 118,000원 · 주문 https://floweranbu.co.kr/?pc=PL-040
+- PL-043 · 행운목 · 높이 약 150cm · 118,000원 · 주문 https://floweranbu.co.kr/?pc=PL-043
+- PL-016 · 뱅갈고무나무 · 높이 약 150cm · 119,000원 · 주문 https://floweranbu.co.kr/?pc=PL-016
+- PL-022 · 아레카야자 · 높이 약 150cm · 119,000원 · 주문 https://floweranbu.co.kr/?pc=PL-022
+- PL-026 · 여인초 · 높이 약 150cm · 119,000원 · 주문 https://floweranbu.co.kr/?pc=PL-026
+- PL-002 · 가지마루 · 높이 약 90cm · 128,000원 · 주문 https://floweranbu.co.kr/?pc=PL-002
+- PL-023 · 아레카야자 · 높이 약 150cm · 128,000원 · 주문 https://floweranbu.co.kr/?pc=PL-023
+- PL-038 · 크로톤 · 128,000원 · 주문 https://floweranbu.co.kr/?pc=PL-038
+- PL-041 · 파키라특 · 높이 약 160cm · 138,000원 · 주문 https://floweranbu.co.kr/?pc=PL-041
+- PL-001 · 가지마루 · 높이 약 90cm · 147,000원 · 주문 https://floweranbu.co.kr/?pc=PL-001
+- PL-014 · 떡갈나무 · 높이 약 150cm · 157,000원 · 주문 https://floweranbu.co.kr/?pc=PL-014
+- PL-036 · 칼라벤자민 · 높이 약 150cm · 157,000원 · 주문 https://floweranbu.co.kr/?pc=PL-036
+- PL-042 · 해피트리 · 높이 약 160cm · 168,000원 · 주문 https://floweranbu.co.kr/?pc=PL-042
+- PL-008 · 녹보수 · 높이 약 150cm · 247,000원 · 주문 https://floweranbu.co.kr/?pc=PL-008
+
+## 자주 묻는 것
+### 오늘 받을 수 있나요?
+평일 18시, 주말 16시까지 주문하면 오늘 도착해요. 그보다 늦으면 다음 날 보내 드려요. 급하면 1577-2286으로 전화 주세요.
+
+### 배송비가 따로 있나요?
+상품 가격에 기본 배송비가 들어 있어요. 거리가 먼 일부 지역은 1만 원에서 3만 원이 더해지고, 주소를 넣으면 주문서가 바로 계산해 드려요.
+
+### 전국 어디든 보내 주나요?
+전국으로 보내요. 일부 섬과 외진 곳은 배송이 어려워서, 주소를 넣으면 주문서가 먼저 알려 드려요.
+
+### 장례식장 빈소 호실을 몰라도 되나요?
+비워 두셔도 돼요. 사장님이 장례식장에 확인해서 보내 드려요.
+
+### 부고 문자나 링크만 있는데 주문할 수 있나요?
+부고장 링크나 캡처 사진을 주문서에 넣으면 고인 성함, 장례식장, 발인 시간을 읽어서 채워 드려요. 채워진 내용을 한 번 보고 결제하시면 돼요.
+
+### 발인이 내일 아침이에요.
+전화(1577-2286)로 주문해 주세요. 발인 전에 닿도록 바로 보내 드려요.
+
+### 리본 문구는 어떻게 정하나요?
+주문서에서 고르거나, 받는 분과의 관계를 적으면 맞는 문구를 골라 드려요. 보내는 분 이름도 리본에 들어가요.
+
+### 도착했는지 알 수 있나요?
+배송하고 바로 도착 사진을 문자로 보내 드려요.
+
+### 결제는 어떻게 하나요?
+카드, 네이버페이, 카카오페이, 토스페이로 결제할 수 있어요. 회원가입 없이 주문할 수 있고 전화 주문도 받아요.
+
+### 회사 이름으로 보내고 계산서를 받을 수 있나요?
+주문서에서 법인·단체를 펼쳐 사업자 정보를 넣으면 계산서를 발행해 드려요. 자주 보내는 회사는 후불과 월 정산 거래처로 등록할 수 있어요(1577-2286).
+
+### 주문을 취소하거나 환불할 수 있나요?
+배송을 시작하기 전이면 주문을 취소하고 전액 환불받을 수 있어요. 꽃은 주문을 받고 만드는 상품이라 만들기 시작했거나 보낸 뒤에는 단순 변심으로 인한 환불이 제한될 수 있어요. 상품에 문제가 있거나 잘못 배송됐다면 받은 직후 사진과 함께 연락 주세요. 다시 만들어 보내거나 환불해 드려요.
+
+### 사진과 똑같이 오나요?
+계절과 꽃 수급에 따라 사진과 조금 다를 수 있어요. 그럴 때는 같은 등급 이상으로 만들어 드려요.
+
+### 부고장도 만들 수 있나요?
+무료 모바일 부고장을 만들 수 있어요(https://floweranbu.co.kr/bugo). 장례식장 이름만 치면 주소와 전화가 채워지고, 발인 7일 뒤 자동으로 지워져요.
+
+### 신부 부케도 하나요?
+토요일과 일요일에 각 1~2건만 받는 예약제로 만들어요. 본식 부케는 16만~22만 원이에요(https://floweranbu.co.kr/wedding.html).
+
+### 어떤 가게인가요?
+경기 시흥에서 1993년부터 같은 사장님이 운영하는 꽃집이에요. 상호는 주식회사 아마존이고 대표 전화는 1577-2286이에요.
+
+## 추가 배송비 지역
+주소에 아래 지역이 들어 있으면 배송비가 더해져요. 주문서가 주소를 보고 자동으로 넣어요.
+- 10,000원: 플로팅아일랜드, 채플 청담, 가평군, 양서면, 남사읍, 화도읍, 연천군, 안성 일죽, 제주, 강원, 부산 기장, 부산 강서구, 부산 해운대, 대구 달성군, 군위군, 울주군, 남해군, 밀양, 산청군, 고성군(경남), 창녕군, 김해 진영읍, 진해구, 합천군, 함안군, 고령군, 영덕군, 영주시, 문경, 동명면(경북 칠곡), 봉화군, 상주시, 영천시, 예천군, 울진군, 청송군, 청도군, 풍산읍, 경주 안강읍, 경주 감포읍, 경주 서면, 경주 외동읍, 하늘마루, 경산 하양읍, 경산 와촌면, 경산 자인면, 경산 진량읍, 칠곡 가산면, 포항 구룡포읍, 포항 기계면, 남원시, 무주군, 순창군, 임실군, 익산 함열, 곡성군, 담양군, 구례군, 해남군, 진도군, 함평군, 완도군, 나주 노안면, 보성 미력면, 화순고려장례식장, 청양군, 명지병원장례식장(충북 제천), 논산 정동, 당진 합덕읍, 금산군, 보령 웅천읍, 유리병원, 단양군, 진천군, 영동군, 청주 내수읍, 청주 오송읍, 청주 오창읍, 초정장례식장, 송산장례문화원, 계룡 엄사면, 공주 이인면, 공주 유구읍
+- 20,000원: 영종(인천), 관인장례식장, 포천 금강산, 영북농협, 함양군 마전, 영양군, 청송군 안덕면, 성주군, 고흥군, 영암군, 우수영장례식장, 장흥군, 관산(전남 장흥), 정남진장례식장, 제주 구좌읍, 제주 애월읍, 제주 조천읍, 제주 한경면, 제주 한림읍, 서귀포 남원읍, 서귀포 대정읍, 서귀포 성산읍, 서귀포 안덕면, 서귀포 표선면, 진안군, 장수군, 보은군, 횡성군, 인제군, 주문진, 문막(강원 원주)
+- 30,000원: 평창군, 동해시, 죽왕면, 신안군, 장계면, 회진장례식장
+- 배송이 어려운 곳: 공룡알화석지, 옹진, 임계면, 변산반도, 변산면, 땅끝마을, 소록도 (전화로 먼저 확인)

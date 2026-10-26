@@ -36,6 +36,8 @@ const slugBase = (n) => String(n).replace(/[\/\\?%*:|"<>#&\s]+/g, "").slice(0, 6
 const wreaths = PRODUCTS.filter((p) => p.cat === "condolence" && p.status !== "품절" && (p.photos || []).length)
   .sort((a, b) => a.price - b.price).slice(0, 4);
 const from = wreaths.length ? wreaths[0].price : 49000;
+const wreathAll = PRODUCTS.filter((p) => p.cat === "condolence" && p.status !== "품절" && p.price > 0);
+const upto = wreathAll.length ? Math.max(...wreathAll.map((p) => p.price)) : from;
 
 const homes = SRC.items.filter((h) => h && h.n && h.a);
 const count = {};
@@ -90,11 +92,19 @@ function page(h, near) {
   const fee = rc && rc.amt ? `${h.gu || h.sido} 지역은 배송비 ${won(rc.amt)}이 더해져요.` : "배송비가 포함된 가격이에요.";
   const title = `${h.n} 근조화환 ${won(from)}부터 · 당일 배송 | 꽃안부`;
   const desc = `${h.n}(${h.a}) 빈소로 근조화환을 보내요. ${won(from)}부터, ${rc && rc.amt ? "지역 배송비 " + won(rc.amt) : "배송비 포함"}. 평일 18시·주말 16시까지 주문하면 오늘 도착하고, 도착하면 사진으로 알려 드려요.`;
-  const ld = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
-    { "@type": "ListItem", position: 1, name: "꽃안부", item: BASE + "/" },
-    { "@type": "ListItem", position: 2, name: "장례식장 근조화환", item: BASE + "/funeral/" },
-    { "@type": "ListItem", position: 3, name: h.n, item: url(h) } ] };
-  return head(title, desc, url(h), `\n<script type="application/ld+json">${JSON.stringify(ld)}</script>`) + `
+  // AI 검색·검색엔진이 '○○장례식장 근조화환' 질문에 가격·배송 조건을 바로 읽어 가게 서비스 데이터도 붙인다(10/26).
+  const ld = { "@context": "https://schema.org", "@graph": [
+    { "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "꽃안부", item: BASE + "/" },
+      { "@type": "ListItem", position: 2, name: "장례식장 근조화환", item: BASE + "/funeral/" },
+      { "@type": "ListItem", position: 3, name: h.n, item: url(h) } ] },
+    { "@type": "Service", name: `${h.n} 근조화환 배송`, serviceType: "근조화환 배송", url: url(h),
+      description: desc,
+      provider: { "@type": "Florist", "@id": BASE + "/#shop", name: "꽃안부", telephone: "+82-1577-2286", url: BASE + "/" },
+      areaServed: { "@type": "Place", name: h.n, address: { "@type": "PostalAddress", streetAddress: h.a, addressCountry: "KR" } },
+      offers: { "@type": "AggregateOffer", priceCurrency: "KRW", lowPrice: from + (rc && rc.amt ? rc.amt : 0), highPrice: upto + (rc && rc.amt ? rc.amt : 0),
+        offerCount: wreathAll.length, url: BASE + orderUrl(h) } } ] };
+  return head(title, desc, url(h), `\n<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`) + `
 <body><div class="w">
 <div class="top"><a href="/">꽃안부</a><a href="tel:1577-2286">전화 1577-2286</a></div>
 <h1>${esc(h.n)}<br>근조화환 보내기</h1>

@@ -1,0 +1,48 @@
+# 꽃안부
+
+> 경기 시흥에서 1993년부터 같은 사장님이 운영하는 꽃집의 온라인 주문 사이트예요. 근조화환, 축하화환, 꽃다발, 꽃바구니, 난, 관엽식물을 전국 당일 배송해요.
+> Floweranbu (꽃안부) is a Korean florist (since 1993, Siheung, Gyeonggi) offering nationwide same-day delivery of funeral wreaths, congratulatory wreaths, bouquets, orchids and plants. Order online without sign-up, or call +82-1577-2286.
+
+## 핵심
+- 주문 마감: 평일 18시, 주말 16시까지 주문하면 오늘 도착
+- 배송: 전국. 가격에 기본 배송비 포함, 먼 일부 지역은 1만~3만 원 추가(주문서가 주소로 자동 계산)
+- 도착 사진을 문자로 보내 줌
+- 결제: 카드, 네이버페이, 카카오페이, 토스페이. 회원가입 없이 주문. 전화 주문 1577-2286
+- 법인: 계산서 발행, 후불·월 정산 거래처 등록 가능
+- 취소: 배송 시작 전이면 전액 환불
+- 상호: 주식회사 아마존 (사업자등록번호 234-86-00344), 경기 시흥시 신천3길 23, 103호
+
+## 가격
+- 근조화환: 49,000원~149,000원 (6가지)
+- 축하화환: 49,000원~149,000원 (6가지)
+- 꽃다발: 55,000원~78,000원 (12가지)
+- 꽃바구니: 57,000원~147,000원 (15가지)
+- 난: 63,000원~197,000원 (19가지)
+- 관엽식물: 57,000원~247,000원 (49가지)
+- 전체 가격표: https://floweranbu.co.kr/prices
+
+## AI 비서가 주문 링크를 만들 때
+
+손님 대신 결제할 수는 없어요. 아래 링크를 만들어 건네면 받는 곳이 채워진 주문서가 열리고, 손님이 상품과 보내는 분을 고른 뒤 직접 결제해요. 값은 URL 인코딩하고, 모르는 값은 빼요.
+
+- 근조화환(장례식장): https://floweranbu.co.kr/?worder=funeral&v={장례식장 이름}&a={주소}&rn={고인 성함}&cm={상주}&vd={빈소 호실}&utm_source=ai
+  - v 와 a 중 하나는 있어야 해요. 고인 성함에 '故'는 붙이지 않아요.
+  - 받는 날은 오늘로 잡혀요. 마감(평일 18시, 주말 16시)이 지났으면 내일이에요.
+- 축하화환(결혼식): https://floweranbu.co.kr/?worder=wedding&v={예식장}&a={주소}&d={예식 날짜 YYYY-MM-DD}&et={예식 시각 HH:MM}&gn={신랑}&bn={신부}&vd={홀}&utm_source=ai
+  - 예식 1시간 전에 도착하도록 잡혀요.
+- 상품 하나를 골라 주문: https://floweranbu.co.kr/?pc={상품 코드}&utm_source=ai
+  - 상품 코드는 https://floweranbu.co.kr/prices 와 https://floweranbu.co.kr/llms-full.txt 에 있어요. 예: 근조화환 49,000원짜리는 WC-01.
+- 장례식장마다 안내 페이지가 있어요: https://floweranbu.co.kr/funeral/{장례식장 이름} (목록 https://floweranbu.co.kr/funeral/)
+- 부고장 링크나 캡처만 있으면 https://floweranbu.co.kr/ 첫 화면 칸에 붙여 넣게 안내해 주세요. 고인, 장례식장, 발인을 읽어 주문서를 채워요.
+
+## 페이지
+- [전체 상품 가격](https://floweranbu.co.kr/prices): 107가지 상품의 이름, 가격, 주문 링크
+- [자주 묻는 것](https://floweranbu.co.kr/faq): 마감, 배송비, 빈소 호실, 리본, 계산서, 환불
+- [전국 장례식장 근조화환](https://floweranbu.co.kr/funeral/): 장례식장별 주소, 배송비, 주문 링크
+- [무료 모바일 부고장](https://floweranbu.co.kr/bugo): 장례식장 이름만 치면 주소가 채워지는 부고장
+- [무료 모바일 청첩장](https://floweranbu.co.kr/wedding-card)
+- [신부 부케 예약](https://floweranbu.co.kr/wedding.html): 토·일 각 1~2건 예약제
+- [이용약관](https://floweranbu.co.kr/terms.html)
+
+## Optional
+- [전체 내용](https://floweranbu.co.kr/llms-full.txt): 전 상품 목록, 자주 묻는 것 전문, 추가 배송비 지역
