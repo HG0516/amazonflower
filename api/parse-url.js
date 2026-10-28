@@ -832,6 +832,6 @@ export default async function handler(req, res) {
     console.error("parse-url error:", err);
     return res
       .status(500)
-      .json({ error: err.message || "알 수 없는 오류가 발생했습니다." });
+      .json({ error: err.message || "알 수 없는 오류가 발생했습니다.", ...(err.raw ? { raw: err.raw } : {}) });
   }
 }
