@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import parseUrl from "../api/parse-url.js";
-import { crossCheck, fixNames, fixParsed, fixYear, kstToday, matchHome, pageToText, ruleDeceased, ruleOuts, sameArea } from "../lib/parse-fix.mjs";
+import { crossCheck, fixNames, fixParsed, fixYear, kstToday, matchHome, pageToText, ruleDeceased, ruleOuts, sameArea, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
 
 const TODAY = "2026-10-26";
 
@@ -186,6 +186,15 @@ test("숨은 입력칸(바른손 M카드)도 읽고 전화번호 칸은 버린�
   </body></html>`);
   assert.match(a.text, /Groom_Name\(신랑명\): 이 준 서\nWeddingDate\(예식일자\): 2025-10-18\nWeddingMin\(예식분\): 30\nWeddinghall_Name\(예식장이름\): 바른컨벤션센터\nWeddinghall_Address\(예식장주소\): 서울시 중구 을지로 3가 296-13/);
   assert.doesNotMatch(a.text, /010-1234|보이는 칸/);
+});
+
+test("직접 만든 청첩장: 같은 사이트 스크립트를 골라 한글 문자열만 뽑는다(10/28)", () => {
+  const html = `<script src="https://cdn.tailwindcss.com"></script><script type="module" src="/assets/index-KULm.js"></script>
+    <script src="/.netlify/scripts/rum"></script><script src="/js/jquery.min.js"></script>`;
+  assert.deepEqual(scriptUrls(html, "https://bong.netlify.app/"), ["https://bong.netlify.app/assets/index-KULm.js"]);
+  const t = scriptHangul(`const a={g:"김철수",h:'토미스퀘어가든',x:"theme-dark",n:\`화훼 화환은
+정중히 사양합니다.\`,u:"\\uc778\\ub3d935\\uae38 46"};`);
+  assert.equal(t, "김철수\n토미스퀘어가든\n화훼 화환은 정중히 사양합니다.\n인동35길 46");
 });
 
 test("발인 줄을 규칙으로 읽는다(부고장마다 다른 모양)", () => {

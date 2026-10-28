@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { askClaude, extractJson, AI_MODEL } from "../lib/ai.mjs";
 import { createRequire } from "node:module";
-import { fixParsed, kstToday, pageToText } from "../lib/parse-fix.mjs";
+import { fixParsed, kstToday, pageToText, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
 
 // 장례식장 목록(공공데이터 1,117곳, 부고장 만들기와 같은 목록) — 자동읽기 결과의 장례식장 주소를 맞춰 본다.
 let HOMES = null;
@@ -65,7 +65,25 @@ async function fetchPageText(url) {
   }
   const html = await res.text();
   // 미리보기 요약·본문·페이지 안 데이터를 같이 읽는다(lib/parse-fix.mjs pageToText). 너무 길면 앞부분만(토큰 절약).
-  const { text, hangul } = pageToText(html);
+  let { text, hangul } = pageToText(html);
+  // 화면 글자가 적으면 같은 사이트 스크립트 속 한글도 읽는다(직접 만든 청첩장, lib/parse-fix.mjs scriptHangul).
+  if (hangul < 200) {
+    const parts = [];
+    for (const src of scriptUrls(html, res.url || url)) {
+      try {
+        const r = await fetch(src, { headers: PAGE_HEADERS, signal: AbortSignal.timeout(5000) });
+        if (!r.ok) continue;
+        const js = (await r.text()).slice(0, 4_000_000);
+        const t = scriptHangul(js);
+        if (t) parts.push(t);
+      } catch { /* 못 읽으면 건너뛴다 */ }
+    }
+    if (parts.length) {
+      const extra = parts.join("\n").slice(0, 4000);
+      text = `${text.slice(0, 6000)}\n\n[스크립트 안 글자]\n${extra}`;
+      hangul += (extra.match(/[가-힣]/g) || []).length;
+    }
+  }
   return { text: text.slice(0, 10000), hangul };
 }
 
