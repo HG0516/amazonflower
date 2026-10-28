@@ -165,6 +165,15 @@ test("태그 꼬리표(data-page)에 데이터를 넣는 청첩장도 읽는다(
   assert.doesNotMatch(a.text, /theme/);
 });
 
+test("결혼식 받는 분 이름에 하트 같은 꾸밈 글자를 남기지 않는다(10/28)", () => {
+  const w = (o) => fixParsed({ type: "wedding", date: "", ...o }, "", Date.parse("2026-10-28T03:00:00Z")).recipientName;
+  assert.equal(w({ recipientName: "김현수 ♥ 김도연", groomName: "김현수", brideName: "김도연" }), "김현수·김도연");
+  assert.equal(w({ recipientName: "김태용, 노지윤", groomName: "김태용", brideName: "노지윤" }), "김태용·노지윤");
+  assert.equal(w({ recipientName: "태용♡지윤", groomName: "", brideName: "" }), "태용·지윤");
+  assert.equal(w({ recipientName: "김현수", groomName: "♥김현수", brideName: "" }), "김현수");
+  assert.equal(fixParsed({ type: "funeral", recipientName: "홍길동", date: "" }, "", Date.parse("2026-10-28T03:00:00Z")).recipientName, "홍길동");
+});
+
 test("발인 줄을 규칙으로 읽는다(부고장마다 다른 모양)", () => {
   const t = "2026-10-26";
   const one = (s) => ruleOuts(s, t)[0] || null;
