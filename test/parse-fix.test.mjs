@@ -174,6 +174,20 @@ test("결혼식 받는 분 이름에 하트 같은 꾸밈 글자를 남기지 �
   assert.equal(fixParsed({ type: "funeral", recipientName: "홍길동", date: "" }, "", Date.parse("2026-10-28T03:00:00Z")).recipientName, "홍길동");
 });
 
+test("숨은 입력칸(바른손 M카드)도 읽고 전화번호 칸은 버린다(10/28)", () => {
+  const a = pageToText(`<html><head><title>BarunsonMcard 모바일 초대장</title></head><body>
+    <input type="hidden" id="Groom_Name" match="신랑명" value="이 준 서">
+    <input type="hidden" id="Groom_Phone" value="010-1234-5678">
+    <input type="hidden" id="WeddingDate" match="예식일자" value="2025-10-18" />
+    <input type="hidden" id="WeddingMin" match="예식분" value="30" />
+    <input type="hidden" id="Weddinghall_Name" match="예식장이름" value="바른컨벤션센터">
+    <input type="hidden" id="Weddinghall_Address" match="예식장주소" value="서울시 중구 을지로 3가 296-13">
+    <input type="text" id="memo" value="보이는 칸">
+  </body></html>`);
+  assert.match(a.text, /Groom_Name\(신랑명\): 이 준 서\nWeddingDate\(예식일자\): 2025-10-18\nWeddingMin\(예식분\): 30\nWeddinghall_Name\(예식장이름\): 바른컨벤션센터\nWeddinghall_Address\(예식장주소\): 서울시 중구 을지로 3가 296-13/);
+  assert.doesNotMatch(a.text, /010-1234|보이는 칸/);
+});
+
 test("발인 줄을 규칙으로 읽는다(부고장마다 다른 모양)", () => {
   const t = "2026-10-26";
   const one = (s) => ruleOuts(s, t)[0] || null;
