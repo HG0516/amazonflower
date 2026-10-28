@@ -3,6 +3,7 @@
 // 보안: ANTHROPIC_API_KEY는 이 서버 함수 안에서만 사용된다. 프론트에 절대 노출되지 않는다.
 
 import crypto from "node:crypto";
+import https from "node:https";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -26,16 +27,39 @@ export const config = {
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = AI_MODEL;
 
-async function fetchPageText(url) {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (compatible; AmazonFlowerBot/1.0; +https://amazonflower.example)",
-      Accept: "text/html,application/xhtml+xml",
-    },
-    redirect: "follow",
-    signal: AbortSignal.timeout(9000),
+const PAGE_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (compatible; AmazonFlowerBot/1.0; +https://amazonflower.example)",
+  Accept: "text/html,application/xhtml+xml",
+};
+
+// 오래된 서버(달팽 dalpeng.com 등, IIS·DH 1024비트)는 Node 24 기본 보안 수준에서 연결이 거절된다(ERR_SSL_DH_KEY_TOO_SMALL, 10/28).
+// 공개 청첩장 페이지를 읽기만 하고 아무것도 보내지 않으니, 이때만 보안 수준을 한 단계 낮춰 다시 연다.
+function fetchOldTls(url, hops = 0) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: PAGE_HEADERS, ciphers: "DEFAULT@SECLEVEL=1", timeout: 9000 }, (r) => {
+      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location && hops < 3) {
+        r.resume();
+        return resolve(fetchOldTls(new URL(r.headers.location, url).href, hops + 1));
+      }
+      let body = "";
+      r.setEncoding("utf8");
+      r.on("data", (c) => { if (body.length < 3_000_000) body += c; });
+      r.on("end", () => resolve({ ok: r.statusCode >= 200 && r.statusCode < 300, status: r.statusCode, text: async () => body }));
+    });
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", reject);
   });
+}
+
+async function fetchPageText(url) {
+  let res;
+  try {
+    res = await fetch(url, { headers: PAGE_HEADERS, redirect: "follow", signal: AbortSignal.timeout(9000) });
+  } catch (e) {
+    const code = e && e.cause && e.cause.code;
+    if (!/^https:/i.test(url) || !/SSL|TLS|DH_KEY|CERT|EPROTO/i.test(String(code || ""))) throw e;
+    res = await fetchOldTls(url);
+  }
   if (!res.ok) {
     throw new Error(`페이지를 불러오지 못했습니다 (HTTP ${res.status})`);
   }
