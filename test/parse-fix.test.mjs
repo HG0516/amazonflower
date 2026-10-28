@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import parseUrl from "../api/parse-url.js";
-import { crossCheck, fixNames, fixParsed, fixYear, kstToday, matchHome, pageToText, ruleDeceased, ruleOuts, sameArea, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
+import { crossCheck, fixNames, fixParsed, fixYear, kstToday, matchHome, pageToText, ruleDeceased, ruleOuts, sameArea, scriptHangul, scriptUrls, frameUrls } from "../lib/parse-fix.mjs";
 
 const TODAY = "2026-10-26";
 
@@ -195,6 +195,12 @@ test("직접 만든 청첩장: 같은 사이트 스크립트를 골라 한글 �
   const t = scriptHangul(`const a={g:"김철수",h:'토미스퀘어가든',x:"theme-dark",n:\`화훼 화환은
 정중히 사양합니다.\`,u:"\\uc778\\ub3d935\\uae38 46"};`);
   assert.equal(t, "김철수\n토미스퀘어가든\n화훼 화환은 정중히 사양합니다.\n인동35길 46");
+});
+
+test("안쪽 창(iframe) 주소를 고르고 지도·동영상 창은 뺀다(10/28)", () => {
+  const html = `<iframe src="https://www.youtube.com/embed/x"></iframe><iframe src="about:blank"></iframe>
+    <iframe id="phone_frame" src="/i/home.php?uid=sample201"></iframe><iframe src="https://map.kakao.com/x"></iframe>`;
+  assert.deepEqual(frameUrls(html, "https://bojagicard.com/mcard/popup.php?ecard=sample201"), ["https://bojagicard.com/i/home.php?uid=sample201"]);
 });
 
 test("발인 줄을 규칙으로 읽는다(부고장마다 다른 모양)", () => {

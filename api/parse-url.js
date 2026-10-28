@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { askClaude, extractJson, AI_MODEL } from "../lib/ai.mjs";
 import { createRequire } from "node:module";
-import { fixParsed, kstToday, pageToText, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
+import { fixParsed, frameUrls, kstToday, pageToText, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
 
 // 장례식장 목록(공공데이터 1,117곳, 부고장 만들기와 같은 목록) — 자동읽기 결과의 장례식장 주소를 맞춰 본다.
 let HOMES = null;
@@ -41,50 +41,113 @@ function fetchOldTls(url, hops = 0) {
         r.resume();
         return resolve(fetchOldTls(new URL(r.headers.location, url).href, hops + 1));
       }
-      let body = "";
-      r.setEncoding("utf8");
-      r.on("data", (c) => { if (body.length < 3_000_000) body += c; });
-      r.on("end", () => resolve({ ok: r.statusCode >= 200 && r.statusCode < 300, status: r.statusCode, text: async () => body }));
+      const chunks = []; let size = 0;
+      r.on("data", (c) => { if (size < 3_000_000) { chunks.push(c); size += c.length; } });
+      r.on("end", () => {
+        const buf = Buffer.concat(chunks);
+        resolve({ ok: r.statusCode >= 200 && r.statusCode < 300, status: r.statusCode, url, headers: { get: (k) => r.headers[String(k).toLowerCase()] || null },
+          arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length) });
+      });
     });
     req.on("timeout", () => req.destroy(new Error("timeout")));
     req.on("error", reject);
   });
 }
 
-async function fetchPageText(url) {
+// 일부 사이트는 우리 봇 이름을 막는다(403). 그때만 보통 휴대폰 브라우저 이름으로 한 번 더 연다.
+const PHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+
+async function openPage(url, timeoutMs = 9000) {
   let res;
   try {
-    res = await fetch(url, { headers: PAGE_HEADERS, redirect: "follow", signal: AbortSignal.timeout(9000) });
+    res = await fetch(url, { headers: PAGE_HEADERS, redirect: "follow", signal: AbortSignal.timeout(timeoutMs) });
+    if (res.status === 403 || res.status === 406 || res.status === 429) {
+      res = await fetch(url, { headers: { ...PAGE_HEADERS, "User-Agent": PHONE_UA }, redirect: "follow", signal: AbortSignal.timeout(timeoutMs) });
+    }
   } catch (e) {
     const code = e && e.cause && e.cause.code;
     if (!/^https:/i.test(url) || !/SSL|TLS|DH_KEY|CERT|EPROTO/i.test(String(code || ""))) throw e;
     res = await fetchOldTls(url);
   }
+  return res;
+}
+
+// 옛 한국 사이트는 한글을 EUC-KR 로 보낸다. 그대로 UTF-8 로 읽으면 다 깨져 "읽을 게 없음"이 된다(10/28 미리 막음).
+async function readHtml(res) {
+  const buf = Buffer.from(await res.arrayBuffer()).subarray(0, 4_000_000);
+  const head = buf.subarray(0, 4096).toString("latin1");
+  const cs = (/charset\s*=\s*["']?([\w-]+)/i.exec((res.headers && res.headers.get("content-type")) || "") || /<meta[^>]+charset\s*=\s*["']?([\w-]+)/i.exec(head) || [])[1] || "utf-8";
+  const enc = /euc-?kr|ks_c_5601|cp949|x-windows-949/i.test(cs) ? "euc-kr" : "utf-8";
+  try { return new TextDecoder(enc).decode(buf); } catch { return buf.toString("utf8"); }
+}
+
+async function fetchPageText(url) {
+  const res = await openPage(url);
   if (!res.ok) {
     throw new Error(`페이지를 불러오지 못했습니다 (HTTP ${res.status})`);
   }
-  const html = await res.text();
+  const html = await readHtml(res);
+  const pageUrl = res.url || url;
   // 미리보기 요약·본문·페이지 안 데이터를 같이 읽는다(lib/parse-fix.mjs pageToText). 너무 길면 앞부분만(토큰 절약).
   let { text, hangul } = pageToText(html);
-  // 화면 글자가 적으면 같은 사이트 스크립트 속 한글도 읽는다(직접 만든 청첩장, lib/parse-fix.mjs scriptHangul).
+  // 화면 글자가 적으면 ① 안쪽 창(iframe, 보자기카드 미리보기처럼) ② 같은 사이트 스크립트 속 한글(직접 만든 청첩장)도 읽는다.
   if (hangul < 200) {
     const parts = [];
-    for (const src of scriptUrls(html, res.url || url)) {
+    for (const src of frameUrls(html, pageUrl)) {
       try {
-        const r = await fetch(src, { headers: PAGE_HEADERS, signal: AbortSignal.timeout(5000) });
+        const r = await openPage(src, 6000);
         if (!r.ok) continue;
-        const js = (await r.text()).slice(0, 4_000_000);
-        const t = scriptHangul(js);
-        if (t) parts.push(t);
+        const inner = pageToText(await readHtml(r));
+        if (inner.hangul > 20) { parts.push(inner.text.slice(0, 5000)); break; }
       } catch { /* 못 읽으면 건너뛴다 */ }
     }
+    if (!parts.length) {
+      for (const src of scriptUrls(html, pageUrl)) {
+        try {
+          const r = await fetch(src, { headers: PAGE_HEADERS, signal: AbortSignal.timeout(5000) });
+          if (!r.ok) continue;
+          const js = (await r.text()).slice(0, 4_000_000);
+          const t = scriptHangul(js);
+          if (t) parts.push(`[스크립트 안 글자]\n${t}`);
+        } catch { /* 못 읽으면 건너뛴다 */ }
+      }
+    }
     if (parts.length) {
-      const extra = parts.join("\n").slice(0, 4000);
-      text = `${text.slice(0, 6000)}\n\n[스크립트 안 글자]\n${extra}`;
+      const extra = parts.join("\n").slice(0, 5000);
+      text = `${text.slice(0, 5000)}\n\n${extra}`;
       hangul += (extra.match(/[가-힣]/g) || []).length;
     }
   }
   return { text: text.slice(0, 10000), hangul };
+}
+
+// 링크를 넣었는데 못 읽었거나 예식장·날짜가 비면 텔레그램으로 바로 알린다(10/28).
+// 손님은 안 읽히면 말없이 떠나니, 새 청첩장 업체·바뀐 구조를 손님 링크로 먼저 알아채고 그날 고치기 위한 것.
+// 같은 링크는 함수 인스턴스마다 한 번만. 실패해도 응답에는 영향 없음.
+const MISS_SEEN = new Set();
+async function notifyMiss(url, why) {
+  const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
+  if (!tg || !tgc || !url || MISS_SEEN.has(url)) return;
+  MISS_SEEN.add(url);
+  const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  let host = ""; try { host = new URL(url).host; } catch { /* 그대로 */ }
+  try {
+    await fetch(`https://api.telegram.org/bot${tg}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: tgc, text: `${tag}🔗 자동읽기 못 함 (${host})\n${why}\n${url}`, disable_web_page_preview: true }),
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch { /* 알림 실패는 무시 */ }
+}
+function missingOf(r) {
+  if (!r || typeof r !== "object") return "결과 없음";
+  const miss = [];
+  if (r.type === "unknown" || !r.type) miss.push("종류");
+  if (!r.venueName) miss.push(r.type === "funeral" ? "장례식장" : "예식장");
+  if (!r.date && r.type !== "funeral") miss.push("날짜");
+  if (!r.recipientName) miss.push(r.type === "funeral" ? "고인" : "이름");
+  return miss.length ? `빈 칸: ${miss.join("·")}` : "";
 }
 
 const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(장례식) 안내문에서 화환 배송에 필요한 정보를 추출하는 도우미입니다.
@@ -682,8 +745,9 @@ export default async function handler(req, res) {
         const page = await fetchPageText(parsed.toString());
         // 빈 화면만 오는 부고장(브라우저에서 그리는 곳)은 읽을 게 없다. 글이 같이 왔으면 글로, 아니면 캡처·문자를 안내한다.
         if (page.hangul >= 8) sourceText = page.text;
-        else if (!pasted) return res.status(422).json({ error: THIN_MSG, code: "thin" });
+        else if (!pasted) { await notifyMiss(parsed.toString(), "화면에 글자가 거의 없음"); return res.status(422).json({ error: THIN_MSG, code: "thin" }); }
       } catch (e) {
+        await notifyMiss(parsed.toString(), `열기 실패: ${String((e && e.message) || e).slice(0, 120)}`);
         if (!pasted) throw e;
       }
       if (pasted) sourceText = (sourceText ? `[링크 페이지]\n${sourceText}\n\n` : "") + `[붙여넣은 글]\n${pasted}`;
@@ -736,8 +800,10 @@ export default async function handler(req, res) {
       .join("");
 
     const parsed = safeJsonParse(aiText);
+    const result = fixParsed(parsed, sourceText, Date.now(), funeralHomes());
+    if (url && typeof url === "string") { const miss = missingOf(result); if (miss) await notifyMiss(url.trim(), miss); }
 
-    return res.status(200).json({ ok: true, result: fixParsed(parsed, sourceText, Date.now(), funeralHomes()) });
+    return res.status(200).json({ ok: true, result });
   } catch (err) {
     console.error("parse-url error:", err);
     return res
