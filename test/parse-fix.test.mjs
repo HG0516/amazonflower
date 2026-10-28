@@ -154,6 +154,17 @@ test("미리보기 요약(og:description)과 페이지 안 데이터까지 읽�
   assert.ok(pageToText(`<html><head><title>의전나라</title></head><body><div id="app"></div><script src="/assets/index.js"></script></body></html>`).hangul < 8);
 });
 
+test("태그 꼬리표(data-page)에 데이터를 넣는 청첩장도 읽는다(더모드, 10/28)", () => {
+  const page = JSON.stringify({ props: { card: { weddingDate: { date: "2026-11-07", hour: 12, minute: 0 },
+    location: { roadAddress: "서울 강남구 테헤란로 521", hallName: "그랜드 인터컨티넨탈 서울 파르나스", floorName: "5층 그랜드 볼룸" },
+    groom: { maleGivenName: "김태용" }, theme: "rose" } } }).replace(/"/g, "&quot;");
+  const a = pageToText(`<html><head><title>소중한 분들을 초대합니다</title>
+    <meta property="og:description" content="태용♡지윤의 모바일 청첩장"></head>
+    <body><div id="app" data-page="${page}"></div></body></html>`);
+  assert.match(a.text, /date: 2026-11-07\nhour: 12\nminute: 0\nroadAddress: 서울 강남구 테헤란로 521\nhallName: 그랜드 인터컨티넨탈 서울 파르나스\nfloorName: 5층 그랜드 볼룸\nmaleGivenName: 김태용$/);
+  assert.doesNotMatch(a.text, /theme/);
+});
+
 test("발인 줄을 규칙으로 읽는다(부고장마다 다른 모양)", () => {
   const t = "2026-10-26";
   const one = (s) => ruleOuts(s, t)[0] || null;
