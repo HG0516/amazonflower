@@ -183,18 +183,35 @@ const SYSTEM_PROMPT = `당신은 한국어 청첩장(결혼식) 또는 부고(�
 - "화환은 정중히 사양합니다", "조화 사절", "부의금·화환 받지 않습니다"처럼 화환을 받지 않는다는 말이 분명히 있을 때만 noWreath 를 true 로. 애매하면 false.
 - 이미지(캡처)가 오면 그 안의 글자를 읽어 같은 형식으로 답한다.`;
 
-function safeJsonParse(text) {
-  // 혹시 코드블록이나 앞뒤 텍스트가 붙어와도 JSON 부분만 뽑아낸다
-  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) {
-      return JSON.parse(match[0]);
+// AI 답을 JSON 으로 읽는다. 가끔 깨진 모양으로 온다 — 문자열 안 날 줄바꿈(청첩장 "화환 사양" 문구를 여러 줄 그대로 옮김),
+// 끝 쉼표, 코드블록. 그런 것만 고쳐 다시 읽는다(10/28 직접 만든 청첩장에서 4번 중 2번 실패).
+function repairJson(t) {
+  let out = "", inStr = false, esc = false;
+  for (const ch of t) {
+    if (inStr) {
+      if (esc) { esc = false; out += ch; continue; }
+      if (ch === "\\") { esc = true; out += ch; continue; }
+      if (ch === '"') { inStr = false; out += ch; continue; }
+      if (ch === "\n") { out += "\\n"; continue; }
+      if (ch === "\r") continue;
+      if (ch === "\t") { out += " "; continue; }
+      out += ch;
+    } else {
+      if (ch === '"') inStr = true;
+      out += ch;
     }
-    throw new Error("AI 응답을 해석하지 못했습니다.");
   }
+  return out.replace(/,\s*([}\]])/g, "$1");
+}
+function safeJsonParse(text) {
+  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const body = (cleaned.match(/\{[\s\S]*\}/) || [cleaned])[0];
+  for (const t of [cleaned, body, repairJson(body)]) {
+    try { return JSON.parse(t); } catch { /* 다음 */ }
+  }
+  const err = new Error("AI 응답을 해석하지 못했습니다.");
+  err.raw = cleaned.slice(0, 300);
+  throw err;
 }
 
 export default async function handler(req, res) {
@@ -774,7 +791,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1024,
+        max_tokens: 1500,
         system: SYSTEM_PROMPT,
         messages: [
           {
@@ -799,7 +816,14 @@ export default async function handler(req, res) {
       .map((b) => b.text)
       .join("");
 
-    const parsed = safeJsonParse(aiText);
+    let parsed;
+    try {
+      parsed = safeJsonParse(aiText);
+    } catch (e) {
+      console.error("parse-url bad json", data.stop_reason, e.raw);
+      if (url && typeof url === "string") await notifyMiss(url.trim(), `AI 답 해석 실패(${data.stop_reason || "?"}): ${e.raw || ""}`);
+      throw e;
+    }
     const result = fixParsed(parsed, sourceText, Date.now(), funeralHomes());
     if (url && typeof url === "string") { const miss = missingOf(result); if (miss) await notifyMiss(url.trim(), miss); }
 
