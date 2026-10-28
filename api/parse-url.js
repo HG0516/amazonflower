@@ -215,6 +215,7 @@ function safeJsonParse(text) {
 }
 
 export default async function handler(req, res) {
+  const reqStart = Date.now();   // 함수 한도(30초) 안에서 AI 다시 묻기를 할지 정할 때 쓴다
   // CORS (같은 도메인이면 불필요하지만 안전하게)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -783,8 +784,12 @@ export default async function handler(req, res) {
     }
 
     // AI 답이 가끔 비어 오거나(10/28 직접 만든 청첩장, 3번에 1번꼴) 깨져 온다. 한 번만 다시 묻는다.
-    const askOnce = async () => {
-      const anthropicRes = await fetch(ANTHROPIC_API_URL, {
+    const t0 = Date.now();
+    const askOnce = async (ms) => {
+      let anthropicRes;
+      try {
+      anthropicRes = await fetch(ANTHROPIC_API_URL, {
+        signal: AbortSignal.timeout(ms),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -803,6 +808,9 @@ export default async function handler(req, res) {
           ],
         }),
       });
+      } catch (e) {
+        return { bad: `시간 초과·연결 실패 ${Math.round((Date.now() - t0) / 1000)}초` };
+      }
       if (!anthropicRes.ok) {
         const errText = await anthropicRes.text();
         console.error("Anthropic API error:", anthropicRes.status, errText);
@@ -813,14 +821,16 @@ export default async function handler(req, res) {
       try {
         return { parsed: safeJsonParse(aiText) };
       } catch (e) {
-        const why = `${data.stop_reason || "?"} ${(data.content || []).map((b) => b.type).join(",") || "내용 없음"} ${e.raw || ""}`.trim();
+        const why = `${data.stop_reason || "?"} ${(data.content || []).map((b) => b.type).join(",") || "내용 없음"} 출력${(data.usage && data.usage.output_tokens) || "?"} ${Math.round((Date.now() - t0) / 1000)}초 ${e.raw || ""}`.trim();
         console.error("parse-url bad json", why);
         return { bad: why };
       }
     };
 
-    let ai = await askOnce();
-    if (!ai.parsed) ai = await askOnce();
+    // 함수 한도 30초 안에서: 첫 번째 18초, 남은 시간이 8초 넘으면 한 번 더.
+    let ai = await askOnce(Math.max(8000, Math.min(18000, 27000 - (Date.now() - reqStart))));
+    const left = 27000 - (Date.now() - reqStart);
+    if (!ai.parsed && !ai.status && left > 8000) ai = await askOnce(left);
     if (ai.status) {
       return res
         .status(502)
