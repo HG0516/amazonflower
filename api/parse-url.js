@@ -782,48 +782,55 @@ export default async function handler(req, res) {
         .json({ error: "페이지에서 분석할 텍스트를 찾지 못했습니다." });
     }
 
-    const anthropicRes = await fetch(ANTHROPIC_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1500,
-        system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: `오늘은 ${kstToday()} 입니다. 다음 안내문에서 화환 배송 정보를 추출해 JSON으로만 응답하세요:\n\n${sourceText}`,
-          },
-        ],
-      }),
-    });
+    // AI 답이 가끔 비어 오거나(10/28 직접 만든 청첩장, 3번에 1번꼴) 깨져 온다. 한 번만 다시 묻는다.
+    const askOnce = async () => {
+      const anthropicRes = await fetch(ANTHROPIC_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 1500,
+          system: SYSTEM_PROMPT,
+          messages: [
+            {
+              role: "user",
+              content: `오늘은 ${kstToday()} 입니다. 다음 안내문에서 화환 배송 정보를 추출해 JSON으로만 응답하세요:\n\n${sourceText}`,
+            },
+          ],
+        }),
+      });
+      if (!anthropicRes.ok) {
+        const errText = await anthropicRes.text();
+        console.error("Anthropic API error:", anthropicRes.status, errText);
+        return { status: anthropicRes.status };
+      }
+      const data = await anthropicRes.json();
+      const aiText = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+      try {
+        return { parsed: safeJsonParse(aiText) };
+      } catch (e) {
+        const why = `${data.stop_reason || "?"} ${(data.content || []).map((b) => b.type).join(",") || "내용 없음"} ${e.raw || ""}`.trim();
+        console.error("parse-url bad json", why);
+        return { bad: why };
+      }
+    };
 
-    if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text();
-      console.error("Anthropic API error:", anthropicRes.status, errText);
+    let ai = await askOnce();
+    if (!ai.parsed) ai = await askOnce();
+    if (ai.status) {
       return res
         .status(502)
-        .json({ error: "AI 분석 중 오류가 발생했습니다.", detail: anthropicRes.status });
+        .json({ error: "AI 분석 중 오류가 발생했습니다.", detail: ai.status });
     }
-
-    const data = await anthropicRes.json();
-    const aiText = (data.content || [])
-      .filter((b) => b.type === "text")
-      .map((b) => b.text)
-      .join("");
-
-    let parsed;
-    try {
-      parsed = safeJsonParse(aiText);
-    } catch (e) {
-      console.error("parse-url bad json", data.stop_reason, e.raw);
-      if (url && typeof url === "string") await notifyMiss(url.trim(), `AI 답 해석 실패(${data.stop_reason || "?"}): ${e.raw || ""}`);
-      throw e;
+    if (!ai.parsed) {
+      if (url && typeof url === "string") await notifyMiss(url.trim(), `AI 답 해석 실패: ${ai.bad}`);
+      return res.status(500).json({ error: "AI 응답을 해석하지 못했습니다.", raw: ai.bad.slice(0, 300) });
     }
+    const parsed = ai.parsed;
     const result = fixParsed(parsed, sourceText, Date.now(), funeralHomes());
     if (url && typeof url === "string") { const miss = missingOf(result); if (miss) await notifyMiss(url.trim(), miss); }
 
