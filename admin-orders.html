@@ -123,22 +123,32 @@ function fmtDateTime(o){
 // ── 발주 복사(10/29 엄마): 협력 꽃집에 카톡으로 넘길 글. 결제 금액·주문자 번호·주문번호는 넣지 않는다 ──
 // 엄마가 손으로 보내던 순서: 상품 → 날짜·시간 → 받는 분 → 장소 → 주소 → 리본(문구·보내는 분) → 요청.
 // AF_ORDER_TEXT_START
+// 메모 칸(request_note·note)에 붙은 표시를 나눈다: [상품 N가지: …] [발인·예식·행사 …] [상주 …] [원문 링크] [카드] 나머지=손님 요청.
+function noteParts(o){
+  let n = String(o.request_note || o.note || "");
+  const out = { multi:"", ev:"", mourner:"", src:"", card:false, rest:"" };
+  n = n.replace(/\[상품 \d+가지: ([^\]]*)\]/, (_, x) => { out.multi = x; return ""; });
+  n = n.replace(/\[(발인|예식|행사) ([^\]]*)\]/, (_, k, t) => { out.ev = k + " " + t; return ""; });
+  n = n.replace(/\[상주 ([^\]]*)\]/, (_, x) => { out.mourner = x; return ""; });
+  n = n.replace(/\[원문 (https?:\/\/[^\]\s]+)\]/, (_, x) => { out.src = x; return ""; });
+  n = n.replace(/\[카드\]\s*/, () => { out.card = true; return ""; });
+  out.rest = n.replace(/\s+/g, " ").trim();
+  return out;
+}
+// 협력 꽃집에서 쓰는 상품 이름(아버지 대응표, 10/29 형구 '바꾸기'). 비어 있으면 우리 상품 이름 그대로 나간다.
+// 예) "WC-01": "근조 기본"  — 상품 코드는 /prices 에 있다.
+const PARTNER_NAME = {};
 function afOrderText(o){
-  const L = [];
-  let note = String(o.request_note || o.note || "");
-  let multi = "", ev = "", card = "";
-  note = note.replace(/\[상품 \d+가지: ([^\]]*)\]/, (_, x) => { multi = x; return ""; });
-  note = note.replace(/\[(발인|예식|행사) ([^\]]*)\]/, (_, k, t) => { ev = k + " " + t; return ""; });
-  note = note.replace(/\[카드\]\s*/, () => { card = "1"; return ""; });
-  note = note.replace(/\s+/g, " ").trim();
-  L.push(multi ? multi : (o.product_label || o.product_code || "꽃 주문"));
+  const L = [], np = noteParts(o);
+  L.push(np.multi ? np.multi : (PARTNER_NAME[o.product_code] || o.product_label || o.product_code || "꽃 주문"));
   const d = o.delivery_date || o.event_date || "";
   const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/);
   const day = m ? `${+m[2]}월 ${+m[3]}일(${"일월화수목금토"[new Date(`${d}T12:00:00+09:00`).getUTCDay()]})` : d;
   const t = o.event_time || SLOT_LABEL[o.delivery_time_slot] || "";
   const when = [day, /^\d{1,2}:\d{2}$/.test(t) ? t + "까지" : t].filter(Boolean).join(" ");
-  if (when || ev) L.push([when, ev].filter(Boolean).join(" · "));
+  if (when || np.ev) L.push([when, np.ev].filter(Boolean).join(" · "));
   if (o.recipient_name) L.push((o.order_type === "funeral" ? "고인ㆍ" : "받는 분ㆍ") + o.recipient_name);
+  if (np.mourner) L.push("상주ㆍ" + np.mourner);
   const road = [o.road_address, o.detail_address].filter(Boolean).join(" ");
   const place = road ? [o.building_name, o.room_info].filter(Boolean).join(" ") : (o.venue || "");
   const addr = road || o.address || "";
@@ -153,7 +163,8 @@ function afOrderText(o){
   if (words) L.push("리본ㆍ" + words);
   if (who) L.push("보내는 분ㆍ" + who);
   if (!who && !words && (o.sender_name || o.orderer_name)) L.push("보내는 분ㆍ" + (o.sender_name || o.orderer_name));
-  if (note) L.push((card ? "카드 문구ㆍ" : "요청ㆍ") + note);
+  if (np.rest) L.push((np.card ? "카드 문구ㆍ" : "요청ㆍ") + np.rest);
+  if (np.src) L.push((o.order_type === "funeral" ? "부고장ㆍ" : o.order_type === "wedding" ? "청첩장ㆍ" : "원문ㆍ") + np.src);
   return L.join("\n");
 }
 // AF_ORDER_TEXT_END
@@ -219,7 +230,8 @@ function render(){
     const phone = o.recipient_phone || "";
     const sPhone = o.sender_phone || o.orderer_phone || "";
     const ribbon = o.ribbon_text || o.ribbon || "";
-    const req = o.request_note || o.note || "";
+    const np = noteParts(o);
+    const req = [np.multi?`[상품: ${np.multi}]`:"", np.ev?`[${np.ev}]`:"", np.card&&np.rest?`[카드] ${np.rest}`:np.rest].filter(Boolean).join(" ");
     const oid = esc(o.order_id||"");
     const photoNotice = o.photo_notice_status === "sent" ? "고객 문자 전송됨"
       : o.photo_notice_status === "failed" ? "고객 문자 실패"
@@ -236,7 +248,9 @@ function render(){
         ${addr?`<div><span class="lbl">배송지</span>${esc(addr)}</div>`:''}
         ${phone?`<div><span class="lbl">받는분</span><a href="tel:${esc(phone)}">${esc(phone)}</a></div>`:''}
         ${sender?`<div><span class="lbl">보내는분</span>${esc(sender)}${sPhone?` · <a href="tel:${esc(sPhone)}">${esc(sPhone)}</a>`:''}</div>`:''}
+        ${np.mourner?`<div><span class="lbl">상주</span>${esc(np.mourner)}</div>`:''}
         ${req?`<div><span class="lbl">요청</span>${esc(req)}</div>`:''}
+        ${np.src?`<div><span class="lbl">${o.order_type==="funeral"?"부고장":o.order_type==="wedding"?"청첩장":"원문"}</span><a href="${esc(np.src)}" target="_blank" rel="noopener">링크 열기</a></div>`:''}
       </div>
       ${ribbon?`<div class="o-ribbon">🎀 <b>리본</b> · ${esc(ribbon)}</div>`:''}
       ${o.completed_photo&&!refundPending?`<div class="o-photo"><button onclick="viewPhoto('${oid}',this)" style="font-size:12px;color:#1f4733;font-weight:700;background:#e8f0ea;border:1px solid #1f4733;border-radius:7px;padding:6px 11px;cursor:pointer;font-family:inherit;">📷 올린 사진 보기</button>${photoNotice?` <span style="font-size:12px;color:${o.photo_notice_status==='sent'?'#1f4733':'#9a3b2e'};font-weight:700;">${esc(photoNotice)}</span>`:''}${o.photo_notice_status!=='sent'?` <button onclick="resendPhoto('${oid}',this)" style="font-size:12px;border:1px solid var(--line);border-radius:7px;padding:6px 10px;background:#fff;cursor:pointer;">문자 다시 보내기</button>`:''}</div>`:''}

@@ -39,3 +39,25 @@ test("근조: 고인, 당일중, 요청은 그대로, 예전 우편번호는 뺀
   assert.match(txt, /주소ㆍ경북 문경시 당교3길 25/);
   assert.match(txt, /요청ㆍ빈소 확인 부탁$/);
 });
+
+test("상주와 원문 링크(10/29): 메모 표시에서 꺼내 줄로, 링크는 맨 끝", () => {
+  const txt = afOrderText({
+    product_label: "근조 보통", order_type: "funeral", recipient_name: "손○○",
+    event_date: "2026-10-27", event_time: "당일중",
+    venue: "문경제일병원장례식장 301호", address: "경북 문경시 당교3길 25",
+    ribbon: "(주)○○시스템 ○○○ / 삼가 故人(고인)의 冥福(명복)을 빕니다",
+    note: "[발인 10/29 06:00] [상주 아들 손○○] [원문 https://www.wooribugo4.com/page/funeral/view.php?uri=AbC==] 빈소 확인",
+  });
+  assert.equal(txt, [
+    "근조 보통",
+    "10월 27일(화) 당일중 · 발인 10/29 06:00",
+    "고인ㆍ손○○",
+    "상주ㆍ아들 손○○",
+    "장소ㆍ문경제일병원장례식장 301호",
+    "주소ㆍ경북 문경시 당교3길 25",
+    "리본ㆍ삼가 故人(고인)의 冥福(명복)을 빕니다",
+    "보내는 분ㆍ(주)○○시스템 ○○○",
+    "요청ㆍ빈소 확인",
+    "부고장ㆍhttps://www.wooribugo4.com/page/funeral/view.php?uri=AbC==",
+  ].join("\n"));
+});

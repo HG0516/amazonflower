@@ -86,6 +86,15 @@ test("가상계좌 주문 원장은 접수(new)가 아니라 입금 대기로 �
   assert.equal(card.va_account, undefined);
 });
 
+test("상주·원문 링크(10/29)는 원장 메모에 표시로 남는다 (발주 복사·관리 화면이 읽음)", () => {
+  const pay = { orderId: "AF20990101-D", paymentKey: "pk", totalAmount: PRICE, status: "DONE", method: "카드" };
+  const row = buildOrderRow({ ...ORDER, chiefMourner: "장남 [김]○○", sourceUrl: "https://www.wooribugo4.com/page/funeral/view.php?uri=AbC==" }, pay);
+  assert.match(row.note, /\[상주 장남 김○○\]/);
+  assert.match(row.note, /\[원문 https:\/\/www\.wooribugo4\.com\/page\/funeral\/view\.php\?uri=AbC==\]/);
+  const plain = buildOrderRow({ ...ORDER, chiefMourner: "", sourceUrl: "", src: "", sourceText: "링크 없음" }, pay);
+  assert.doesNotMatch(String(plain.note || ""), /\[상주|\[원문/);
+});
+
 // confirm-payment 의 예전(legacy) 경로 — 운영 DB 와 같은 상태(payment_intents 없음)
 function legacyConfirmFetch({ tossPayment, inserts, telegrams }) {
   return async (input, options = {}) => {
