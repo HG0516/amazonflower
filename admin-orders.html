@@ -111,10 +111,58 @@ function isUrgent(o){
   if(isNaN(t)) return false;
   return t <= nowMs() + 6*3600000;   // 6시간 내(또는 이미 지남)
 }
+// 도착 시각: event_time 에 '11:00'·'당일중' 같은 실제 글이 있다. delivery_time_slot 은 버튼 이름(custom·today…)이라
+// 그대로 보이면 'custom' 이 찍혔다(10/29 엄마 화면). 글이 없을 때만 버튼 이름을 말로 바꿔 쓴다.
+const SLOT_LABEL = { am:"오전중", pm:"오후중", today:"당일중", call:"통화 후 결정" };
 function fmtDateTime(o){
   const d = o.delivery_date || o.event_date || "";
-  const t = o.delivery_time_slot || o.event_time || "";
+  const t = o.event_time || SLOT_LABEL[o.delivery_time_slot] || "";
   return [d, t].filter(Boolean).join(" ");
+}
+
+// ── 발주 복사(10/29 엄마): 협력 꽃집에 카톡으로 넘길 글. 결제 금액·주문자 번호·주문번호는 넣지 않는다 ──
+// 엄마가 손으로 보내던 순서: 상품 → 날짜·시간 → 받는 분 → 장소 → 주소 → 리본(문구·보내는 분) → 요청.
+// AF_ORDER_TEXT_START
+function afOrderText(o){
+  const L = [];
+  let note = String(o.request_note || o.note || "");
+  let multi = "", ev = "", card = "";
+  note = note.replace(/\[상품 \d+가지: ([^\]]*)\]/, (_, x) => { multi = x; return ""; });
+  note = note.replace(/\[(발인|예식|행사) ([^\]]*)\]/, (_, k, t) => { ev = k + " " + t; return ""; });
+  note = note.replace(/\[카드\]\s*/, () => { card = "1"; return ""; });
+  note = note.replace(/\s+/g, " ").trim();
+  L.push(multi ? multi : (o.product_label || o.product_code || "꽃 주문"));
+  const d = o.delivery_date || o.event_date || "";
+  const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const day = m ? `${+m[2]}월 ${+m[3]}일(${"일월화수목금토"[new Date(`${d}T12:00:00+09:00`).getUTCDay()]})` : d;
+  const t = o.event_time || SLOT_LABEL[o.delivery_time_slot] || "";
+  const when = [day, /^\d{1,2}:\d{2}$/.test(t) ? t + "까지" : t].filter(Boolean).join(" ");
+  if (when || ev) L.push([when, ev].filter(Boolean).join(" · "));
+  if (o.recipient_name) L.push((o.order_type === "funeral" ? "고인ㆍ" : "받는 분ㆍ") + o.recipient_name);
+  const road = [o.road_address, o.detail_address].filter(Boolean).join(" ");
+  const place = road ? [o.building_name, o.room_info].filter(Boolean).join(" ") : (o.venue || "");
+  const addr = road || o.address || "";
+  if (place) L.push("장소ㆍ" + place);
+  if (addr && addr !== place) L.push("주소ㆍ" + String(addr).replace(/^\[\d{5}\]\s*/, ""));
+  if (o.recipient_phone) L.push("받는 분 연락처ㆍ" + o.recipient_phone);
+  let who = o.ribbon_sender || "", words = o.ribbon_text || "";
+  if (!who && !words && o.ribbon) {
+    const parts = String(o.ribbon).split(" / ");
+    if (parts.length >= 2) { who = parts[0]; words = parts.slice(1).join(" / "); } else words = parts[0];
+  }
+  if (words) L.push("리본ㆍ" + words);
+  if (who) L.push("보내는 분ㆍ" + who);
+  if (!who && !words && (o.sender_name || o.orderer_name)) L.push("보내는 분ㆍ" + (o.sender_name || o.orderer_name));
+  if (note) L.push((card ? "카드 문구ㆍ" : "요청ㆍ") + note);
+  return L.join("\n");
+}
+// AF_ORDER_TEXT_END
+async function copyOrderText(i, btn){
+  const o = (window.__shown || [])[i]; if(!o) return;
+  const txt = afOrderText(o), old = btn.textContent;
+  try{ await navigator.clipboard.writeText(txt); toast("발주 내용 복사됨 — 금액·주문자 번호는 빠져 있어요 ✓"); btn.textContent="✓ 복사됨"; }
+  catch(e){ prompt("이 글을 복사해 꽃집에 보내세요:", txt); }
+  setTimeout(()=>{ btn.textContent=old; }, 1800);
 }
 function fmtAddr(o){
   const road = [o.road_address, o.detail_address].filter(Boolean).join(" ");
@@ -161,7 +209,8 @@ function render(){
 
   if(!list.length){ $("list").innerHTML = `<div class="empty">${ORDERS.length?"해당 주문이 없어요.":"아직 들어온 주문이 없어요. 🌸<br>주문이 결제되면 여기에 바로 떠요."}</div>`; return; }
 
-  $("list").innerHTML = list.map(o=>{
+  window.__shown = list;
+  $("list").innerHTML = list.map((o,_i)=>{
     const st = o.status || "new";
     const refundPending = isRefundPending(o);
     const urgent = isUrgent(o);
@@ -197,6 +246,7 @@ function render(){
           : `<div class="o-actions"><div class="o-wait">💰 무통장 입금 대기 — 아직 만들지 마세요. 통장에 들어온 걸 확인하면 '입금 확인'을 눌러주세요.</div>${afAdmin.role==="owner"?`<button class="on" onclick="depositOrder('${oid}',this)">💰 입금 확인</button><button onclick="voidOrder('${oid}',this)">🗑 주문 취소(입금 전)</button>`:''}</div>`)
         : st==='expired' ? `<div class="o-actions"><div class="o-wait" style="background:#f0eee8;color:#7a766c;">⌛ 입금 기한이 지나 닫힌 주문이에요. 만들지 않습니다.</div></div>`
         : st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:refundPending?`<div class="o-actions"><div class="o-lock">🔒 환불 결과 확인 전까지 발주·배송·사진 작업을 잠갔어요.</div><button onclick="load()">↻ 환불 상태 확인</button></div>`:`<div class="o-actions">
+        <button onclick="copyOrderText(${_i},this)">📋 발주 복사</button>
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">준비중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
