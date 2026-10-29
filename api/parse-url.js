@@ -798,6 +798,8 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model: MODEL,
+          // 생각 끄기 — 켜 두면 어려워 보이는 페이지에서 생각만 700토큰 쓰고 답이 비어 왔다(10/28, 12번 중 10번).
+          thinking: { type: "disabled" },
           max_tokens: 700,   // 답 JSON 은 300토큰 안팎. 길게 늘어지면(10/28 30초 초과) 일찍 끊고 다시 묻는다
           system: SYSTEM_PROMPT,
           messages: [
