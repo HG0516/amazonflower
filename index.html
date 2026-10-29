@@ -2534,9 +2534,10 @@ function afHomeName(p){
   if((p.cat==="basket"||p.cat==="bouquet") && p.sub && nm.indexOf(p.sub)<0) return p.sub+" "+nm;
   return nm;
 }
-// 홈 '관엽' 줄(10/26 형구): 보석금전수 60,000 · 몬스테라 66,000 · 스투키 68,000 을 앞에, 나머지는 싼 순서.
+// 홈 '관엽' 줄(10/26 형구): 보석금전수 60,000 · 몬스테라 66,000 을 앞에, 나머지는 싼 순서.
+// 10/29 아버지: 스투키·안시디움 빼고 자바(PL-034 118,000)·칼라벤자민(PL-036 157,000)으로. 네 개를 정해 두어 싼 것이 끼어들지 않게 한다.
 // 인도고무나무·녹보수는 손님이 덜 찾아 홈에서만 뺀다(전체 상품엔 그대로). 보석금전수는 관리자 '새 상품'(CU-)으로 올라와서 이름으로 찾는다.
-var AF_HOME_PLANT_FIRST=[p=>String(p.name||"").replace(/\s/g,"")==="보석금전수", p=>p.pc==="PL-015", p=>p.pc==="PL-019"];
+var AF_HOME_PLANT_FIRST=[p=>String(p.name||"").replace(/\s/g,"")==="보석금전수", p=>p.pc==="PL-015", p=>p.pc==="PL-034", p=>p.pc==="PL-036"];
 var AF_HOME_PLANT_SKIP=["인도고무나무","녹보수"];
 function afHomePlants(all, cheapest){
   const pl=cheapest(all.filter(p=>p.cat==="plant" && AF_HOME_PLANT_SKIP.indexOf(String(p.name||"").replace(/\s/g,""))<0));
