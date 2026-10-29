@@ -798,7 +798,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 1500,
+          max_tokens: 700,   // 답 JSON 은 300토큰 안팎. 길게 늘어지면(10/28 30초 초과) 일찍 끊고 다시 묻는다
           system: SYSTEM_PROMPT,
           messages: [
             {
@@ -821,7 +821,7 @@ export default async function handler(req, res) {
       try {
         return { parsed: safeJsonParse(aiText) };
       } catch (e) {
-        const why = `${data.stop_reason || "?"} ${(data.content || []).map((b) => b.type).join(",") || "내용 없음"} 출력${(data.usage && data.usage.output_tokens) || "?"} ${Math.round((Date.now() - t0) / 1000)}초 ${e.raw || ""}`.trim();
+        const why = `${data.stop_reason || "?"} ${(data.content || []).map((b) => b.type).join(",") || "내용 없음"} 출력${(data.usage && data.usage.output_tokens) || "?"} ${Math.round((Date.now() - t0) / 1000)}초 ${(aiText || "").slice(-200)}`.trim();
         console.error("parse-url bad json", why);
         return { bad: why };
       }
