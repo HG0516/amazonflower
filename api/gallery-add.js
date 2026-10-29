@@ -7,9 +7,13 @@
 //  - Supabase JWT + 서버 allowlist/역할을 확인하고 입력(name/sub/color)은 서버에서 정화한다.
 //  - JPEG 매직바이트 검증, 용량·하루 업로드 한도(남용/스토리지 고갈 방지), CORS 자기 도메인 고정.
 //  - 클라이언트(catalog)는 anon 키로 visible=true 만 읽고, 출력 시에도 HTML 이스케이프(1차 방어).
+//
+// ?tg=1 (10/29): 텔레그램 웹후크. 아버지가 주문 알림 방에 올린 사진을 '보낸 꽃 사진' 후보함에 넣는다.
+//   함수 12개 한도라 사진을 받는 이 함수에 같이 둔다. 관리자 로그인 대신 텔레그램 비밀값 헤더로 확인(lib/sent-photos.mjs).
 
 import crypto from "node:crypto";
 import { authenticateAdmin, requireRole, requestId, setAdminHeaders, writeAdminAudit } from "../lib/admin-auth.mjs";
+import { handleTelegramWebhook } from "../lib/sent-photos.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -25,6 +29,14 @@ function clean(s, n) {
   return String(s == null ? "" : s).replace(/[<>"'`&\\]/g, "").replace(/\s+/g, " ").trim().slice(0, n);
 }
 export default async function handler(req, res) {
+  if (/[?&]tg=1(?:&|$)/.test(String(req.url || ""))) {
+    if (req.method !== "POST") return res.status(405).end();
+    let update = req.body;
+    if (typeof update === "string") { try { update = JSON.parse(update); } catch { update = null; } }
+    const out = await handleTelegramWebhook({ headers: req.headers || {}, body: update, env: process.env })
+      .catch((e) => { console.error("sent-photos webhook", e && e.message); return { status: 200 }; });
+    return res.status(out.status || 200).json({ ok: out.status === 200 });
+  }
   setAdminHeaders(res, ORIGIN);
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "POST 요청만 지원합니다." });

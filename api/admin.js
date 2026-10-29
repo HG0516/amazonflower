@@ -32,6 +32,10 @@ const fetch = compatFetch;
 import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
 import { setupStatus } from "../lib/setup-status.mjs";
 import { sendTransactionalText } from "../lib/solapi.mjs";
+import {
+  SENT_CATS, cleanText, decodeJpegBase64, dropRaw, importOrderPhotos, kstDate, putRaw, readRaw, signRaw,
+  tgCall, webhookSecret, webhookUrl,
+} from "../lib/sent-photos.mjs";
 
 export const config = { runtime: "nodejs" };
 
@@ -221,9 +225,11 @@ export default async function handler(req, res) {
   // staff는 주문 조회·상태·배송사진 업무만 맡는다. 상품 가격/품절/사진, 갤러리,
   // 리뷰, 법인/환불은 모두 owner 전용이다. resource가 빠진 구형 상품편집 요청도 owner다.
   const staffOrderActions = new Set(["list", "status", "photo", "link"]);
+  // 보낸 꽃 사진은 보기·올리기까지만 운영 관리자도(10/29). 공개·숨김·삭제·텔레그램 연결은 owner.
+  const staffSentActions = new Set(["list", "upload", "raw"]);
   const ownerOnly = !(
-    body.resource === "order"
-    && staffOrderActions.has(body.action || "list")
+    (body.resource === "order" && staffOrderActions.has(body.action || "list"))
+    || (body.resource === "sent" && staffSentActions.has(body.action))
   );
   const roleCheck = requireRole(auth, ownerOnly ? ["owner"] : ["owner", "staff"]);
   if (!roleCheck.ok && !(isCancel && !auth.ok)) {
@@ -914,6 +920,171 @@ export default async function handler(req, res) {
     }
     const r = await fetch(`${SUPABASE_URL}/rest/v1/gallery_items?select=id,category,name,sub,photo_url,visible,sort&order=sort.asc,created_at.desc`, { headers: sb });
     return res.status(r.ok ? 200 : 502).json(r.ok ? { ok: true, items: await r.json().catch(() => []) } : { error: "불러오지 못했습니다." });
+  }
+
+  // ─────────────────────── 보낸 꽃 사진 (10/29) ───────────────────────
+  // 후보함(pending) → [공개](리본 가린 사진을 gallery/sent/ 에 새로 저장) · [숨김] · [삭제]. lib/sent-photos.mjs.
+  // 원본은 비공개 order-photos/sent-raw/(텔레그램·관리 화면) 또는 주문 배송완료 사진 그대로(source=order, 지우지 않음).
+  if (body.resource === "sent") {
+    const { action } = body;
+    const NO_TABLE = "보낸 꽃 사진 표가 아직 없어요. supabase-sent-photos.sql 을 먼저 실행해야 해요.";
+    const tableErr = (r, msg) => res.status(r.status === 404 ? 503 : 502).json({ error: r.status === 404 ? NO_TABLE : msg });
+    const idOk = /^[0-9a-f-]{36}$/i.test(body.id || "");
+    const one = async () => {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/sent_photos?id=eq.${body.id}&select=*&limit=1`, { headers: sb });
+      return r.ok ? (((await r.json().catch(() => [])) || [])[0] || null) : null;
+    };
+    const patchRow = async (patch) => fetch(`${SUPABASE_URL}/rest/v1/sent_photos?id=eq.${body.id}`, {
+      method: "PATCH", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" }, body: JSON.stringify(patch) });
+    const fields = () => {
+      const f = {};
+      if (body.title !== undefined) f.title = cleanText(body.title, 60) || null;
+      if (body.area !== undefined) f.area = cleanText(body.area, 20) || null;
+      if (body.category !== undefined) f.category = SENT_CATS.includes(body.category) ? body.category : null;
+      if (body.product_code !== undefined) {
+        const pc = String(body.product_code || "").trim();
+        f.product_code = /^[A-Z]{2,3}-[A-Za-z0-9-]{1,24}$/.test(pc) ? pc : null;
+      }
+      return f;
+    };
+    const publicPath = (url) => {
+      const pre = `${SUPABASE_URL}/storage/v1/object/public/gallery/`;
+      const p = String(url || "").startsWith(pre) ? String(url).slice(pre.length) : "";
+      return p.startsWith("sent/") && !p.includes("..") ? p : "";
+    };
+    const dropPublic = (url) => {
+      const p = publicPath(url);
+      return p ? fetch(`${SUPABASE_URL}/storage/v1/object/gallery/${p}`, { method: "DELETE", headers: sb }).catch(() => null) : null;
+    };
+
+    if (action === "list") {
+      if (auth.role === "owner") await importOrderPhotos(SUPABASE_URL, SERVICE_KEY).catch(() => 0);
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/sent_photos?select=*&order=created_at.desc&limit=300`, { headers: sb });
+      if (!r.ok) return tableErr(r, "불러오지 못했어요.");
+      const items = await r.json().catch(() => []);
+      const signed = await signRaw(SUPABASE_URL, SERVICE_KEY, items.map((v) => v.raw_path));
+      return res.status(200).json({ ok: true, items: items.map((v) => ({ ...v, raw_url: signed[v.raw_path] || null })) });
+    }
+    if (action === "upload") {
+      const dec = decodeJpegBase64(body.imageBase64);
+      if (dec.err) return res.status(413).json({ error: dec.err });
+      const put = await putRaw(SUPABASE_URL, SERVICE_KEY, dec.buf);
+      if (put.err) return res.status(502).json({ error: "사진 저장에 실패했어요. 잠시 후 다시 해 주세요." });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/sent_photos`, {
+        method: "POST", headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({ status: "pending", source: "admin", raw_path: put.path, shot_on: kstDate(Date.now()), ...fields() }),
+      });
+      if (!r.ok) { await dropRaw(SUPABASE_URL, SERVICE_KEY, put.path); return tableErr(r, "저장에 실패했어요."); }
+      const item = ((await r.json().catch(() => [])) || [])[0] || null;
+      const signed = item ? await signRaw(SUPABASE_URL, SERVICE_KEY, [item.raw_path]) : {};
+      await audit("upload", "sent", item && item.id);
+      return res.status(200).json({ ok: true, item: item && { ...item, raw_url: signed[item.raw_path] || null } });
+    }
+    if (!idOk && !String(action || "").startsWith("tg-")) return res.status(400).json({ error: "id가 올바르지 않습니다." });
+    if (action === "raw") {
+      const v = await one();
+      if (!v) return res.status(404).json({ error: "사진을 찾지 못했어요." });
+      let buf = v.raw_path ? await readRaw(SUPABASE_URL, SERVICE_KEY, v.raw_path) : null;
+      if (!buf && publicPath(v.photo_url)) {
+        const r = await fetch(v.photo_url).catch(() => null);
+        if (r && r.ok) buf = Buffer.from(await r.arrayBuffer());
+      }
+      if (!buf) return res.status(404).json({ error: "원본 사진을 찾지 못했어요. 배송완료 사진이 바뀌었을 수 있어요." });
+      return res.status(200).json({ ok: true, dataUrl: `data:image/jpeg;base64,${buf.toString("base64")}` });
+    }
+    if (action === "save") {
+      const r = await patchRow(fields());
+      if (!r.ok) return tableErr(r, "저장에 실패했어요.");
+      return res.status(200).json({ ok: true });
+    }
+    if (action === "publish") {
+      const v = await one();
+      if (!v) return res.status(404).json({ error: "사진을 찾지 못했어요." });
+      const upl = await uploadPhotoToGallery(body.imageBase64, "sent", SUPABASE_URL, SERVICE_KEY);
+      if (upl.err) return res.status(413).json({ error: upl.err });
+      const r = await patchRow({ ...fields(), status: "shown", photo_url: upl.url });
+      if (!r.ok) { await dropPublic(upl.url); return tableErr(r, "공개하지 못했어요."); }
+      if (v.photo_url && v.photo_url !== upl.url) await dropPublic(v.photo_url);
+      const g = ((await r.json().catch(() => [])) || [])[0] || {};
+      await notifyChange(`🖼 보낸 꽃 사진 공개 — ${g.title || "이름 없음"}`);
+      await audit("publish", "sent", body.id);
+      return res.status(200).json({ ok: true, item: g });
+    }
+    if (action === "hide" || action === "pending") {
+      const v = await one();
+      if (!v) return res.status(404).json({ error: "사진을 찾지 못했어요." });
+      const r = await patchRow({ status: action === "hide" ? "hidden" : "pending" });
+      if (!r.ok) return tableErr(r, "저장에 실패했어요.");
+      if (v.status === "shown") await notifyChange(`🖼 보낸 꽃 사진 내림 — ${v.title || "이름 없음"}`);
+      await audit(action, "sent", body.id);
+      return res.status(200).json({ ok: true });
+    }
+    if (action === "delete") {
+      const v = await one();
+      if (!v) return res.status(404).json({ error: "사진을 찾지 못했어요." });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/sent_photos?id=eq.${body.id}`, { method: "DELETE", headers: sb });
+      if (!r.ok) return tableErr(r, "삭제에 실패했어요.");
+      await dropRaw(SUPABASE_URL, SERVICE_KEY, v.raw_path); // sent-raw/ 만 지운다. 배송완료 사진은 그대로
+      await dropPublic(v.photo_url);
+      if (v.status === "shown") await notifyChange(`🗑 보낸 꽃 사진 삭제 — ${v.title || "이름 없음"}`);
+      await audit("delete", "sent", body.id);
+      return res.status(200).json({ ok: true });
+    }
+
+    // 텔레그램 연결 — 주문 알림 봇이 이 사이트로 사진을 보내게 한다(웹후크). 키 값은 화면에 보내지 않는다.
+    const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+    const want = webhookUrl(ORIGIN);
+    if (action === "tg-status") {
+      if (!token || !chat) return res.status(200).json({ ok: true, tg: { ready: false } });
+      const [info, me, ch] = await Promise.all([tgCall(token, "getWebhookInfo"), tgCall(token, "getMe"), tgCall(token, "getChat", { chat_id: chat })]);
+      let admin = false;
+      if (me.ok && ch.ok && ch.result.type !== "private") {
+        const m = await tgCall(token, "getChatMember", { chat_id: chat, user_id: me.result.id });
+        admin = !!(m.ok && ["administrator", "creator"].includes(m.result.status));
+      }
+      const url = info.ok ? String(info.result.url || "") : "";
+      let otherHost = "";
+      if (url && url !== want) { try { otherHost = new URL(url).host; } catch { otherHost = "알 수 없음"; } }
+      return res.status(200).json({ ok: true, tg: {
+        ready: true,
+        connected: url === want,
+        otherHost,
+        pending: info.ok ? info.result.pending_update_count || 0 : 0,
+        lastError: info.ok && url === want ? String(info.result.last_error_message || "").slice(0, 160) : "",
+        lastErrorAt: info.ok && url === want ? info.result.last_error_date || 0 : 0,
+        bot: me.ok ? me.result.username || "" : "",
+        readsAll: me.ok ? !!me.result.can_read_all_group_messages : false,
+        chatType: ch.ok ? ch.result.type : "",
+        chatTitle: ch.ok ? cleanText(ch.result.title || "", 60) : "",
+        botAdmin: admin,
+      } });
+    }
+    if (action === "tg-connect") {
+      if (!token || !chat) return res.status(400).json({ error: "텔레그램 키가 없어서 연결할 수 없어요." });
+      const probe = await fetch(`${SUPABASE_URL}/rest/v1/sent_photos?select=id&limit=1`, { headers: sb });
+      if (!probe.ok) return tableErr(probe, "사진 표를 확인하지 못했어요.");
+      const info = await tgCall(token, "getWebhookInfo");
+      const cur = info.ok ? String(info.result.url || "") : "";
+      if (cur && cur !== want && body.force !== true) {
+        let host = "알 수 없음"; try { host = new URL(cur).host; } catch { /* 그대로 */ }
+        return res.status(409).json({ error: `이 봇은 이미 다른 곳(${host})으로 연결돼 있어요. 다른 프로그램이 쓰는 봇일 수 있어서 멈췄어요.` });
+      }
+      const r = await tgCall(token, "setWebhook", { url: want, secret_token: webhookSecret(token), allowed_updates: ["message"], max_connections: 1 });
+      if (!r.ok) return res.status(502).json({ error: `텔레그램 연결에 실패했어요. ${r.description || ""}`.trim() });
+      await notifyChange("📷 이제 이 방에 꽃 사진을 올리면 관리 화면 '보낸 꽃 사진'으로 들어가요. 주문 알림에 답장으로 보내면 어느 주문 사진인지도 같이 붙어요.");
+      await audit("tg-connect", "sent", "webhook");
+      return res.status(200).json({ ok: true });
+    }
+    if (action === "tg-disconnect") {
+      if (!token) return res.status(400).json({ error: "텔레그램 키가 없어요." });
+      const info = await tgCall(token, "getWebhookInfo");
+      if (info.ok && info.result.url && info.result.url !== want) return res.status(409).json({ error: "이 사이트가 연결한 것이 아니라서 끄지 않았어요." });
+      const r = await tgCall(token, "deleteWebhook", {});
+      if (!r.ok) return res.status(502).json({ error: "끄지 못했어요." });
+      await audit("tg-disconnect", "sent", "webhook");
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(400).json({ error: "알 수 없는 요청입니다." });
   }
 
   // ─────────────────────── 사진 위치 맞추기 (10/18) ───────────────────────

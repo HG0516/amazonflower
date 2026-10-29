@@ -178,6 +178,7 @@
       + link('/admin-home.html', '🏠 홈 화면 (첫 화면 리뷰사진)')
       + link('/admin.html', '🖼️ 갤러리 사진 올리기')
       + link('/admin-order.html', '📷 배송완료 사진 보내기')
+      + link('/admin-sent.html', '🌸 보낸 꽃 사진 (텔레그램 사진 공개)')
       + link('/admin-partner.html', '🤝 파트너 QR (장례식장·예식장)')
       + '<div style="font-size:11px;color:#b9b4a8;margin-top:2px;text-align:center;">로그인 계정의 관리자 권한으로 안전하게 열어요.</div>'
       + '</div>';

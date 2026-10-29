@@ -151,6 +151,7 @@
   // 관리자 화면끼리 오가는 메뉴(10/18). 예전엔 화면마다 주소를 외워야 했다. 운영 관리자는 주문만.
   var MENU = [
     ["/admin-orders.html", "주문", "staff"],
+    ["/admin-sent.html", "보낸 꽃 사진", "staff"],
     ["/admin-photos.html", "사진 위치·숨김", "owner"],
     ["/admin.html", "사진 올리기", "owner"],
     ["/admin-products.html", "상품", "owner"],

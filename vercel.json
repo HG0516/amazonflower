@@ -219,6 +219,11 @@
       "source": "/admin-setup",
       "destination": "/admin-setup.html",
       "permanent": false
+    },
+    {
+      "source": "/admin-sent",
+      "destination": "/admin-sent.html",
+      "permanent": false
     }
   ],
   "rewrites": [

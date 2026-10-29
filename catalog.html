@@ -91,6 +91,27 @@
   .item .share-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .item.highlight { border-color: var(--ink); border-width: 2px; }
 
+  /* 보낸 꽃(10/29) — 사장님이 만들어 보낸 꽃을 찍은 사진. 관리 화면 '보낸 꽃 사진'에서 공개한 것만(sent_photos) */
+  .sent-sec { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+  .sent-sec[hidden] { display: none; }
+  .sent-chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 2px 4px; margin-bottom: 12px; scrollbar-width: none; }
+  .sent-chips button { flex: 0 0 auto; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: var(--radius-pill, 999px); border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+  .sent-chips button.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .sent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 600px) { .sent-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .sent-card .sent-ph { display: block; width: 100%; padding: 0; border: 0; background: var(--line); border-radius: var(--radius); overflow: hidden; aspect-ratio: 1 / 1; cursor: zoom-in; }
+  .sent-card .sent-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sent-t { font-size: 14px; font-weight: 700; color: var(--ink); margin-top: 6px; line-height: 1.4; }
+  .sent-w { font-size: 12.5px; color: var(--ink-faint); }
+  .sent-go { font: inherit; font-size: 13px; font-weight: 700; color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+  .sent-more { display: block; margin: 14px auto 0; font: inherit; font-size: 14px; font-weight: 700; padding: 10px 22px; border: 1px solid var(--line); border-radius: var(--radius-pill, 999px); background: var(--paper); color: var(--ink); cursor: pointer; }
+  .pm-sent { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .pm-sent-h { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .pm-sent-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .pm-sent-row button { padding: 0; border: 0; background: none; cursor: zoom-in; font: inherit; text-align: center; }
+  .pm-sent-row img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius); display: block; background: var(--line); }
+  .pm-sent-row span { display: block; font-size: 11.5px; color: var(--ink-faint); margin-top: 3px; }
+
   /* 특별 제작 */
   .special { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
   .special-head { margin-bottom: 22px; text-align: center; }
@@ -468,6 +489,16 @@
 
   <div id="catArea"></div>
   <div id="galleryArea"></div>
+
+  <section class="sent-sec" id="sentSec" hidden>
+    <div class="special-head">
+      <div class="special-title">보낸 꽃</div>
+      <div class="special-sub">사장님이 만들어 보낸 꽃을 그대로 찍었어요.</div>
+    </div>
+    <div class="sent-chips" id="sentChips"></div>
+    <div class="sent-grid" id="sentGrid"></div>
+    <button type="button" class="sent-more" id="sentMore" hidden onclick="SENT_ALL=true;renderSent()">더 보기</button>
+  </section>
 
   <div class="special">
     <div class="special-head">
@@ -1036,6 +1067,56 @@ async function loadLiveGallery(){
   }catch(e){ /* 라이브 사진 못 불러와도 기본 갤러리는 그대로 */ }
 }
 
+// 보낸 꽃(10/29): 관리 화면 '보낸 꽃 사진'에서 공개한 사진(sent_photos, 공개 칸만 읽힘). 없거나 실패하면 칸을 숨긴 채 그대로.
+let SENT=[], SENT_CAT="", SENT_ALL=false;
+const SENT_NAME={congrats:"축하화환", condolence:"근조화환", orchid:"난", plant:"관엽·식물", basket:"꽃바구니", bouquet:"꽃다발"};
+async function loadSentPhotos(){
+  if(!window.SUPA || !SUPA.url || !SUPA.anon) return;
+  try{
+    const r = await fetch(`${SUPA.url}/rest/v1/sent_photos?select=id,photo_url,product_code,category,title,area,shot_on&status=eq.shown&order=sort.asc,shot_on.desc,created_at.desc&limit=200`,
+      { headers:{ apikey:SUPA.anon, Authorization:`Bearer ${SUPA.anon}` } });
+    if(!r.ok) return;
+    const rows = await r.json();
+    SENT = Array.isArray(rows) ? rows.filter(v=>v && v.photo_url) : [];
+    renderSent();
+  }catch(e){ /* 못 불러와도 나머지 화면은 그대로 */ }
+}
+function sentWhen(v){
+  const m = String(v.shot_on||"").match(/^\d{4}-(\d{2})/);
+  return [m ? `${+m[1]}월` : "", v.category==="condolence" ? "" : (v.area||"")].filter(Boolean).join(" · ");
+}
+function sentTitle(v){ return v.title || SENT_NAME[v.category] || "보낸 꽃"; }
+function renderSent(){
+  const sec = document.getElementById("sentSec"); if(!sec) return;
+  if(!SENT.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+  const cats = Object.keys(SENT_NAME).filter(k=>SENT.some(v=>v.category===k));
+  if(SENT_CAT && !cats.includes(SENT_CAT)) SENT_CAT = "";
+  document.getElementById("sentChips").innerHTML = cats.length > 1
+    ? [["", "전체"], ...cats.map(k=>[k, SENT_NAME[k]])].map(([k,t])=>`<button type="button" class="${SENT_CAT===k?"on":""}" onclick="SENT_CAT='${k}';SENT_ALL=false;renderSent()">${t}</button>`).join("")
+    : "";
+  const list = SENT.filter(v=>!SENT_CAT || v.category===SENT_CAT);
+  const show = SENT_ALL ? list : list.slice(0, 6);
+  document.getElementById("sentGrid").innerHTML = show.map(v=>{
+    const p = v.product_code && PRODUCTS.find(x=>x.pc===v.product_code);
+    return `<div class="sent-card">
+      <button type="button" class="sent-ph" data-src="${esc(v.photo_url)}" data-alt="${esc(sentTitle(v))}" onclick="openLightbox(this.dataset.src,this.dataset.alt)"><img src="${esc(v.photo_url)}" alt="${esc(sentTitle(v))}" loading="lazy"></button>
+      <div class="sent-t">${esc(sentTitle(v))}</div>
+      ${sentWhen(v) ? `<div class="sent-w">${esc(sentWhen(v))}</div>` : ""}
+      ${p ? `<button type="button" class="sent-go" data-pc="${esc(p.pc)}" onclick="openDetail(this.dataset.pc)">이 상품 보기 ›</button>` : ""}
+    </div>`;
+  }).join("");
+  document.getElementById("sentMore").hidden = SENT_ALL || list.length <= 6;
+}
+// 상품 상세의 '실제로 보낸 모습' — 같은 상품으로 보낸 사진 3장까지
+function sentStrip(pc){
+  const list = SENT.filter(v=>v.product_code===pc).slice(0, 3);
+  if(!list.length) return "";
+  return `<div class="pm-sent"><div class="pm-sent-h">실제로 보낸 모습</div><div class="pm-sent-row">${list.map(v=>
+    `<button type="button" data-src="${esc(v.photo_url)}" data-alt="${esc(sentTitle(v))}" onclick="openLightbox(this.dataset.src,this.dataset.alt)"><img src="${esc(v.photo_url)}" alt="${esc(sentTitle(v))}" loading="lazy">${sentWhen(v) ? `<span>${esc(sentWhen(v))}</span>` : ""}</button>`
+  ).join("")}</div></div>`;
+}
+
 // 아버지가 상품 관리(/admin-products)에서 바꾼 설명·사진·품절을 Supabase에서 읽어 정적 상품 위에 덮음.
 // 실패하면 조용히 무시 → 기본 상품 그대로. (가격은 override 대상이 아니라 결제엔 영향 없음)
 async function loadLiveProducts(){
@@ -1545,6 +1626,7 @@ function renderDetail(){
       ${originHtml(p.cat)}
       ${meaningBlock(p)}
       <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
+      ${sentStrip(p.pc)}
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
@@ -1623,6 +1705,7 @@ function renderGroupDetail(){
       ${originHtml(p.cat)}
       ${meaningBlock(p)}
       <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
+      ${sentStrip(p.pc)}
       <div class="pm-actions">
         ${sold
           ? `<button class="pm-order" disabled style="background:var(--ink-faint);">${esc(p.status)}</button>`
@@ -1752,6 +1835,7 @@ function openSharedItem(){
 })();
 openSharedItem();
 loadLiveGallery();
+loadSentPhotos();
 loadLiveProducts();
 updateCartFab();
 // Esc 로 상세·장바구니 닫기
