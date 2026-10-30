@@ -219,6 +219,8 @@
   .hint { font-size: var(--fs-caption); color: var(--ink-soft); margin-top: 8px; }
   .hidden { display: none !important; }
   .err { color: var(--danger); font-size: 14px; margin-top: 10px; font-weight: 600; }
+  .af-fail-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .af-fail-acts button { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--accent-deep); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   .loading { display: flex; align-items: center; gap: 10px; color: var(--ink-soft); font-size: 14px; padding: 6px 0; }
   .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: var(--radius-pill); animation: spin .8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -1894,7 +1896,8 @@ async function runParse(){
     return showErr(err,"이건 이 사이트 주소예요. 받으신 청첩장·부고 링크나 행사 내용을 넣어 주세요.");
   }
   if(a.kind==="product" || a.kind==="other"){ location.href=AF_SEARCH.catalogUrl(afSugBand==="all"?Object.assign({},a,{min:0,max:0}):a, afSugBand==="all"?"":afSugBand); return; }
-  order.src=val;
+  // 링크를 못 읽어 문자를 붙여넣은 경우에도 처음 링크는 사장님께 같이 가게 붙여 둔다(10/30).
+  order.src = (window.__afLastLink && val.indexOf(window.__afLastLink)<0) ? window.__afLastLink+"\n"+val : val;
   // 링크가 아니면 먼저 사연 기반 추천(생신·기념일·개업·승진 등)을 시도
   if(!url){
     const reco = classifyOccasion(val);
@@ -1913,8 +1916,24 @@ async function runParse(){
     if(url){ try{ r=await ask(val===url?{url}:{url,text:val}); }catch(e){ if(val===url) throw e; r=await ask({text:val}); } }
     else r=await ask({text:val});
     applyParsed(r);
-  }catch(e){ showErr(err,e.message); }
+  }catch(e){ if(url){ window.__afLastLink=url; afShowFail(err,e.message); } else showErr(err,e.message); }
   finally{ btn.disabled=false; load.classList.add("hidden"); }
+}
+// 링크를 못 읽었을 때: 안내 글만 두지 않고 캡처 올리기·문자 붙여넣기를 그 자리에서 바로(10/30 형구 "캡처나 텍스트로 줘도 된다").
+// 손님은 안 되면 말없이 떠나서, 다음 할 일을 버튼으로 바로 보여 준다. 주소는 배달에 꼭 필요해 비워 두고 넘기지 않는다.
+function afShowFail(el,m){
+  // 서버 쪽 기술 문구(HTTP 502, AI 응답…)는 손님 말로 바꾼다
+  if(!m || /HTTP|AI|fetch|failed|분석/i.test(m)) m="이 링크는 열어도 내용을 읽지 못했어요. 청첩장·부고 화면을 캡처해 올리시거나, 받으신 문자를 붙여넣어 주셔도 돼요.";
+  el.innerHTML = escapeHtml(m)
+    + '<div class="af-fail-acts">'
+    + '<button type="button" onclick="document.getElementById(\'imgFile\').click()">청첩장·부고 캡처 사진 올리기</button>'
+    + '<button type="button" onclick="afPasteText()">받은 문자 붙여넣기</button>'
+    + '</div>';
+  el.classList.remove("hidden");
+}
+function afPasteText(){
+  const s=document.getElementById("src"); if(!s) return;
+  s.value=""; s.placeholder="받은 문자를 통째로 붙여넣어 주세요"; s.focus();
 }
 
 // 캡처 사진 → 긴 변 1600px JPEG 로 줄여 보낸다(서버 본문 한도 4.5MB, 글자는 이 크기면 충분히 읽힌다).
@@ -1941,7 +1960,7 @@ async function afImageParse(input){
     const res=await fetch("/api/parse-url",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image})});
     const data=await res.json().catch(()=>({}));
     if(!res.ok || !data.result) throw new Error(data.error||"사진에서 내용을 읽지 못했어요. 링크를 붙여넣거나 전화(1577-2286) 주세요.");
-    order.src="(캡처 사진)";
+    order.src = window.__afLastLink ? window.__afLastLink+" (캡처 사진)" : "(캡처 사진)";
     applyParsed(data.result);
   }catch(e){ showErr(err,e.message); }
   finally{ load.classList.add("hidden"); btns.forEach(b=>b.disabled=false); }
@@ -1988,6 +2007,11 @@ function applyParsed(r){
   if(_cs) _cs.innerHTML = gotAny
     ? '링크·내용에서 <b>자동으로 읽은 정보</b>예요. 맞는지 <b>한 번 더 확인</b>해 주세요. 틀린 곳은 그 칸만 고치시면 돼요.'
     : '내용에서 자세한 정보를 <b>자동으로 읽지 못했어요</b>. 아래에 직접 입력해 주세요. 어려우시면 <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;">전화(1577-2286)</a>로 주문하셔도 돼요.';
+  // 일부만 읽고 장소·주소가 비었으면 캡처로 채우는 길을 바로 옆에(10/30). 주소는 배달에 꼭 필요하다.
+  if(_cs && gotAny && !order.venue && !order.address && !/캡처 사진/.test(order.src||"")){
+    _cs.innerHTML += '<div class="af-fail-acts"><span style="flex-basis:100%;font-size:14px;color:var(--ink-soft)">장소와 주소를 못 읽었어요. 캡처를 올리시면 채워 드려요.</span>'
+      + '<button type="button" onclick="document.getElementById(\'imgFile\').click()">청첩장·부고 캡처 사진 올리기</button></div>';
+  }
   // 부고·청첩장에 '화환은 정중히 사양' 같은 말이 있으면 주문 전에 먼저 알린다(10/20). 막지는 않는다.
   if(_cs && _ck) _cs.innerHTML = '<div class="af-nowreath">'+escapeHtml(_ck)+'</div>' + _cs.innerHTML;
   if(_cs && r.noWreath) _cs.innerHTML = '<div class="af-nowreath"><b>안내문에 화환을 사양한다는 말이 있어요.</b> 유족·혼주의 뜻일 수 있으니 한 번 확인해 주세요. 마음을 전하고 싶으시면 꽃바구니나 조의 메시지로 대신하는 분도 많아요.'
