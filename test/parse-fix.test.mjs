@@ -286,3 +286,32 @@ test("서버가 장례식장 목록을 읽어 주소를 채운다", async () => 
   assert.equal(res.statusCode, 200);
   assert.match(res.body.result.venueAddress, /^경상남도 거제시/);
 });
+
+test("장소 이름 검색(카카오): 꽃 가는 곳을 위로, 키 없으면 빈 목록(10/31)", async () => {
+  const oldFetch = globalThis.fetch, oldKey = process.env.KAKAO_REST_KEY;
+  try {
+    delete process.env.KAKAO_REST_KEY;
+    let res = mockResponse();
+    await parseUrl({ method: "POST", body: { action: "place", q: "아펠가모" } }, res);
+    assert.deepEqual(res.body, { ok: true, items: [], skip: true, why: "nokey" });
+
+    process.env.KAKAO_REST_KEY = "test";
+    let auth = "";
+    globalThis.fetch = async (url, init) => {
+      auth = init.headers.Authorization;
+      assert.match(String(url), /^https:\/\/dapi\.kakao\.com\/v2\/local\/search\/keyword\.json\?size=10&query=%EC%95%84/);
+      return new Response(JSON.stringify({ documents: [
+        { place_name: "아펠가모 카페", road_address_name: "", address_name: "서울 중구 x동 1", category_name: "음식점 > 카페" },
+        { place_name: "아펠가모 광화문점", road_address_name: "서울 종로구 새문안로 76", address_name: "서울 종로구 신문로1가 58-1", category_name: "가정,생활 > 결혼 > 예식장" },
+      ] }), { status: 200 });
+    };
+    res = mockResponse();
+    await parseUrl({ method: "POST", body: { action: "place", q: "아펠가모" } }, res);
+    assert.equal(auth, "KakaoAK test");
+    assert.deepEqual(res.body.items[0], { n: "아펠가모 광화문점", road: "서울 종로구 새문안로 76", jibun: "서울 종로구 신문로1가 58-1", cat: "예식장" });
+    assert.equal(res.body.items[1].road, "서울 중구 x동 1", "도로명이 없으면 지번 주소");
+  } finally {
+    globalThis.fetch = oldFetch;
+    if (oldKey === undefined) delete process.env.KAKAO_REST_KEY; else process.env.KAKAO_REST_KEY = oldKey;
+  }
+});

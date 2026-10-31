@@ -406,6 +406,38 @@ export default async function handler(req, res) {
       }
     }
 
+    // ── 장소 이름 검색(카카오 장소 검색, 10/31) ──
+    // body: {action:"place", q:"아펠가모"} → {ok, items:[{n, road, jibun, cat}]}
+    // 도로명주소 API 는 건물 등록 이름만 찾아서 예식장 상호·지점(아펠가모 광화문점, 파르나스)을 못 찾았다.
+    // KAKAO_REST_KEY(카카오 개발자 콘솔 → 꽃안부 앱 → REST API 키) 없으면 빈 목록 — 장소칸은 장례식장 목록·건물 이름으로 그대로 동작.
+    if (early && early.action === "place") {
+      const q = String(early.q || "").replace(/[<>"'`\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+      if (q.length < 2 || !/[가-힣A-Za-z0-9]/.test(q)) return res.status(200).json({ ok: true, items: [] });
+      const key = process.env.KAKAO_REST_KEY;
+      if (!key) return res.status(200).json({ ok: true, items: [], skip: true, why: "nokey" });
+      try {
+        const r = await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?size=10&query=${encodeURIComponent(q)}`, {
+          headers: { Authorization: `KakaoAK ${key}` },
+          signal: AbortSignal.timeout(4000),
+        });
+        if (!r.ok) return res.status(200).json({ ok: true, items: [], skip: true, why: "http" + r.status });
+        const j = await r.json();
+        const s = (v, n) => String(v || "").replace(/\s+/g, " ").trim().slice(0, n);
+        // 꽃이 가는 곳(예식장·장례식장·병원·호텔·성당·교회·컨벤션·회사)을 위로. 나머지(식당·카페 등)는 아래로.
+        const GO = /예식|웨딩|결혼|장례|병원|의료|호텔|숙박|성당|교회|종교|컨벤션|회관|연회|기업|회사|사무|공공기관/;
+        const items = (Array.isArray(j.documents) ? j.documents : [])
+          .map((x) => ({ n: s(x.place_name, 50), road: s(x.road_address_name, 80) || s(x.address_name, 80), jibun: s(x.address_name, 80), cat: s(String(x.category_name || "").split(">").pop(), 20), go: GO.test(String(x.category_name || "")) }))
+          .filter((x) => x.n && x.road)
+          .sort((a, b) => (b.go ? 1 : 0) - (a.go ? 1 : 0))
+          .slice(0, 6)
+          .map(({ go, ...x }) => x);
+        return res.status(200).json({ ok: true, items });
+      } catch (e) {
+        console.error("place error:", e && e.message);
+        return res.status(200).json({ ok: true, items: [], skip: true, why: "error " + String((e && e.name) || "").slice(0, 30) });
+      }
+    }
+
     // ── 거래처 전용 링크 수신 (?corp=<사업자번호>&t=<토큰>) ──
     // body: {action:"corpinfo", regno, token} → {ok, corp:{name,regno,email,ceo,addr}}
     // 사장님이 그 거래처에만 준 링크의 서명 토큰이 맞을 때만 응답한다.

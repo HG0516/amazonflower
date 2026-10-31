@@ -4,6 +4,7 @@
 // 주문서(#af_address, #af_venue)에서는 치는 동안 칸 아래에 추천을 띄운다(10/26~27).
 //  · 주소칸: 도로명주소 API(서버 action:"addr"). 동네만 쳐도 시·군·구까지 맞춰져 먼 지역 배송비가 빠지지 않는다.
 //  · 장소칸: 장례식장 1,117곳(data/funeral-homes.json) + 도로명주소 API 의 건물 이름(예식장·성당 등). 고르면 주소까지 채운다.
+//  · 장소칸에 카카오 장소 검색(서버 action:"place", 10/31)도 같이. 예식장 상호·지점(아펠가모 광화문점, 파르나스)은 건물 이름으로 안 나온다.
 //  · 주소를 고르면, 비어 있는 장소칸에 그 주소의 장례식장(목록)이나 건물 이름을 넣는다.
 // 고르면 input.value 를 채우고 'input' 이벤트를 보낸다 → 기존 oninput="order.address=this.value"·배송비 계산이 그대로 동작.
 (function () {
@@ -178,6 +179,19 @@
       .catch(function () { return []; });
   }
 
+  function placeSearch(q) {
+    return fetch('/api/parse-url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'place', q: q }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { return (j && j.ok && j.items) || []; })
+      .catch(function () { return []; });
+  }
+  // 카카오 지번 주소 '서울 종로구 신문로1가 58-1' 에서 동 이름(3번째 낱말)
+  function dongFromJibun(j) {
+    var t = String(j || '').split(/\s+/);
+    for (var i = 1; i < t.length; i++) if (/[동가리]$/.test(t[i]) && !/\d/.test(t[i].slice(-1))) return t[i];
+    return '';
+  }
+
   // ── 치는 동안 추천(주소칸·장소칸) ──
   var HINT = '동·호수는 찾은 뒤 이어서 적어 주세요';
   var S = {};
@@ -211,6 +225,7 @@
       var title, sub;
       if (it.kind === 'home') { title = esc(it.n); sub = it.a; }
       else if (it.kind === 'bld') { title = esc(it.bd); sub = it.road; }
+      else if (it.kind === 'place') { title = esc(it.n) + (it.cat ? ' <span>' + esc(it.cat) + '</span>' : ''); sub = it.road; }
       else { title = esc(it.road) + (it.bd ? ' <span>' + esc(it.bd) + '</span>' : ''); sub = it.jibun; }
       return '<button type="button" data-i="' + i + '"><b>' + title + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
     }).join('');
@@ -234,21 +249,25 @@
     }
     // 장소칸에서 고름: 장소 이름 + 주소까지. 다음은 빈소·홀 칸으로.
     if (it.kind === 'home') { put(input, it.n, false); put(addr, it.a, true); }
+    else if (it.kind === 'place') { put(input, it.n, false); put(addr, fmt(it.road, dongOf(dongFromJibun(it.jibun), it.road), ''), true); }
     else { put(input, it.bd, false); put(addr, fmt(it.road, dongOf(it.emd, it.road), ''), true); }
     var nx = document.getElementById('af_venueDetail');
     if (nx && !nx.value) nx.focus();
   }
+  // 장소칸 추천 순서: 장례식장 목록(정확) → 카카오 장소(상호·지점) → 도로명주소 건물 이름. 같은 이름은 한 번만.
   function venueItems(q) {
     var k = nm(q);
-    return Promise.all([homes(), addrSearch(q)]).then(function (r) {
+    return Promise.all([homes(), placeSearch(q), addrSearch(q)]).then(function (r) {
       var hs = r[0].filter(function (h) { return nm(h.n).indexOf(k) >= 0; })
         .sort(function (a, b) { return (nm(a.n).indexOf(k) === 0 ? 0 : 1) - (nm(b.n).indexOf(k) === 0 ? 0 : 1) || a.n.length - b.n.length; })
-        .slice(0, 5).map(function (h) { return { kind: 'home', n: h.n, a: h.a }; });
+        .slice(0, 4).map(function (h) { return { kind: 'home', n: h.n, a: h.a }; });
       var seen = {};
       hs.forEach(function (h) { seen[nm(h.n)] = 1; });
-      var bs = r[1].filter(function (x) { return x.bd && !seen[nm(x.bd)] && (seen[nm(x.bd)] = 1); })
-        .slice(0, 4).map(function (x) { return { kind: 'bld', bd: x.bd, road: x.road, emd: x.emd }; });
-      return hs.concat(bs);
+      var ps = r[1].filter(function (x) { return !seen[nm(x.n)] && (seen[nm(x.n)] = 1); })
+        .slice(0, 5).map(function (x) { return { kind: 'place', n: x.n, road: x.road, jibun: x.jibun, cat: x.cat }; });
+      var bs = r[2].filter(function (x) { return x.bd && !seen[nm(x.bd)] && (seen[nm(x.bd)] = 1); })
+        .slice(0, ps.length ? 2 : 4).map(function (x) { return { kind: 'bld', bd: x.bd, road: x.road, emd: x.emd }; });
+      return hs.concat(ps, bs);
     });
   }
 
