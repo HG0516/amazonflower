@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>전체 상품 둘러보기 — 꽃안부</title>
+<title>꽃다발·화환·난 전체 상품과 가격 | 꽃안부</title>
 <meta name="description" content="근조 · 축하 화환을 가격대별로 둘러보세요. 1993년부터, 전국 당일배송." />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="전체 상품 — 꽃안부" />
+<meta property="og:title" content="전체 상품과 가격 | 꽃안부" />
 <meta property="og:description" content="근조 · 축하 화환 · 전국 당일배송. 1993년부터. 회원가입 없이 주문 · 카드·간편결제." />
 <meta property="og:image" content="https://floweranbu.co.kr/og_preview.png" />
 <!-- PWA: 설치형 앱 -->
@@ -44,18 +44,16 @@
   body { font-family: var(--font-body); background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 17px; padding-bottom: 60px; }
   .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
 
-  .topbar { padding: 18px 0 4px; }
-  .back { display: inline-block; font-size: var(--fs-caption); color: var(--ink-soft); text-decoration: none; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); letter-spacing: 0.5px; }
-  .back:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-
-  header { text-align: center; padding: 18px 18px 6px; }
-  .brand { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: 0.5px; }
-  .brand-sub { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
-  .subtitle { font-size: var(--fs-caption); color: var(--ink-soft); margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line-soft); display: inline-block; padding-left: 32px; padding-right: 32px; }
+  .cat-hd { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 2px; }
+  .cat-brand { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: 0.5px; min-height: 44px; display: inline-flex; align-items: center; }
+  .cat-tel { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--accent-deep); text-decoration: none; border: 1px solid var(--accent); border-radius: var(--radius); padding: 0 10px; min-height: 44px; display: inline-flex; align-items: center; }
+  .cat-trust { font-size: var(--fs-caption); color: var(--ink-soft); text-align: center; line-height: 1.7; margin: 26px 0 8px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+  .cat-trust b { color: var(--accent-deep); font-weight: 600; }
 
   /* 세그먼트 탭 — 단정한 라인 스타일 */
-  .seg { display: flex; gap: 0; margin: 28px 0 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; background: var(--bg); }
-  .seg button { flex: 1; padding: 14px 8px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; font-family: var(--font-body); color: var(--ink-faint); border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.5px; }
+  .seg { display: flex; flex-wrap: nowrap; gap: 0; margin: 10px 0 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; background: var(--bg); overflow-x: auto; scrollbar-width: none; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button { flex: 1 0 auto; white-space: nowrap; padding: 13px 10px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 600; font-family: var(--font-body); color: var(--ink-faint); border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.5px; }
   .seg button.on { color: var(--ink); border-bottom-color: var(--ink); }
   .seg button.on.condo { color: var(--condo); border-bottom-color: var(--condo); }
 
@@ -164,7 +162,7 @@
   .hidden { display: none !important; }
 
   /* 검색바 + 용도 바로가기 */
-  .searchbar { margin: 22px 0 4px; position: relative; }
+  .searchbar { margin: 6px 0 4px; position: relative; }
   .searchbar input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 14px 42px 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: #fcfbf8; color: var(--ink); }
   .searchbar input:focus { outline: none; border-color: var(--ink); }
   .searchbar .si { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); font-size: 15px; pointer-events: none; }
@@ -238,11 +236,13 @@
   .own-card.f { background: #26241f; color: #f3f0e8; }
   .own-card.w { background: #fbeef1; color: #8a2e44; border: 1px solid #f1d3db; }
   .own-card span { font-size: 20px; line-height: 1; }
-  .wreath-url { background: var(--accent-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin: 6px 0 20px; }
-  .wu-title { font-weight: 700; font-size: 15px; color: var(--accent-deep); margin-bottom: 10px; }
+  .wreath-url { background: var(--accent-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin: 8px 0 12px; }
+  .wu-title { font-weight: 700; font-size: 15px; color: var(--accent-deep); margin-bottom: 8px; }
+  .wu-row { display: flex; gap: 8px; }
+  .wu-row input { flex: 1 1 auto; min-width: 0; }
   .wreath-url input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .wreath-url input:focus { outline: none; border-color: var(--accent); }
-  .wu-btn { width: 100%; margin-top: 10px; padding: 14px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
+  .wu-btn { flex: 0 0 auto; padding: 0 14px; min-height: 48px; white-space: nowrap; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
   .wu-btn:hover { background: var(--accent-deep); }
   /* 화환 5단 사다리 */
   .ladder { display: flex; flex-direction: column; gap: 10px; }
@@ -286,6 +286,20 @@
   .fsort-sel { font-family: var(--font-body); font-size: 16px; font-weight: 600; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0 12px; min-height: 48px; cursor: pointer; color-scheme: light dark; }
   .fsort-sel:hover { border-color: var(--ink); }
   .fsort-sel:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* 폰: 상황 칩과 필터를 한 줄 가로 밀기로(11/1). 위에서 상품을 밀어내던 줄바꿈을 없앤다. */
+  @media (max-width: 999px){
+    .uses { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-top: 8px; padding-bottom: 2px; }
+    .uses::-webkit-scrollbar { display: none; }
+    .use-chip { flex: 0 0 auto; white-space: nowrap; min-height: 44px; }
+    .filterbar { flex-wrap: nowrap; margin-top: 8px; }
+    .fb-scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 7px; }
+    .fb-scroll::-webkit-scrollbar { display: none; }
+    .fb-scroll .subtabs, .fb-scroll .bandchips, .fb-scroll .frow-pills { flex: 0 0 auto; flex-wrap: nowrap; }
+    .fb-scroll .frow-label, .sortbar .frow-label { display: none; }
+    .sortbar { flex: 0 0 auto; margin: 0; }
+    #catArea > .section-label:first-child { margin-top: 14px; }
+    #catArea > .section-desc { display: none; }
+  }
   /* 데스크톱: 트랙이 넘치면 가로스크롤 대신 줄바꿈 */
   @media (min-width: 1000px){ .filterbar { align-items: flex-start; } .fb-scroll { overflow-x: visible; flex-wrap: wrap; row-gap: 6px; } }
 
@@ -378,8 +392,6 @@
   .pm-mean b { display: block; font-size: var(--fs-caption); color: var(--accent-deep); margin-bottom: 3px; font-weight: 700; }
   .pm-mean.etiq { background: var(--paper); border: 1px solid var(--line); }
   .pm-mean .mean-src { display: block; margin-top: 5px; font-size: var(--fs-caption); color: var(--ink-faint); }
-  .pay-sub { margin-top: 8px; padding-top: 0; border-top: none; }
-  .pay-sub b { color: var(--accent-deep); font-weight: 600; }
   .pm-cart { padding: 14px; border: 1.5px solid var(--ink); border-radius: var(--radius); background: var(--paper); color: var(--ink); font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 50px; }
   .pm-cart:hover { background: var(--ink); color: #fff; }
   .pm-cart.added { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -438,15 +450,10 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="topbar">
-    <a class="back" href="/">← 홈으로</a>
-  </div>
-
-  <header>
-    <div class="brand">꽃안부</div>
-    <div class="brand-sub">안부는, 꽃으로 · SINCE 1993</div>
-    <div class="subtitle">전 품목 정찰제 · 법인 계산서·후불 · 전국 당일배송</div>
-    <div class="subtitle pay-sub">회원가입 없이 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b></div>
+  <!-- 머리는 한 줄(11/1). 폰에서 첫 상품이 1,176 아래라 두 화면을 내려야 나왔다. 정찰제·결제 안내는 상품 목록 아래(.cat-trust)로. -->
+  <header class="cat-hd">
+    <a class="cat-brand" href="/" aria-label="꽃안부 홈으로">꽃안부</a>
+    <a class="cat-tel" href="tel:1577-2286">1577-2286</a>
   </header>
 
   <div class="searchbar">
@@ -464,7 +471,7 @@
   </div>
   <div id="searchArea" class="hidden"></div>
 
-  <div class="seg" id="segTabs" style="flex-wrap:wrap;">
+  <div class="seg" id="segTabs">
     <button id="tabBasket" class="on" onclick="showCat('basket')">꽃다발·바구니</button>
     <button id="tabPlant" onclick="showCat('plant')">관엽·식물</button>
     <button id="tabOrchid" onclick="showCat('orchid')">난</button>
@@ -484,10 +491,13 @@
 
   <div id="linkOrderArea"></div>
 
-  <!-- 정찰제 배너 제거 — 헤더 부제('전 품목 정찰제 · 법인 계산서·후불 · 전국 당일배송')와 중복이라
-       상품을 밀어내기만 했다(2026-07-18). 신뢰 문구는 헤더에 한 번으로 충분. -->
+  <!-- 정찰제 배너는 상품을 밀어내기만 해서 뺐다(2026-07-18). 신뢰 문구는 상품 목록 아래 .cat-trust 에 한 번. -->
 
   <div id="catArea"></div>
+  <div class="cat-trust">
+    <div>전 품목 정찰제 · 법인 계산서·후불 · 전국 당일배송</div>
+    <div>회원가입 없이 주문 · <b>네이버페이 · 카카오페이 · 토스페이 · 신용카드</b></div>
+  </div>
   <div id="galleryArea"></div>
 
   <section class="sent-sec" id="sentSec" hidden>
@@ -1173,6 +1183,9 @@ function showCat(key, keepFilter){
   for(const [k,id] of Object.entries(tabMap)){
     document.getElementById(id)?.classList.toggle("on", k===key);
   }
+  // 탭이 한 줄 가로 밀기라, 고른 탭이 화면 밖이면 가운데로(바깥 세로 스크롤은 건드리지 않는다).
+  { const seg=document.getElementById("segTabs"), on=document.getElementById(tabMap[key]);
+    if(seg&&on) seg.scrollLeft=on.offsetLeft-(seg.clientWidth-on.offsetWidth)/2; }
   // 서브탭(꽃다발/꽃바구니, 동양란/서양란) — 라벨 붙은 통일 알약
   const stEl=document.getElementById("subTabs");
   if(key==="plant"){
@@ -1285,10 +1298,12 @@ function renderLinkOrder(key){
     : key==="congrats" ? `<a class="own-card w" href="/wedding-card?ref=catalog">결혼하세요? 모바일 청첩장 무료로 만들기 <span aria-hidden="true">›</span></a>` : "";
   el.innerHTML=own+`<div class="wreath-url">
       <div class="wu-title">${esc(c.t)}</div>
-      <input id="wreathUrl" type="text" inputmode="url" placeholder="${esc(c.ph)}" />
-      <button class="wu-btn" onclick="wreathUrlGo()">이 링크로 주문 시작</button>
-      <div style="font-size: var(--fs-caption);color:var(--ink-soft);margin-top:8px;">${esc(c.d)}</div>
+      <div class="wu-row"><input id="wreathUrl" type="text" inputmode="url" placeholder="${esc(c.ph)}" aria-label="${esc(c.t)}" />
+      <button class="wu-btn" onclick="wreathUrlGo()">주문 시작</button></div>
     </div>`;
+  // 근조·축하는 부고·청첩장 링크를 받아 오는 손님이 많아 목록 위에 두고, 나머지 탭은 상품을 밀어내지 않게 목록 아래로(11/1).
+  const cat=document.getElementById("catArea");
+  if(cat){ if(key==="condolence"||key==="congrats") cat.before(el); else cat.after(el); }
 }
 
 // 화환 12종은 이름 아래가 통째로 비어 있었다(subtitle·FEATURE 둘 다 없음).

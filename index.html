@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>꽃안부 · 안부는, 꽃으로</title>
+<title>근조화환 축하화환 전국 당일배송 | 꽃안부</title>
 <meta name="description" content="1993년부터 시흥 한 자리에서 꽃을 만들어 온 꽃안부입니다. 근조·축하 화환, 동양란, 관엽, 꽃바구니를 전국 당일 배송해요. 부고·청첩장 링크만 보내 주셔도 주문할 수 있고, 법인 계산서·후불도 됩니다." />
 <!-- 오픈그래프: 카톡·문자 등에 링크 공유 시 미리보기 카드로 뜸 -->
 <meta property="og:type" content="website" />
@@ -484,7 +484,6 @@
   .design-photo img { width: 100%; height: 100%; object-fit: cover; }
   .design-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
   .design-name { font-family: var(--font-display); font-size: 21px; font-weight: 700; color: var(--ink); }
-  .design-code { font-size: var(--fs-label); color: var(--ink-faint); letter-spacing: 2px; text-transform: uppercase; }
   .design-desc { font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; margin-top: 4px; }
   .design-price { font-size: 24px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
   .design-confirm { margin-top: 14px; }
@@ -1820,7 +1819,7 @@ function afPh(key){
   if(key==="chiefMourner") return "예) 장남 김OO";
   if(key==="groomName") return "예) 김OO";
   if(key==="brideName") return "예) 이OO";
-  if(key==="venue") return fun?"예) OO장례식장":wed?"예) OO웨딩홀":"예) OO빌딩 · OO병원";
+  if(key==="venue") return fun?"장례식장 이름을 쳐 보세요":wed?"예식장 이름을 쳐 보세요":"병원·건물·가게 이름을 쳐 보세요";
   if(key==="venueDetail") return fun?"예) 3층 특실":wed?"예) 5층 그랜드홀":"예) 3층 301호";
   return "직접 적어 주세요";
 }
@@ -2908,7 +2907,6 @@ function selTier(i, autoOpen){
       </div>
       <div class="design-info">
         <div class="design-name">${t.nm}</div>
-        <div class="design-code">${t.cl}</div>
         <div class="design-desc">${t.desc}</div>
         <div class="design-price" id="designTotal"><b>${t.price.toLocaleString()}원</b></div>
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
@@ -4682,7 +4680,6 @@ function selProduct(p){
       <div class="design-info">
         <div class="design-name">${escapeHtml(p.name)}${gradeTxt}</div>
         ${p.subtitle?`<div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-top:-2px;">${escapeHtml(p.subtitle)}</div>`:""}
-        <div class="design-code">${escapeHtml(p.pc)}</div>
         <div class="design-desc">${escapeHtml(sizeLine)}</div>
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
         <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
