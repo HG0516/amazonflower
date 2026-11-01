@@ -47,6 +47,14 @@
   .cat-hd { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 2px; }
   .cat-brand { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: 0.5px; min-height: 44px; display: inline-flex; align-items: center; }
   .cat-tel { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--accent-deep); text-decoration: none; border: 1px solid var(--accent); border-radius: var(--radius); padding: 0 10px; min-height: 44px; display: inline-flex; align-items: center; }
+  /* 가입 혜택 칩은 떠 있으면 상품 이름을 덮어서 머리 줄에 둔다(auth.js #hdrAuthSlot, 홈과 같은 자리). */
+  .cat-hd-r { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .cat-brand, .cat-tel { white-space: nowrap; flex-shrink: 0; }
+  @media (max-width: 340px) {
+    .cat-brand { font-size: 18px; }
+    .cat-tel { font-size: 13px; padding: 0 6px; }
+    .cat-hd .af-auth-chip.af-auth-chip--hdr { font-size: 12px; padding: 0 6px; }
+  }
   .cat-trust { font-size: var(--fs-caption); color: var(--ink-soft); text-align: center; line-height: 1.7; margin: 26px 0 8px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
   .cat-trust b { color: var(--accent-deep); font-weight: 600; }
 
@@ -453,7 +461,10 @@
   <!-- 머리는 한 줄(11/1). 폰에서 첫 상품이 1,176 아래라 두 화면을 내려야 나왔다. 정찰제·결제 안내는 상품 목록 아래(.cat-trust)로. -->
   <header class="cat-hd">
     <a class="cat-brand" href="/" aria-label="꽃안부 홈으로">꽃안부</a>
-    <a class="cat-tel" href="tel:1577-2286">1577-2286</a>
+    <div class="cat-hd-r">
+      <span id="hdrAuthSlot"></span>
+      <a class="cat-tel" href="tel:1577-2286">1577-2286</a>
+    </div>
   </header>
 
   <div class="searchbar">
