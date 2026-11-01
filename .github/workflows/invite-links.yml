@@ -1,0 +1,17 @@
+# 청첩장 자동읽기 주간 점검 — 월요일 오전 9시(KST). 실패하면 GitHub 가 메일을 보내고 서버가 텔레그램으로 알린다.
+# 손으로 돌리기: GitHub → Actions → invite-links → Run workflow
+name: invite-links
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-invite-links.mjs
