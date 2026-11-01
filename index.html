@@ -286,6 +286,19 @@
   .dt-ev-sub { display: block; font-weight: 400; color: var(--ink-faint); font-size: var(--fs-caption); margin-top: 2px; }
   .dt-slots-wrap { margin-top: 18px; }
   /* 오늘·내일·모레 빠른 선택 — 경조사 주문 대부분이 이 셋 안이다. 달력은 그 밖의 날짜용. */
+  /* 접는 칸(11/1, 아버지 '한 페이지에 모두'는 그대로 두고 길이만 줄인다). 필수 칸은 접지 않는다. */
+  .af-fold { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fbfaf7; }
+  .af-fold > summary { min-height: 48px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; font-weight: 700; color: var(--ink); cursor: pointer; list-style: none; }
+  .af-fold > summary::-webkit-details-marker { display: none; }
+  .af-fold > summary::after { content: "펼치기"; flex: 0 0 auto; font-size: 13px; font-weight: 600; color: var(--ink-faint); }
+  .af-fold[open] > summary::after { content: "접기"; }
+  .af-fold > summary small { font-size: 13px; font-weight: 600; color: var(--accent-deep); margin-left: 6px; }
+  .af-fold-in { padding: 0 14px 14px; }
+  .af-fold.no-fold { margin-top: 0; border: 0; background: none; }
+  .af-fold.no-fold > summary { display: none; }
+  .af-fold.no-fold > .af-fold-in { padding: 0; }
+  .dt-more { display: block; width: 100%; min-height: 46px; margin-bottom: 10px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; cursor: pointer; font-family: var(--font-body); font-size: 15px; font-weight: 700; color: var(--ink); }
+  .dt-more.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .dt-quick-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
   .dt-quick { min-height: 56px; padding: 8px 4px; border: 1.5px solid var(--line); border-radius: var(--radius); background: #fff; cursor: pointer; font-family: var(--font-body); font-size: var(--fs-body); font-weight: 800; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
   .dt-quick span { font-size: var(--fs-caption); font-weight: 500; color: var(--ink-faint); }
@@ -538,14 +551,15 @@
   .tone-tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .ribbon-opts { display: flex; flex-direction: column; gap: 8px; }
   /* 리본 미리보기(10/20 형구 '리본 좌우 더 자세히'): 실제로 달리는 두 줄을 세로로 그려 왼쪽·오른쪽이 헷갈리지 않게 */
-  .rb-prev { display: flex; gap: 14px; align-items: flex-start; margin: 14px 0 4px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfaf7; }
-  .rb-strips { flex: 0 0 auto; display: flex; gap: 10px; }
-  .rb-strip { width: 46px; min-height: 210px; padding: 12px 0; border-radius: 3px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .rb-strip small { font-size: 11px; font-weight: 700; opacity: .7; writing-mode: horizontal-tb; }
-  .rb-strip span { writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap; font-size: 17px; font-weight: 700; letter-spacing: 1px; line-height: 1.15; }
+  .rb-prev { margin: 12px 0 4px; padding: 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fbfaf7; }
+  /* 세로 리본 그림은 380을 차지해서 가로 띠 두 줄로 줄였다(11/1). 글자·색·긴 글자 안내는 그대로. */
+  .rb-strips { display: flex; flex-direction: column; gap: 6px; }
+  .rb-strip { min-height: 44px; padding: 6px 10px; border-radius: 3px; display: flex; align-items: center; gap: 10px; }
+  .rb-strip small { flex: 0 0 auto; font-size: 11px; font-weight: 700; opacity: .7; }
+  .rb-strip span { min-width: 0; font-size: 17px; font-weight: 700; letter-spacing: .5px; line-height: 1.25; word-break: keep-all; }
   .rb-strip.fun { background: #fff; border: 1px solid #cfccc4; color: #1f1d18; }
   .rb-strip.joy { background: #b8322a; color: #fff6dc; }
-  .rb-note { flex: 1; min-width: 0; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; }
+  .rb-note { margin-top: 8px; font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; }
   .rb-note b { color: var(--ink); }
   .rb-note .rb-long { color: var(--accent-deep); font-weight: 700; }
   .rb-ends { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
@@ -1068,6 +1082,7 @@
 
     <!-- 받는 분 연락처 + 배송 요청 + 공동현관 출입 비밀번호 -->
     <div class="deliv-box">
+      <details class="af-fold" id="delivFold"><summary><span>받는 분 연락처·배송 요청 <span style="font-weight:400;color:var(--ink-faint);">(선택)</span></span></summary><div class="af-fold-in">
       <!-- 여태 이 칸이 없었다. 그러면서 배송 요청에는 '배송 전 받는 분께 연락해 주세요'가
            들어 있어서, 손님이 그걸 고르면 연락할 번호가 없었다. -->
       <label class="fl" id="rpLabel">받는 분 연락처 <span class="fl-opt" id="rpReq"></span><span class="fl-sub" id="rpOpt">못 만나면 이 번호로 연락드려요</span></label>
@@ -1091,6 +1106,7 @@
         </div>
         <div class="deliv-hint">공동주택은 현관 비밀번호가 없으면 배송이 지연될 수 있어요. 없으면 <b>없음</b>을 체크해 주세요.</div>
       </div>
+      </div></details>
     </div>
   </section>
 
@@ -1112,20 +1128,6 @@
     <div class="step-head"><span class="step-num" id="n-send">5.</span><span class="step-title" id="senderTitle">보내는 분 · 리본 문구</span></div>
     <div class="step-sub" id="senderSub">보내는 분 정보를 적어 주세요. 리본 문구는 아래에서 고르시면 돼요.</div>
 
-    <div class="ribbon-guide ribbon-only">
-      <div class="ribbon-photo-placeholder">
-        <img src="/photos/안내/리본_예시.jpg" alt="리본 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div style="display:none;font-size:var(--fs-caption);color:var(--ink-faint);text-align:center;line-height:1.6;">
-          리본 예시 사진<br>
-          <span style="font-size:var(--fs-caption);">(준비 중)</span>
-        </div>
-      </div>
-      <div class="ribbon-guide-text">
-        화환 양쪽에 달리는 리본입니다.<br>
-        <b>왼쪽</b> 보내는 분 · <b>오른쪽</b> 인사 문구
-      </div>
-    </div>
-
     <label class="fl">보내는 분 성함 <span class="required-mark">(필수)</span></label>
     <div class="name-quick">
       <button type="button" id="senderLastBtn" class="same-btn mine" style="display:none;" onclick="afUseLastSender()"></button>
@@ -1136,15 +1138,9 @@
     <label class="fl">연락처 <span class="required-mark">(필수)</span> <span class="fl-sub">도착 사진을 이 번호로 보내 드려요</span></label>
     <input type="tel" id="senderPhone" autocomplete="tel" enterkeyhint="done" placeholder="010-0000-0000" inputmode="tel" oninput="formatPhone(this);clearErr(this)" />
     <div class="ribbon-only">
-      <label class="fl">리본 왼쪽: 보내는 분 <span class="fl-sub">비워 두면 위 성함이 들어가요</span></label>
-      <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
-      <div class="rb-ends" id="rbEnds" aria-label="왼쪽 리본 끝말, 누르면 붙어요"></div>
-      <label class="fl">리본 오른쪽: 문구 <span class="fl-sub">어떤 사이인지에 맞춰 골라 주세요</span></label>
+      <label class="fl">리본 문구 <span class="fl-sub">어떤 사이인지에 맞춰 골라 주세요</span></label>
       <div class="tone-tabs" id="toneTabs"></div>
       <div class="ribbon-opts" id="ribbonOpts"></div>
-      <label class="fl" for="ribbonRight">리본에 들어갈 문구 <span class="fl-sub">고른 문구를 고쳐 쓸 수 있어요</span></label>
-      <input type="text" id="ribbonRight" placeholder="직접 적어도 돼요" onblur="ribbonCheck()" />
-      <div id="ribbonWarn" class="af-lb-msg err" style="display:none;"></div>
       <div class="rb-prev" id="rbPrev" aria-live="polite">
         <div class="rb-strips" aria-hidden="true">
           <div class="rb-strip" id="rbStripL"><small>왼쪽</small><span id="rbTextL"></span></div>
@@ -1152,6 +1148,14 @@
         </div>
         <div class="rb-note" id="rbNote"></div>
       </div>
+      <!-- 고른 문구가 기본으로 들어가 있어서 안 펼쳐도 주문된다. 고치고 싶은 손님만 연다(11/1). -->
+      <details class="af-fold" id="ribbonFold"><summary>리본 글자 고치기·문구 찾기</summary><div class="af-fold-in">
+      <label class="fl" style="margin-top:0;">리본 왼쪽: 보내는 분 <span class="fl-sub">비워 두면 위 성함이 들어가요</span></label>
+      <input type="text" id="ribbonLeft" placeholder="예) 홍길동 · (주)KCC 대표이사 정몽진 · ○○부 임직원 일동" />
+      <div class="rb-ends" id="rbEnds" aria-label="왼쪽 리본 끝말, 누르면 붙어요"></div>
+      <label class="fl" for="ribbonRight">리본 오른쪽: 문구 <span class="fl-sub">고른 문구를 고쳐 쓸 수 있어요</span></label>
+      <input type="text" id="ribbonRight" placeholder="직접 적어도 돼요" onblur="ribbonCheck()" />
+      <div id="ribbonWarn" class="af-lb-msg err" style="display:none;"></div>
       <div class="ribbon-ask">
         <label class="fl" style="margin:0 0 6px;">어떤 사이인지 적으면 문구를 골라 드려요</label>
         <div class="ribbon-ask-row">
@@ -1162,6 +1166,20 @@
         <div class="ribbon-opts" id="ribbonSug" style="display:none;margin-top:10px;"></div>
       </div>
       <div style="font-size:15px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">문구가 고민되시면 전화 주세요. 같이 정해 드려요. <a href="tel:1577-2286" style="color:var(--accent-deep);font-weight:700;text-decoration:none;white-space:nowrap;">1577-2286</a></div>
+    <div class="ribbon-guide">
+        <div class="ribbon-photo-placeholder">
+          <img src="/photos/안내/리본_예시.jpg" alt="리본 예시" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <div style="display:none;font-size:var(--fs-caption);color:var(--ink-faint);text-align:center;line-height:1.6;">
+            리본 예시 사진<br>
+            <span style="font-size:var(--fs-caption);">(준비 중)</span>
+          </div>
+        </div>
+        <div class="ribbon-guide-text">
+          화환 양쪽에 달리는 리본입니다.<br>
+          <b>왼쪽</b> 보내는 분 · <b>오른쪽</b> 인사 문구
+        </div>
+      </div>
+      </div></details>
     </div>
 
     <!-- 메시지 카드 — 리본이 없는 꽃다발·꽃바구니에만(buildRibbon 이 켜고 끈다). 추가 비용 없음.
@@ -1179,8 +1197,9 @@
       </div>
     </div>
 
-    <label class="fl" style="margin-top:22px;">사장님께 부탁 <span class="fl-opt">(선택)</span></label>
-    <input type="text" id="senderNote" placeholder="예) 분홍 위주로 · 향이 약한 꽃으로" />
+    <details class="af-fold"><summary><span>사장님께 부탁 <span style="font-weight:400;color:var(--ink-faint);">(선택)</span></span></summary><div class="af-fold-in">
+      <input type="text" id="senderNote" aria-label="사장님께 부탁" placeholder="예) 분홍 위주로 · 향이 약한 꽃으로" />
+    </div></details>
   </section>
 
   <section class="card hidden" id="payCard">
@@ -1582,7 +1601,8 @@ function afToHm(v){
 function afTodayIso(){ var d=new Date(); return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
 
 // ── 커스텀 달력 + 도착 시간대 위젯 (받는 날짜·시간) — 네이티브 입력 대체 ──
-var dtCalYear=null, dtCalMonth=null;
+var dtCalYear=null, dtCalMonth=null, dtCalOpen=false;   // 달력은 접어 둔다(11/1). 오늘·내일·모레로 안 되면 '다른 날 고르기'로 연다.
+function dtToggleCal(){ dtCalOpen=!dtCalOpen; if(dtCalOpen) dtInitMonth(); dtRender(); }
 function dtInitMonth(){
   var base=(order.date && /^\d{4}-\d{2}-\d{2}$/.test(order.date)) ? new Date(order.date+"T00:00:00") : new Date();
   dtCalYear=base.getFullYear(); dtCalMonth=base.getMonth();
@@ -1642,13 +1662,18 @@ function dtRender(){
     }
     quick = '<div class="dt-quick-row">'+out.join("")+'</div>';
   })();
-  host.innerHTML = quick +
-    '<div class="dt-cal"><div class="dt-cal-head">'
+  // 고른 날이 오늘·내일·모레가 아니면(청첩장에서 읽은 날 등) 버튼에 그 날짜를 바로 보여 준다.
+  var dq0=/^\d{4}-\d{2}-\d{2}$/.test(order.date||"") ? new Date(order.date+"T00:00:00") : null;
+  var dOut=!!dq0 && quick.indexOf("dtPick('"+order.date+"')")<0;
+  var more='<button type="button" class="dt-more'+(dOut?' on':'')+'" aria-expanded="'+(dtCalOpen?'true':'false')+'" onclick="dtToggleCal()">'
+    + (dOut ? (dq0.getMonth()+1)+'/'+dq0.getDate()+' '+wd[dq0.getDay()]+' · 다른 날 고르기' : '다른 날 고르기')+'</button>';
+  host.innerHTML = quick + more +
+    (dtCalOpen ? '<div class="dt-cal"><div class="dt-cal-head">'
     + '<button type="button" class="dt-nav" '+(canPrev?'':'disabled')+' onclick="dtMove(-1)" aria-label="이전 달">‹</button>'
     + '<div class="dt-cal-title">'+y+'년 '+("0"+(m+1)).slice(-2)+'월</div>'
     + '<button type="button" class="dt-nav" onclick="dtMove(1)" aria-label="다음 달">›</button></div>'
     + '<div class="dt-week">'+wd.map(function(w,i){return '<span class="'+(i===0?"sun":i===6?"sat":"")+'">'+w+'</span>';}).join("")+'</div>'
-    + '<div class="dt-grid">'+cells+'</div></div>'
+    + '<div class="dt-grid">'+cells+'</div></div>' : '')
     + '<div class="dt-slots-wrap"><div class="dt-slots-label">예상 도착 시간을 선택하세요</div>'
     + '<div class="dt-slots">'+slotHtml+'</div>'+custom
     + (hint?'<div class="dt-hint">'+hint+'</div>':'')+'</div>'
@@ -1772,7 +1797,7 @@ document.addEventListener("input", function(e){
   var id=e.target && e.target.id;
   if(id==="af_recipientName"||id==="af_chiefMourner"){ afNameNote=""; afNameCheck(); afMournerMark(); }
 });
-function dtPick(iso){ order.date=iso; dtRender(); }
+function dtPick(iso){ order.date=iso; dtCalOpen=false; dtRender(); }
 function dtMove(delta){
   var y=dtCalYear, m=dtCalMonth+delta;
   if(m<0){m=11;y--;} else if(m>11){m=0;y++;}
@@ -2454,6 +2479,7 @@ async function toggleTopping(code){
   }
 }
 
+var afTopOpen=false;
 function renderToppings(){
   const box=document.getElementById("toppingBox");
   if(!box) return;
@@ -2466,14 +2492,18 @@ function renderToppings(){
     return c===want || (order.toppings||[]).includes(c);
   });
   if(!codes.length){ box.innerHTML=""; return; }
-  box.innerHTML = `<div style="font-size:var(--fs-caption);font-weight:700;margin:16px 0 8px;color:var(--ink);">마음 얹기 <span style="display:block;font-weight:400;color:var(--ink-faint);font-size:var(--fs-caption);">고른 만큼 정해진 가격이 더해져요</span></div>`
+  // 마음 얹기는 접어 둔다(11/1). 고른 게 있거나 먼 지역 배송비가 붙으면 펼쳐서 금액이 안 숨게 한다.
+  const picked=codes.filter(c=>(order.toppings||[]).includes(c));
+  const sumTop=picked.reduce((a,c)=>a+((TOPPINGS[c]||{}).price||0),0);
+  const openTop=afTopOpen || picked.length>0;
+  box.innerHTML = `<details class="af-fold"${openTop?" open":""} ontoggle="afTopOpen=this.open"><summary><span>마음 얹기 <span style="font-weight:400;color:var(--ink-faint);">(선택)</span>${picked.length?`<small>+${sumTop.toLocaleString()}원</small>`:""}</span></summary><div class="af-fold-in"><div style="font-size:var(--fs-caption);color:var(--ink-faint);margin-bottom:8px;">고른 만큼 정해진 가격이 더해져요</div>`
     + codes.map(c=>{
       const t=TOPPINGS[c], on=(order.toppings||[]).includes(c);
       return `<div onclick="toggleTopping('${c}')" style="display:flex;align-items:center;gap:10px;border:1px solid ${on?'var(--accent)':'var(--line)'};background:${on?'var(--accent-soft)':'transparent'};border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:8px;cursor:pointer;user-select:none;">
         <span style="width:18px;height:18px;border:1.5px solid ${on?'var(--accent)':'var(--line)'};border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;background:${on?'var(--accent)':'transparent'};color:#fff;font-size:var(--fs-caption);flex:none;">${on?'✓':''}</span>
         <span style="flex:1;"><b style="font-size:14px;">${t.nm}</b> <span style="color:var(--ink-soft);font-size:var(--fs-caption);">+${t.price.toLocaleString()}원</span><br><span style="font-size:var(--fs-caption);color:var(--ink-faint);">${t.d}</span></span>
       </div>`;
-    }).join("");
+    }).join("") + `</div></details>`;
   updateDesignPhoto();
 }
 
@@ -3109,10 +3139,9 @@ function afRibbonPreview(){
   var ends=document.getElementById("rbEnds");
   if(ends && !ends.childElementCount) ends.innerHTML=AF_RB_ENDS.map(function(e){ return '<button type="button" onclick="afRibbonEnd(\''+e+'\')">+ '+e+'</button>'; }).join("");
   var tip=fun
-    ? "근조 리본은 <b>흰 바탕에 검은 글씨</b>예요. 왼쪽에 보내는 분, 오른쪽에 위로 문구가 들어가요."
-    : "축하 리본은 <b>붉은 바탕</b>이에요. 왼쪽에 보내는 분, 오른쪽에 축하 문구가 들어가요.";
+    ? "근조 리본은 <b>흰 바탕에 검은 글씨</b>예요."
+    : "축하 리본은 <b>붉은 바탕</b>이에요.";
   if(lenL>16||lenR>16) tip+='<br><span class="rb-long">글자가 '+Math.max(lenL,lenR)+'자라 작게 들어가요. 회사명은 줄여 쓰면 더 잘 보여요.</span>';
-  else tip+="<br>화환을 마주 보고 섰을 때 보이는 모양이에요.";
   document.getElementById("rbNote").innerHTML=tip;
 }
 document.addEventListener("input",function(e){ if(e.target && /^(ribbonLeft|ribbonRight|senderName)$/.test(e.target.id)) afRibbonPreview(); });
@@ -3678,6 +3707,12 @@ function afTuneDelivBox(){
     : "못 만나면 이 번호로 연락드려요";
   const req=document.getElementById("rpReq");
   if(req) req.textContent = isWreath ? "(선택)" : "";
+  // 접는 건 화환뿐이다. 꽃다발·관엽·난은 받는 분 연락처가 필수라 접으면 못 찾는다.
+  const df=document.getElementById("delivFold");
+  if(df){
+    df.classList.toggle("no-fold",!isWreath);
+    if(!isWreath || order.recipientPhone || order.delivReq) df.open=true;
+  }
 }
 
 /** 화면에 있는 값을 order 로 끌어온다. 검사 직전에 한 번 돌려 DOM과 order 가 어긋나지 않게. */
@@ -3769,6 +3804,7 @@ function afShowPayErrors(errs){
   pe.querySelectorAll(".pay-miss").forEach(b=>b.onclick=function(){
     const e=errs[+b.getAttribute("data-i")]; const el=e.id&&document.getElementById(e.id);
     const tgt=el||document.getElementById(e.card);
+    const fold=el&&el.closest&&el.closest("details"); if(fold) fold.open=true;
     if(tgt) tgt.scrollIntoView({behavior:"smooth",block:"center"});
     if(el&&el.focus) setTimeout(()=>el.focus({preventScroll:true}),400);
   });
