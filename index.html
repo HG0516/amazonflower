@@ -35,7 +35,7 @@
 <!-- pwa-install.js('홈 화면에 추가' 배너) 제거 — 홈 배너와 겹침 + 추후 네이티브 앱 출시 예정(2026-07-18).
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
-<script src="/footer.js?v=20261020d" defer></script>
+<script src="/footer.js?v=20261102a" defer></script>
 <script src="/bottom-nav.js?v=20261020d" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
@@ -700,6 +700,10 @@
   .prb-go { flex: none; display: flex; flex-direction: column; gap: 6px; }
   .prb-go a { display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 14px; border-radius: var(--radius-pill); background: #fff; color: var(--accent-deep); font-size: var(--fs-sub); font-weight: 800; text-decoration: none; white-space: nowrap; }
   .prb-go a[hidden] { display: none; }
+  .gift-entry { display: flex; flex-direction: column; gap: 2px; margin: 12px 0 2px; padding: 12px 14px; border: 1.5px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); color: var(--accent-deep); text-decoration: none; }
+  .gift-entry[hidden] { display: none; }
+  .gift-entry b { font-size: var(--fs-sub); }
+  .gift-entry span { font-size: var(--fs-caption); color: var(--ink-soft); }
   .hg-more { display: block; margin-top: 14px; padding: 12px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); font-size: var(--fs-sub); font-weight: 700; text-decoration: none; }
   /* 시작 바 — 하단 탭(56px) 바로 위. 주문 중(body.ordering)엔 .home-sect 라 같이 숨는다. */
   .start-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 84; display: flex; gap: 8px; padding: 7px 12px calc(7px + env(safe-area-inset-bottom,0px)); background: var(--paper); border-top: 1px solid var(--line); box-shadow: 0 -6px 16px rgba(31,29,24,.06); }
@@ -912,6 +916,7 @@
         <a href="/catalog.html?cat=basket">꽃다발·꽃바구니</a>
         <a href="/catalog.html?cat=orchid">난</a>
         <a href="/catalog.html?cat=plant">관엽</a>
+        <a href="/catalog.html?cat=basket&amp;gift=1" data-gift-entry hidden>카톡 선물</a>
         <!-- 부고장·청첩장(10/20 형구 이름 결정) — 무료라는 말은 펼친 안에만 -->
         <div class="hm-dd">
           <button type="button" class="hm-dd-b" aria-haspopup="true">부고장·청첩장 <span aria-hidden="true">▾</span></button>
@@ -976,6 +981,8 @@
     </div>
     <!-- '부고'·'결혼' 칩을 고르면 그 칸에만 무료 안내장 한 줄(10/20 부고·청첩장 나누기 A안). 서로 섞어 보이지 않는다. -->
     <a class="hg-card" id="homeCardLink" hidden></a>
+    <!-- 카톡·링크 선물 입구(11/2 시안 주소없는선물). footer.js 의 GIFT_ENTRY 가 켜질 때만 보인다 -->
+    <a class="gift-entry" href="/catalog.html?cat=basket&amp;gift=1" data-gift-entry hidden><b>주소 몰라도 카톡으로 꽃 보내기</b><span>받는 분이 주소를 직접 넣어요</span></a>
     <div class="hg-grid" id="homeGrid"></div>
     <a class="hg-more" id="homeMore" href="/catalog.html">전체 상품 보기 →</a>
   </section>

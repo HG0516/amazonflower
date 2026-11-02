@@ -28,7 +28,7 @@
   }
 </script>
 <script src="/pwa-install.js" defer></script>
-<script src="/footer.js?v=20261020d" defer></script>
+<script src="/footer.js?v=20261102a" defer></script>
 <script src="/bottom-nav.js?v=20261020d" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
@@ -163,6 +163,9 @@
   .ch-ic svg { width: 100%; height: 100%; display: block; }
   .ch-nm { font-size: var(--fs-caption); letter-spacing: 0.5px; color: var(--ink); }
 
+  .gift-band { margin: 4px 0 14px; padding: 12px 14px; border-radius: var(--radius); background: var(--accent-soft); color: var(--accent-deep); font-size: var(--fs-sub); line-height: 1.6; }
+  .gift-band[hidden] { display: none; }
+  .gift-band b { display: block; }
   .note { font-size: var(--fs-caption); color: var(--ink-soft); padding: 16px 0 0; border-top: 1px solid var(--line-soft); margin-top: 26px; line-height: 1.8; }
   .note b { color: var(--ink); }
 
@@ -497,6 +500,8 @@
   </div>
 
   <div id="linkOrderArea"></div>
+  <!-- 카톡·링크 선물로 들어온 경우(?gift=1). 고른 상품 주문서가 선물 방식으로 열린다 -->
+  <div class="gift-band" id="giftBand" hidden><b>카톡·링크 선물</b> 꽃을 고르면 결제 뒤 받는 분께 링크를 보내요. 받는 분이 주소를 직접 넣어요. 꽃다발·꽃바구니·난·관엽만 이렇게 보낼 수 있어요.</div>
 
   <!-- 정찰제 배너는 상품을 밀어내기만 해서 뺐다(2026-07-18). 신뢰 문구는 상품 목록 아래 .cat-trust 에 한 번. -->
 
@@ -1057,7 +1062,7 @@ function pickCat(k){
 // 갤러리/검색 사진 클릭 → 해당 카테고리 가격대로 이동
 function pickFromGallery(key, pc){
   // 사진이 판매상품과 연결돼 있으면(pc) 그 상품 주문으로 바로 — "이 사진 그대로 주문"
-  if(pc && (window.PRODUCTS||[]).some(p=>p.pc===pc)){ location.href="/?pc="+encodeURIComponent(pc); return; }
+  if(pc && (window.PRODUCTS||[]).some(p=>p.pc===pc)){ location.href="/?pc="+encodeURIComponent(pc)+(window.AF_GIFT_Q||""); return; }
   const si=document.getElementById("searchInput"); if(si) si.value="";
   doSearch("");
   showCat(key);
@@ -1600,7 +1605,10 @@ async function aiSearch(q){
 }
 
 // 개별상품 주문 — 메인 주문 플로우로 pc 전달(index.html이 해당 상품으로 진입)
-function goOrderPc(pc){ location.href = "/?pc="+encodeURIComponent(pc); }
+// 카톡·링크 선물로 들어왔으면 주문서에 gift=1 을 이어 붙인다(꽃다발·바구니·난·관엽만 선물 방식이 켜진다).
+var AF_GIFT_Q = (function(){ try{ return new URLSearchParams(location.search).get("gift")==="1" ? "&gift=1" : ""; }catch(_){ return ""; } })();
+if(AF_GIFT_Q){ document.addEventListener("DOMContentLoaded", function(){ var b=document.getElementById("giftBand"); if(b && window.AF_GIFT_ENTRY) b.hidden=false; }); }
+function goOrderPc(pc){ location.href = "/?pc="+encodeURIComponent(pc)+AF_GIFT_Q; }
 
 /* ───────── 상품 상세 모달 ───────── */
 let detailPc=null, detailIdx=0;
@@ -1760,7 +1768,7 @@ function closeCart(){ document.getElementById("cartDrawer").classList.remove("op
 function cartSetQty(pc,delta){ const c=getCart(); const f=c.find(i=>i.pc===pc); if(!f) return; f.qty=Math.max(1,Math.min(99,(f.qty||1)+delta)); saveCart(c); renderCart(); }
 function cartRemove(pc){ saveCart(getCart().filter(i=>i.pc!==pc)); renderCart(); }
 function cartClear(){ if(!getCart().length) return; saveCart([]); renderCart(); }
-function cartOrder(pc,qty){ location.href="/?pc="+encodeURIComponent(pc)+((qty&&qty>1)?"&qty="+qty:""); }
+function cartOrder(pc,qty){ location.href="/?pc="+encodeURIComponent(pc)+((qty&&qty>1)?"&qty="+qty:"")+(window.AF_GIFT_Q||""); }
 function renderCart(){
   const c=getCart();
   const linesEl=document.getElementById("cartLines"), footEl=document.getElementById("cartFoot");

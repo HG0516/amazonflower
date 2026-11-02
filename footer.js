@@ -4,6 +4,14 @@
 (function () {
   'use strict';
 
+  // 카톡·링크 선물 들어오는 버튼(11/2). 서버 GIFT_ENABLED 를 켤 때 이것도 true 로 바꾼다.
+  // 홈·목록은 서버에 묻지 않게 정적 스위치로 둔다(10/28 Vercel CPU 초과 뒤 방문마다 함수 호출 늘리지 않기).
+  var GIFT_ENTRY = false;
+  window.AF_GIFT_ENTRY = GIFT_ENTRY;
+  if (GIFT_ENTRY) {
+    try { document.querySelectorAll('[data-gift-entry]').forEach(function (el) { el.hidden = false; }); } catch (_e) {}
+  }
+
   // ── 유입경로 기록 (전 페이지) ──
   // 예전엔 index.html 안에만 있어서, 인스타·지도 링크를 catalog 로 걸면 유입이 집계에서 통째로 사라졌다.
   // 마지막 유입 기준 30일 보관 → 결제 시 주문에 실려 관리자 '📊 통계'의 채널별 집계가 된다.
