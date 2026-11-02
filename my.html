@@ -174,6 +174,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/auth.js?v=20261020e"></script>
 <script src="/footer.js?v=20261102a" defer></script>
+<script src="/kakao-share.js?v=20261102a" defer></script>
 <script src="/bottom-nav.js?v=20261020d" defer></script>
 <script src="/va.js?v=20261025a" defer></script>
 </head>
@@ -402,6 +403,12 @@
     var text = "꽃을 보냈어요. 받으실 주소를 여기에 넣어 주세요.";
     var flash = function (t) { var o = btn.textContent; btn.textContent = t; setTimeout(function () { btn.textContent = o; }, 2500); };
     if (a === "share") {
+      // 카톡 메시지에 '주소 넣기' 버튼(kakao-share.js). 키가 없으면 공유 창 → 복사.
+      if (window.afKakao && g.url) {
+        afKakao.send({ title: "꽃을 선물했어요", desc: "받으실 주소를 넣어 주시면 사장님이 직접 만들어 보내 드려요", image: g.photo || "/photos/hello/rose.jpg", w: 800, h: 800,
+          url: g.url, buttons: [{ title: "주소 넣기", url: g.url }], text: text }).then(function (r) { if (r === "copied") flash("복사했어요"); });
+        return;
+      }
       if (navigator.share && g.url) { navigator.share({ text: text, url: g.url }).catch(function () {}); return; }
       a = "copy";
     }

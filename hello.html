@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>오늘의 꽃 인사 | 꽃안부</title>
-<meta name="description" content="오늘의 꽃과 짧은 인사를 카드 한 장으로 만들어 단톡방에 보내요. 가입 없이 무료예요.">
+<title>꽃 인사 | 꽃안부</title>
+<meta name="description" content="오늘의 꽃에 한마디 적어 단톡방에 보내요. 받은 분도 바로 이어서 보낼 수 있어요. 가입 없이 무료예요.">
 <link rel="canonical" href="https://floweranbu.co.kr/hello">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="꽃안부">
 <meta property="og:title" content="꽃 인사가 도착했어요">
-<meta property="og:description" content="오늘의 꽃 한 송이와 안부 인사예요. 같은 카드를 다른 분께도 보낼 수 있어요.">
+<meta property="og:description" content="눌러서 오늘의 꽃과 꽃말을 보세요. 나도 바로 이어서 보낼 수 있어요.">
 <meta property="og:url" content="https://floweranbu.co.kr/hello">
 <meta property="og:image" content="https://floweranbu.co.kr/photos/hello/rose.jpg">
 <meta name="theme-color" content="#1f4733">
@@ -17,48 +17,57 @@
 <link rel="stylesheet" href="/tokens.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
 <!--
-  오늘의 꽃 인사(1단계, 11/2 시안 docs/시안/꽃인사-2026-11). 꽃 사진·꽃말로 카드를 그려 단톡방에 보낸다.
-  지킬 것: 꽃말은 사이트 원본 문구만, 근조·국화·흰 꽃 금지, 카드·메시지에 가격·주문 권유 금지,
-  이름은 링크 주소에 넣지 않음(카드 그림에만), 보내기만으로 포인트 주지 않음.
-  받은 링크: /hello?s=<상황>&g=<인사 번호>&d=<YYYYMMDD> — 이름 없이 같은 꽃·인사를 다시 그린다.
-  카톡 공유 키(KAKAO_JS_KEY)가 없어서 폰의 공유 창을 쓴다(카톡이 맨 앞에 뜬다). 안 되면 링크 복사·사진 저장.
+  꽃 인사(11/2 다시 만듦). 사진을 보내는 게 아니라 '링크'가 돌아야 이어진다.
+  - 보내기: 카톡 메시지(카카오 공유 feed)에 버튼 둘 — '꽃말 보기'(받은 화면) · '나도 보내기'(만들기 화면).
+    키(KAKAO_JS_KEY)가 없으면 폰 공유 창에 글+링크만(kakao-share.js).
+  - 링크: /hello?s=<상황>&g=<인사 번호> 또는 &m=<직접 쓴 말 24자>&n=<보내는 분 10자>&d=<YYYYMMDD>[&make=1]
+    이름·한마디는 받는 분 화면에 보여야 해서 링크에 담는다(화면에 그렇게 안내).
+  - 받은 화면: 누가 보냈는지 · 카드 · 꽃말 · '나도 꽃 인사 보내기' · '꽃 선물하기'(선물 스위치가 켜지면 카톡 선물로).
+  지킬 것: 꽃말은 사이트 원본 문구만, 근조·국화·흰 꽃 금지, 카드·메시지에 가격 금지, 보내기만으로 포인트 주지 않음.
 -->
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--kakao:#FEE500;--serif:"Gowun Batang",serif}
   body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.6;font-size:16px}
+  [hidden]{display:none !important}
   .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;max-width:1040px;margin:0 auto}
   .hd a{font-family:var(--serif);font-weight:700;font-size:19px;color:var(--ink);text-decoration:none}
   .hd span{font-size:13px;color:var(--ink-soft)}
-  .wrap{max-width:1040px;margin:0 auto;padding:0 16px 120px;display:grid;gap:18px}
-  .got{background:var(--accent-soft);color:var(--accent-deep);border-radius:10px;padding:11px 14px;font-weight:600}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 16px 130px;display:grid;gap:18px}
+  .ttl h1{font-family:var(--serif);font-size:24px;line-height:1.35;word-break:keep-all}
+  .ttl p{font-size:14.5px;color:var(--ink-soft);margin-top:4px;word-break:keep-all}
   .card{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff}
-  .only{font-size:13.5px;color:var(--ink-soft);text-align:center;margin-top:6px}
   .lbl{display:block;font-size:16px;font-weight:700;margin:2px 0 8px}
   .lbl small{font-weight:400;font-size:13px;color:var(--ink-soft)}
   .sits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
   .sit{min-height:48px;padding:0 4px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-weight:600;font-size:15px;font-family:inherit;cursor:pointer;word-break:keep-all}
   .sit.on{background:var(--accent);border-color:var(--accent);color:#fff}
-  .pick{display:grid;gap:6px}
-  .pbtn{min-height:48px;padding:9px 13px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-weight:600;font-size:15px;line-height:1.4;font-family:inherit;text-align:left;cursor:pointer}
+  .pick{display:flex;flex-wrap:wrap;gap:6px}
+  .pbtn{min-height:44px;padding:8px 13px;border:1px solid var(--line);border-radius:22px;background:var(--paper);color:var(--ink);font-weight:600;font-size:15px;line-height:1.35;font-family:inherit;text-align:left;cursor:pointer}
   .pbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
-  .who{width:100%;min-height:50px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:17px;font-family:inherit;color:var(--ink)}
+  .inp{width:100%;min-height:50px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:17px;font-family:inherit;color:var(--ink)}
+  .inp:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .cnt{font-size:12.5px;color:var(--ink-faint);text-align:right;margin-top:4px}
+  .note{font-size:13px;color:var(--ink-faint);margin-top:6px;word-break:keep-all}
+  .mean{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;scroll-margin-top:12px}
+  .mean .k{font-size:13px;color:var(--ink-soft)}
+  .mean b{display:block;font-family:var(--serif);font-size:22px;margin:2px 0 4px}
+  .mean p{font-family:var(--serif);font-size:17px;line-height:1.7;word-break:keep-all}
+  .mean small{display:block;margin-top:8px;font-size:12.5px;color:var(--ink-faint)}
   .bar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
-  .bar-in{max-width:520px;margin:0 auto}
-  .two{display:grid;grid-template-columns:1.45fr 1fr;gap:6px}
-  .kbtn{display:flex;min-height:56px;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;background:var(--kakao);color:#191600;font-weight:800;font-size:17px;font-family:inherit;cursor:pointer;white-space:nowrap}
-  .gift{display:flex;align-items:center;justify-content:center;min-height:56px;border:1.5px solid var(--accent);border-radius:10px;background:var(--paper);color:var(--accent-deep);font-weight:800;font-size:16px;font-family:inherit;text-decoration:none;white-space:nowrap}
-  .row2{display:flex;justify-content:center;gap:18px;margin-top:4px}
-  .lnk{border:0;background:none;color:var(--ink-soft);font-weight:500;font-size:15px;font-family:inherit;cursor:pointer;min-height:40px;text-decoration:underline}
+  .bar-in{max-width:520px;margin:0 auto;display:grid;gap:6px}
+  .kbtn{display:flex;width:100%;min-height:56px;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;background:var(--kakao);color:#191600;font-weight:800;font-size:17px;font-family:inherit;cursor:pointer;text-decoration:none}
+  .gbtn{display:flex;width:100%;min-height:56px;align-items:center;justify-content:center;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;font-size:17px;font-family:inherit;cursor:pointer;text-decoration:none}
+  .obtn{display:flex;flex-direction:column;width:100%;min-height:56px;align-items:center;justify-content:center;border:1.5px solid var(--accent);border-radius:10px;background:var(--paper);color:var(--accent-deep);font-weight:800;font-size:16px;font-family:inherit;text-decoration:none;line-height:1.3}
+  .obtn small{font-weight:500;font-size:12.5px;color:var(--ink-soft)}
+  .lnk{border:0;background:none;color:var(--ink-soft);font-weight:500;font-size:15px;font-family:inherit;cursor:pointer;min-height:40px;text-decoration:underline;justify-self:center}
   .toast{min-height:20px;font-size:13.5px;text-align:center;color:var(--accent-deep)}
-  .note{font-size:13px;color:var(--ink-faint)}
   .foot{font-size:12.5px;color:var(--ink-faint);text-align:center;line-height:1.7}
-  .foot a{color:var(--ink-soft)}
-  .ctrl{display:grid;gap:18px;align-content:start;min-width:0}
-  /* 컴퓨터: 카드 왼쪽, 고르는 칸 오른쪽. 아래 고정 버튼 대신 오른쪽 칸 안에 둔다 */
+  .col{display:grid;gap:18px;align-content:start;min-width:0}
+  /* 컴퓨터: 카드 왼쪽, 나머지 오른쪽. 아래 고정 바 대신 오른쪽 칸 안에 */
   @media (min-width:900px){
     .wrap{grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:36px;align-items:start;padding-bottom:48px}
-    .got,.foot{grid-column:1/-1}
+    .ttl,.foot{grid-column:1/-1}
     .stick{position:sticky;top:16px}
     .bar{position:static;border:0;padding:0;background:none}
     .bar-in{max-width:none}
@@ -66,24 +75,35 @@
 </style>
 <script src="/va.js?v=20261025a" defer></script>
 <script src="/footer.js?v=20261102a" defer></script>
+<script src="/kakao-share.js?v=20261102a" defer></script>
 </head>
 <body>
 <header class="hd"><a href="/">꽃안부</a><span id="today"></span></header>
 <main class="wrap">
-  <div class="got" id="got" hidden>꽃 인사를 받으셨어요. 같은 카드를 다른 분께도 보낼 수 있어요.</div>
-  <div class="stick">
-    <canvas class="card" id="card" width="1080" height="1350" role="img" aria-label="꽃 인사 카드"></canvas>
-    <p class="only" id="only">오늘의 꽃은 오늘만 볼 수 있어요</p>
-  </div>
-  <div class="ctrl">
-    <div id="sitBox"><span class="lbl">어떤 카드를 보낼까요</span><div class="sits" id="sits"></div></div>
-    <div><span class="lbl">인사 넣기 <small>(안 골라도 돼요)</small></span><div class="pick" id="greets"></div></div>
-    <div><label class="lbl" for="who">보내는 분 이름 <small>(안 적어도 돼요)</small></label>
-      <input class="who" id="who" type="text" maxlength="10" autocomplete="off" placeholder="적으면 ○○ 드림으로 들어가요">
-      <p class="note" style="margin-top:6px">이름은 카드 그림에만 들어가요. 링크 주소에는 남지 않아요.</p></div>
+  <div class="ttl"><h1 id="h1">꽃 인사 보내기</h1><p id="sub">오늘의 꽃에 한마디 적어 단톡방에 보내요. 가입 없이 무료예요.</p></div>
+  <div class="stick"><canvas class="card" id="card" width="1080" height="1350" role="img" aria-label="꽃 인사 카드"></canvas></div>
+
+  <!-- 받은 화면 -->
+  <div class="col" id="recv" hidden>
+    <section class="mean" id="m"><span class="k" id="mDay"></span><b id="mName"></b><p id="mSay"></p><small>널리 전해지는 꽃말이에요</small></section>
     <div class="bar"><div class="bar-in">
-      <div class="two"><button class="kbtn" id="send" type="button"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#191600" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.4 0 .8.1 1.3.1 5.5 0 10-3.5 10-7.9S17.5 3 12 3z"/></svg>카톡으로 보내기</button><a class="gift" id="giftBtn" href="/catalog.html?cat=basket">꽃 선물하기</a></div>
-      <div class="row2"><button class="lnk" id="save" type="button">사진으로 저장</button><button class="lnk" id="copy" type="button">링크 복사</button></div>
+      <button class="gbtn" id="meToo" type="button">나도 꽃 인사 보내기</button>
+      <a class="obtn" id="giftBtn" href="/catalog.html?cat=basket"><span id="giftT">진짜 꽃 선물하기</span><small id="giftS">사장님이 직접 만들어 보내 드려요</small></a>
+    </div></div>
+  </div>
+
+  <!-- 만들기 화면 -->
+  <div class="col" id="make" hidden>
+    <div><span class="lbl">어떤 카드를 보낼까요</span><div class="sits" id="sits"></div></div>
+    <div><span class="lbl">한마디 고르기</span><div class="pick" id="greets"></div></div>
+    <div><label class="lbl" for="msg">직접 쓰기 <small>(한두 마디면 돼요)</small></label>
+      <input class="inp" id="msg" type="text" maxlength="24" autocomplete="off" placeholder="예: 오늘도 힘내세요"><div class="cnt" id="msgCnt">0/24</div></div>
+    <div><label class="lbl" for="who">보내는 분 이름 <small>(안 적어도 돼요)</small></label>
+      <input class="inp" id="who" type="text" maxlength="10" autocomplete="off" placeholder="예: 막내 수진">
+      <p class="note">이름과 한마디는 링크에 담겨 받는 분 화면에 보여요. 받는 분도 바로 이어서 보낼 수 있어요.</p></div>
+    <div class="bar"><div class="bar-in">
+      <button class="kbtn" id="send" type="button"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#191600" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.4 0 .8.1 1.3.1 5.5 0 10-3.5 10-7.9S17.5 3 12 3z"/></svg>카톡으로 보내기</button>
+      <button class="lnk" id="copy" type="button">링크 복사</button>
       <p class="toast" id="toast" role="status"></p>
     </div></div>
   </div>
@@ -115,8 +135,6 @@ var SITS=[
   {k:"season",t:"계절 인사"},
   {k:"thanks",t:"고마움",flower:"hydrangea",label:"고마운 분께",g:["늘 고맙습니다","덕분에 잘 지냅니다","별일 없으시지요","보고 싶습니다"]}
 ];
-// 꽃 선물하기가 가는 곳(가격·권유는 카드에 넣지 않고 이 버튼만 둔다)
-var GIFT_TO={daily:"/catalog.html?cat=basket",fun:"/catalog.html?cat=basket",season:"/catalog.html?cat=basket",thanks:"/catalog.html?cat=basket"};
 var SERIF='"Gowun Batang",serif', SANS='-apple-system,"Apple SD Gothic Neo",sans-serif';
 var DAYS=["일","월","화","수","목","금","토"], CREAM="#f6f6f3";
 var $=function(i){return document.getElementById(i)};
@@ -137,15 +155,6 @@ function lunar(d){
 }
 function dateLine(d){ var t=TERMS[iso(d)]; if(t) return solar(d)+", 오늘은 "+t; var l=lunar(d); return l?solar(d)+", "+l:solar(d); }
 function greetsOf(st){ return st.sit==="season"?SEASONS[seasonOf(st.d)].g:(sitOf(st.sit).g||[]); }
-
-// 받은 링크면 같은 꽃·인사로 연다. 이름은 링크에 없다.
-var q=new URLSearchParams(location.search), today=kstNow();
-var got=!!q.get("s");
-var st={sit:sitOf(q.get("s")).k, greet:"", who:"", d:today};
-if(got){
-  var gd=parseYmd(q.get("d")); if(gd) st.d=gd;
-  var gi=parseInt(q.get("g"),10), list=greetsOf(st); if(gi>=0&&gi<list.length) st.greet=list[gi];
-}
 
 function resolve(){
   var d=st.d, f=flowerOf(d), S=sitOf(st.sit);
@@ -195,62 +204,85 @@ function draw(){
   var fonts=document.fonts&&document.fonts.load?Promise.all(["700 80px "+SERIF,"400 40px "+SERIF].map(function(f){return document.fonts.load(f,txt).catch(function(){})})):Promise.resolve();
   return Promise.all([fonts,loadImg(s.f.key)]).then(function(){ if(id===drawId) paint($("card").getContext("2d"),s); });
 }
+
+// ── 링크에서 읽기 ──
+var q=new URLSearchParams(location.search), today=kstNow();
+function clean(v,n){ return String(v||"").replace(/[\u0000-\u001f\u007f<>]/g,"").replace(/\s+/g," ").trim().slice(0,n); }
+var st={sit:sitOf(q.get("s")).k, greet:"", msg:"", who:"", d:today};
+var got=!!q.get("s") && q.get("make")!=="1";
+if(q.get("s")){
+  var gd=parseYmd(q.get("d")); if(gd) st.d=gd;
+  var gi=parseInt(q.get("g"),10), list=greetsOf(st); if(gi>=0&&gi<list.length) st.greet=list[gi];
+  st.msg=clean(q.get("m"),24); st.who=clean(q.get("n"),10);
+}
+// 카드에 들어갈 말: 직접 쓴 말이 고른 말보다 먼저
+function line(){ return st.msg||st.greet; }
+var _resolve=resolve; resolve=function(){ var r=_resolve(); r.greet=line(); return r; };
+
 function renderSits(){
   var box=$("sits"); box.innerHTML="";
   SITS.forEach(function(x){ var b=document.createElement("button"); b.type="button"; b.className="sit"+(st.sit===x.k?" on":""); b.textContent=x.t;
-    b.onclick=function(){ st.sit=x.k; st.greet=""; renderAll(); }; box.appendChild(b); });
+    b.onclick=function(){ st.sit=x.k; st.greet=""; renderPick(); renderSits(); draw(); }; box.appendChild(b); });
 }
 function renderPick(){
   var box=$("greets"); box.innerHTML="";
-  greetsOf(st).forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="pbtn"+(st.greet===g?" on":""); b.textContent=g;
-    b.onclick=function(){ st.greet=st.greet===g?"":g; renderPick(); draw(); }; box.appendChild(b); });
+  greetsOf(st).forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="pbtn"+(st.greet===g&&!st.msg?" on":""); b.textContent=g;
+    b.onclick=function(){ st.greet=st.greet===g&&!st.msg?"":g; st.msg=""; $("msg").value=""; $("msgCnt").textContent="0/24"; renderPick(); draw(); }; box.appendChild(b); });
 }
-function renderAll(){ renderSits(); renderPick(); draw(); $("giftBtn").href=GIFT_TO[st.sit]||"/catalog.html"; }
-
 function shareUrl(){
-  // 받는 분이 열면 오늘 날짜로 다시 그린다. 이름은 넣지 않는다.
-  var gi=greetsOf(st).indexOf(st.greet);
-  return location.origin+"/hello?s="+st.sit+(gi>=0?"&g="+gi:"")+"&d="+ymd(st.d);
+  var gi=st.msg?-1:greetsOf(st).indexOf(st.greet);
+  var p="s="+st.sit+(gi>=0?"&g="+gi:"")+(st.msg?"&m="+encodeURIComponent(st.msg):"")+(st.who?"&n="+encodeURIComponent(st.who):"")+"&d="+ymd(st.d);
+  return location.origin+"/hello?"+p;
 }
-function shareText(){ var s=resolve(); return (st.who?st.who+"님이 보낸 ":"")+s.title+(st.greet?" · "+st.greet:""); }
 var toastT; function toast(m){ $("toast").textContent=m; clearTimeout(toastT); toastT=setTimeout(function(){ $("toast").textContent=""; },3500); }
-function blob(){ return new Promise(function(res){ $("card").toBlob(function(b){ res(b); },"image/jpeg",0.9); }); }
-function copyLink(){
-  var t=shareText()+"\n"+shareUrl();
-  var done=function(){ toast("복사했어요. 카톡 대화방에 붙여 넣어 주세요."); };
-  try{ navigator.clipboard.writeText(t).then(done,function(){ prompt("이 글을 복사해 주세요",t); }); }catch(e){ prompt("이 글을 복사해 주세요",t); }
+function message(){
+  var s=resolve(), url=shareUrl();
+  var title=st.who?st.who+"님이 꽃 인사를 보냈어요":"꽃 인사가 도착했어요";
+  return { title:title, desc:(line()?line()+" · ":"")+"오늘의 꽃 "+s.f.name, image:"/photos/hello/"+s.f.key+".jpg", url:url,
+    buttons:[{title:"꽃말 보기",url:url+"#m"},{title:"나도 보내기",url:url+"&make=1"}],
+    text:title+(line()?" · "+line():"") };
 }
 $("send").onclick=function(){
-  draw().then(blob).then(function(b){
-    var url=shareUrl(), text=shareText();
-    var file=b&&typeof File!=="undefined"?new File([b],"꽃인사.jpg",{type:"image/jpeg"}):null;
-    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
-      return navigator.share({files:[file],text:text+"\n"+url}).catch(function(e){ if(e&&e.name!=="AbortError") copyLink(); });
-    }
-    if(navigator.share) return navigator.share({title:"꽃 인사",text:text,url:url}).catch(function(e){ if(e&&e.name!=="AbortError") copyLink(); });
-    copyLink();
-  });
+  if(!window.afKakao){ toast("잠시 뒤 다시 눌러 주세요."); return; }
+  afKakao.send(message()).then(function(r){ if(r==="copied") toast("복사했어요. 카톡 대화방에 붙여 넣어 주세요."); });
 };
-$("copy").onclick=copyLink;
-$("save").onclick=function(){
-  draw().then(blob).then(function(b){
-    if(!b) return;
-    var a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="꽃인사-"+ymd(st.d)+".jpg";
-    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
-    toast("사진을 저장했어요. 안 보이면 카드를 길게 눌러 저장해 주세요.");
-  });
+$("copy").onclick=function(){
+  var m=message(), t=m.text+"\n"+m.url;
+  (window.afKakao?afKakao.copy(t):Promise.resolve()).then(function(r){ if(r==="copied") toast("복사했어요. 카톡 대화방에 붙여 넣어 주세요."); });
 };
-$("who").oninput=function(e){ st.who=e.target.value.trim().slice(0,10); draw(); };
+$("msg").oninput=function(e){ st.msg=clean(e.target.value,24); $("msgCnt").textContent=e.target.value.length+"/24"; renderPick(); draw(); };
+$("who").oninput=function(e){ st.who=clean(e.target.value,10); draw(); };
+
+// ── 화면 나누기 ──
+function showMake(){
+  // 나도 보내기: 보낸 분 이름·한마디는 지우고 오늘의 꽃으로 새로 만든다
+  st.d=today; st.who=""; st.msg=""; st.greet=""; $("who").value=""; $("msg").value="";
+  $("recv").hidden=true; $("make").hidden=false;
+  $("h1").textContent="꽃 인사 보내기"; $("sub").textContent="오늘의 꽃에 한마디 적어 단톡방에 보내요. 가입 없이 무료예요.";
+  renderSits(); renderPick(); draw();
+}
+function showRecv(){
+  var s=resolve();
+  $("make").hidden=true; $("recv").hidden=false;
+  $("h1").textContent=st.who?st.who+"님이 꽃 인사를 보냈어요":"꽃 인사가 도착했어요";
+  $("sub").textContent=iso(st.d)===iso(today)?"오늘의 꽃과 꽃말을 보내 주셨어요.":(st.d.getMonth()+1)+"월 "+st.d.getDate()+"일에 보낸 꽃이에요.";
+  $("mDay").textContent=st.sit==="season"||sitOf(st.sit).flower?s.title:"오늘의 꽃";
+  $("mName").textContent=s.f.name; $("mSay").textContent=s.f.say;
+  draw();
+  if(location.hash==="#m") setTimeout(function(){ var el=$("m"); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"start"}); },300);
+}
+$("meToo").onclick=function(){
+  try{ history.pushState({},"","/hello?s="+st.sit+"&make=1"); }catch(_){}
+  showMake(); window.scrollTo({top:0,behavior:"smooth"});
+};
+// 꽃 선물: 카톡·링크 선물이 켜져 있으면 그쪽으로(footer.js 스위치)
+document.addEventListener("DOMContentLoaded",function(){
+  if(window.AF_GIFT_ENTRY){ $("giftBtn").href="/catalog.html?cat=basket&gift=1"; $("giftT").textContent="카톡으로 꽃 선물하기"; $("giftS").textContent="주소 몰라도 돼요. 받는 분이 직접 넣어요"; }
+});
+window.addEventListener("popstate",function(){ location.reload(); });
 
 $("today").textContent=solar(today);
-if(got){
-  $("got").hidden=false;
-  if(iso(st.d)!==iso(today)) $("only").textContent=(st.d.getMonth()+1)+"월 "+st.d.getDate()+"일에 보낸 꽃이에요";
-  // '나도 보내기': 이름 칸부터 보이게 한다. 내가 보낼 땐 오늘의 꽃으로 그린다.
-  $("only").insertAdjacentHTML("afterend",'<p class="only" style="margin-top:2px">이름을 적고 보내면 오늘의 꽃으로 바뀌어요.</p>');
-  $("who").addEventListener("focus",function once(){ if(iso(st.d)!==iso(today)){ st.d=today; draw(); } $("who").removeEventListener("focus",once); });
-}
-renderAll();
+if(got) showRecv(); else { if(q.get("make")==="1"){ st.d=today; st.who=""; st.msg=""; } showMake(); }
 })();
 </script>
 </body>

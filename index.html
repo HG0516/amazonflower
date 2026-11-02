@@ -36,6 +36,7 @@
      서비스워커 등록은 위 스크립트가 따로 하므로 오프라인 기능은 그대로 유지된다. -->
 <script src="/address-search.js" defer></script>
 <script src="/footer.js?v=20261102a" defer></script>
+<script src="/kakao-share.js?v=20261102a" defer></script>
 <script src="/bottom-nav.js?v=20261020d" defer></script>
 <script src="/season.js" defer></script>
 <script src="/promotions.js" defer></script>
@@ -4264,7 +4265,8 @@ function afRenderGiftDone(data,o){
   // 서버가 문자를 실제로 보냈을 때만 '보냈어요'라고 쓴다(문자 키가 없거나 늦으면 보내는 분이 직접 보내야 한다).
   const smsSent=!!(data.notified&&data.notified.sms);
   const shareText=(o.senderName?o.senderName+"이(가) ":"")+"꽃을 보냈어요. 받으실 주소를 여기에 넣어 주세요.";
-  window.__afGiftShare={ text:shareText, url:url };
+  var _gp=(window.PRODUCTS||[]).find(function(x){ return x.pc===o.productCode; });
+  window.__afGiftShare={ text:shareText, url:url, from:o.senderName||"", photo:(_gp&&_gp.photos&&_gp.photos[0])||"/photos/hello/rose.jpg" };
   const note = data.manualRecovery
     ? `<div class="gift-note" style="background:#fff0ef;border-color:#c84b45;color:#7d211d;"><b>결제는 끝났지만 확인이 필요해요.</b> 주문번호를 보관하고 1577-2286으로 알려 주세요.</div>`
     : (data.needsReconciliation || !url
@@ -4304,6 +4306,13 @@ function afRenderGiftDone(data,o){
 // 폰의 공유 창(카톡이 맨 앞에 뜬다)을 쓴다. 카카오 공유 키가 생기면 여기서 카카오 공유로 바꾼다.
 function afGiftShare(btn){
   var g=window.__afGiftShare||{}; if(!g.url) return;
+  // 카톡 메시지에 '주소 넣기' 버튼을 단다(kakao-share.js). 키가 없으면 공유 창 → 복사.
+  if(window.afKakao){
+    afKakao.send({ title:(g.from?g.from+"님이 ":"")+"꽃을 선물했어요", desc:"받으실 주소를 넣어 주시면 사장님이 직접 만들어 보내 드려요", image:g.photo, w:800, h:800,
+      url:g.url, buttons:[{title:"주소 넣기",url:g.url}], text:g.text })
+      .then(function(r){ if(r==="copied"&&btn){ var t=btn.textContent; btn.textContent="복사했어요. 카톡에 붙여 넣어 주세요"; setTimeout(function(){ btn.textContent=t; },2500); } });
+    return;
+  }
   if(navigator.share){ navigator.share({ text:g.text, url:g.url }).catch(function(){}); return; }
   afGiftCopy(btn);
 }
