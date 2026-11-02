@@ -16,7 +16,8 @@ export function fakeDb(start) {
       return json([db.row]);
     }
     const want = (u.match(/[?&]status=eq\.([a-z_]+)/) || [])[1];
-    if (u.includes("/gift_links")) return json(db.row && (!want || db.row.status === want) ? [db.row] : []);
+    const before = decodeURIComponent((u.match(/[?&]expires_at=lt\.([^&]+)/) || [])[1] || "");
+    if (u.includes("/gift_links")) return json(db.row && (!want || db.row.status === want) && (!before || db.row.expires_at < before) ? [db.row] : []);
     if (u.includes("/payment_intents")) return json(db.intent ? [{ order_data: db.intent, order_id: db.row && db.row.order_id }] : []);
     if (u.includes("/orders") && init.method === "PATCH") {
       const fields = JSON.parse(init.body);

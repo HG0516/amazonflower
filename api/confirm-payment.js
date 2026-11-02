@@ -174,7 +174,8 @@ function buildOwnerMessage(order, payment) {
   if (order.gift && order.giftFilled) {
     lines.push(order.giftFilled === "edited" ? "🎁 선물 · 받는 분이 주소·날짜를 고쳤어요 (이 내용이 최신)" : "🎁 선물 · 받는 분이 주소를 넣었어요");
     if (Number(order.giftExtraFee) > 0) {
-      lines.push(`먼 지역 추가 배송비 ${Number(order.giftExtraFee).toLocaleString()}원 · 보내는 분께 결제 링크 보냄 (결제되면 맞춤 결제 주문으로 따로 와요)`);
+      lines.push(`먼 지역 추가 배송비 ${Number(order.giftExtraFee).toLocaleString()}원 · 결제되면 맞춤 결제 주문으로 따로 와요`);
+      if (order.giftExtraFeeUrl) lines.push(`보내는 분 결제 링크(문자가 안 갔으면 이걸 보내 주세요): ${order.giftExtraFeeUrl}`);
     }
   }
   lines.push("");
@@ -1244,7 +1245,7 @@ export default async function handler(req, res) {
   // 주문서가 결제수단 버튼을 그릴 때 묻는다. Vercel 설정값 하나로 켜고 끈다(코드 배포 없이).
   if (req.method === "GET" && query.config) {
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled(), gift: giftEnabled(), points: pointsConfig() });
+    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled(), gift: giftEnabled(), giftSms: !!(process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET && process.env.SOLAPI_SENDER), points: pointsConfig() });
   }
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST 요청만 지원합니다." });

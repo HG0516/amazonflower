@@ -210,3 +210,57 @@ test("아침 점검: 사장님이 이미 환불한 선물은 다시 환불하지
   assert.equal(db.tg.length, 0);
   assert.equal(db.sms.length, 0);
 }));
+
+test("문자 키가 없으면: 3일째는 사장님께 한 통, 손님 문자는 안 보냄", async () => withEnv(async () => {
+  const code = giftCodeFor(OID);
+  const db = fakeDb({ code, order_id: OID, status: "waiting", recipient_name: "박서연", recipient_phone: "01011112222", created_at: new Date(Date.now() - 3.5 * 864e5).toISOString(), expires_at: new Date(Date.now() + 3 * 864e5).toISOString() });
+  db.order = { order_id: OID, status: GIFT_WAIT, sender_name: "김영자", sender_phone: "01033334444" };
+  delete process.env.SOLAPI_API_KEY;
+  const out = await sweepGifts(process.env);
+  assert.equal(out.reminded, 1);
+  assert.equal(db.sms.length, 0);
+  assert.equal(db.tg.length, 1);
+  assert.match(db.tg[0].text, /3일째/);
+  assert.match(db.tg[0].text, /01033334444/);
+}));
+
+test("문자 키가 없으면: 보낸 선물은 sms:false, 다시 보내기는 막고 카톡으로 안내", async () => withEnv(async () => {
+  const code = giftCodeFor(OID);
+  fakeDb({ code, order_id: OID, status: "waiting", recipient_phone: "01011112222", expires_at: new Date(Date.now() + 864e5).toISOString() });
+  const base = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const u = String(url);
+    if (u.includes("/auth/v1/user")) return new Response(JSON.stringify({ id: "u1" }), { status: 200 });
+    if (u.includes("/payment_intents")) return new Response(JSON.stringify([{ order_id: OID }]), { status: 200 });
+    if (u.includes("/orders")) return new Response(JSON.stringify([{ order_id: OID, status: GIFT_WAIT }]), { status: 200 });
+    return base(url, init);
+  };
+  delete process.env.SOLAPI_API_KEY;
+  const req = { headers: { authorization: "Bearer x" } };
+  assert.equal((await handleGiftSenderGet(req)).json.sms, false);
+  const r = await handleGiftSenderPost(req, { orderId: OID, action: "resend" });
+  assert.equal(r.status, 409);
+  assert.match(r.json.error, /카톡/);
+}));
+
+test("먼 지역: 보낸 선물에 추가 배송비 결제 링크, 사장님 텔레그램에도 같은 링크", async () => withEnv(async () => {
+  const code = giftCodeFor(OID);
+  fakeDb({ code, order_id: OID, status: "filled", recipient_name: "박서연", deliver_date: "2026-11-05", deliver_slot: "pm", extra_fee: 20000, expires_at: new Date(Date.now() + 864e5).toISOString() });
+  const base = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    const u = String(url);
+    if (u.includes("/auth/v1/user")) return new Response(JSON.stringify({ id: "u1" }), { status: 200 });
+    if (u.includes("/payment_intents")) return new Response(JSON.stringify([{ order_id: OID }]), { status: 200 });
+    if (u.includes("/orders")) return new Response(JSON.stringify([{ order_id: OID, status: "new" }]), { status: 200 });
+    return base(url, init);
+  };
+  const out = await handleGiftSenderGet({ headers: { authorization: "Bearer x" } });
+  const g = out.json.gifts[0];
+  assert.equal(g.stage, "checking");
+  assert.equal(g.feeUrl, extraFeeLink(OID, 20000).url);
+  globalThis.fetch = base;
+  const db = fakeDb(null);
+  const value = { address: "강원 정선군 정선읍 1", address_detail: "", filled_phone: "01055556666", deliver_date: "2026-11-05", deliver_slot: "pm", extra_fee: 20000 };
+  await notifyTelegram({ ...filledOrderForNotice(ORDER, null, value, { first: true }), giftExtraFeeUrl: g.feeUrl }, { orderId: OID, totalAmount: 58000 });
+  assert.ok(db.tg[0].text.includes(g.feeUrl));
+}));
