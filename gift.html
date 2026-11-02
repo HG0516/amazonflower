@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>꽃 선물 — 꽃안부</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
+<meta property="og:title" content="꽃이 도착했어요" />
+<meta property="og:description" content="주소를 넣으면 꽃을 보내 드려요." />
+<meta property="og:image" content="https://floweranbu.co.kr/og_preview.png" />
+<style>
+  /* 받는 분 화면(11/2 시안 docs/시안/주소없는선물-화면-2026-11). 받는 분은 로그인 없이 링크 하나로 끝난다.
+     주소는 넣은 그 자리에서만 보여 주고, 다시 열면 서버가 돌려주지 않는다. 보내는 분도 같은 링크를 갖고 있기 때문이다. */
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap');
+  :root { --bg:#f6f6f3; --paper:#fff; --ink:#1f1d18; --ink-soft:#5a564d; --ink-faint:#6b6358; --line:#dcd9cf; --accent:#1f4733; --accent-deep:#14311f; --accent-bg:#e8f1ea; --danger:#a3261b; --danger-bg:#fdecea; --radius:6px;
+    --font-display:"Gowun Batang",serif; --font-body:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.6; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 12px; }
+  .hd { display: flex; justify-content: space-between; align-items: center; }
+  .brand { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+  .tel { font-size: 15px; font-weight: 700; color: var(--accent-deep); text-decoration: none; border: 1px solid var(--accent); border-radius: var(--radius); padding: 0 10px; min-height: 44px; display: inline-flex; align-items: center; }
+  .photo { display: block; width: 100%; aspect-ratio: 9 / 7; object-fit: cover; border-radius: var(--radius); }
+  h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.35; margin: 0; }
+  .sub { color: var(--ink-soft); font-size: 16px; margin: 2px 0 0; }
+  .say { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 11px 13px; overflow-wrap: anywhere; }
+  .say small { display: block; color: var(--ink-faint); font-size: 14px; }
+  .note { background: var(--accent-bg); color: var(--accent-deep); border-radius: var(--radius); padding: 11px 13px; font-size: 16px; }
+  .err { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius); padding: 11px 13px; font-size: 16px; }
+  .btn { display: block; width: 100%; min-height: 56px; border: 0; border-radius: var(--radius); background: var(--accent); color: #fff; font: 800 18px var(--font-body); cursor: pointer; }
+  .btn:disabled { opacity: .55; }
+  .btn.line { background: var(--paper); color: var(--accent-deep); border: 1.5px solid var(--accent); }
+  .small { display: block; width: 100%; min-height: 44px; border: 0; background: none; color: var(--ink-faint); font: 400 15px var(--font-body); text-decoration: underline; cursor: pointer; }
+  .fl { display: block; font-size: 16px; font-weight: 700; margin-bottom: -6px; }
+  .fl small { font-weight: 400; color: var(--ink-soft); font-size: 14px; }
+  input[type=text], input[type=tel], input[type=date] { width: 100%; min-height: 52px; padding: 0 13px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); font: 400 17px var(--font-body); color: var(--ink); }
+  input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .chip { min-height: 50px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); font: 600 16px var(--font-body); cursor: pointer; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip:disabled { color: var(--ink-faint); background: var(--bg); }
+  .agree { display: flex; gap: 9px; align-items: flex-start; font-size: 15px; }
+  .agree input { width: 24px; height: 24px; flex: 0 0 auto; accent-color: var(--accent); margin: 0; }
+  .rows { display: grid; gap: 7px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; }
+  .row span:first-child { color: var(--ink-soft); flex: 0 0 auto; }
+  .row span:last-child { text-align: right; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+  .foot { text-align: center; font-size: 14px; color: var(--ink-faint); }
+  .sheet-bg { position: fixed; inset: 0; background: rgba(31,29,24,.55); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+  .sheet { background: var(--paper); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 10px; }
+  [hidden] { display: none !important; }
+</style>
+<script src="/address-search.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><a class="brand" href="/">꽃안부</a><a class="tel" href="tel:1577-2286">1577-2286</a></div>
+  <div id="app" aria-live="polite"><p class="sub">불러오는 중이에요.</p></div>
+  <div class="foot">꽃안부 · 1993년부터 꽃 배달</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var code = (location.pathname.match(/\/g\/([A-Za-z0-9]{10})/) || [])[1] || "";
+  var app = document.getElementById("app");
+  var V = null;
+  var form = { date: "", slot: "" };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+  var seoul = function (ms) { return new Date((ms || Date.now()) + 9 * 3600 * 1000); };
+  var isoOf = function (d) { return d.toISOString().slice(0, 10); };
+  var dayText = function (iso) { var d = new Date(iso + "T00:00:00Z"); return (d.getUTCMonth() + 1) + "월 " + d.getUTCDate() + "일 " + DAYS[d.getUTCDay()] + "요일"; };
+  var untilText = function (v) { var d = seoul(Date.parse(v)); return (d.getUTCMonth() + 1) + "월 " + d.getUTCDate() + "일"; };
+  var photo = function () { return V.photo ? '<img class="photo" src="' + esc(V.photo) + '" alt="보내신 꽃 사진">' : ""; };
+  var grid = function (html) { app.innerHTML = '<div style="display:grid;gap:12px">' + html + "</div>"; window.scrollTo(0, 0); };
+
+  function showFirst() {
+    grid(photo()
+      + '<div><h1>' + esc(V.to) + '님께 온 꽃이에요</h1><p class="sub">' + esc(V.from) + '님이 보내셨어요' + (V.product ? " · " + esc(V.product) : "") + "</p></div>"
+      + (V.message ? '<div class="say"><small>' + esc(V.from) + '님이 적은 말</small>' + esc(V.message) + "</div>" : "")
+      + '<div class="note">결제는 이미 끝났어요. 앱을 깔거나 가입하지 않아도 됩니다.</div>'
+      + '<button class="btn" id="go" type="button">주소 넣고 받기</button>'
+      + '<div class="foot">' + untilText(V.until) + "까지 넣어 주세요</div>");
+    document.getElementById("go").onclick = showForm;
+  }
+
+  function dateChips() {
+    var now = seoul(), cut = (now.getUTCDay() === 0 || now.getUTCDay() === 6) ? 16 : 18;
+    var names = ["오늘", "내일", "모레"];
+    return names.map(function (n, i) {
+      var iso = isoOf(seoul(Date.now() + i * 864e5));
+      var off = i === 0 && now.getUTCHours() >= cut;
+      return '<button class="chip' + (form.date === iso ? " on" : "") + '" type="button" data-date="' + iso + '"' + (off ? " disabled" : "") + ">" + n + "</button>";
+    }).join("");
+  }
+  function slotChips() {
+    return [["am", "오전 중"], ["pm", "오후 중"], ["today", "당일 중"]].map(function (s) {
+      return '<button class="chip' + (form.slot === s[0] ? " on" : "") + '" type="button" data-slot="' + s[0] + '">' + s[1] + "</button>";
+    }).join("");
+  }
+  function pick() {
+    [].forEach.call(app.querySelectorAll("[data-date]"), function (b) { b.onclick = function () { form.date = b.getAttribute("data-date"); document.getElementById("other").value = ""; redrawChips(); }; });
+    [].forEach.call(app.querySelectorAll("[data-slot]"), function (b) { b.onclick = function () { form.slot = b.getAttribute("data-slot"); redrawChips(); }; });
+  }
+  function redrawChips() {
+    document.getElementById("dates").innerHTML = dateChips();
+    document.getElementById("slots").innerHTML = slotChips();
+    pick();
+  }
+
+  function showForm(editing) {
+    var again = editing === true;
+    grid('<h1>어디로 보내 드릴까요</h1>'
+      + (again ? '<div class="note">예전 주소는 보여 드리지 않아요. 처음부터 다시 넣어 주세요.</div>' : "")
+      + '<label class="fl" for="addr">받으실 주소</label>'
+      + '<input id="addr" type="text" autocomplete="street-address" readonly placeholder="눌러서 주소 찾기">'
+      + '<label class="fl" for="detail">동, 호수 <small>(없으면 비워 두세요)</small></label>'
+      + '<input id="detail" type="text" maxlength="100" autocomplete="off">'
+      + '<div id="region"></div>'
+      + '<label class="fl" for="phone">연락처</label>'
+      + '<input id="phone" type="tel" inputmode="numeric" maxlength="20" value="' + esc(V.phone || "") + '">'
+      + '<span class="fl">받을 날짜</span><div class="chips" id="dates">' + dateChips() + "</div>"
+      + '<label class="fl" for="other">다른 날 <small>(위에 없는 날이면)</small></label>'
+      + '<input id="other" type="date" min="' + isoOf(seoul()) + '" max="' + isoOf(seoul(Date.now() + 60 * 864e5)) + '">'
+      + '<span class="fl">도착 시간</span><div class="chips" id="slots">' + slotChips() + "</div>"
+      + '<label class="fl" for="note">배송 요청 <small>(안 적어도 돼요)</small></label>'
+      + '<input id="note" type="text" maxlength="120" placeholder="예: 경비실에 맡겨 주세요">'
+      + '<label class="agree"><input id="agree" type="checkbox"><span>배송을 위해 주소와 연락처를 꽃안부에 알려 주는 데 동의해요. 보내신 분께는 보이지 않아요.</span></label>'
+      + '<div class="err" id="err" hidden></div>'
+      + '<button class="btn" id="send" type="button">이 주소로 받기</button>'
+      + (again ? "" : '<button class="small" id="no" type="button">받기 어려우신가요</button>'));
+    pick();
+    var addr = document.getElementById("addr");
+    addr.onclick = function () { if (window.openPostcode) window.openPostcode("addr"); };
+    document.getElementById("other").onchange = function (e) { if (e.target.value) { form.date = e.target.value; redrawChips(); } };
+    document.getElementById("send").onclick = submit;
+    var no = document.getElementById("no");
+    if (no) no.onclick = showSheet;
+  }
+
+  function fail(msg) { var e = document.getElementById("err"); e.textContent = msg; e.hidden = false; e.scrollIntoView({ block: "center" }); }
+  function post(body) {
+    return fetch("/api/order-meta", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ type: "gift", code: code }, body)) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._ok = r.ok; return j; }); });
+  }
+  function submit() {
+    var addr = document.getElementById("addr").value.trim(), detail = document.getElementById("detail").value.trim();
+    var btn = document.getElementById("send");
+    document.getElementById("err").hidden = true;
+    btn.disabled = true;
+    post({ action: "fill", address: addr, detail: detail, phone: document.getElementById("phone").value, date: form.date, slot: form.slot, note: document.getElementById("note").value, consent: document.getElementById("agree").checked })
+      .then(function (j) {
+        btn.disabled = false;
+        if (!j._ok) return fail(j.error || "잠시 후 다시 시도해 주세요.");
+        V = Object.assign({}, V, { stage: j.stage, date: j.date, slot: j.slot });
+        showDone(addr + (detail ? ", " + detail : ""));
+      }).catch(function () { btn.disabled = false; fail("잠시 후 다시 시도해 주세요."); });
+  }
+
+  // shown: 방금 넣은 주소. 다시 열면 서버가 주소를 주지 않으므로 이 값이 없다.
+  function showDone(shown) {
+    var checking = V.stage === "checking";
+    grid("<div><h1>" + (checking ? "주소를 받았어요" : "꽃을 준비할게요") + '</h1><p class="sub">' + (checking ? "배송 일정을 확인하고 있어요. 확인되면 문자로 날짜를 알려 드릴게요." : "도착하면 문자로 알려 드릴게요.") + "</p></div>"
+      + '<div class="say rows">'
+      + (checking ? '<div class="row"><span>받을 날</span><span>확인 중</span></div>' : '<div class="row"><span>받을 날</span><span>' + (V.date ? dayText(V.date) : "") + '</span></div><div class="row"><span>시간</span><span>' + esc(V.slot) + "</span></div>")
+      + (shown ? '<div class="row"><span>주소</span><span>' + esc(shown) + "</span></div>" : "")
+      + "</div>"
+      + '<button class="btn line" id="edit" type="button">주소나 날짜 고치기</button>' + photo());
+    document.getElementById("edit").onclick = function () { form = { date: "", slot: "" }; showForm(true); };
+  }
+
+  function showSheet() {
+    var bg = document.createElement("div");
+    bg.className = "sheet-bg";
+    bg.innerHTML = '<div class="sheet" role="dialog" aria-modal="true"><h1 style="font-size:21px">이번 꽃은 받기 어려우신가요</h1><p class="sub">괜찮아요. ' + esc(V.from) + '님께는 저희가 잘 전해 드릴게요.</p><button class="btn" id="back" type="button">주소 넣으러 가기</button><button class="small" id="yes" type="button">네, 받기 어려워요</button></div>';
+    document.body.appendChild(bg);
+    document.getElementById("back").onclick = function () { bg.remove(); };
+    document.getElementById("yes").onclick = function () {
+      post({ action: "decline" }).then(function (j) {
+        bg.remove();
+        if (!j._ok) return fail(j.error || "잠시 후 다시 시도해 주세요.");
+        showClosed("알겠습니다", "말씀 잘 전해 드릴게요.");
+      }).catch(function () { bg.remove(); fail("잠시 후 다시 시도해 주세요."); });
+    };
+  }
+
+  function showClosed(t, s) { grid("<div><h1>" + esc(t) + '</h1><p class="sub">' + esc(s) + "</p></div>"); }
+  function showPreparing() {
+    grid("<div><h1>꽃을 준비하고 있어요</h1><p class=\"sub\">" + (V.date ? dayText(V.date) + " " + esc(V.slot) + "에 도착할 예정이에요." : "") + '</p></div><div class="note">주소나 날짜를 고치려면 1577-2286으로 전화 주세요.</div>' + photo());
+  }
+  function showDelivered() { grid("<div><h1>꽃을 전해 드렸어요</h1><p class=\"sub\">" + esc(V.from) + "님이 보내신 꽃이에요.</p></div>" + photo()); }
+
+  function route() {
+    if (V.stage === "wait") return showFirst();
+    if (V.stage === "got" || V.stage === "checking") return showDone("");
+    if (V.stage === "preparing") return showPreparing();
+    if (V.stage === "delivered") return showDelivered();
+    if (V.stage === "declined") return showClosed("알겠습니다", "말씀 잘 전해 드렸어요.");
+    return showClosed("이 선물 링크는 기간이 끝났어요", "궁금한 점은 1577-2286으로 전화 주세요.");
+  }
+
+  if (!code) return showClosed("없는 링크예요", "받으신 문자의 링크를 다시 눌러 주세요.");
+  fetch("/api/order-meta?gift=" + code, { cache: "no-store" })
+    .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+    .then(function (x) {
+      if (!x.ok) return showClosed(x.j.error || "잠시 후 다시 시도해 주세요.", "궁금한 점은 1577-2286으로 전화 주세요.");
+      V = x.j; route();
+    }).catch(function () { showClosed("잠시 후 다시 시도해 주세요", "궁금한 점은 1577-2286으로 전화 주세요."); });
+})();
+</script>
+</body>
+</html>

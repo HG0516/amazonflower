@@ -6,6 +6,7 @@ export const config = { runtime: "nodejs" };
 
 import { handleCardGet, handleCardPost } from "../lib/cards.mjs";
 import { publicSetup } from "../lib/setup-status.mjs";
+import { handleGiftGet, handleGiftPost } from "../lib/gift.mjs";
 // 3) 무료 부고장·청첩장 정식판(10/6) — GET ?card=<id> (짧은 링크 /c/<id> 미리보기·내용), POST {type:"card"} (만들기·고치기·조문 글).
 
 const ALLOWED = ["검색", "지인", "전단·현수막", "기타"];
@@ -151,6 +152,13 @@ export default async function handler(req, res) {
       res.setHeader("Cache-Control", "no-store");
       return res.status(200).json(publicSetup(process.env));
     }
+    // 5) 주소 없는 꽃 선물(11/2) — GET ?gift=<code> 받는 분 화면 내용. 주소는 돌려주지 않는다.
+    if (q.gift) {
+      const out = await handleGiftGet(q, process.env).catch((e) => { console.error("gift get", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+      return res.status(out.status).json(out.json);
+    }
     if (q.card) {
       const out = await handleCardGet(q, process.env, req.headers && req.headers["user-agent"]).catch((e) => { console.error("card get", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
       res.setHeader("Cache-Control", "no-store");
@@ -173,6 +181,11 @@ export default async function handler(req, res) {
   body = body || {};
 
   // ── 무료 부고장·청첩장 ──
+  if (body.type === "gift") {
+    const out = await handleGiftPost(body, process.env).catch((e) => { console.error("gift post", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(out.status).json(out.json);
+  }
   if (body.type === "card") {
     const out = await handleCardPost(body, req).catch((e) => { console.error("card post", e && e.message); return { status: 503, body: { error: "잠시 후 다시 시도해 주세요.", fallback: true } }; });
     res.setHeader("Cache-Control", "no-store");
