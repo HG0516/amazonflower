@@ -94,13 +94,13 @@
 
   <!-- 만들기 화면 -->
   <div class="col" id="make" hidden>
+    <div><label class="lbl" for="who">보내는 분 이름 <small>(받는 분께 보여요)</small></label>
+      <input class="inp" id="who" type="text" maxlength="10" autocomplete="nickname" placeholder="예: 막내 수진"></div>
     <div><span class="lbl">어떤 카드를 보낼까요</span><div class="sits" id="sits"></div></div>
     <div><span class="lbl">한마디 고르기</span><div class="pick" id="greets"></div></div>
-    <div><label class="lbl" for="msg">직접 쓰기 <small>(한두 마디면 돼요)</small></label>
+    <div><label class="lbl" for="msg">직접 쓰기 <small>(쓰면 고른 말 대신 들어가요)</small></label>
       <input class="inp" id="msg" type="text" maxlength="24" autocomplete="off" placeholder="예: 오늘도 힘내세요"><div class="cnt" id="msgCnt">0/24</div></div>
-    <div><label class="lbl" for="who">보내는 분 이름 <small>(안 적어도 돼요)</small></label>
-      <input class="inp" id="who" type="text" maxlength="10" autocomplete="off" placeholder="예: 막내 수진">
-      <p class="note">이름과 한마디는 링크에 담겨 받는 분 화면에 보여요. 받는 분도 바로 이어서 보낼 수 있어요.</p></div>
+    <p class="note">이름과 한마디는 링크에 담겨 받는 분 화면과 카톡 미리보기에 보여요. 받는 분도 바로 이어서 보낼 수 있어요.</p>
     <div class="bar"><div class="bar-in">
       <button class="kbtn" id="send" type="button"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#191600" d="M12 3C6.5 3 2 6.5 2 10.8c0 2.8 1.9 5.2 4.7 6.6l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.4 0 .8.1 1.3.1 5.5 0 10-3.5 10-7.9S17.5 3 12 3z"/></svg>카톡으로 보내기</button>
       <button class="lnk" id="copy" type="button">링크 복사</button>
@@ -226,8 +226,10 @@ function renderSits(){
 }
 function renderPick(){
   var box=$("greets"); box.innerHTML="";
+  // 비워 두면 카드가 꽃 이름만 남아 허전하다(11/3 형구) → 그 상황의 첫 인사를 기본으로
+  var L=greetsOf(st); if(!st.msg && L.indexOf(st.greet)<0) st.greet=L[0]||"";
   greetsOf(st).forEach(function(g){ var b=document.createElement("button"); b.type="button"; b.className="pbtn"+(st.greet===g&&!st.msg?" on":""); b.textContent=g;
-    b.onclick=function(){ st.greet=st.greet===g&&!st.msg?"":g; st.msg=""; $("msg").value=""; $("msgCnt").textContent="0/24"; renderPick(); draw(); }; box.appendChild(b); });
+    b.onclick=function(){ st.greet=g; st.msg=""; $("msg").value=""; $("msgCnt").textContent="0/24"; renderPick(); draw(); }; box.appendChild(b); });
 }
 function shareUrl(){
   var gi=st.msg?-1:greetsOf(st).indexOf(st.greet);
@@ -242,21 +244,29 @@ function message(){
     buttons:[{title:"꽃말 보기",url:url+"#m"},{title:"나도 보내기",url:url+"&make=1"}],
     text:title+(line()?" · "+line():"") };
 }
+function needName(){
+  if(st.who) return false;
+  var el=$("who"); el.focus(); if(el.scrollIntoView) el.scrollIntoView({behavior:"smooth",block:"center"});
+  toast("보내는 분 이름을 적어 주세요. 누가 보냈는지 받는 분께 보여요."); return true;
+}
 $("send").onclick=function(){
+  if(needName()) return;
   if(!window.afKakao){ toast("잠시 뒤 다시 눌러 주세요."); return; }
   afKakao.send(message()).then(function(r){ if(r==="copied") toast("복사했어요. 카톡 대화방에 붙여 넣어 주세요."); });
 };
 $("copy").onclick=function(){
+  if(needName()) return;
   var m=message(), t=m.text+"\n"+m.url;
   (window.afKakao?afKakao.copy(t):Promise.resolve()).then(function(r){ if(r==="copied") toast("복사했어요. 카톡 대화방에 붙여 넣어 주세요."); });
 };
 $("msg").oninput=function(e){ st.msg=clean(e.target.value,24); $("msgCnt").textContent=e.target.value.length+"/24"; renderPick(); draw(); };
-$("who").oninput=function(e){ st.who=clean(e.target.value,10); draw(); };
+$("who").oninput=function(e){ st.who=clean(e.target.value,10); try{ localStorage.setItem("af_hello_who",st.who); }catch(_){} draw(); };
+function myName(){ try{ return clean(localStorage.getItem("af_hello_who"),10); }catch(_){ return ""; } }
 
 // ── 화면 나누기 ──
 function showMake(){
   // 나도 보내기: 보낸 분 이름·한마디는 지우고 오늘의 꽃으로 새로 만든다
-  st.d=today; st.who=""; st.msg=""; st.greet=""; $("who").value=""; $("msg").value="";
+  st.d=today; st.who=myName(); st.msg=""; st.greet=""; $("who").value=st.who; $("msg").value="";
   $("recv").hidden=true; $("make").hidden=false;
   $("h1").textContent="꽃 인사 보내기"; $("sub").textContent="오늘의 꽃에 한마디 적어 단톡방에 보내요. 가입 없이 무료예요.";
   renderSits(); renderPick(); draw();

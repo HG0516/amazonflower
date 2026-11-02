@@ -4,7 +4,8 @@
 // 새 API 함수 없이(12함수 제한) 이 공개 엔드포인트에 웨딩 문의를 얹었다.
 export const config = { runtime: "nodejs" };
 
-import { handleCardGet, handleCardPost } from "../lib/cards.mjs";
+import { handleCardGet, handleCardPost, isPreviewBot } from "../lib/cards.mjs";
+import { renderHelloOg } from "../lib/hello.mjs";
 import { publicSetup, kakaoShareKey } from "../lib/setup-status.mjs";
 import { handleGiftGet, handleGiftPost, handleGiftSenderGet, handleGiftSenderPost } from "../lib/gift.mjs";
 // 3) 무료 부고장·청첩장 정식판(10/6) — GET ?card=<id> (짧은 링크 /c/<id> 미리보기·내용), POST {type:"card"} (만들기·고치기·조문 글).
@@ -149,6 +150,14 @@ export default async function handler(req, res) {
     try { q = Object.fromEntries(new URL(req.url, "http://x").searchParams); } catch { q = {}; }
     // 4) 설정 확인(10/7) — 키를 넣고 다시 배포한 게 반영됐는지 밖에서 보는 용도. 값·보안 설정은 안 보냄.
     // 카카오 공유 키(공개용 JavaScript 키) — 꽃 인사·선물 링크의 '버튼 달린 카톡 메시지'용. CDN 이 10분 들고 있어 함수 호출이 거의 없다.
+    // 꽃 인사 링크(/hello?s=… → 여기). 미리보기 봇에게 보낸 분 이름·그날 꽃으로 og 태그, 사람은 /hello.html 로.
+    if (q.hello === "1") {
+      const { hello, ...rest } = q;
+      const search = "?" + new URLSearchParams(rest).toString();
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "no-store");   // 봇용(og만)·사람용(넘기기)이 달라 CDN 에 두지 않는다
+      return res.status(200).send(renderHelloOg(rest, search, isPreviewBot(req.headers && req.headers["user-agent"])));
+    }
     if (q.kakao === "1") {
       res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
       return res.status(200).json({ kakaoKey: kakaoShareKey(process.env) });

@@ -269,6 +269,11 @@
     },
     {
       "source": "/hello",
+      "has": [{ "type": "query", "key": "s" }],
+      "destination": "/api/order-meta?hello=1"
+    },
+    {
+      "source": "/hello",
       "destination": "/hello.html"
     },
     {
