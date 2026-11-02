@@ -381,12 +381,8 @@
   .pm-paychips { margin: -2px 0 2px; text-align: center; font-size: var(--fs-caption); color: var(--ink-faint); }
   .paychips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
   .paychips.center { justify-content: center; }
-  .paychips .pc { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: 12px; font-weight: 700; font-style: normal; line-height: 1.35; white-space: nowrap; }
-  .paychips .pc::before { content: ""; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--dot, #8a877d); }
-  .paychips .pc-naver { --dot: #03C75A; color: #02803A; border-color: #bfe9cf; background: #f1fbf5; }
-  .paychips .pc-kakao { --dot: #FEE500; color: #3C1E1E; border-color: #f2dc54; background: #fffbe0; }
-  .paychips .pc-kakao::before { box-shadow: inset 0 0 0 1px rgba(60,30,30,.35); }
-  .paychips .pc-toss { --dot: #0064FF; color: #0058E0; border-color: #c6dafc; background: #f2f7ff; }
+  /* 결제 수단 표시. 브랜드 색 점은 로고를 흉내 낸 것처럼 보여서 뺐다(11/2). 공식 로고 파일을 받으면 여기에 넣는다. */
+  .paychips .pc { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; color:var(--ink-soft); font-size: 12px; font-weight:600; font-style: normal; line-height: 1.35; white-space: nowrap; }
   /* 원산지 — 원산지표시법: 통신판매는 상품명·가격 근처에. 나라별 표는 푸터(footer.js) '원산지 표시' */
   .origin-mini { margin: 6px 0 2px; font-size: var(--fs-caption); color: var(--ink-soft); }
   .origin-mini > summary { cursor: pointer; display: inline; }
