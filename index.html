@@ -4253,6 +4253,8 @@ function afRenderGiftDone(data,o){
   const rp=String(o.recipientPhone||"").replace(/[^0-9]/g,"");
   const rpMask=rp?escapeHtml(rp.slice(0,3)+"-****-"+rp.slice(-4)):"";
   const orderId=escapeHtml(p.orderId||"");
+  // 서버가 문자를 실제로 보냈을 때만 '보냈어요'라고 쓴다(문자 키가 없거나 늦으면 보내는 분이 직접 보내야 한다).
+  const smsSent=!!(data.notified&&data.notified.sms);
   const shareText=(o.senderName?o.senderName+"이(가) ":"")+"꽃을 보냈어요. 받으실 주소를 여기에 넣어 주세요.";
   window.__afGiftShare={ text:shareText, url:url };
   const note = data.manualRecovery
@@ -4265,8 +4267,10 @@ function afRenderGiftDone(data,o){
   document.querySelector(".wrap").innerHTML=`
     <section class="card" style="text-align:center;">
       <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
-      <div class="step-title" style="margin:6px 0;">${to}님께 링크를 보냈어요</div>
-      <p style="color:var(--ink-soft);margin-bottom:4px;">${rpMask?`<b style="color:var(--ink);">${rpMask}</b> 로 주소 넣는 링크가 문자로 갔어요.<br>`:""}아는 분이 보낸 카톡이면 더 믿고 여시니까 한 번 더 보내 주세요.</p>
+      <div class="step-title" style="margin:6px 0;">${smsSent?`${to}님께 링크를 보냈어요`:`${to}님께 링크를 보내 주세요`}</div>
+      <p style="color:var(--ink-soft);margin-bottom:4px;">${smsSent
+        ? `${rpMask?`<b style="color:var(--ink);">${rpMask}</b> 로 `:""}주소 넣는 링크가 문자로 갔어요.<br>아는 분이 보낸 카톡이면 더 믿고 여시니까 한 번 더 보내 주세요.`
+        : `아래 버튼으로 주소 넣는 링크를 카톡으로 보내 주세요.<br>받는 분이 링크에서 주소와 날짜를 넣으시면 준비를 시작해요.`}</p>
       ${note}
       ${url?`
       <button class="btn" style="margin-top:14px;width:100%;background:#fee500;color:#191919;border-color:#fee500;" onclick="afGiftShare(this)">카톡으로 보내기</button>
