@@ -44,12 +44,14 @@
   .link{display:inline-block;margin-top:12px;font-size:13px;color:var(--accent);}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
   .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+  /* 관리자 새 틀 */
+  @media (min-width:1000px){ header{text-align:left;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>🏠 홈 화면 순서</h1>
+    <h1>홈 화면 순서</h1>
     <div class="sub">첫 화면 칸의 순서와 숨김, 맨 위 추천 상품, 위쪽 알림 띠를 정해요. 저장하면 바로 손님 화면에 보여요.</div>
   </header>
   <div class="notice" id="notReady">아직 저장 칸이 없어요. <b>supabase-photo-home.sql</b> 을 실행한 뒤부터 저장돼요. 그 전엔 홈이 지금 모양 그대로예요.</div>

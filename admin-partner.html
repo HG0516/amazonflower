@@ -85,12 +85,14 @@
     .wrap{max-width:none;padding:0;}
     .stand{page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   }
+  /* 관리자 새 틀 */
+  @media (min-width:1000px){ header{text-align:left;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>🤝 파트너 QR</h1>
+    <h1>파트너 QR</h1>
     <div class="sub">장례식장·예식장·웨딩 업체에 둘 무료 부고장·청첩장 QR을 만들고, 그 QR로 몇 장이 만들어져 화환 주문이 몇 건 나왔는지 봐요.</div>
   </header>
   <div class="notice" id="notReady">아직 저장 칸이 없어요. <b>supabase-photo-home.sql</b> 을 실행한 뒤부터 명단이 저장돼요. 그 전에도 QR·인쇄물은 만들 수 있어요(새로고침하면 사라져요).</div>

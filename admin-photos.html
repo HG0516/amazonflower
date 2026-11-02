@@ -63,12 +63,14 @@
   .tip{font-size:12px;color:var(--ink-faint);margin-top:6px;}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
   .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+  /* 관리자 새 틀 */
+  @media (min-width:1000px){ header{text-align:left;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>🖼 사진 위치·숨김</h1>
+    <h1>사진 위치·숨김</h1>
     <div class="sub">사진을 누르면 손님 화면에서 어디가 보일지 맞출 수 있어요. 사진 파일은 그대로 두고 보이는 모양만 바꿔요.</div>
   </header>
   <div class="notice" id="notReady">아직 저장 칸이 없어요. <b>supabase-photo-home.sql</b> 을 실행한 뒤부터 저장돼요. 지금은 미리보기만 돼요.</div>

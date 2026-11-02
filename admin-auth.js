@@ -25,12 +25,50 @@
       ".af-admin-gate h2{font-size:22px;margin:8px 0;color:#1f1d18}.af-admin-gate p{font-size:15px;line-height:1.65;color:#5a564d;margin:0 0 16px;white-space:pre-line;word-break:break-all;}" +
       ".af-admin-login,.af-admin-retry{width:100%;min-height:52px;border:0;border-radius:10px;background:#1f4733;color:#fff;font:800 17px inherit;padding:13px;cursor:pointer;margin-top:8px;}" +
       ".af-admin-logout{background:transparent;border:0;color:#7a766c;font:600 14px inherit;padding:15px;cursor:pointer;}" +
-      ".af-admin-who{font-size:12px;color:#7a766c;text-align:right;padding:8px 14px 0;max-width:680px;margin:0 auto;}" +
-      ".af-admin-out{background:transparent;border:0;color:#1f4733;font:700 12px inherit;text-decoration:underline;padding:6px 2px;cursor:pointer;}" +
-      ".af-admin-nav{display:flex;gap:6px;overflow-x:auto;padding:8px 14px 2px;max-width:680px;margin:0 auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}" +
-      ".af-admin-nav::-webkit-scrollbar{display:none}" +
-      ".af-admin-nav a{flex:0 0 auto;min-height:36px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid #dcd9cf;border-radius:999px;background:#fff;color:#3d3a33;font:700 13px -apple-system,'Apple SD Gothic Neo',sans-serif;text-decoration:none;white-space:nowrap;}" +
-      ".af-admin-nav a.on{background:#1f4733;border-color:#1f4733;color:#fff;}";
+      ".af-admin-out{background:transparent;border:0;color:#1f4733;font-weight:700;font-size:12px;font-family:inherit;text-decoration:underline;padding:6px 2px;cursor:pointer;}" +
+      // 관리자 공통 틀(11/2 시안 관리자-2026-11). 컴퓨터: 왼쪽 메뉴 + 위 검색. 휴대폰: 위 검색 + 아래 탭 넷(더보기에 나머지).
+      ".afs-top{position:sticky;top:0;z-index:40;background:#f7f4ee;border-bottom:1px solid #e7e3d8;padding:8px 14px;display:flex;gap:10px;align-items:center;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;}" +
+      ".afs-brand{font-weight:800;font-size:16px;color:#1f4733;white-space:nowrap;text-decoration:none;}" +
+      ".afs-q{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:42px;padding:0 12px;border:1px solid #dcd9cf;border-radius:10px;background:#fff;}" +
+      ".afs-q input{flex:1;min-width:0;border:0;outline:0;background:none;font-size:15px;font-family:inherit;color:#1f1d18;}" +
+      ".afs-q svg{flex:0 0 auto;color:#7a766c}" +
+      ".afs-new{display:none;white-space:nowrap;font-weight:700;font-size:13px;color:#fff;background:#c0503f;border-radius:999px;padding:5px 11px;text-decoration:none;}" +
+      ".afs-new.show{display:none}" +
+      ".afs-side{display:none}" +
+      ".afs-tabs{position:fixed;left:0;right:0;bottom:0;z-index:45;display:grid;grid-template-columns:repeat(var(--n,4),1fr);background:#fff;border-top:1px solid #dcd9cf;padding-bottom:env(safe-area-inset-bottom,0px);font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;}" +
+      ".afs-tabs a,.afs-tabs button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;border:0;background:none;color:#5a564d;font-weight:700;font-size:12px;font-family:inherit;text-decoration:none;cursor:pointer;}" +
+      ".afs-tabs .on{color:#1f4733}" +
+      ".afs-tabs .on svg{stroke-width:2.4}" +
+      ".afs-badge{position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#c0503f;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;}" +
+      ".afs-badge:empty{display:none}" +
+      ".afs-more{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.4);display:none;align-items:flex-end;}" +
+      ".afs-more.open{display:flex}" +
+      ".afs-sheet{width:100%;max-height:85vh;overflow:auto;background:#f7f4ee;border-radius:16px 16px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px));font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;}" +
+      ".afs-g{font-size:12px;font-weight:700;color:#7a766c;margin:14px 4px 6px;}" +
+      ".afs-g:first-child{margin-top:2px}" +
+      ".afs-list a{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 12px;border-radius:10px;color:#1f1d18;font-weight:600;font-size:15px;text-decoration:none;}" +
+      ".afs-list a.on{background:#e8f1ea;color:#14311f;font-weight:800;}" +
+      ".afs-list a svg{flex:0 0 auto;color:#5a564d}" +
+      ".afs-list a.on svg{color:#1f4733}" +
+      ".afs-list a small{margin-left:auto;font-size:12px;color:#7a766c;font-weight:500}" +
+      ".afs-who{margin-top:14px;padding:12px 4px 0;border-top:1px solid #e7e3d8;font-size:12.5px;color:#5a564d;line-height:1.6;word-break:break-all;}" +
+      ".afs-who b{display:block;color:#1f1d18;font-size:13.5px}" +
+      ".af-shell{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)) !important;}" +
+      ".af-shell .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important;}" +
+      // 화면 제목은 메뉴 이름과 같다. 옛 화면 안 이동 링크는 틀의 메뉴로 대신한다.
+      ".af-shell .navlink,.af-shell .backlink{display:none !important}" +
+      "@media (min-width:1000px){" +
+        ".af-shell{padding-left:236px !important;padding-bottom:40px !important;}" +
+        ".af-shell .toast{bottom:22px !important;left:calc(50% + 118px) !important;}" +
+        ".afs-tabs,.afs-more,.afs-top .afs-brand{display:none !important}" +
+        ".afs-top{padding:10px 28px;}" +
+        ".afs-q{max-width:520px}" +
+        ".afs-new.show{display:inline-block}" +
+        ".afs-side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:236px;z-index:41;background:#fff;border-right:1px solid #e7e3d8;padding:18px 12px 14px;overflow:auto;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;}" +
+        ".afs-side .afs-brand{display:block;padding:0 12px 6px;font-size:17px}" +
+        ".afs-side .afs-list a{min-height:42px;font-size:14.5px}" +
+        ".afs-side .afs-who{margin-top:auto}" +
+      "}";
     document.head.appendChild(style);
   }
 
@@ -123,59 +161,148 @@
     return { ok: response.ok, status: response.status, data: data };
   }
 
-  function who() {
-    if (!access || document.getElementById("af-admin-who")) return;
-    var el = document.createElement("div");
-    el.id = "af-admin-who";
-    el.className = "af-admin-who";
+  // 관리자 메뉴(11/2 새 틀). 세 묶음. 운영 관리자는 staff 줄만 본다. tab = 휴대폰 아래 탭에 나오는 것.
+  var GROUPS = [
+    ["주문", [
+      ["/admin-orders.html", "주문 관리", "staff", "list", "주문"],
+      ["/admin-pay.html", "전화 주문", "owner", "phone", "전화 주문"],
+      ["/admin-sent.html", "보낸 꽃 사진", "staff", "camera", "사진"],
+    ]],
+    ["사이트 꾸미기", [
+      ["/admin-products.html", "상품", "owner", "box"],
+      ["/admin-site.html", "홈 화면 순서", "owner", "rows"],
+      ["/admin-home.html", "홈 배송 사진", "owner", "home"],
+      ["/admin-photos.html", "사진 위치·숨김", "owner", "eye"],
+      ["/admin.html", "사진 올리기", "owner", "up"],
+    ]],
+    ["그 밖", [
+      ["/admin-partner.html", "파트너 QR", "owner", "qr"],
+      ["/hello", "꽃 인사", "owner", "flower", null, "손님 화면"],
+      ["/admin-setup.html", "설정 점검", "owner", "gear"],
+    ]],
+  ];
+  // 메뉴에 없는 화면은 가까운 메뉴에 불을 켠다(주문 하나 사진 올리기 → 보낸 꽃 사진).
+  var ALIAS = { "/admin-order.html": "/admin-sent.html" };
+  var ICON = {
+    list: '<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    box: '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+    rows: '<rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/>',
+    home: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/>',
+    eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    up: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+    qr: '<rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2"/>',
+    flower: '<circle cx="12" cy="9" r="2.5"/><path d="M12 6.5c0-3 3-3 3 0M14.5 9c3 0 3 3 0 3M12 11.5c0 3-3 3-3 0M9.5 9c-3 0-3-3 0-3"/><path d="M12 12v9M12 17c-2-2-4-2-5-1"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+    search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+  };
+  function svg(k, size) {
+    return '<svg width="' + (size || 20) + '" height="' + (size || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON[k] || "") + "</svg>";
+  }
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function herePath() {
+    var p = location.pathname.replace(/\/$/, "") || "/admin.html";
+    if (!/\.html$/.test(p) && p.indexOf("/admin") === 0) p += ".html";
+    return ALIAS[p] || p;
+  }
+  function allowed() {
+    var out = [];
+    GROUPS.forEach(function (g) {
+      var items = g[1].filter(function (m) { return m[2] === "staff" || access.role === "owner"; });
+      if (items.length) out.push([g[0], items]);
+    });
+    return out;
+  }
+  function listHtml(groups, here) {
+    return groups.map(function (g) {
+      return '<div class="afs-g">' + esc(g[0]) + '</div><div class="afs-list">' + g[1].map(function (m) {
+        var ext = m[0].indexOf("/admin") !== 0;
+        return '<a href="' + m[0] + '"' + (here === m[0] ? ' class="on" aria-current="page"' : "") + (ext ? ' target="_blank" rel="noopener"' : "") + ">" +
+          svg(m[3]) + "<span>" + esc(m[1]) + "</span>" + (m[5] ? "<small>" + esc(m[5]) + "</small>" : "") +
+          (m[0] === "/admin-orders.html" ? ' <small class="afs-cnt" data-afs-badge></small>' : "") + "</a>";
+      }).join("") + "</div>";
+    }).join("");
+  }
+  function whoHtml() {
     // 10/18 형구: 어느 네이버 계정으로 들어왔는지 보이고, 잘못 들어왔으면 바로 바꿀 수 있게.
     var mail = session && session.user && session.user.email || "";
-    el.textContent = (access.role === "owner" ? "대표 관리자" : "운영 관리자") + (mail ? " " + mail : "") + "로 로그인됨 · ";
-    var sw = document.createElement("button");
-    sw.type = "button";
-    sw.className = "af-admin-out";
-    sw.textContent = "네이버 계정 바꾸기";
-    sw.onclick = logoutAndLogin;
-    el.appendChild(sw);
-    el.appendChild(document.createTextNode(" · "));
-    var out = document.createElement("button");
-    out.type = "button";
-    out.className = "af-admin-out";
-    out.textContent = "로그아웃";
-    out.onclick = logout;
-    el.appendChild(out);
-    document.body.insertBefore(el, document.body.firstChild);
-    nav(el);
+    return '<div class="afs-who"><b>' + (access.role === "owner" ? "대표 관리자" : "운영 관리자") + "</b>" + esc(mail) +
+      '<br><button type="button" class="af-admin-out" data-afs="switch">네이버 계정 바꾸기</button> · <button type="button" class="af-admin-out" data-afs="out">로그아웃</button></div>';
   }
-
-  // 관리자 화면끼리 오가는 메뉴(10/18). 예전엔 화면마다 주소를 외워야 했다. 운영 관리자는 주문만.
-  var MENU = [
-    ["/admin-orders.html", "주문", "staff"],
-    ["/admin-sent.html", "보낸 꽃 사진", "staff"],
-    ["/admin-photos.html", "사진 위치·숨김", "owner"],
-    ["/admin.html", "사진 올리기", "owner"],
-    ["/admin-products.html", "상품", "owner"],
-    ["/admin-site.html", "홈 화면 순서", "owner"],
-    ["/admin-home.html", "홈 배송 사진", "owner"],
-    ["/admin-pay.html", "결제 링크", "owner"],
-    ["/admin-setup.html", "설정 점검", "owner"],
-  ];
-  function nav(after) {
-    if (document.getElementById("af-admin-nav")) return;
-    var bar = document.createElement("nav");
-    bar.id = "af-admin-nav";
-    bar.className = "af-admin-nav";
-    var here = location.pathname.replace(/\/$/, "") || "/admin.html";
-    MENU.forEach(function (m) {
-      if (m[2] === "owner" && access.role !== "owner") return;
-      var a = document.createElement("a");
-      a.href = m[0];
-      a.textContent = m[1];
-      if (here === m[0] || here + ".html" === m[0]) { a.className = "on"; a.setAttribute("aria-current", "page"); }
-      bar.appendChild(a);
+  function wireWho(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-afs]"), function (b) {
+      b.onclick = b.getAttribute("data-afs") === "out" ? logout : logoutAndLogin;
     });
-    after.insertAdjacentElement("afterend", bar);
-    var on = bar.querySelector(".on"); if (on && on.scrollIntoView) try { on.scrollIntoView({ block: "nearest", inline: "center" }); } catch (_) {}
+  }
+  function shell() {
+    if (!access || document.getElementById("afs-top")) return;
+    var here = herePath(), groups = allowed();
+    var q = "";
+    try { q = new URLSearchParams(location.search).get("q") || ""; } catch (_) {}
+    document.body.classList.add("af-shell");
+
+    // 위: 검색창 하나로 주문번호·이름·전화번호를 찾는다. 주문 관리 화면이면 그 자리에서 거르고, 다른 화면이면 주문 관리로 간다.
+    var top = document.createElement("div");
+    top.id = "afs-top";
+    top.className = "afs-top";
+    top.innerHTML = '<a class="afs-brand" href="/admin-orders.html">꽃안부 관리</a>' +
+      '<form class="afs-q" role="search">' + svg("search", 18) + '<input type="search" name="q" enterkeyhint="search" autocomplete="off" placeholder="주문번호, 이름, 전화번호로 찾기" aria-label="주문 찾기"></form>' +
+      '<a class="afs-new" href="/admin-orders.html" data-afs-new></a>';
+    var input = top.querySelector("input");
+    input.value = q;
+    var onOrders = here === "/admin-orders.html";
+    top.querySelector("form").onsubmit = function (e) {
+      e.preventDefault();
+      var v = input.value.trim();
+      if (onOrders) { emitSearch(v); input.blur(); }
+      else location.href = "/admin-orders.html" + (v ? "?q=" + encodeURIComponent(v) : "");
+    };
+    if (onOrders) input.addEventListener("input", function () { emitSearch(input.value.trim()); });
+    document.body.insertBefore(top, document.body.firstChild);
+
+    // 컴퓨터: 왼쪽 메뉴
+    var side = document.createElement("aside");
+    side.className = "afs-side";
+    side.setAttribute("aria-label", "관리자 메뉴");
+    side.innerHTML = '<a class="afs-brand" href="/admin-orders.html">꽃안부 관리</a>' + listHtml(groups, here) + whoHtml();
+    wireWho(side);
+    document.body.appendChild(side);
+
+    // 휴대폰: 아래 탭(주문·전화 주문·사진·더보기). 나머지는 더보기 시트에.
+    var tabs = [];
+    groups.forEach(function (g) { g[1].forEach(function (m) { if (m[4]) tabs.push(m); }); });
+    var bar = document.createElement("nav");
+    bar.className = "afs-tabs";
+    bar.setAttribute("aria-label", "관리자 메뉴");
+    bar.style.setProperty("--n", String(tabs.length + 1));
+    var inTabs = tabs.some(function (m) { return m[0] === here; });
+    bar.innerHTML = tabs.map(function (m) {
+      return '<a href="' + m[0] + '"' + (here === m[0] ? ' class="on" aria-current="page"' : "") + ">" + svg(m[3], 22) + esc(m[4]) +
+        (m[0] === "/admin-orders.html" ? '<span class="afs-badge" data-afs-badge></span>' : "") + "</a>";
+    }).join("") + '<button type="button"' + (inTabs ? "" : ' class="on"') + ">" + svg("more", 22) + "더보기</button>";
+    var more = document.createElement("div");
+    more.className = "afs-more";
+    more.innerHTML = '<div class="afs-sheet" role="dialog" aria-label="전체 메뉴">' + listHtml(groups, here) + whoHtml() + "</div>";
+    more.onclick = function (e) { if (e.target === more) more.classList.remove("open"); };
+    wireWho(more);
+    bar.querySelector("button").onclick = function () { more.classList.add("open"); };
+    document.body.appendChild(bar);
+    document.body.appendChild(more);
+  }
+  var lastQ = null;
+  function emitSearch(v) {
+    if (v === lastQ) return;
+    lastQ = v;
+    try { document.dispatchEvent(new CustomEvent("af-admin-search", { detail: v })); } catch (_) {}
+  }
+  // 주문 관리가 새 주문 수를 알려 주면 메뉴 옆 숫자와 위 "새 주문 N건"을 바꾼다.
+  function setNewCount(n) {
+    n = Number(n) || 0;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-afs-badge]"), function (el) { el.textContent = n ? String(n) : ""; });
+    var a = document.querySelector("[data-afs-new]");
+    if (a) { a.textContent = n ? "새 주문 " + n + "건" : ""; a.classList.toggle("show", !!n); }
   }
 
   async function checkAccess() {
@@ -189,7 +316,7 @@
         return;
       }
       removeGate();
-      who();
+      shell();
       if (access.role !== "owner") {
         Array.prototype.forEach.call(document.querySelectorAll("[data-owner-only]"), function (el) { el.style.display = "none"; });
       }
@@ -239,6 +366,8 @@
     get role() { return access && access.role || null; },
     can: function (required) { return !!access && (access.role === "owner" || required === "staff"); },
     logout: logoutAndLogin,
+    setNewCount: setNewCount,
+    get query() { try { return new URLSearchParams(location.search).get("q") || ""; } catch (_) { return ""; } },
   };
 
   addStyle();

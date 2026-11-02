@@ -54,12 +54,14 @@
   .ed-btns .go{background:var(--accent);border-color:var(--accent);}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:100;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
   .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+  /* 관리자 새 틀 */
+  @media (min-width:1000px){ header{text-align:left;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>📷 보낸 꽃 사진</h1>
+    <h1>보낸 꽃 사진</h1>
     <div class="sub">텔레그램 주문 알림 방에 올린 사진과 배송완료 사진이 여기 모여요. 리본 이름을 가리고 [공개]를 누르면 상품 화면과 전체 상품 '보낸 꽃'에 보여요.</div>
   </header>
 

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>맞춤 결제 링크 — 꽃안부 관리자</title>
+<title>전화 주문 — 꽃안부 관리자</title>
 <link rel="stylesheet" href="/tokens.css" />
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -52,12 +52,25 @@
   .mode{flex:1;padding:13px 8px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:15px;font-weight:800;font-family:inherit;color:var(--ink-soft);cursor:pointer;}
   .mode.on{background:var(--accent);border-color:var(--accent);color:#fff;}
   input[type=date],input[type=time]{min-width:0;}
+  /* 관리자 새 틀 */
+  /* 컴퓨터: 카드·계좌 두 칸을 나란히(11/2 관리자 새 틀). 고르는 버튼은 휴대폰에서만 */
+  @media (min-width:1000px){
+    header{text-align:left;}
+    .wrap{max-width:1040px;display:grid;grid-template-columns:1fr 1fr;column-gap:20px;align-items:start;}
+    .wrap > header,.wrap > .modes{grid-column:1/-1;}
+    .modes{display:none !important;}
+    #form,#result{grid-column:1;grid-row:3;}
+    #bankForm{display:block !important;grid-column:2;grid-row:3;margin-top:14px;}
+    #form::before,#bankForm::before{display:block;font-size:17px;font-weight:800;margin-bottom:10px;color:var(--ink);}
+    #form::before{content:"카드로 받기 · 손님 휴대폰으로 결제 링크";}
+    #bankForm::before{content:"계좌로 받기 · 가게 통장으로 입금했을 때";}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>📞 전화 주문</h1>
+    <h1>전화 주문</h1>
     <div class="sub">전화로 받은 주문을 처리해요. 카드로 결제하실 분은 <b>결제 링크</b>, 계좌로 입금하신 분은 <b>무통장 주문 등록</b>.</div>
   </header>
   <div class="modes">

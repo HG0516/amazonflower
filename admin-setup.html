@@ -104,6 +104,8 @@
     .fgrid{grid-template-columns:repeat(2,1fr);gap:12px;}
   }
   @media (min-width:1440px){ .fgrid{grid-template-columns:repeat(3,1fr);} }
+  /* 관리자 새 틀 */
+  @media (min-width:1000px){ header{text-align:left;} }
 </style>
 </head>
 <body>
@@ -235,6 +237,7 @@ function render(s, me, ops, seo){
   // 켜고 끄는 기능
   const F = [
     ["gift","카톡·링크로 꽃 선물", pm.gift?"ok":"off", pm.gift?"켜짐":"꺼짐", "켜면 주소를 몰라도 꽃을 보낼 수 있어요. 받는 분이 링크에서 주소를 넣어요.", pm.giftAutoRefund ? "기한·거절 때 자동 환불 준비됨" : "자동 환불이 안 돼요. 형구에게 알려 주세요"],
+    ["msg","오늘의 꽃 인사", "ok", "켜짐", "꽃 사진과 짧은 인사를 카드로 만들어 단톡방에 보내요. 가입 없이 무료예요. 지금은 링크로만 돌려요.", "주소: floweranbu.co.kr/hello"],
     ["camera","배송 사진 보내기", s.photoNotice.effective==="sms"?"ok":"mid", s.photoNotice.effective==="sms"?"자동 문자":"사장님이 전달", s.photoNotice.effective==="sms" ? "사진을 올리면 손님께 사진 링크 문자가 바로 가요." : "사진을 올리면 텔레그램에 손님용 링크가 와요. 그걸 손님께 보내 주세요.", s.photoNotice.effective==="sms" ? "" : "문자를 켜면 손님께 자동으로 가요"],
     ["swap","실시간 계좌이체", pm.transfer?"ok":"off", pm.transfer?"켜짐":"꺼짐", "켜면 손님이 자기 은행 계좌에서 바로 결제해요.", "켜기 전에: 토스에서 계좌이체 계약 확인"],
     ["bank","가상계좌", pm.virtualAccount?"ok":"off", pm.virtualAccount?"켜짐":"꺼짐", "켜면 주문마다 입금할 계좌가 따로 나와요. 입금되면 자동 확인돼요.", "켜기 전에: 토스 설정 하나, 1,000원 시험"],
