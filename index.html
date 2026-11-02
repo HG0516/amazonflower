@@ -430,6 +430,18 @@
   .entrance-pw { flex: 1; min-width: 0; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .entrance-pw:focus { outline: none; border-color: var(--accent); }
   .entrance-pw:disabled { background: var(--line-soft); color: var(--ink-faint); }
+  /* 주소 없는 꽃 선물(lib/gift.mjs) — 받는 곳 맨 위에서 고른다. 고르면 주소·날짜 칸이 숨는다. */
+  .gift-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 14px; }
+  .gift-pick button { text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-family: var(--font-body); color: var(--ink); cursor: pointer; min-height: 64px; }
+  .gift-pick button b { display: block; font-size: 15px; word-break: keep-all; }
+  .gift-pick button span { display: block; margin-top: 2px; font-size: var(--fs-caption); color: var(--ink-faint); line-height: 1.4; word-break: keep-all; }
+  .gift-pick button.on { border-color: var(--accent-deep); box-shadow: inset 0 0 0 1px var(--accent-deep); background: var(--accent-soft); }
+  .gift-note { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius); background: #f7f7f3; border: 1px solid var(--line); font-size: var(--fs-caption); color: var(--ink-soft); line-height: 1.7; word-break: keep-all; }
+  .gift-note b { color: var(--ink); }
+  .gift-note .gift-login { display: block; width: 100%; margin-top: 10px; }
+  #confirmCard.gift-on #afLinkbar, #confirmCard.gift-on #afAddrBook, #confirmCard.gift-on [data-gift-hide],
+  #confirmCard.gift-on #entranceBox, #confirmCard.gift-on .gift-hide-deliv { display: none !important; }
+  body.gift-mode #payMethods .pm-btn:not([data-m="card"]) { display: none !important; }
   /* 받는 분 연락처 — entrance-pw 는 flex 안에서만 폭이 나와서 단독 칸은 따로 준다 */
   .rcp-input { width: 100%; font-size: 16px; font-family: var(--font-body); padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); }
   .rcp-input:focus { outline: none; border-color: var(--accent); }
@@ -1061,6 +1073,12 @@
   <section class="card hidden" id="confirmCard">
     <div class="step-head"><span class="step-num" id="n-confirm">2.</span><span class="step-title">받는 곳</span></div>
     <div class="step-sub" id="confirmSub">받는 곳 정보가 맞는지 확인해 주세요. 틀린 곳은 그 칸만 고치시면 돼요.</div>
+    <!-- 주소 없는 꽃 선물 — 서버 스위치(GIFT_ENABLED)가 켜져 있고 꽃다발·꽃바구니·난·관엽일 때만 보인다 -->
+    <div class="gift-pick" id="giftPick" hidden>
+      <button type="button" class="on" data-g="0" onclick="afGiftMode(false)"><b>주소를 알아요</b><span>받는 곳을 직접 적어요</span></button>
+      <button type="button" data-g="1" onclick="afGiftMode(true)"><b>카톡·링크로 전하기</b><span>받는 분이 주소를 넣어요</span></button>
+    </div>
+    <div class="gift-note" id="giftNote" hidden></div>
     <!-- 부고·청첩장 링크로 받는 곳 자동입력(선택) -->
     <div class="af-linkbar" id="afLinkbar">
       <div class="af-lb-title">부고장·청첩장 링크로 채우기 <span>(선택)</span></div>
@@ -1083,8 +1101,8 @@
       <label class="fl" id="rpLabel">받는 분 연락처 <span class="fl-opt" id="rpReq"></span><span class="fl-sub" id="rpOpt">못 만나면 이 번호로 연락드려요</span></label>
       <input type="text" id="recipientPhone" class="rcp-input" inputmode="numeric" autocomplete="off"
              placeholder="010-0000-0000" oninput="formatPhone(this);order.recipientPhone=this.value" />
-      <label class="fl" style="margin-top:14px;">배송 요청 <span class="fl-opt">(선택)</span></label>
-      <select id="delivReq" class="deliv-sel" onchange="onDelivReq(this.value)">
+      <label class="fl gift-hide-deliv" style="margin-top:14px;">배송 요청 <span class="fl-opt">(선택)</span></label>
+      <select id="delivReq" class="deliv-sel gift-hide-deliv" onchange="onDelivReq(this.value)">
         <option value="">특별한 요청 없음</option>
         <option value="배송 전 받는 분께 연락해 주세요">배송 전 받는 분께 연락해 주세요</option>
         <option value="문 앞에 놓아주세요">문 앞에 놓아 주세요</option>
@@ -1342,7 +1360,7 @@
     <!-- 결제수단 칩 — 카드 하나뿐이면 위 '결제 방법' 칸이 숨어서(10/6 아버지) 여기가 결제수단을 보여 주는 유일한 곳이다. 빼지 말 것. -->
     <div class="paychips center" data-paychips="pays" aria-label="간편결제"><i class="pc pc-naver">네이버페이</i><i class="pc pc-kakao">카카오페이</i><i class="pc pc-toss">토스페이</i></div>
     <div class="err hidden" id="payErr"></div>
-    <div class="notice">결제가 끝나면 사장님이 주문을 확인하고 준비해요. 꽃이 닿으면 도착 사진을 적어 주신 번호로 보내 드려요.</div>
+    <div class="notice" id="payNotice">결제가 끝나면 사장님이 주문을 확인하고 준비해요. 꽃이 닿으면 도착 사진을 적어 주신 번호로 보내 드려요.</div>
     <div class="notice hidden" id="corpNotice">생화는 <b>면세 품목</b>이라 계산서로 발행됩니다. 주문 확인 후 영업일 기준 1~2일 내에 입력하신 이메일로 보내 드려요.</div>
   </section>
 
@@ -2994,16 +3012,17 @@ function renderPayReview(){
   const rows=[];
   if(order.productLabel) rows.push(["상품", escapeHtml(order.productLabel)]);
   if(AF_EXTRAS.length) rows.push(["함께", AF_EXTRAS.map(function(e){ var p=afProd(e.pc); return escapeHtml(p?p.name:e.pc)+(e.qty>1?" ×"+e.qty:""); }).join(", ")]);
-  const place=[order.venue,order.venueDetail].filter(Boolean).join(" ")||order.address||"";
+  const place=order.gift?"받는 분이 링크에서 넣어요":([order.venue,order.venueDetail].filter(Boolean).join(" ")||order.address||"");
   if(place) rows.push(["받는 곳", escapeHtml(place)]);
   if(order.recipientName) rows.push([afRcptLabel(), escapeHtml(order.recipientName)]);
-  if(order.date) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
+  if(order.gift && order.recipientPhone) rows.push(["링크 받을 번호", escapeHtml(order.recipientPhone)]);
+  if(order.date && !order.gift) rows.push(["받는 날짜", escapeHtml(order.date)+(order.time?" "+escapeHtml(order.time):"")]);
   if(order.category==="basket" && order.price) rows.push(["카드", afCardOn ? (escapeHtml(afMsgCardText())||'<span style="color:var(--ink-faint);">아직 안 적었어요</span>') : "안 넣음"]);
   if(!rows.length){ el.innerHTML=""; return; }
   el.innerHTML = '<div style="background:#f7f7f3;border:1px solid var(--line);border-radius: var(--radius);padding:12px 14px;margin:10px 0 4px;text-align:left;">'
     + '<div style="font-weight:700;margin-bottom:6px;">주문 확인</div>'
     + rows.map(r=>{const emph=(r[0]==="받는 곳"||r[0]==="받는 날짜");return `<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:16px;line-height:1.6;"><span style="color:var(--ink-faint);white-space:nowrap;">${r[0]}</span><span style="text-align:right;color:var(--ink);${emph?'font-size:18px;font-weight:700;':''}">${r[1]}</span></div>`;}).join("")
-    + '<div style="margin-top:8px;"><a href="#" onclick="scrollTo(\'confirmCard\');return false;" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;">받는 곳·날짜 고치기 ↑</a></div>'
+    + '<div style="margin-top:8px;"><a href="#" onclick="scrollTo(\'confirmCard\');return false;" style="font-size:var(--fs-caption);color:var(--accent-deep);font-weight:600;">'+(order.gift?'받는 분 고치기 ↑':'받는 곳·날짜 고치기 ↑')+'</a></div>'
     + '</div>';
 }
 function pickDesign(el){
@@ -3380,6 +3399,7 @@ function afLoadPayConfig(){
     if(!c) return;
     afPayCfg = c;
     AF_PTS.cfg = c.points || null;
+    try{ afGiftAutoOn(); }catch(_){}
     afPtsLoad();
     var box=document.getElementById("payMethods");
     if(box){
@@ -3393,6 +3413,79 @@ function afLoadPayConfig(){
   }).catch(function(){});
 }
 document.addEventListener("DOMContentLoaded", afLoadPayConfig);
+
+// ── 주소 없는 꽃 선물(카톡·링크로 전하기) ────────────────────────────
+// 보내는 분은 받는 분 이름·번호만 적고 결제한다. 결제가 끝나면 서버가 받는 분께 링크 문자를 보내고,
+// 받는 분이 /g/<코드> 에서 주소와 날짜를 넣는다(lib/gift.mjs, gift.html). 선물은 회원만, 카드·간편결제만.
+const AF_GIFT_CATS=["bouquet","basket","orchid","plant"];
+function afGiftAvailable(){ return !!(afPayCfg && afPayCfg.gift) && AF_GIFT_CATS.indexOf(order.category)>=0; }
+function afGiftNoteHtml(){
+  var user=window.afAuth&&window.afAuth.user;
+  return '결제가 끝나면 받는 분께 문자로 링크가 가요. 받는 분이 주소와 받을 날짜를 직접 넣습니다.<br>'
+    +'<b>먼 지역이면 추가 배송비(1만~3만 원)가 있을 수 있어요.</b> 주소가 들어오면 문자로 알려 드려요.<br>'
+    +'7일 안에 주소가 들어오지 않으면 전액 환불해 드려요. 결제는 카드·간편결제만 됩니다.'
+    +(user?'':'<button type="button" class="btn gift-login" onclick="afGiftLogin()">로그인하고 계속하기</button>');
+}
+// 칸을 다시 그리는 곳이 여럿이라(상품 바꾸기·링크 자동입력·재주문) 그릴 때마다 숨길 칸에 표시를 다시 붙인다.
+function afGiftSync(){
+  var card=document.getElementById("confirmCard"); if(!card) return;
+  var on=!!order.gift;
+  ["af_address","af_venue","af_venueDetail","af_chiefMourner","af_groomName","af_brideName","dtWidget"].forEach(function(id){
+    var el=document.getElementById(id); var f=el&&el.closest(".af-field"); if(f) f.toggleAttribute("data-gift-hide",on);
+  });
+  card.classList.toggle("gift-on",on);
+  document.body.classList.toggle("gift-mode",on);
+  var pick=document.getElementById("giftPick"), note=document.getElementById("giftNote");
+  if(pick){
+    pick.hidden=!afGiftAvailable();
+    pick.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", (b.getAttribute("data-g")==="1")===on); });
+  }
+  if(note){ note.hidden=!on; if(on) note.innerHTML=afGiftNoteHtml(); }
+  var pn=document.getElementById("payNotice");
+  if(pn){
+    if(!pn.dataset.base) pn.dataset.base=pn.textContent;
+    pn.textContent = on ? "결제가 끝나면 받는 분께 링크 문자가 가요. 받는 분이 주소를 넣으면 사장님이 준비하고, 도착 사진은 적어 주신 번호로 보내 드려요." : pn.dataset.base;
+  }
+  var sub=document.getElementById("confirmSub");
+  if(sub && on) sub.textContent="받는 분 성함과 휴대폰 번호만 적어 주세요. 주소와 날짜는 받는 분이 넣어요.";
+  if(on){
+    var opt=document.getElementById("rpOpt"); if(opt) opt.textContent="이 번호로 주소 넣는 링크가 가요";
+    var req=document.getElementById("rpReq"); if(req) req.textContent="(필수)";
+    var df=document.getElementById("delivFold"); if(df) df.open=true;
+  }
+}
+function afGiftMode(on){
+  if(on && !afGiftAvailable()) on=false;
+  if(on){ order.gift=true; } else { delete order.gift; }
+  if(on && typeof afPickMethod==="function") afPickMethod("card");
+  if(!on){ var sub=document.getElementById("confirmSub"); if(sub) sub.textContent="받는 곳 정보를 입력해 주세요."; }
+  afGiftSync();
+  try{ afShowErrors([]); }catch(_){}
+  try{ renderPayReview(); }catch(_){}
+  try{ updateBuyBar(); }catch(_){}
+}
+// 카카오·구글 로그인은 홈(/)으로 돌아온다. 적던 주문을 잃지 않게 저장해 두고 돌아오면 다시 연다.
+function afGiftLogin(){
+  try{ afSyncFormToOrder(); }catch(_){}
+  try{ sessionStorage.setItem("af_gift_resume", JSON.stringify(order)); }catch(_){}
+  if(window.afOpenAuth) window.afOpenAuth();
+}
+function afGiftResumeBoot(){
+  var q=new URLSearchParams(location.search);
+  if(q.get("gift")==="1") window.__afGiftWant=true;   // 홈·상품 화면의 '카톡·링크로 전하기' 버튼이 붙여 오는 표시
+  if(q.get("pc")||q.get("payresult")) return;
+  var saved=null; try{ saved=JSON.parse(sessionStorage.getItem("af_gift_resume")||"null"); sessionStorage.removeItem("af_gift_resume"); }catch(_){}
+  if(!saved || !saved.productCode) return;
+  afPendingRestore=saved; window.__afGiftWant=true;
+  var qty=(Number(saved.quantity)>1)?"&qty="+Number(saved.quantity):"";
+  try{ history.replaceState({},"","/?pc="+encodeURIComponent(saved.productCode)+qty); }catch(_){}
+}
+function afGiftAutoOn(){ if(window.__afGiftWant && afGiftAvailable()){ window.__afGiftWant=false; afGiftMode(true); } else afGiftSync(); }
+document.addEventListener("af-auth-change", function(){ afGiftSync(); });
+document.addEventListener("DOMContentLoaded", function(){
+  var f=document.getElementById("afFields");
+  if(f && window.MutationObserver) new MutationObserver(function(){ if(order.gift && !afGiftAvailable()) afGiftMode(false); else afGiftSync(); }).observe(f,{childList:true});
+});
 
 // 원산지 한 줄(펼치면 설명). footer.js '원산지 표시' 표와 같은 말이어야 한다 — 표가 바뀌면 함께 고칠 것.
 function afOriginHtml(){
@@ -3708,6 +3801,7 @@ function afTuneDelivBox(){
     df.classList.toggle("no-fold",!isWreath);
     if(!isWreath || order.recipientPhone || order.delivReq) df.open=true;
   }
+  afGiftSync();
 }
 
 /** 화면에 있는 값을 order 로 끌어온다. 검사 직전에 한 번 돌려 DOM과 order 가 어긋나지 않게. */
@@ -3737,6 +3831,13 @@ function afValidateOrder(scope){
 
   if(!order.price) add("상품을 먼저 골라 주세요.",null,"prodCard");
 
+  // 카톡·링크로 전하기: 주소·날짜·시간은 받는 분이 넣는다. 받는 분 번호로 링크가 가니 번호가 맞아야 한다.
+  if(order.gift){
+    if(!(window.afAuth&&window.afAuth.user)) add("카톡·링크로 보내려면 로그인해 주세요. 받는 곳 칸 위의 '로그인하고 계속하기'를 눌러 주세요.",null);
+    if(!has(order.recipientName)) add("받는 분 성함을 알려 주세요.","af_recipientName");
+    if(!/^01[016789]\d{7,8}$/.test(String(order.recipientPhone||"").replace(/[^0-9]/g,""))) add("받는 분 휴대폰 번호를 확인해 주세요. 이 번호로 링크가 가요.","recipientPhone");
+    if(scope==="delivery") return errs;
+  }else{
   // 받는 곳 — 주소가 없으면 배달 자체가 불가능하다.
   if(!has(order.address) && !has(order.venue)) add("받는 곳 주소를 알려 주세요.","af_address");
 
@@ -3765,6 +3866,7 @@ function afValidateOrder(scope){
 
   // 도착 시간 — 기본값이 비어 있어 아무것도 안 고르고 넘어갈 수 있었다.
   if(!has(order.timeSlot) && !has(order.time)) add("도착 시간을 골라 주세요.",null);
+  }
   // 축하 화환의 '당일중'은 막지 않는다. 사장님이 가능한지 확인해 보고 안 되면 환불하는 쪽이
   // 실제 운영에 맞다 → afConfirmNeeds() 가 '확정 필요'로 안내한다.
 
@@ -3871,11 +3973,12 @@ async function requestPay(){
   }catch(_e){}
   // 확정이 필요한 건이면 사장님 문자·텔레그램에 실려 가게 태그를 붙인다.
   // (서버가 신뢰하는 값이 아니라 '알림용 메모'다 — 금액·상품 검증은 서버가 따로 한다)
-  try{ order.confirmTags=afConfirmNeeds().map(n=>n.tag).filter(Boolean); }catch(_){ order.confirmTags=[]; }
+  try{ order.confirmTags=order.gift?[]:afConfirmNeeds().map(n=>n.tag).filter(Boolean); }catch(_){ order.confirmTags=[]; }
   const _rnd=(window.crypto&&crypto.randomUUID)
     ? crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase()
     : (Date.now().toString(36)+Math.random().toString(36).slice(2,10)).toUpperCase();
-  const orderId="AF"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+_rnd;
+  // 선물 주문번호는 AFG 로 시작한다(서버가 이걸로 선물과 일반 주문을 가른다).
+  const orderId=(order.gift?"AFG":"AF")+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+_rnd;
   const _pts=afPtsUse();
   if(_pts) order.usePoints=_pts; else delete order.usePoints;
   const payAmount=orderTotal()-_pts;
@@ -4140,7 +4243,65 @@ window.afSaveAnnivDone=function(label,month,day,recipient){
   sb.from("anniversaries").insert(extra).then(res=> res.error ? sb.from("anniversaries").insert(base) : res)
     .then(res=>done(!res.error)).catch(()=>done(false));
 };
+// 선물 완료 화면. 받는 분 주소가 없으니 도착일·장소 대신 '링크를 보냈다'와 카톡으로 한 번 더 보내기가 중심이다.
+function afRenderGiftDone(data,o){
+  document.body.classList.remove("ordering","buybar-pad","gift-mode");
+  var _bb=document.getElementById("buyBar"); if(_bb) _bb.classList.remove("show");
+  const p=data.payment||{};
+  const url=(data.gift&&data.gift.url)||"";
+  const to=escapeHtml(o.recipientName||"받는 분");
+  const rp=String(o.recipientPhone||"").replace(/[^0-9]/g,"");
+  const rpMask=rp?escapeHtml(rp.slice(0,3)+"-****-"+rp.slice(-4)):"";
+  const orderId=escapeHtml(p.orderId||"");
+  const shareText=(o.senderName?o.senderName+"이(가) ":"")+"꽃을 보냈어요. 받으실 주소를 여기에 넣어 주세요.";
+  window.__afGiftShare={ text:shareText, url:url };
+  const note = data.manualRecovery
+    ? `<div class="gift-note" style="background:#fff0ef;border-color:#c84b45;color:#7d211d;"><b>결제는 끝났지만 확인이 필요해요.</b> 주문번호를 보관하고 1577-2286으로 알려 주세요.</div>`
+    : (data.needsReconciliation || !url
+      ? `<div class="gift-note" style="background:#fff7e5;border-color:#d29b31;color:#6f4a08;"><b>결제는 끝났어요.</b> 받는 분 링크를 준비하고 있어요. 잠시 뒤 <b>내 정보 → 보낸 선물</b>에서 링크를 확인해 주세요.</div>`
+      : "");
+  const steps=[["1","결제 완료",1],["2","받는 분 주소",0],["3","만들어 배송",0]].map(s=>`<div style="flex:1;text-align:center;"><div style="width:30px;height:30px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:1.5px solid ${s[2]?'var(--accent-deep)':'var(--line)'};color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};">${s[0]}</div><div style="font-size:var(--fs-caption);margin-top:4px;color:${s[2]?'var(--accent-deep)':'var(--ink-faint)'};font-weight:${s[2]?'700':'400'};">${s[1]}</div></div>`).join("");
+  const receipt = p.receiptUrl ? `<a class="btn btn-ghost" style="margin-top:10px;width:100%;" href="${p.receiptUrl}" target="_blank" rel="noopener">영수증 보기</a>` : "";
+  document.querySelector(".wrap").innerHTML=`
+    <section class="card" style="text-align:center;">
+      <div aria-hidden="true" style="display:flex;justify-content:center;margin-bottom:2px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent-deep)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.4"/></svg></div>
+      <div class="step-title" style="margin:6px 0;">${to}님께 링크를 보냈어요</div>
+      <p style="color:var(--ink-soft);margin-bottom:4px;">${rpMask?`<b style="color:var(--ink);">${rpMask}</b> 로 주소 넣는 링크가 문자로 갔어요.<br>`:""}아는 분이 보낸 카톡이면 더 믿고 여시니까 한 번 더 보내 주세요.</p>
+      ${note}
+      ${url?`
+      <button class="btn" style="margin-top:14px;width:100%;background:#fee500;color:#191919;border-color:#fee500;" onclick="afGiftShare(this)">카톡으로 보내기</button>
+      <button class="btn btn-ghost" style="margin-top:8px;width:100%;" onclick="afGiftCopy(this)">링크 복사</button>`:""}
+      <div style="display:flex;gap:4px;margin:18px 0 4px;">${steps}</div>
+      <div style="background:#f7f7f3;border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;text-align:left;font-size:14px;line-height:1.9;margin-top:12px;">
+        <div>상품: ${escapeHtml(o.productLabel||"")}</div>
+        <div>받는 분: ${to}</div>
+        <div>금액: ${(p.totalAmount||0).toLocaleString()}원</div>
+        <div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-top:4px;line-height:1.7;">받는 분이 주소를 넣으면 문자로 알려 드려요. 먼 지역이면 그때 추가 배송비를 안내해요. 7일 안에 주소가 안 들어오면 전액 환불해 드려요.</div>
+      </div>
+      <div style="margin-top:12px;background:#fff;border:1px dashed var(--accent);border-radius: var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;">
+        <div><div style="font-size:var(--fs-caption);color:var(--ink-faint);">주문번호 (문의하실 때 알려 주세요)</div><div style="font-size:19px;font-weight:800;color:var(--ink);letter-spacing:0.5px;">${orderId}</div></div>
+        <button onclick="try{navigator.clipboard.writeText('${orderId}');this.textContent='복사됨 ✓';}catch(e){}" style="min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius: var(--radius);background:#fff;font-size:14px;cursor:pointer;white-space:nowrap;">복사</button>
+      </div>
+      ${receipt}
+      <a class="btn btn-ghost" style="margin-top:10px;width:100%;" href="/my#gifts">보낸 선물 보기</a>
+      <button class="btn" onclick="location.href='/'" style="margin-top:10px;">처음으로</button>
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line-soft);font-size:var(--fs-caption);color:var(--ink-faint);line-height:1.7;">문의 · 1577-2286</div>
+    </section>`;
+  window.scrollTo(0,0);
+}
+// 폰의 공유 창(카톡이 맨 앞에 뜬다)을 쓴다. 카카오 공유 키가 생기면 여기서 카카오 공유로 바꾼다.
+function afGiftShare(btn){
+  var g=window.__afGiftShare||{}; if(!g.url) return;
+  if(navigator.share){ navigator.share({ text:g.text, url:g.url }).catch(function(){}); return; }
+  afGiftCopy(btn);
+}
+function afGiftCopy(btn){
+  var g=window.__afGiftShare||{}; if(!g.url) return;
+  var done=function(){ if(btn){ var t=btn.textContent; btn.textContent="복사했어요. 카톡에 붙여 넣어 주세요"; setTimeout(function(){ btn.textContent=t; },2500); } };
+  try{ navigator.clipboard.writeText(g.text+"\n"+g.url).then(done,function(){ prompt("이 링크를 복사해 주세요", g.url); }); }catch(e){ prompt("이 링크를 복사해 주세요", g.url); }
+}
 function renderDone(data,o){
+  if(o && o.gift) return afRenderGiftDone(data,o);
   // 완료 화면에서는 주문 모드·하단 주문바 종료
   document.body.classList.remove("ordering","buybar-pad");
   var _bb=document.getElementById("buyBar"); if(_bb) _bb.classList.remove("show");
@@ -4996,6 +5157,7 @@ function handleCatalogParam(){
 }
 
 afBootCart();              // /?cart=1 → 첫 상품 딥링크로 바꾸고 나머지를 함께 보내는 상품으로
+afGiftResumeBoot();        // 선물 주문 중 로그인하고 돌아온 경우 적던 주문을 다시 연다
 handleRedirect();
 afRenderHomeGrid();
 handleProductParam();

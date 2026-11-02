@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 
 import { askClaude } from "../lib/ai.mjs";
 import { notifyPaymentIntentWithLease } from "./confirm-payment.js";
+import { sweepGifts } from "../lib/gift.mjs";
 import {
   cancelManualReviewReason,
   fetchJsonWithTimeout,
@@ -815,7 +816,13 @@ export default async function handler(req, res) {
     if (!SUPABASE_URL_B || !SERVICE_KEY_B) return res.status(503).json({ error: "supabase env missing" });
     try {
       const out = await runBriefing(briefKind, SUPABASE_URL_B, { apikey: SERVICE_KEY_B, Authorization: `Bearer ${SERVICE_KEY_B}` });
-      return res.status(200).json({ ok: true, briefing: briefKind, ...out });
+      // 주소 없는 꽃 선물: 3일째 다시 알리기·7일 지나면 환불. 하루 한 번 아침에만(3일째 문자가 한 번만 가게).
+      // 기능 스위치를 꺼도 이미 결제된 선물은 끝까지 정리해야 하므로 스위치와 무관하게 돈다.
+      let gifts = null;
+      if (briefKind === "morning") {
+        gifts = await sweepGifts(process.env).catch((e) => { console.error("gift sweep:", e && e.message); return { ok: false }; });
+      }
+      return res.status(200).json({ ok: true, briefing: briefKind, ...out, ...(gifts ? { gifts } : {}) });
     } catch (e) {
       console.error("briefing error:", e.message);
       return res.status(500).json({ error: "briefing_failed" });

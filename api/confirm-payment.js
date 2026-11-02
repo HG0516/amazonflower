@@ -48,6 +48,16 @@ import {
   reservePoints,
   restorePoints,
 } from "../lib/points.mjs";
+import {
+  GIFT_ORDER_RE,
+  checkGiftOrder,
+  giftCodeFor,
+  giftEnabled,
+  giftOwnerWaitingText,
+  giftRecipientText,
+  giftSenderPaidText,
+  giftUrl,
+} from "../lib/gift.mjs";
 
 // ── 신규상품(CU-)·토핑 가격 DB 조회 (LIVE_PRICING 킬스위치 뒤) ──
 // static-first: 정적 priceOf/TOPPINGS가 값을 주면 DB를 절대 안 봄(정적 106·legacy 무조회 = 심사 무영향).
@@ -160,6 +170,13 @@ function buildOwnerMessage(order, payment) {
   // 안 되는 건이면 아래 '💸 결제취소(환불)' 버튼으로 바로 전액 환불하시면 됩니다.
   const tags = Array.isArray(order.confirmTags) ? order.confirmTags.filter(Boolean).slice(0, 4) : [];
   if (tags.length) lines.push(`⚠️ 확인 필요 — ${tags.map((t) => String(t).slice(0, 10)).join(" · ")}`);
+  // 주소 없는 꽃 선물(lib/gift.mjs): 받는 분이 링크에서 주소를 넣은 뒤에 이 알림이 간다.
+  if (order.gift && order.giftFilled) {
+    lines.push(order.giftFilled === "edited" ? "🎁 선물 · 받는 분이 주소·날짜를 고쳤어요 (이 내용이 최신)" : "🎁 선물 · 받는 분이 주소를 넣었어요");
+    if (Number(order.giftExtraFee) > 0) {
+      lines.push(`먼 지역 추가 배송비 ${Number(order.giftExtraFee).toLocaleString()}원 · 보내는 분께 결제 링크 보냄 (결제되면 맞춤 결제 주문으로 따로 와요)`);
+    }
+  }
   lines.push("");
   if (Array.isArray(order.items) && order.items.length >= 2) {
     // 같은 곳으로 여러 상품 — 하나도 빠뜨리지 않게 줄마다 하나씩
@@ -335,7 +352,12 @@ export async function notifyOwners(order, payment, { includeCustomer = true, inc
     .filter((p) => /^01[016789]\d{7,8}$/.test(p)))];
 
   const waitingVa = isWaitingVirtualAccount(payment);
-  const textBody = waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment);
+  // 선물 결제 직후(주소 전): 사장님께는 '아직 만들지 마세요' 한 통, 손님 쪽은 보내는 분 확인 + 받는 분 링크.
+  const giftWaiting = !!(order.gift && !order.giftFilled);
+  const giftLink = giftWaiting ? giftUrl(giftCodeFor(payment.orderId)) : "";
+  const tagLine = Array.isArray(order.confirmTags) && order.confirmTags.length ? `⚠️ 확인 필요 — ${order.confirmTags.slice(0, 4).join(" · ")}\n` : "";
+  const textBody = giftWaiting ? tagLine + giftOwnerWaitingText(order, payment)
+    : waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment);
 
   const mk = (to, text, subject) => {
     const len = Buffer.byteLength(text, "utf8");
@@ -356,8 +378,14 @@ export async function notifyOwners(order, payment, { includeCustomer = true, inc
   const buyerPhone = String(order.senderPhone || order.ordererPhone || "").replace(/[^0-9]/g, "");
   if (includeCustomer && /^01[016789]\d{7,8}$/.test(buyerPhone) && !recipients.some((p) => String(p).replace(/[^0-9]/g, "") === buyerPhone)) {
     messages.push(mk(buyerPhone,
-      waitingVa ? customerWaitingText(vaWaitingFacts(order, payment)) : buildCustomerMessage(order, payment),
-      waitingVa ? "꽃안부 입금 안내" : "꽃안부 주문 확인"));
+      giftWaiting ? giftSenderPaidText(order, payment, giftLink)
+        : waitingVa ? customerWaitingText(vaWaitingFacts(order, payment)) : buildCustomerMessage(order, payment),
+      giftWaiting ? "꽃안부 선물 결제" : waitingVa ? "꽃안부 입금 안내" : "꽃안부 주문 확인"));
+  }
+  // 받는 분 링크 문자는 손님 확인 문자와 한 묶음으로 보낸다. 손님 문자 lease 가 한 번만 보내게 지켜 준다.
+  const giftTo = String(order.recipientPhone || "").replace(/[^0-9]/g, "");
+  if (giftWaiting && includeCustomer && giftLink && /^01[016789]\d{7,8}$/.test(giftTo)) {
+    messages.push(mk(giftTo, giftRecipientText(order, giftLink), "꽃안부 꽃 선물"));
   }
   if (messages.length === 0) {
     console.warn("주문 알림 수신번호 미설정 → 문자 알림 생략");
@@ -427,11 +455,14 @@ export async function notifyTelegram(order, payment) {
   }
   const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
   const waitingVa = isWaitingVirtualAccount(payment);
-  const text = tag + (waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment));
+  const giftWaiting = !!(order.gift && !order.giftFilled);
+  const text = tag + (giftWaiting ? giftOwnerWaitingText(order, payment)
+    : waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment));
   // 발주 누락방지: '발주 완료 처리' 버튼. 누르면 status=ordered 가 되어 마감 경고 대상에서 빠진다.
   // 입금 전 가상계좌는 버튼을 달지 않는다 — 입금 확인 알림(lib/deposit-orders)에 따로 붙는다.
   let reply_markup;
-  const oid = waitingVa ? "" : (payment.orderId || "");
+  // 주소 전 선물에도 버튼을 달지 않는다. 받는 분이 주소를 넣으면 버튼 달린 알림이 다시 간다.
+  const oid = waitingVa || giftWaiting ? "" : (payment.orderId || "");
   const cs = process.env.CRON_SECRET || process.env.TOSS_SECRET_KEY || "";
   if (oid && cs) {
     const tk = crypto.createHmac("sha256", cs).update("confirm:" + oid).digest("hex").slice(0, 20);
@@ -575,6 +606,7 @@ function canonicalOrder(raw) {
     if (value) safe[key] = value;
   }
   if (raw.customPay) safe.customPay = true;
+  if (raw.gift === true) safe.gift = true;
   if (raw.quantity != null) safe.quantity = Number(raw.quantity);
   if (Array.isArray(raw.toppings)) safe.toppings = raw.toppings.slice(0, 20).map(String);
   if (Array.isArray(raw.confirmTags)) {
@@ -636,6 +668,14 @@ async function validateOrderRequest(req, orderId, amount, order, opts = {}) {
 
   const productCode = order.productCode;
   const isCustom = !!order.customPay;
+  // 주소 없는 꽃 선물: 주소·날짜는 받는 분이 나중에 넣는다. 주문번호 AFG 는 선물에만 쓴다.
+  const isGift = order.gift === true;
+  if (isGift !== GIFT_ORDER_RE.test(String(orderId))) {
+    return { ok: false, status: 400, error: "주문 정보가 맞지 않습니다. 처음부터 다시 주문해주세요." };
+  }
+  if (isGift && (isCustom || (Array.isArray(order.items) && order.items.length >= 2))) {
+    return { ok: false, status: 400, error: "카톡·링크로 보내기는 상품 하나씩 주문해 주세요." };
+  }
   // 적립금(lib/points.mjs). 손님 화면이 보낸 값은 '쓰고 싶은 금액'일 뿐이고, 규칙·잔액은 여기서 다시 본다.
   // 결제 금액 + 적립금 = 서버가 계산한 상품값 일 때만 받는다.
   const rawPts = order.usePoints;
@@ -747,7 +787,7 @@ async function validateOrderRequest(req, orderId, amount, order, opts = {}) {
       console.error(`금액 불일치: orderId=${orderId} expected=${expectedPrice}`);
       return { ok: false, status: 400, error: "결제 금액이 상품 가격과 일치하지 않습니다." };
     }
-    const missing = missingDelivery(order);
+    const missing = isGift ? null : missingDelivery(order);
     if (missing) {
       console.error(`배송정보 누락으로 승인 거절: orderId=${orderId}`);
       return { ok: false, status: 400, error: missing };
@@ -757,6 +797,12 @@ async function validateOrderRequest(req, orderId, amount, order, opts = {}) {
   const canonical = canonicalOrder(order);
   if (!canonical.ok) return { ok: false, status: 400, error: canonical.error };
   const userId = ptsUser ? ptsUser.id : await getUserId(req);
+  if (isGift) {
+    const giftErr = checkGiftOrder(order, { orderId, userId, category: catOf(productCode) });
+    if (giftErr) return { ok: false, status: 400, error: giftErr };
+    // 주소·날짜 칸은 받는 분 몫이다. 주문서에 남아 있던 값이 섞여 들어가지 않게 지운다.
+    for (const k of ["address", "venue", "venueName", "venueDetail", "venueAddress", "date", "time", "timeSlot", "eventTime", "delivReq", "entrancePw", "chiefMourner", "groomName", "brideName"]) delete canonical.order[k];
+  }
   const authLabel =
     customLabel
     || PRODUCT_LABELS[productCode]
@@ -1150,7 +1196,8 @@ export async function notifyPaymentIntentWithLease(intent, order, payment, reque
         // 가진 쪽만 보내므로 한 번만 나가고, 문자 결과는 텔레그램 완료 판정에 섞지 않는다(실패해도 재발송 안 함).
         : Promise.all([
             notifyTelegram(tagged, payment),
-            notifyOwners(tagged, payment, { includeCustomer: false, includeOwners: true }).catch(() => null),
+            // 주소 전 선물은 사장님 휴대폰 문자를 보내지 않는다(텔레그램 한 줄만). 주소가 들어오면 평소처럼 간다.
+            notifyOwners(tagged, payment, { includeCustomer: false, includeOwners: !order.gift }).catch(() => null),
           ]).then(([t]) => t))
       : Promise.resolve(null),
   ]);
@@ -1197,7 +1244,7 @@ export default async function handler(req, res) {
   // 주문서가 결제수단 버튼을 그릴 때 묻는다. Vercel 설정값 하나로 켜고 끈다(코드 배포 없이).
   if (req.method === "GET" && query.config) {
     res.setHeader("Cache-Control", "no-store");
-    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled(), points: pointsConfig() });
+    return res.status(200).json({ virtualAccount: virtualAccountEnabled(), bankTransfer: bankTransferEnabled(), transfer: transferEnabled(), gift: giftEnabled(), points: pointsConfig() });
   }
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST 요청만 지원합니다." });
@@ -1235,6 +1282,7 @@ export default async function handler(req, res) {
       }
       if (amount == null || !order || typeof order !== "object") return res.status(400).json({ error: "주문 정보가 필요합니다." });
       if (order.customPay) return res.status(400).json({ error: "맞춤 결제 링크는 카드·가상계좌로만 결제할 수 있어요." });
+      if (order.gift) return res.status(400).json({ error: "카톡·링크로 보내기는 카드·간편결제로만 결제할 수 있어요." });
       if (Number(order.usePoints) > 0) return res.status(400).json({ error: "적립금은 카드·간편결제에서만 쓸 수 있어요." });
       // 주문번호는 서버가 새로 만든다 — 손님 쪽 번호를 쓰지 않는다. AFB = 무통장.
       const ymd = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10).replace(/-/g, "");
@@ -1499,6 +1547,7 @@ export default async function handler(req, res) {
         needsReconciliation: true,
         manualRecovery: false,
         integrity: "intent",
+        ...(orderInfo && orderInfo.gift ? { gift: { url: giftUrl(giftCodeFor(orderId)) } } : {}),
       });
     }
 
@@ -1522,7 +1571,7 @@ export default async function handler(req, res) {
         telegramResult = notice.telegram;
       } else if (legacy && !existedBefore) {
         [smsResult, telegramResult] = await Promise.all([
-          notifyOwners(orderInfo, payment),
+          notifyOwners(orderInfo, payment, { includeOwners: !orderInfo.gift }),
           notifyTelegram(orderInfo, payment),
         ]);
       }
@@ -1565,6 +1614,8 @@ export default async function handler(req, res) {
       needsReconciliation,
       manualRecovery,
       integrity: intent ? "intent" : "legacy",
+      // 선물: 완료 화면의 카톡·복사 버튼용 받는 분 링크. 결제한 본인에게만 간다.
+      ...(orderInfo && orderInfo.gift ? { gift: { url: giftUrl(giftCodeFor(orderId)) } } : {}),
     });
   } catch (err) {
     console.error("confirm-payment error:", err && err.name || "unknown");

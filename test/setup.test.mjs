@@ -57,7 +57,7 @@ test("setupStatus: 있다/없다만 — 키·번호·비밀번호 값은 어디�
   assert.equal(s.payment.intentsRequired, true);
   assert.equal(s.kakaoShare, true);
   assert.equal(s.push.vapid, true);
-  assert.deepEqual(publicSetup(SECRETS), { sms: true, photoNotice: "sms", kakaoShare: true, transfer: true, bankTransfer: false });
+  assert.deepEqual(publicSetup(SECRETS), { sms: true, photoNotice: "sms", kakaoShare: true, transfer: true, bankTransfer: false, gift: false });
   const empty = setupStatus({});
   assert.equal(empty.sms.ready, false);
   assert.equal(empty.photoNotice.effective, "manual");
@@ -169,7 +169,7 @@ test("공개 확인 /api/order-meta?setup=1: 손님 기능 켜짐만, 보안 설
   const res = mockRes();
   await orderMeta({ method: "GET", url: "/api/order-meta?setup=1", headers: {} }, res);
   assert.equal(res.statusCode, 200);
-  assert.deepEqual(Object.keys(res.body).sort(), ["bankTransfer", "kakaoShare", "photoNotice", "sms", "transfer"]);
+  assert.deepEqual(Object.keys(res.body).sort(), ["bankTransfer", "gift", "kakaoShare", "photoNotice", "sms", "transfer"]);
   assert.equal(res.body.sms, true);
   assert.equal(JSON.stringify(res.body).includes("pw-should-not-leak"), false);
 }));

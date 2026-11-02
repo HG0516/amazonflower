@@ -146,7 +146,7 @@ test("결제수단 설정 조회는 스위치를 그대로 알려준다", { conc
     const res = mockResponse();
     await confirmPayment({ method: "GET", headers: {}, query: { config: "1" } }, res);
     const { points, ...methods } = res.body;
-    assert.deepEqual(methods, { virtualAccount: false, bankTransfer: true, transfer: false });
+    assert.deepEqual(methods, { virtualAccount: false, bankTransfer: true, transfer: false, gift: false });
     assert.equal(points.mode, "off", "적립금은 설정값이 없으면 꺼져 있다");
     const on = mockResponse();
     process.env.TRANSFER_ENABLED = "1";
@@ -377,7 +377,7 @@ test("관리자 상태 변경은 입금 대기·기한만료 주문을 준비중
     const res = mockResponse();
     await admin(adminReq({ action: "status", orderId: row.order_id, status: "ordered" }), res);
     assert.equal(res.statusCode, 409);
-    assert.match(decodeURIComponent(patches[0].search), /status=not\.in\.\(canceled,awaiting_deposit,expired\)/);
+    assert.match(decodeURIComponent(patches[0].search), /status=not\.in\.\(canceled,awaiting_deposit,expired,gift_wait\)/);
   }));
 
 test("관리자 환불은 가상계좌 결제를 사이트에서 처리하지 않는다(환불 계좌 필요)", { concurrency: false },

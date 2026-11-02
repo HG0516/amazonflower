@@ -6,7 +6,7 @@ export const config = { runtime: "nodejs" };
 
 import { handleCardGet, handleCardPost } from "../lib/cards.mjs";
 import { publicSetup } from "../lib/setup-status.mjs";
-import { handleGiftGet, handleGiftPost } from "../lib/gift.mjs";
+import { handleGiftGet, handleGiftPost, handleGiftSenderGet, handleGiftSenderPost } from "../lib/gift.mjs";
 // 3) 무료 부고장·청첩장 정식판(10/6) — GET ?card=<id> (짧은 링크 /c/<id> 미리보기·내용), POST {type:"card"} (만들기·고치기·조문 글).
 
 const ALLOWED = ["검색", "지인", "전단·현수막", "기타"];
@@ -153,6 +153,12 @@ export default async function handler(req, res) {
       return res.status(200).json(publicSetup(process.env));
     }
     // 5) 주소 없는 꽃 선물(11/2) — GET ?gift=<code> 받는 분 화면 내용. 주소는 돌려주지 않는다.
+    // 보낸 선물(내 정보) — GET ?gifts=mine + 로그인 토큰. 받는 분 주소는 여기서도 안 나간다.
+    if (q.gifts === "mine") {
+      const out = await handleGiftSenderGet(req, process.env).catch((e) => { console.error("gift mine", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+      res.setHeader("Cache-Control", "no-store");
+      return res.status(out.status).json(out.json);
+    }
     if (q.gift) {
       const out = await handleGiftGet(q, process.env).catch((e) => { console.error("gift get", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
       res.setHeader("Cache-Control", "no-store");
@@ -182,7 +188,15 @@ export default async function handler(req, res) {
 
   // ── 무료 부고장·청첩장 ──
   if (body.type === "gift") {
-    const out = await handleGiftPost(body, process.env).catch((e) => { console.error("gift post", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+    // 주소가 들어오면 사장님 알림을 결제 때와 같은 문구·버튼으로 보낸다(confirm-payment.js 것을 그대로).
+    // 결제 모듈은 무거워서 선물 주소 저장 때만 불러온다(부고장·청첩장 미리보기 같은 다른 요청은 안 불러옴).
+    const { notifyOwners, notifyTelegram } = await import("./confirm-payment.js");
+    const out = await handleGiftPost(body, process.env, { notifyOwners, notifyTelegram }).catch((e) => { console.error("gift post", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(out.status).json(out.json);
+  }
+  if (body.type === "gift_sender") {
+    const out = await handleGiftSenderPost(req, body, process.env).catch((e) => { console.error("gift sender", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
     res.setHeader("Cache-Control", "no-store");
     return res.status(out.status).json(out.json);
   }

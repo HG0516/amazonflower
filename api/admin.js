@@ -759,14 +759,14 @@ export default async function handler(req, res) {
       if (status === "ordered") patch.ordered_at = nowIso;
       if (status === "delivered" && !body.keepCompletedAt) patch.completed_at = nowIso;
       // 취소(환불)된 주문은 상태 변경 불가 — 환불 주문이 활성 주문으로 부활하는 사고 방지
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}&status=not.in.(canceled,${AWAITING},${EXPIRED})&cancel_requested_at=is.null`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_id=eq.${encodeURIComponent(orderId)}&status=not.in.(canceled,${AWAITING},${EXPIRED},gift_wait)&cancel_requested_at=is.null`, {
         method: "PATCH",
         headers: { ...sb, "Content-Type": "application/json", Prefer: "return=representation" },
         body: JSON.stringify(patch),
       });
       if (!r.ok) { console.error("order status fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "상태 변경에 실패했습니다." }); }
       const updated = await r.json().catch(() => []);
-      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문이라 상태를 바꿀 수 없어요. 입금 대기 주문이면 '입금 확인'을 먼저 눌러주세요." });
+      if (!Array.isArray(updated) || !updated.length) return res.status(409).json({ error: "취소되었거나 환불 처리 중인 주문이라 상태를 바꿀 수 없어요. 입금 대기 주문이면 '입금 확인'을 먼저 눌러주세요. 선물 주문은 받는 분이 주소를 넣어야 바뀌어요." });
       // 텔레그램 버튼(order-confirm.js)으로 처리하면 방에 회신이 가는데, 관리 화면에서 바꾸면
       // 아무 흔적이 없어 나머지 두 분은 모른다 → 같은 문구로 맞춰준다(중복 발주 방지).
       const o = updated[0] || {};

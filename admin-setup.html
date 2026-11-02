@@ -92,7 +92,7 @@ function render(s, me){
   // 결제수단
   const pm = s.payment;
   h.push(row("결제수단 스위치", "off", "참고",
-    `<div class="det">실시간 계좌이체 ${pm.transfer?"켜짐":"꺼짐"} · 무통장입금 ${pm.bankTransfer?"켜짐":"꺼짐"} · 가상계좌 ${pm.virtualAccount?"켜짐":"꺼짐"} · DB 가격 ${pm.livePricing?"켜짐":"꺼짐"}</div>`
+    `<div class="det">실시간 계좌이체 ${pm.transfer?"켜짐":"꺼짐"} · 무통장입금 ${pm.bankTransfer?"켜짐":"꺼짐"} · 가상계좌 ${pm.virtualAccount?"켜짐":"꺼짐"} · DB 가격 ${pm.livePricing?"켜짐":"꺼짐"} · 카톡·링크 선물 ${pm.gift?"켜짐":"꺼짐"}(자동 환불 ${pm.giftAutoRefund?"됨":"안 됨 — REFUND_LINK_SECRET 필요"})</div>`
     + `<p>계좌이체는 토스 계약이 '사용'인지 먼저 확인하고 켜요.</p>`));
   // 그 밖
   h.push(row("그 밖", "off", "참고",

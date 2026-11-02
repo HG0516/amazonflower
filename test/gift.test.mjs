@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fakeDb } from "./gift-fake.mjs";
 import { GIFT_CODE_RE, checkGiftFill, giftPublicView, giftStage, handleGiftGet, handleGiftPost, newGiftCode } from "../lib/gift.mjs";
 
 const NOW = new Date("2026-11-03T02:00:00Z");   // 화요일 오전 11시(한국)
@@ -58,28 +59,13 @@ test("먼 지역은 추가금이 잡히고 수도권은 0원이다", () => {
   assert.ok(checkGiftFill(good({ address: "강원 정선군 정선읍 봉양리 1" }), NOW).value.extra_fee >= 10000);
 });
 
-function fakeDb(start) {
-  const db = { row: start, patches: [] };
-  globalThis.fetch = async (url, init = {}) => {
-    const u = String(url);
-    if (u.includes("/gift_links") && init.method === "PATCH") {
-      const fields = JSON.parse(init.body);
-      db.patches.push(fields);
-      db.row = { ...db.row, ...fields };
-      return new Response(JSON.stringify([db.row]), { status: 200 });
-    }
-    if (u.includes("/gift_links")) return new Response(JSON.stringify(db.row ? [db.row] : []), { status: 200 });
-    if (u.includes("/orders")) return new Response(JSON.stringify(db.order ? [db.order] : []), { status: 200 });
-    throw new Error("unexpected " + u);
-  };
-  return db;
-}
 const ENV = { SUPABASE_URL: "https://x.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "k" };
 
 test("링크 읽기와 저장 뒤에도 주소가 안 나간다", async () => {
   const realFetch = globalThis.fetch;
   try {
-    const db = fakeDb(row({ expires_at: new Date(Date.now() + 864e5).toISOString() }));
+    const db = fakeDb(row({ order_id: "AFG20261102-ABCDEF", expires_at: new Date(Date.now() + 864e5).toISOString() }));
+    db.order = { order_id: "AFG20261102-ABCDEF", status: "gift_wait", sender_phone: "01022223333", paid_amount: 58000 };
     const date = new Date(Date.now() + 9 * 3600e3 + 2 * 864e5).toISOString().slice(0, 10);
     const saved = await handleGiftPost({ code: "abcdefgh23", action: "fill", ...good({ date }) }, ENV);
     assert.equal(saved.status, 200);

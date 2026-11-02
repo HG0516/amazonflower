@@ -104,6 +104,14 @@
   .ord .amt { font-weight: 800; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
   .ord img { width: 100%; border-radius: var(--radius); margin-top: 10px; display: none; }
   .ord .ph { font-size: 13px; color: var(--accent-deep); font-weight: 700; margin-top: 6px; }
+  /* 보낸 선물(주소 없는 꽃 선물) */
+  .gft .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .gft .acts .kakao { background: #fee500; border-color: #fee500; color: #191919; }
+  .gft .note { font-size: 13px; color: var(--ink-soft); margin-top: 6px; line-height: 1.6; word-break: keep-all; }
+  .gft .cancel { display: block; margin-top: 10px; font-size: 13px; color: var(--ink-faint); background: none; border: 0; padding: 4px 0; text-decoration: underline; cursor: pointer; font-family: inherit; }
+  .gft .ph-edit { display: flex; gap: 6px; margin-top: 8px; }
+  .gft .ph-edit[hidden] { display: none; }
+  .gft .ph-edit input { flex: 1; min-width: 0; font-size: 16px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius); font-family: inherit; }
   .badge { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
   .sbtn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: var(--radius); font: inherit; font-size: 14px; font-weight: 700; padding: 8px 14px; cursor: pointer; text-decoration: none; white-space: nowrap; }
   .sbtn.o { background: var(--paper); color: var(--accent-deep); }
@@ -191,6 +199,7 @@
 
   <!-- 주문·배송 -->
   <section class="pane" id="p-orders" role="tabpanel" aria-labelledby="tb-orders">
+    <div id="myGifts"></div>
     <div id="myOrders"></div>
     <div id="lookWrap">
       <h1 id="lookH">주문·배송 조회</h1>
@@ -326,10 +335,97 @@
       .then(function (res) {
         if (res.error) return SB().from("orders").select(fb).limit(30).then(function (r2) { return r2.data || []; });
         return res.data || [];
-      }).catch(function () { return []; });
+      })
+      // 선물(AFG)은 아래 '보낸 선물'에서 따로 보여 준다. 주문 내역에 두면 '그대로 다시'가 받는 분 없이 열린다.
+      .then(function (rows) { return rows.filter(function (o) { return !/^AFG/.test(o.order_id || ""); }); })
+      .catch(function () { return []; });
   }
+  // ── 보낸 선물(카톡·링크로 전하기) ──
+  // 서버(lib/gift.mjs)가 결제 원본으로 찾아 준다. 받는 분 주소는 여기에도 오지 않는다.
+  var GIFTS = [];
+  var GSTAGE = {
+    wait: ["주소 기다리는 중", "#8a2e44", "#fbeef1"], got: ["주소 받음", "#1f4733", "#e8f0ea"],
+    checking: ["확인 중", "#6f4a08", "#fff7e5"], preparing: ["준비 중", "#1f4733", "#e8f0ea"],
+    delivered: ["도착", "#355d8a", "#eaf0f6"], declined: ["환불", "#5a564d", "#f0eee8"], closed: ["끝남", "#5a564d", "#f0eee8"]
+  };
+  function giftAuth() {
+    return SB().auth.getSession().then(function (s) { var t = s && s.data && s.data.session && s.data.session.access_token; return t ? { Authorization: "Bearer " + t } : null; });
+  }
+  function drawGifts() {
+    var box = $("myGifts");
+    if (!USER) { box.innerHTML = ""; return; }
+    giftAuth().then(function (h) {
+      if (!h) return null;
+      return fetch("/api/order-meta?gifts=mine", { headers: h, cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; });
+    }).then(function (d) {
+      GIFTS = (d && d.gifts) || [];
+      if (!GIFTS.length) { box.innerHTML = ""; return; }
+      box.innerHTML = '<div class="sec-h" id="gifts">보낸 선물 <small>' + GIFTS.length + '건</small></div>' + GIFTS.map(giftHtml).join("");
+      box.querySelectorAll("[data-ga]").forEach(function (b) { b.onclick = function () { giftAct(b.getAttribute("data-ga"), Number(b.getAttribute("data-i")), b); }; });
+      if (location.hash === "#gifts") box.scrollIntoView({ block: "start" });
+    }).catch(function () {});
+  }
+  function giftHtml(g, i) {
+    var x = GSTAGE[g.stage] || GSTAGE.closed;
+    var line = g.stage === "wait" ? (g.until ? fmtDate(String(g.until).slice(0, 10)) + "까지 주소를 넣으시면 돼요" : "")
+      : (g.stage === "got" || g.stage === "preparing") ? (g.date ? fmtDate(g.date) + " " + (g.slot || "") + " 도착 예정" : "")
+      : g.stage === "checking" ? "먼 지역이라 추가 배송비 문자를 보내 드렸어요"
+      : g.stage === "delivered" ? "도착했어요. 사진은 문자로 보내 드려요"
+      : g.stage === "declined" ? "받기 어렵다고 하셔서 전액 환불했어요"
+      : "끝난 선물이에요";
+    var acts = g.stage === "wait"
+      ? '<div class="note">' + esc(String(g.phone || "").replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3")) + ' 로 링크를 보냈어요. 아는 분이 보낸 카톡이면 더 믿고 여시니까 카톡으로도 한 번 보내 주세요.</div>'
+        + '<div class="acts"><button type="button" class="sbtn kakao" data-ga="share" data-i="' + i + '">카톡으로 보내기</button>'
+        + '<button type="button" class="sbtn o" data-ga="copy" data-i="' + i + '">링크 복사</button>'
+        + '<button type="button" class="sbtn g" data-ga="resend" data-i="' + i + '">문자 다시 보내기</button>'
+        + '<button type="button" class="sbtn g" data-ga="phone" data-i="' + i + '">번호 고치기</button></div>'
+        + '<div class="ph-edit" id="gph' + i + '" hidden><input type="tel" inputmode="numeric" placeholder="010-0000-0000" maxlength="13"><button type="button" class="sbtn" data-ga="phoneSave" data-i="' + i + '">보내기</button></div>'
+        + '<button type="button" class="cancel" data-ga="cancel" data-i="' + i + '">선물 취소하기</button>'
+      : "";
+    return '<div class="ord gft"><div class="t"><div class="p">' + esc(g.product || "꽃 선물") + '</div><span class="badge" style="color:' + x[1] + ";background:" + x[2] + '">' + x[0] + "</span></div>"
+      + '<div class="w">' + esc((g.to || "") + "님께" + (line ? " · " + line : "")) + "</div>"
+      + acts
+      + '<div class="b"><span class="amt">' + won(g.amount) + '</span><span style="font-size:12px;color:var(--ink-faint)">' + esc(g.orderId) + "</span></div></div>";
+  }
+  function giftPost(body) {
+    return giftAuth().then(function (h) {
+      if (!h) throw new Error("다시 로그인해 주세요.");
+      return fetch("/api/order-meta", { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, h), body: JSON.stringify(Object.assign({ type: "gift_sender" }, body)) });
+    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw new Error(d.error || "잠시 후 다시 시도해 주세요."); return d; }); });
+  }
+  function giftAct(a, i, btn) {
+    var g = GIFTS[i]; if (!g) return;
+    var text = "꽃을 보냈어요. 받으실 주소를 여기에 넣어 주세요.";
+    var flash = function (t) { var o = btn.textContent; btn.textContent = t; setTimeout(function () { btn.textContent = o; }, 2500); };
+    if (a === "share") {
+      if (navigator.share && g.url) { navigator.share({ text: text, url: g.url }).catch(function () {}); return; }
+      a = "copy";
+    }
+    if (a === "copy") {
+      try { navigator.clipboard.writeText(text + "\n" + g.url).then(function () { flash("복사했어요"); }, function () { prompt("이 링크를 복사해 주세요", g.url); }); }
+      catch (e) { prompt("이 링크를 복사해 주세요", g.url); }
+      return;
+    }
+    if (a === "phone") { var e = $("gph" + i); e.hidden = !e.hidden; if (!e.hidden) e.querySelector("input").focus(); return; }
+    var body = { orderId: g.orderId };
+    if (a === "resend") body.action = "resend";
+    else if (a === "phoneSave") { body.action = "phone"; body.phone = $("gph" + i).querySelector("input").value; }
+    else if (a === "cancel") {
+      if (!confirm((g.to || "받는 분") + "님께 보낸 선물을 취소할까요?\n결제한 금액은 전액 환불돼요.")) return;
+      body.action = "cancel";
+    } else return;
+    btn.disabled = true;
+    giftPost(body).then(function (d) {
+      btn.disabled = false;
+      if (a === "resend") flash("다시 보냈어요");
+      else if (a === "phoneSave") { alert("새 번호로 링크를 보냈어요."); drawGifts(); }
+      else if (a === "cancel") { alert(d.refunded ? "취소했어요. 카드사에 따라 3~5일 안에 돌아가요." : "취소했어요. 환불은 사장님이 확인하고 처리해 드려요."); drawGifts(); }
+    }).catch(function (err) { btn.disabled = false; alert(err.message); });
+  }
+
   function drawOrders() {
     var box = $("myOrders");
+    drawGifts();
     if (!USER) {
       box.innerHTML = "";
       $("lookWrap").hidden = false; $("lookWrap").removeAttribute("data-more");

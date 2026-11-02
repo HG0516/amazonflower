@@ -41,6 +41,7 @@
   .b-bank{background:#fff7e0;color:#7a5a12;margin-right:5px;}
   .b-va{background:#eaf0f6;color:#355d8a;margin-right:5px;}
   .b-awaiting_deposit{background:#fff0d8;color:#8a5312;}
+  .b-gift_wait{background:#fbeef1;color:#8a2e44;}
   .b-expired{background:#f0eee8;color:#7a766c;}
   .o-wait{flex:1 1 100%;padding:10px 12px;border-radius:8px;background:#fff7e5;color:#6f4a08;font-size:13px;font-weight:700;line-height:1.5;}
   .order.awaiting{border-color:#d29b31;}
@@ -93,7 +94,7 @@
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const won = n => (Number(n)||0).toLocaleString()+"원";
-const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료", canceled:"취소됨", awaiting_deposit:"입금 대기", expired:"기한 만료" };
+const STLABEL = { new:"접수됨", ordered:"준비중", delivered:"배송완료", canceled:"취소됨", awaiting_deposit:"입금 대기", expired:"기한 만료", gift_wait:"🎁 주소 대기" };
 // 무통장(손님이 주문서에서 고름 · 사장님이 전화로 등록) / 가상계좌
 const isBankOrder = (o) => o && (o.payment_method==="MANUAL_BANK" || o.payment_method==="BANK_TRANSFER" || /^AFB/.test(o.order_id||""));
 const isVaOrder = (o) => o && o.payment_method==="가상계좌";
@@ -258,6 +259,7 @@ function render(){
         ? (isVaOrder(o)
           ? `<div class="o-actions"><div class="o-wait">🏦 가상계좌 입금 대기 — 아직 만들지 마세요. 입금되면 '입금 확인' 알림과 함께 자동으로 접수돼요.</div></div>`
           : `<div class="o-actions"><div class="o-wait">💰 무통장 입금 대기 — 아직 만들지 마세요. 통장에 들어온 걸 확인하면 '입금 확인'을 눌러주세요.</div>${afAdmin.role==="owner"?`<button class="on" onclick="depositOrder('${oid}',this)">💰 입금 확인</button><button onclick="voidOrder('${oid}',this)">🗑 주문 취소(입금 전)</button>`:''}</div>`)
+        : st==='gift_wait' ? `<div class="o-actions"><div class="o-wait" style="background:#fbeef1;color:#8a2e44;">🎁 선물 · 받는 분이 주소를 넣기 전이에요. 아직 만들지 마세요. 주소가 들어오면 평소처럼 주문 알림이 다시 와요. 7일 안에 안 넣으면 자동으로 환불돼요.</div>${afAdmin.role==="owner"?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}</div>`
         : st==='expired' ? `<div class="o-actions"><div class="o-wait" style="background:#f0eee8;color:#7a766c;">⌛ 입금 기한이 지나 닫힌 주문이에요. 만들지 않습니다.</div></div>`
         : st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:refundPending?`<div class="o-actions"><div class="o-lock">🔒 환불 결과 확인 전까지 발주·배송·사진 작업을 잠갔어요.</div><button onclick="load()">↻ 환불 상태 확인</button></div>`:`<div class="o-actions">
         <button onclick="copyOrderText(${_i},this)">📋 발주 복사</button>
