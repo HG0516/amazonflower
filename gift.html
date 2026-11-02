@@ -31,6 +31,10 @@
   .btn { display: block; width: 100%; min-height: 56px; border: 0; border-radius: var(--radius); background: var(--accent); color: #fff; font: 800 18px var(--font-body); cursor: pointer; }
   .btn:disabled { opacity: .55; }
   .btn.line { background: var(--paper); color: var(--accent-deep); border: 1.5px solid var(--accent); }
+  a.btn { line-height: 56px; text-align: center; text-decoration: none; }
+  a.btn.line { line-height: 53px; }
+  .join { display: grid; gap: 4px; }
+  .join .btn { margin-top: 8px; }
   .small { display: block; width: 100%; min-height: 44px; border: 0; background: none; color: var(--ink-faint); font: 400 15px var(--font-body); text-decoration: underline; cursor: pointer; }
   .fl { display: block; font-size: 16px; font-weight: 700; margin-bottom: -6px; }
   .fl small { font-weight: 400; color: var(--ink-soft); font-size: 14px; }
@@ -79,7 +83,6 @@
     grid(photo()
       + '<div><h1>' + esc(V.to) + '님께 온 꽃이에요</h1><p class="sub">' + esc(V.from) + '님이 보내셨어요' + (V.product ? " · " + esc(V.product) : "") + "</p></div>"
       + (V.message ? '<div class="say"><small>' + esc(V.from) + '님이 적은 말</small>' + esc(V.message) + "</div>" : "")
-      + '<div class="note">결제는 이미 끝났어요. 앱을 깔거나 가입하지 않아도 됩니다.</div>'
       + '<button class="btn" id="go" type="button">주소 넣고 받기</button>'
       + '<div class="foot">' + untilText(V.until) + "까지 넣어 주세요</div>");
     document.getElementById("go").onclick = showForm;
@@ -166,7 +169,8 @@
       + (checking ? '<div class="row"><span>받을 날</span><span>확인 중</span></div>' : '<div class="row"><span>받을 날</span><span>' + (V.date ? dayText(V.date) : "") + '</span></div><div class="row"><span>시간</span><span>' + esc(V.slot) + "</span></div>")
       + (shown ? '<div class="row"><span>주소</span><span>' + esc(shown) + "</span></div>" : "")
       + "</div>"
-      + '<button class="btn line" id="edit" type="button">주소나 날짜 고치기</button>' + photo());
+      + '<button class="btn line" id="edit" type="button">주소나 날짜 고치기</button>' + photo()
+      + '<div class="say join"><b>가입하면 2,000원을 드려요</b><span class="sub">다음에 꽃을 보내실 때 바로 쓸 수 있어요.</span><a class="btn line" href="/my">가입하고 2,000원 받기</a></div>');
     document.getElementById("edit").onclick = function () { form = { date: "", slot: "" }; showForm(true); };
   }
 
