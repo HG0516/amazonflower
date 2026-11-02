@@ -7,42 +7,117 @@
 <title>설정 점검 — 꽃안부 관리자</title>
 <link rel="stylesheet" href="/tokens.css" />
 <!--
-  설정 점검(2026-10-07) — Vercel 환경변수에 키·스위치가 들어갔는지 '있다/없다'만 본다(값은 안 옴, 대표 관리자만).
-  서버: api/admin.js resource "setup" (check · sms-test), 판정: lib/setup-status.mjs.
+  설정 점검(2026-10-07, 11/2 새 화면 — 시안 docs/시안/설정점검-2026-11) — 사이트가 손님·사장님께 제대로 일하는지 한눈에.
+  서버: api/admin.js resource "setup" (check · sms-test), 판정: lib/setup-status.mjs(setupStatus·opsStatus). 값(키·번호)은 안 온다.
+  검색 등록 파일은 이 화면이 같은 사이트에서 직접 열어 본다.
   환경변수를 바꾼 뒤에는 Vercel 에서 Redeploy 해야 여기에도 반영된다.
 -->
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.55;font-size:15px;padding:0 0 40px;}
-  .wrap{max-width:560px;margin:0 auto;padding:0 14px;}
-  header{text-align:center;padding:18px 0 6px;}
-  h1{font-size:20px;font-weight:800;}
-  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;}
-  .top{display:block;margin-top:12px;padding:12px;text-align:center;border:1px solid var(--accent);border-radius:10px;background:var(--paper);color:var(--accent);font-weight:800;text-decoration:none;}
-  .row{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-top:10px;}
-  .row .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-  .row b{font-size:15px;}
-  .chip{flex:0 0 auto;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;}
-  .on{background:#e5f1e8;color:#1f6b3f;} .off{background:#efede7;color:#6b665c;} .warn{background:#fbe7e3;color:#9a3b2e;}
-  .row p{font-size:13px;color:var(--ink-soft);margin-top:6px;}
-  .row .det{font-size:12.5px;color:var(--ink-faint);margin-top:4px;}
-  .row code{font-size:12.5px;background:#f4f2ec;padding:1px 5px;border-radius:5px;overflow-wrap:anywhere;}
-  .btn{margin-top:10px;width:100%;padding:12px;font-size:15px;font-weight:800;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;}
-  .btn.ghost{background:var(--paper);color:var(--accent);border:1px solid var(--accent);}
-  .btn:disabled{background:var(--ink-faint);border-color:var(--ink-faint);color:#fff;}
-  .navlink{display:inline-block;margin-top:16px;font-size:13px;color:var(--accent);text-decoration:none;}
+  :root{--red:#a03a2c;--red-soft:#fbe9e5;--amber:#85590c;--amber-soft:#fbf0d8;--chip:#f1efe8;--bubble:#eef0ec;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px;padding:0 0 48px;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px;display:grid;gap:22px;}
+  h1{font-family:var(--font-display,serif);font-size:26px;margin-top:14px;}
+  h2{font-size:17px;font-weight:800;margin-bottom:10px;}
+  h3{font-size:17px;}
+  h4{font-size:14px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;}
+  h4 span{font-size:12.5px;font-weight:600;color:var(--ink-faint);}
+  .sub{font-size:14px;color:var(--ink-soft);margin-top:2px;}
+  .ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;}
+  .glance{display:grid;gap:8px;margin-top:12px;}
+  .g{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--paper);border:1px solid var(--line);}
+  .g .ic{width:30px;height:30px;padding:6px;box-sizing:content-box;border-radius:10px;}
+  .g b{display:block;font-size:15px;} .g span{font-size:13px;color:var(--ink-soft);}
+  .g em{font-style:normal;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+  .red .ic.tone,.g.red .ic,.g.red em{background:var(--red-soft);color:var(--red);}
+  .g.amber .ic,.g.amber em{background:var(--amber-soft);color:var(--amber);}
+  .g.green .ic,.g.green em{background:var(--accent-soft);color:var(--accent);}
+  .g.red{border-color:var(--red);}
+  .fixes{display:grid;gap:12px;}
+  .fix{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px;}
+  .fix.red{border-color:var(--red);}
+  .fx-hd{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;}
+  .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;background:var(--red);}
+  .fix.amber .num{background:var(--amber);}
+  .fx-hd p{font-size:14px;color:var(--ink-soft);margin-top:4px;} .fx-hd p b{color:var(--ink);}
+  .fx-body{display:grid;gap:14px;}
+  .ill{display:grid;gap:6px;justify-items:center;}
+  .ill .cap{font-size:12.5px;color:var(--ink-faint);text-align:center;}
+  .phone{position:relative;width:210px;border:2px solid var(--ink);border-radius:22px;padding:10px 10px 16px;background:var(--bg);display:grid;gap:8px;}
+  .phone .bar{font-size:11px;color:var(--ink-faint);text-align:center;}
+  .bub{font-size:12px;line-height:1.5;background:var(--bubble);border-radius:12px 12px 12px 4px;padding:8px 10px;}
+  .bub.ghost{opacity:.55;}
+  .stamp{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%) rotate(-10deg);font-weight:800;font-size:15px;color:var(--red);border:2.5px solid var(--red);padding:4px 12px;border-radius:8px;background:var(--paper);white-space:nowrap;}
+  .pay{width:230px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);display:grid;gap:6px;font-size:13px;}
+  .pay .row{display:flex;justify-content:space-between;}
+  .pay .cross b{text-decoration:line-through;color:var(--red);} .pay .cross span{color:var(--red);}
+  .pay .lock{display:flex;gap:6px;align-items:center;font-weight:800;color:var(--accent);font-size:12.5px;border-top:1px dashed var(--line);padding-top:8px;}
+  .steps{list-style:none;display:grid;gap:8px;counter-reset:s;}
+  .steps li{counter-increment:s;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);}
+  .steps li .ic{grid-row:span 2;color:var(--accent);width:26px;height:26px;}
+  .steps li b{font-size:14px;} .steps li b::before{content:counter(s) ". ";color:var(--ink-faint);}
+  .steps li span{font-size:12.5px;color:var(--ink-soft);}
+  .how{display:grid;gap:10px;min-width:0;}
+  .calm{font-size:13px;color:var(--accent);}
+  .btn{display:block;text-align:center;padding:11px 16px;border-radius:10px;font-weight:800;font-size:14px;border:1px solid var(--accent);color:var(--accent);background:var(--paper);text-decoration:none;cursor:pointer;font-family:inherit;width:100%;}
+  .btn.fill{background:var(--accent);color:#fff;}
+  .btn:disabled{opacity:.5;cursor:default;}
+  .techd summary{font-size:12.5px;color:var(--ink-faint);cursor:pointer;}
+  .techd p{font-size:12px;margin-top:4px;}
+  code{font-size:12px;background:var(--chip);padding:1px 6px;border-radius:5px;overflow-wrap:anywhere;}
+  .allok{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:14px 16px;font-weight:700;}
+  .lower,.col{display:grid;gap:22px;align-content:start;min-width:0;}
+  .box{background:var(--paper);border:1px solid var(--line);border-radius:12px;}
+  .o{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);}
+  .o:first-child{border-top:0;}
+  .o .ic{color:var(--ink-soft);}
+  .o b{display:block;font-size:14px;} .o span{font-size:12.5px;color:var(--ink-soft);}
+  .st{font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+  .st.ok{background:var(--accent-soft);color:var(--accent);} .st.bad{background:var(--red-soft);color:var(--red);}
+  .st.mid{background:var(--amber-soft);color:var(--amber);} .st.off{background:var(--chip);color:var(--ink-soft);}
+  .fgrid{display:grid;gap:8px;}
+  .f{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;align-content:start;}
+  .f-top{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;}
+  .f-top .ic{color:var(--ink-soft);} .f-top b{font-size:15px;word-break:keep-all;}
+  .f p{font-size:13.5px;color:var(--ink-soft);} .f .cond{font-size:12.5px;color:var(--ink-faint);}
+  .tools{display:grid;gap:8px;}
+  .uid{font-size:12px;color:var(--ink-faint);overflow-wrap:anywhere;}
+  .links{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;padding:10px 14px;border-top:1px solid var(--line);}
+  .links a{color:var(--accent);font-weight:700;text-decoration:none;}
+  .navlink{font-size:13px;color:var(--accent);text-decoration:none;}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
-  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+  .toast.show{opacity:1;} .toast.err{background:var(--red);}
+  /* 컴퓨터: 한눈에 4칸 가로, 고칠 것은 그림 왼쪽 + 단계 가로, 아래는 두 칸 */
+  @media (min-width:1000px){
+    .wrap{max-width:1180px;padding:0 40px;gap:30px;}
+    h1{font-size:32px;margin-top:18px;}
+    .glance{grid-template-columns:repeat(4,1fr);gap:12px;}
+    .g{padding:16px;grid-template-columns:auto 1fr;}
+    .g em{grid-column:1/-1;justify-self:start;}
+    .fix{padding:22px 24px;}
+    .fx-body{grid-template-columns:260px minmax(0,1fr);gap:28px;align-items:start;}
+    .steps{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));}
+    .steps li{grid-template-columns:1fr;justify-items:start;align-content:start;padding:14px;gap:6px;}
+    .steps li .ic{grid-row:auto;width:30px;height:30px;}
+    .fix .btn{width:auto;justify-self:start;padding:11px 22px;}
+    .lower{grid-template-columns:minmax(0,1fr) 360px;gap:30px;align-items:start;}
+    .fgrid{grid-template-columns:repeat(2,1fr);gap:12px;}
+  }
+  @media (min-width:1440px){ .fgrid{grid-template-columns:repeat(3,1fr);} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>⚙️ 설정 점검</h1>
-    <div class="sub">키·스위치가 들어갔는지 보여요(값은 안 보여요). Vercel에서 바꾼 뒤엔 <b>Redeploy</b> 해야 여기에도 바뀌어요.</div>
+    <h1>설정 점검</h1>
+    <div class="sub">사이트가 손님·사장님께 제대로 일하고 있는지 한눈에 보는 곳이에요. 비밀번호 같은 값은 보이지 않아요.</div>
+    <div class="glance" id="glance"><div class="g"><span>불러오는 중…</span></div></div>
   </header>
-  <a class="top" href="https://vercel.com/hg0516s-projects/amazonflower/settings/environment-variables" target="_blank" rel="noopener">Vercel 환경변수 열기 ↗</a>
-  <div id="list"><div class="row"><p>불러오는 중…</p></div></div>
+  <section id="fixSec"></section>
+  <div class="lower">
+    <div class="col"><section id="opsSec"></section><section id="featSec"></section></div>
+    <div class="col"><section id="seoSec"></section><section id="okSec"></section></div>
+  </div>
   <a class="navlink" href="/admin-orders.html">← 주문 관리</a>
 </div>
 <div class="toast" id="toast"></div>
@@ -60,61 +135,156 @@ async function api(payload){
   const data = await r.json().catch(()=>({}));
   return { ok:r.ok, status:r.status, data };
 }
-const chip = (state, text) => `<span class="chip ${state}">${esc(text)}</span>`;
-const yn = v => v ? "✓" : "✗";
-function row(title, state, label, body){ return `<div class="row"><div class="hd"><b>${esc(title)}</b>${chip(state,label)}</div>${body||""}</div>`; }
+const VERCEL_ENV = "https://vercel.com/hg0516s-projects/amazonflower/settings/environment-variables";
+// 선 아이콘(24칸)
+const I = {
+  msg:'<path d="M4 5h16v11H9l-5 4z"/>',
+  shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+  gift:'<rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 13h18M12 9v12"/><path d="M12 9C9 9 7 7.5 8 6s4 1 4 3c0-2 3-4.5 4-3s-1 3-4 3z"/>',
+  camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  bank:'<path d="M3 10l9-6 9 6"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/>',
+  swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',
+  cash:'<rect x="3" y="6" width="18" height="12" rx="1"/><circle cx="12" cy="12" r="2.5"/>',
+  share:'<path d="M12 4C7 4 3 7 3 11c0 2.5 1.6 4.6 4 5.9L6 20l4-2.2c.6.1 1.3.2 2 .2 5 0 9-3 9-7s-4-7-9-7z"/>',
+  person:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  undo:'<path d="M9 7H4V2"/><path d="M4 7a9 9 0 1 1-1 6"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M15 8l2 2"/>',
+  paste:'<rect x="6" y="4" width="12" height="17" rx="1"/><path d="M9 4V2h6v2M9 11h6M9 15h6"/>',
+  id:'<rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.8-1.5 2-2 3-2s2.2.5 3 2M14 10h4M14 13h4"/>',
+  bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  card:'<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18M7 15h4"/>',
+  apple:'<path d="M15 4c-1 0-2.5 1-2.5 2.5M12 8c-2-1.5-6-1-6 4 0 4 2.5 8 4 8 1 0 1.5-.5 2-.5s1 .5 2 .5c1.5 0 4-4 4-8 0-5-4-5.5-6-4z"/>',
+  map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+  robot:'<rect x="5" y="8" width="14" height="11" rx="2"/><path d="M12 4v4M9 13h.01M15 13h.01"/>',
+  bolt:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${I[n]||""}</svg>`;
+const steps = list => `<ol class="steps">${list.map(([i,t,d])=>`<li>${ic(i)}<b>${esc(t)}</b><span>${esc(d)}</span></li>`).join("")}</ol>`;
+function ago(iso){
+  const t = Date.parse(iso||""); if(!isFinite(t)) return "";
+  const m = Math.round((Date.now()-t)/60000);
+  if (m < 1) return "방금"; if (m < 60) return m+"분 전";
+  const h = Math.round(m/60); if (h < 24) return h+"시간 전";
+  const d = new Date(t); return (d.getMonth()+1)+"월 "+d.getDate()+"일";
+}
+const row = (icon, title, sub, st, label) => `<div class="o">${ic(icon)}<div><b>${esc(title)}</b>${sub?`<span>${esc(sub)}</span>`:""}</div><span class="st ${st}">${esc(label)}</span></div>`;
 
-function render(s, me){
-  const h = [];
-  // 문자
-  h.push(row("문자 (SOLAPI)", s.sms.ready ? "on" : "warn", s.sms.ready ? "켜짐" : "없음",
-    `<p>${s.sms.ready ? "주문 확인·배송 사진 문자가 손님에게 자동으로 가요." : "없으면 손님에게 주문 확인·배송 사진 문자가 안 가요. 텔레그램 알림은 그대로 와요."}</p>`
-    + `<div class="det">API 키 ${yn(s.sms.apiKey)} · 비밀 키 ${yn(s.sms.apiSecret)} · 발신번호 ${yn(s.sms.sender)} · 사장님 번호 ${s.sms.ownerPhones}개</div>`
-    + (s.sms.ready ? `<button class="btn ghost" id="smsTest" ${s.sms.ownerPhones? "" : "disabled"}>사장님 번호로 시험 문자 보내기</button>` : "")));
-  // 배송 사진
-  h.push(row("배송 사진 알림", s.photoNotice.effective==="sms" ? "on" : "off", s.photoNotice.effective==="sms" ? "문자로 자동" : "직접 전달",
-    `<p>${s.photoNotice.effective==="sms" ? "사진을 올리면 손님에게 사진 링크 문자가 바로 가요." : "사진을 올리면 사장님 텔레그램에 손님용 링크가 와요. 카톡이나 문자로 전달해 주세요."}</p>`
-    + `<div class="det">PHOTO_NOTICE_MODE = <code>${esc(s.photoNotice.mode)}</code></div>`));
-  // 텔레그램
-  h.push(row("텔레그램 주문 알림", s.telegram ? "on" : "warn", s.telegram ? "켜짐" : "없음", s.telegram ? "" : "<p>새 주문 알림이 아무 데도 안 가요. 바로 넣어야 해요.</p>"));
-  // 관리자 로그인
-  const adminWarn = false; // 예전 비밀번호 경로는 10/18 코드로 닫음
-  h.push(row("관리자 로그인", adminWarn ? "warn" : "on", adminWarn ? "비밀번호 뒷문 열림" : "계정 로그인만",
-    `<p>${s.admin.password ? "등록된 계정으로 로그인해야만 열려요. 예전 비밀번호는 서버가 더 받지 않아요(10/18). Vercel 의 <code>ADMIN_PASSWORD</code> 는 지워도 돼요." : "등록된 계정으로 로그인해야만 열려요."}</p>`
-    + `<div class="det">방식 <code>${esc(s.admin.mode)}</code> · 대표 계정 번호 ${s.admin.ownerIds}개 · 직원 ${s.admin.staffIds}개 · 예전 비밀번호 ${s.admin.password?"남아 있음":"없음"}</div>`
-    + (me && me.userId ? `<div class="det" style="margin-top:8px;">지금 로그인한 계정 번호(UID): <code id="myUid">${esc(me.userId)}</code></div><button class="btn ghost" id="copyUid">내 계정 번호 복사 (ADMIN_OWNER_IDS 에 붙여 넣기)</button>` : "")));
-  // 결제 봉인
-  h.push(row("결제 금액 봉인", s.payment.intentsRequired ? "on" : "warn", s.payment.intentsRequired ? "켜짐" : "꺼짐",
-    `<p>${s.payment.intentsRequired ? "결제 전에 서버에 봉인한 금액으로만 결제창이 열려요." : "봉인 장치는 동작 중인데 '없어도 결제창 열기'로 돼 있어요. <code>PAYMENT_INTENTS_REQUIRED</code>=<code>1</code> 권장."}</p>`));
-  // 카카오 공유
-  h.push(row("카카오 공유 (부고장 버튼 두 개)", s.kakaoShare ? "on" : "off", s.kakaoShare ? "켜짐" : "꺼짐",
-    `<p>${s.kakaoShare ? "부고장·청첩장을 카톡으로 보내면 '보기 · 길찾기' 버튼이 붙어요." : "없어도 부고장은 돼요. 카톡에 버튼 두 개를 붙이려면 <code>KAKAO_JS_KEY</code>."}</p>`));
-  // 결제수단
-  const pm = s.payment;
-  h.push(row("결제수단 스위치", "off", "참고",
-    `<div class="det">실시간 계좌이체 ${pm.transfer?"켜짐":"꺼짐"} · 무통장입금 ${pm.bankTransfer?"켜짐":"꺼짐"} · 가상계좌 ${pm.virtualAccount?"켜짐":"꺼짐"} · DB 가격 ${pm.livePricing?"켜짐":"꺼짐"} · 카톡·링크 선물 ${pm.gift?"켜짐":"꺼짐"}(자동 환불 ${pm.giftAutoRefund?"됨":"안 됨 — REFUND_LINK_SECRET 필요"})</div>`
-    + `<p>계좌이체는 토스 계약이 '사용'인지 먼저 확인하고 켜요.</p>`));
-  // 그 밖
-  h.push(row("그 밖", "off", "참고",
-    `<div class="det">네이버 로그인 키 ${yn(s.login.naver)} · 기념일 푸시 키(VAPID) ${yn(s.push.vapid)} · 사이트 주소 <code>${esc(s.baseHost || "기본값 floweranbu.co.kr")}</code></div>`));
-  $("list").innerHTML = h.join("");
+// 검색 등록 파일은 같은 사이트에서 직접 열어 본다(서버 함수에 정적 파일이 없어서).
+async function seoCheck(){
+  const get = async (p) => { try { const r = await fetch(p, { cache:"no-store" }); return r.ok ? await r.text() : null; } catch { return null; } };
+  const [robots, sitemap, google, naver, indexnow] = await Promise.all([
+    get("/robots.txt"), get("/sitemap.xml"), get("/google7eb23ff2399230a7.html"), get("/naver565a60d50d8028a15b02475fdc0c6373.html"), get("/ee2cd8520bb991b947a381fbde67298a.txt")]);
+  return {
+    robots: robots != null && !/^\s*Disallow:\s*\/\s*$/m.test(robots),
+    pages: sitemap ? (sitemap.match(/<loc>/g)||[]).length : 0,
+    google: !!(google && /google-site-verification/.test(google)),
+    naver: !!(naver && /naver-site-verification/.test(naver)),
+    indexnow: !!(indexnow && indexnow.trim().length >= 8),
+  };
+}
+
+function render(s, me, ops, seo){
+  ops = ops || {};
+  const sms = s.sms.ready, intents = s.payment.intentsRequired, tg = s.telegram, pm = s.payment;
+  const recAge = Date.parse(ops.reconcileOkAt||"") ? (Date.now()-Date.parse(ops.reconcileOkAt))/60000 : null;
+  const recBad = ops.reconcileOkAt ? (recAge > 30 || !!ops.reconcileError) : false;
+  const tossTest = s.tossMode === "test" || s.tossMode === "none";
+  const seoAll = seo && seo.robots && seo.pages > 0 && seo.google && seo.naver;
+  const appleDays = Math.ceil((Date.parse(s.login.appleExpiry+"T00:00:00+09:00") - Date.now())/86400000);
+
+  // 한눈에 네 칸
+  const g = [];
+  g.push(sms ? ["green","msg","손님 문자","주문하신 분께 문자가 가요","괜찮아요"] : ["red","msg","손님 문자","주문하신 분 휴대폰으로 문자가 안 가요","고쳐야 해요"]);
+  g.push(tossTest ? ["red","shield","결제","시험 결제 모드예요. 진짜 돈이 안 들어와요","고쳐야 해요"]
+    : recBad ? ["red","shield","결제","결제 자동 점검이 멈춘 것 같아요","고쳐야 해요"]
+    : !intents ? ["amber","shield","결제 안전장치","설정 하나만 켜면 더 안전해져요","켜 주세요"]
+    : ["green","shield","결제","실제 결제가 안전하게 되고 있어요","괜찮아요"]);
+  g.push(tg ? ["green","bell","새 주문 알림", ops.lastOrderAt ? `텔레그램으로 와요 · 마지막 주문 ${ago(ops.lastOrderAt)}` : "텔레그램으로 와요","괜찮아요"] : ["red","bell","새 주문 알림","새 주문 알림이 아무 데도 안 가요","고쳐야 해요"]);
+  g.push(!seo ? ["amber","search","검색에 나오기","확인하는 중이에요","확인 중"] : seoAll ? ["green","search","검색에 나오기","구글·네이버에 나올 준비가 됐어요","괜찮아요"] : ["amber","search","검색에 나오기","빠진 등록이 있어요. 아래를 봐 주세요","봐 주세요"]);
+  $("glance").innerHTML = g.map(([tone,i,t,d,l])=>`<div class="g ${tone}">${ic(i)}<div><b>${esc(t)}</b><span>${esc(d)}</span></div><em>${esc(l)}</em></div>`).join("");
+
+  // 지금 고칠 것
+  const fixes = [];
+  if (!tg) fixes.push(["red", "새 주문 알림 연결", "새 주문이 들어와도 <b>아무 데도 알림이 안 가요.</b> 바로 넣어야 해요.", "", `<div class="how"><h4>이렇게 하면 돼요 <span>형구</span></h4>${steps([["bell","텔레그램 봇 정보 넣기","봇 토큰과 방 번호를 사이트 설정 창고에 넣어요."],["undo","다시 배포","Vercel 화면의 Redeploy 버튼을 눌러요."]])}<details class="techd"><summary>기술 이름 보기</summary><p><code>TELEGRAM_BOT_TOKEN</code> <code>TELEGRAM_CHAT_ID</code></p></details></div>`]);
+  if (tossTest) fixes.push(["red", "실제 결제로 바꾸기", "지금 결제 키가 <b>시험용</b>이에요. 손님이 결제해도 돈이 들어오지 않아요.", "", `<div class="how"><h4>이렇게 하면 돼요 <span>형구에게 바로 알려 주세요</span></h4></div>`]);
+  if (recBad) fixes.push(["red", "결제 자동 점검이 멈췄어요", `결제가 됐는데 주문이 안 남는 일을 5분마다 고쳐 주는 장치예요. 마지막으로 돈 게 <b>${esc(ago(ops.reconcileOkAt))}</b>예요.`, "", `<div class="how"><h4>이렇게 하면 돼요</h4><p class="calm">형구에게 알려 주세요. 그 사이 새 주문은 텔레그램 알림과 주문 관리 화면을 한 번 더 봐 주세요.</p></div>`]);
+  if (!sms) fixes.push(["red", "손님에게 문자 보내기", "지금은 주문 확인, 배송 사진, 꽃 선물 링크 문자가 <b>하나도 안 가요.</b> 손님은 텔레그램을 못 보니까 주문이 됐는지 몰라요.",
+    `<div class="ill"><div class="phone"><div class="bar">문자</div><div class="bub">[꽃안부] 주문이 접수되었어요.<br>상품: 분홍 장미 꽃다발<br>받는 날: 11월 5일 오후</div><div class="bub ghost">[꽃안부] 꽃이 도착했어요. 사진 보기 ›</div><div class="stamp">지금은 안 가요</div></div><div class="cap">손님 휴대폰에 이런 문자가 가야 해요</div></div>`,
+    `<div class="how"><h4>이렇게 하면 돼요 <span>형구 · 번호 심사에 하루 이틀</span></h4>${steps([["person","솔라피 가입","문자를 대신 보내 주는 회사예요. 회사 이름으로 가입해요."],["id","1577-2286 등록","보내는 번호로 등록해요. 번호 서류 한 장이 필요해요."],["key","비밀번호 3개 받기","솔라피 화면에서 연결용 비밀번호를 만들어요."],["paste","Vercel에 붙여 넣기","사이트 설정 창고(Vercel)에 붙여 넣으면 끝이에요."]])}<a class="btn fill" href="${VERCEL_ENV}" target="_blank" rel="noopener">Vercel 설정 창고 열기</a><details class="techd"><summary>기술 이름 보기</summary><p><code>SOLAPI_API_KEY</code> ${s.sms.apiKey?"✓":"✗"} <code>SOLAPI_API_SECRET</code> ${s.sms.apiSecret?"✓":"✗"} <code>SOLAPI_SENDER</code> ${s.sms.sender?"✓":"✗"} · 사장님 번호 <code>OWNER_PHONE_1·2</code> ${s.sms.ownerPhones}개</p></details></div>`]);
+  if (!intents) fixes.push(["amber", "결제 안전장치 켜기", "손님이 결제창에서 <b>금액을 몰래 바꾸는 걸 막는 장치</b>예요. 지금도 거의 다 막지만, 옛날 방식 하나가 아직 열려 있어요.",
+    `<div class="ill"><div class="pay"><div class="row"><span>꽃다발</span><b>58,000원</b></div><div class="row cross"><span>바꿔치기</span><b>5,800원</b></div><div class="lock">${ic("shield")} 서버가 처음 금액으로 확인</div></div><div class="cap">서버가 처음 정한 금액이 아니면 결제를 안 받아요</div></div>`,
+    `<div class="how"><h4>이렇게 하면 돼요 <span>형구 · 1분</span></h4>${steps([["paste","Vercel에 한 줄 넣기","이름 PAYMENT_INTENTS_REQUIRED, 값 1"],["undo","다시 배포 누르기","Vercel 화면의 Redeploy 버튼이에요."]])}<p class="calm">손님 화면은 하나도 안 바뀌어요. 지금 주문서는 이미 이 장치를 거쳐요.</p></div>`]);
+  if (appleDays <= 45) fixes.push([appleDays <= 14 ? "red" : "amber", "애플 로그인 보안키 새로 만들기", `애플로 로그인하는 손님이 <b>${appleDays}일 뒤</b>부터 로그인을 못 해요.`, "", `<div class="how"><h4>이렇게 하면 돼요 <span>형구</span></h4><p class="calm">형구에게 알려 주세요. 새 키를 만들어 넣으면 이 칸이 사라져요.</p></div>`]);
+  $("fixSec").innerHTML = fixes.length
+    ? `<h2>지금 고칠 것 ${fixes.length}가지</h2><div class="fixes">${fixes.map(([tone,t,d,ill,how],i)=>`<article class="fix ${tone}"><div class="fx-hd"><span class="num">${i+1}</span><div><h3>${esc(t)}</h3><p>${d}</p></div></div><div class="fx-body"${ill?"":' style="grid-template-columns:1fr"'}>${ill}${how}</div></article>`).join("")}</div>`
+    : `<div class="allok">지금 고칠 게 없어요. 잘 돌아가고 있어요.</div>`;
+
+  // 주문·결제
+  const o = [];
+  o.push(row("bag","마지막 주문", ops.lastOrderAt ? new Date(ops.lastOrderAt).toLocaleString("ko-KR",{month:"long",day:"numeric",hour:"numeric",minute:"2-digit"}) : "확인하지 못했어요", ops.lastOrderAt?"ok":"off", ops.lastOrderAt?ago(ops.lastOrderAt):"모름"));
+  o.push(row("clock","오늘 들어온 주문", "취소된 주문은 빼고 세요", "ok", ops.todayOrders==null ? "모름" : ops.todayOrders+"건"));
+  o.push(row("undo","결제 자동 점검", "결제됐는데 주문이 안 남는 일을 5분마다 고쳐요", !ops.reconcileOkAt ? "off" : recBad ? "bad" : "ok", !ops.reconcileOkAt ? "모름" : recBad ? "멈춤" : ago(ops.reconcileOkAt)));
+  o.push(row("card","결제 키", s.tossMode==="live" ? "토스 실제 결제예요" : s.tossMode==="test" ? "토스 시험 결제예요. 돈이 안 들어와요" : "결제 키가 없어요", s.tossMode==="live"?"ok":"bad", s.tossMode==="live"?"실제":"시험"));
+  o.push(row("shield","결제 안전장치", intents ? "서버가 정한 금액으로만 결제돼요" : "옛날 방식 하나가 열려 있어요", intents?"ok":"mid", intents?"켜짐":"느슨함"));
+  $("opsSec").innerHTML = `<h2>주문·결제</h2><div class="box">${o.join("")}</div>`;
+
+  // 켜고 끄는 기능
+  const F = [
+    ["gift","카톡·링크로 꽃 선물", pm.gift?"ok":"off", pm.gift?"켜짐":"꺼짐", "켜면 주소를 몰라도 꽃을 보낼 수 있어요. 받는 분이 링크에서 주소를 넣어요.", pm.giftAutoRefund ? "기한·거절 때 자동 환불 준비됨" : "자동 환불이 안 돼요. 형구에게 알려 주세요"],
+    ["camera","배송 사진 보내기", s.photoNotice.effective==="sms"?"ok":"mid", s.photoNotice.effective==="sms"?"자동 문자":"사장님이 전달", s.photoNotice.effective==="sms" ? "사진을 올리면 손님께 사진 링크 문자가 바로 가요." : "사진을 올리면 텔레그램에 손님용 링크가 와요. 그걸 손님께 보내 주세요.", s.photoNotice.effective==="sms" ? "" : "문자를 켜면 손님께 자동으로 가요"],
+    ["swap","실시간 계좌이체", pm.transfer?"ok":"off", pm.transfer?"켜짐":"꺼짐", "켜면 손님이 자기 은행 계좌에서 바로 결제해요.", "켜기 전에: 토스에서 계좌이체 계약 확인"],
+    ["bank","가상계좌", pm.virtualAccount?"ok":"off", pm.virtualAccount?"켜짐":"꺼짐", "켜면 주문마다 입금할 계좌가 따로 나와요. 입금되면 자동 확인돼요.", "켜기 전에: 토스 설정 하나, 1,000원 시험"],
+    ["cash","무통장입금", pm.bankTransfer?"ok":"off", pm.bankTransfer?"켜짐":"꺼짐", "켜면 가게 통장으로 입금받아요.", "켜면 통장을 보고 '입금 확인'을 직접 눌러야 해요"],
+    ["share","카톡 공유 버튼", s.kakaoShare?"ok":"off", s.kakaoShare?"켜짐":"꺼짐", "부고장·청첩장을 카톡으로 보낼 때 '보기·길찾기' 버튼이 붙어요.", s.kakaoShare ? "" : "없어도 부고장은 잘 돼요"],
+  ];
+  $("featSec").innerHTML = `<h2>켜고 끄는 기능</h2><div class="fgrid">${F.map(([i,t,st,l,d,c])=>`<div class="f"><div class="f-top">${ic(i)}<b>${esc(t)}</b><span class="st ${st}">${esc(l)}</span></div><p>${esc(d)}</p>${c?`<p class="cond">${esc(c)}</p>`:""}</div>`).join("")}</div>`;
+
+  // 검색에 나오기
+  if (seo) {
+    const sr = [
+      row("search","구글 등록", "구글 검색 콘솔 확인 파일", seo.google?"ok":"bad", seo.google?"됨":"없음"),
+      row("globe","네이버 등록", "네이버 서치어드바이저 확인 파일", seo.naver?"ok":"bad", seo.naver?"됨":"없음"),
+      row("map","사이트 지도", "검색 로봇에게 알려 주는 페이지 목록", seo.pages?"ok":"bad", seo.pages?seo.pages+"쪽":"없음"),
+      row("robot","검색 로봇 허용", "로봇이 사이트를 읽어 가도록 열어 둠", seo.robots?"ok":"bad", seo.robots?"열림":"막힘"),
+      row("bolt","빠른 알림", "새 페이지를 검색 사이트에 바로 알려요(IndexNow)", seo.indexnow?"ok":"mid", seo.indexnow?"됨":"없음"),
+    ];
+    $("seoSec").innerHTML = `<h2>검색에 나오기</h2><div class="box">${sr.join("")}<div class="links"><a href="https://search.google.com/search-console?resource_id=sc-domain%3Afloweranbu.co.kr" target="_blank" rel="noopener">구글 검색 콘솔 ↗</a><a href="https://searchadvisor.naver.com/console/board" target="_blank" rel="noopener">네이버 서치어드바이저 ↗</a></div></div>`;
+  }
+
+  // 잘 되고 있는 것 · 도구
+  const ok = [];
+  if (tg) ok.push(row("bell","새 주문 알림","텔레그램으로 와요","ok","✓"));
+  ok.push(row("person","관리자 로그인","등록된 계정만 들어와요","ok","✓"));
+  if (s.login.naver) ok.push(row("globe","네이버 로그인","손님이 네이버로 로그인해요","ok","✓"));
+  ok.push(row("apple","애플 로그인 보안키", s.login.appleExpiry+" 까지", appleDays>45?"ok":appleDays>14?"mid":"bad", "D-"+appleDays));
+  if (sms) ok.push(row("msg","손님 문자","주문 확인·배송 사진 문자가 가요","ok","✓"));
+  ok.push(row("globe","사이트 주소", s.baseHost || "floweranbu.co.kr", "ok", "✓"));
+  $("okSec").innerHTML = `<h2>잘 되고 있는 것</h2><div class="box">${ok.join("")}</div>`
+    + `<div class="tools" style="margin-top:10px;">`
+    + (sms ? `<button class="btn" id="smsTest" ${s.sms.ownerPhones?"":"disabled"}>사장님 번호로 시험 문자 보내기</button>` : "")
+    + (me && me.userId ? `<button class="btn" id="copyUid">내 계정 번호 복사</button><div class="uid">내 계정 번호 <code id="myUid">${esc(me.userId)}</code></div>` : "")
+    + `<a class="btn" href="${VERCEL_ENV}" target="_blank" rel="noopener">Vercel 설정 창고 열기 ↗</a></div>`;
 
   const t = $("smsTest");
   if (t) t.onclick = async () => {
     t.disabled = true; t.textContent = "보내는 중…";
     const r = await api({ action:"sms-test" });
     t.disabled = false; t.textContent = "사장님 번호로 시험 문자 보내기";
-    if (r.ok) toast("보냈어요 — 휴대폰을 확인해 주세요 ✓");
-    else toast("❌ 안 갔어요: " + (r.data.error || r.data.reason || ("오류 " + r.status)), "err");
+    if (r.ok) toast("보냈어요. 휴대폰을 확인해 주세요 ✓");
+    else toast("안 갔어요: " + (r.data.error || r.data.reason || ("오류 " + r.status)), "err");
   };
   const c = $("copyUid");
   if (c) c.onclick = () => { const v = $("myUid").textContent; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(()=>toast("복사했어요 ✓"), ()=>prompt("길게 눌러 복사하세요", v)); };
 }
 
 async function load(){
-  const r = await api({ action:"check" });
-  if (!r.ok) { $("list").innerHTML = `<div class="row"><p>${esc(r.data.error || "불러오지 못했어요")}</p></div>`; return; }
-  render(r.data.setup, r.data.me);
+  const [r, seo] = await Promise.all([api({ action:"check" }), seoCheck().catch(()=>null)]);
+  if (!r.ok) { $("glance").innerHTML = `<div class="g red"><span>${esc(r.data.error || "불러오지 못했어요")}</span></div>`; return; }
+  render(r.data.setup, r.data.me, r.data.ops, seo);
 }
 afAdmin.ready.then(a=>{ if(a) load(); });
 </script>

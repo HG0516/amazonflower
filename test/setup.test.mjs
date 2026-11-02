@@ -173,3 +173,25 @@ test("공개 확인 /api/order-meta?setup=1: 손님 기능 켜짐만, 보안 설
   assert.equal(res.body.sms, true);
   assert.equal(JSON.stringify(res.body).includes("pw-should-not-leak"), false);
 }));
+
+test("설정 점검 주문 칸: 마지막 주문·오늘 건수·결제 자동 점검, 실패해도 null", async () => {
+  const { opsStatus } = await import("../lib/setup-status.mjs");
+  const fake = async (url) => {
+    const u = String(url);
+    if (u.includes("order=created_at.desc")) return new Response(JSON.stringify([{ created_at: "2026-11-02T03:00:00Z" }]), { status: 200 });
+    if (u.includes("created_at=gte.")) return new Response("[]", { status: 200, headers: { "content-range": "0-0/4" } });
+    if (u.includes("first_bundle_runtime")) return new Response(JSON.stringify([{ last_success_at: "2026-11-02T10:00:00Z", last_error: null }]), { status: 200 });
+    throw new Error("unexpected " + u);
+  };
+  const out = await opsStatus({ supabaseUrl: "https://x", serviceKey: "k", fetchImpl: fake, now: new Date("2026-11-02T12:00:00Z") });
+  assert.deepEqual(out, { lastOrderAt: "2026-11-02T03:00:00Z", todayOrders: 4, reconcileOkAt: "2026-11-02T10:00:00Z", reconcileError: null });
+  const broken = await opsStatus({ supabaseUrl: "https://x", serviceKey: "k", fetchImpl: async () => { throw new Error("down"); } });
+  assert.deepEqual(broken, { lastOrderAt: null, todayOrders: null, reconcileOkAt: null, reconcileError: null });
+});
+
+test("결제 키는 실제·시험 여부만 보여 주고 값은 안 낸다", () => {
+  assert.equal(setupStatus({ TOSS_SECRET_KEY: "live_sk_abc" }).tossMode, "live");
+  assert.equal(setupStatus({ TOSS_SECRET_KEY: "test_sk_abc" }).tossMode, "test");
+  assert.equal(setupStatus({}).tossMode, "none");
+  assert.equal(JSON.stringify(setupStatus({ TOSS_SECRET_KEY: "live_sk_abc" })).includes("live_sk_abc"), false);
+});

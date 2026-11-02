@@ -8,6 +8,7 @@ import crypto from "node:crypto";
 import { askClaude } from "../lib/ai.mjs";
 import { notifyPaymentIntentWithLease } from "./confirm-payment.js";
 import { sweepGifts } from "../lib/gift.mjs";
+import { APPLE_SECRET_EXPIRY } from "../lib/setup-status.mjs";
 import {
   cancelManualReviewReason,
   fetchJsonWithTimeout,
@@ -565,7 +566,7 @@ async function recordReconciliationRuntime(SUPABASE_URL, SERVICE_KEY, { startedA
 // 애플 웹 로그인 시크릿(JWT)은 최대 6개월이면 만료된다. 만료되면 애플 로그인이 막히므로,
 // 만료 임계일(D-day)에 사장님 텔레그램으로 "재발급하라"고 알린다.
 // ⚠️ 재발급하면 아래 APPLE_SECRET_EXPIRY 를 새 만료일로 바꿔야 한다. (재발급 방법: apple-signin.local.md)
-const APPLE_SECRET_EXPIRY = "2027-01-03"; // 현재 Supabase에 넣은 애플 client secret(JWT) 만료일 (YYYY-MM-DD, KST)
+// 애플 client secret(JWT) 만료일은 lib/setup-status.mjs 한 곳에 둔다(설정 점검 화면도 같은 값을 보여 준다).
 const APPLE_ALERT_DAYS = [60, 45, 30, 21, 14, 7, 3, 1]; // 이 D-day들에 알림
 
 async function checkAppleSecretExpiry(now) {

@@ -30,7 +30,7 @@ import { compatFetch, compatFetchJson } from "../lib/schema-compat.mjs";
 const fetch = compatFetch;
 
 import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
-import { setupStatus } from "../lib/setup-status.mjs";
+import { opsStatus, setupStatus } from "../lib/setup-status.mjs";
 import { sendTransactionalText } from "../lib/solapi.mjs";
 import {
   SENT_CATS, cleanText, decodeJpegBase64, dropRaw, importOrderPhotos, kstDate, putRaw, readRaw, signRaw,
@@ -250,7 +250,8 @@ export default async function handler(req, res) {
   if (body.resource === "setup") {
     if (body.action === "check") {
       // 지금 로그인한 관리자 본인의 계정 번호(UID) — ADMIN_OWNER_IDS 에 그대로 붙여 넣으라고 보여 준다.
-      return res.status(200).json({ ok: true, setup: setupStatus(process.env), me: { userId: auth.userId || null, role: auth.role, authMethod: auth.authMethod } });
+      const ops = await opsStatus({ supabaseUrl: SUPABASE_URL, serviceKey: SERVICE_KEY }).catch(() => null);
+      return res.status(200).json({ ok: true, setup: setupStatus(process.env), ops, me: { userId: auth.userId || null, role: auth.role, authMethod: auth.authMethod } });
     }
     if (body.action === "sms-test") {
       const to = [process.env.OWNER_PHONE_1, process.env.OWNER_PHONE_2].find((p) => /^01[016789]\d{7,8}$/.test(String(p || "").replace(/\D/g, "")));
