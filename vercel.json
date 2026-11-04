@@ -227,6 +227,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/f/:slug", "destination": "/f.html" },
     {
       "source": "/s/:pc",
       "destination": "/s/:pc.html"
