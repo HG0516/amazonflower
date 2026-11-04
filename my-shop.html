@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>사장님 화면 · 꽃안부</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+/* 꽃집·화원 사장님 화면(/my-shop, 11/5 꽃집 페이지 2단계). PC 로 주로 쓰고 휴대폰 폭에서도 된다.
+   서버는 /api/order-meta 의 shop-owner(가게·메뉴·사진)·shop-dispatch(화환 발주) — lib/shops.mjs·lib/dispatch.mjs.
+   앞으로 낼 앱도 같은 요청을 부른다. 손님 주문서 받기·단골은 다음 단계. */
+:root{
+  --bg:#f6f4f1; --card:#fff; --ink:#2f2b33; --muted:#77707e; --line:#e7e1e4;
+  --anbu:#2f5d46; --anbu-soft:#e2ede6; --warn:#a2452f; --warn-soft:#fbe9e4; --gold-soft:#fbf3dc;
+  --display:"Gowun Batang",serif; --body:"Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.35}
+p{margin:0}
+#af-auth-chip{display:none!important}
+
+.top{position:sticky;top:0;z-index:10;background:#2b2a33;color:#fff}
+.top .in{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top b{font-family:var(--display);font-size:17px}
+.top .sp{flex:1}
+.top a,.top button{color:#fff;background:rgba(255,255,255,.12);border:0;border-radius:999px;padding:6px 12px;font-size:13.5px;text-decoration:none;cursor:pointer}
+.tabs{max-width:1080px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+.tabs button{border:0;border-radius:0;background:none;color:rgba(255,255,255,.7);padding:10px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:#fff;border-color:#fff;font-weight:700}
+
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 80px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.center{max-width:440px;margin:40px auto;text-align:center}
+.center h1{font-size:22px;margin-bottom:8px}
+.center p{color:var(--muted);margin-bottom:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--anbu);color:#fff;font-size:15px}
+.btn.line{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:#fff;color:var(--warn);border:1px solid #e9c6bc}
+.btn:disabled{opacity:.5;cursor:default}
+.muted{color:var(--muted);font-size:13.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* 화환 발주 */
+.sum{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.sum .card{flex:1;min-width:150px;padding:14px 16px}
+.sum b{display:block;font-size:22px;font-family:var(--display)}
+.dlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.d{display:flex;flex-direction:column;gap:10px}
+.d.offered{border-color:#d9b84a;box-shadow:0 0 0 2px var(--gold-soft)}
+.chip{display:inline-block;font-size:12.5px;font-weight:700;border-radius:999px;padding:2px 10px;background:var(--anbu-soft);color:var(--anbu)}
+.chip.offered{background:var(--gold-soft);color:#7a5c00}
+.chip.declined,.chip.canceled{background:#eee;color:#666}
+.d pre{margin:0;white-space:pre-wrap;font-family:var(--body);font-size:14.5px;background:#faf9f7;border-radius:10px;padding:10px 12px}
+.d .fee{font-weight:700}
+.d .dl{color:var(--warn);font-weight:700;font-size:13.5px}
+
+/* 메뉴 */
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.it{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.it .ph{aspect-ratio:1/1;background:#eee center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px}
+.it .t{padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.it select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;background:#fff}
+.it .acts{display:flex;gap:6px;margin-top:auto}
+.it .acts button{flex:1;padding:7px;font-size:13.5px}
+
+/* 입력 */
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.f label{font-size:13.5px;font-weight:700}
+.f input,.f textarea,.f select{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;width:100%}
+.f .row select{width:auto}
+.f input[type=checkbox]{width:18px;height:18px;padding:0;flex:none}
+.f input[type=file]{border:0;padding:0;background:none}
+.f small{color:var(--muted);font-size:12.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.photo{display:flex;gap:12px;align-items:center}
+.photo .pv{width:96px;height:96px;border-radius:12px;background:#eee center/cover no-repeat;flex:none}
+.chk{display:flex;gap:8px;align-items:center;margin:6px 0}
+.list-ed .r{display:flex;gap:6px;margin-bottom:6px}
+.list-ed .r input{flex:1;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.list-ed .r button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:0 10px;cursor:pointer}
+
+/* 아래 시트 */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:700px){.ov{align-items:center}}
+.sheet{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:90vh;overflow:auto;padding:20px 18px}
+@media(min-width:700px){.sheet{border-radius:18px}}
+.sheet h3{font-size:19px;margin-bottom:14px}
+.sheet .foot{display:flex;gap:8px;margin-top:8px}
+.sheet .foot .btn{flex:1}
+.big{font-family:var(--display);font-size:clamp(26px,6vw,44px);line-height:1.5;text-align:center;padding:24px 8px;word-break:keep-all}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2b2a33;color:#fff;padding:10px 16px;border-radius:999px;z-index:40;font-size:14px;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="in"><b id="shopName">사장님 화면</b><span class="sp"></span><a id="viewPage" href="/" target="_blank" rel="noopener" hidden>내 페이지 보기</a><button type="button" id="outBtn" hidden>로그아웃</button></div>
+  <nav class="tabs" id="tabs" hidden></nav>
+</header>
+<main class="wrap" id="main"><div class="center"><p>불러오는 중…</p></div></main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js?v=20261020e"></script>
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+  var won=function(n){return Number(n||0).toLocaleString("ko-KR")+"원";};
+  var A=function(){return window.afAuth||null;};
+  var toast=function(t){var b=$("toast");b.textContent=t;b.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){b.hidden=true;},2600);};
+
+  // 연결 코드(/my-shop?claim=…&shop=…)는 로그인하러 다녀오면 주소에서 빠지므로 잠시 적어 둔다.
+  var LS_CLAIM="af_shop_claim";
+  (function(){ var q=new URLSearchParams(location.search); var c=q.get("claim"), s=q.get("shop");
+    if(c&&s){ try{sessionStorage.setItem(LS_CLAIM,JSON.stringify({code:c,slug:s}));}catch(_){} try{history.replaceState(null,"","/my-shop");}catch(_){} } })();
+  var pendingClaim=function(){try{return JSON.parse(sessionStorage.getItem(LS_CLAIM)||"null");}catch(_){return null;}};
+
+  function api(body){
+    var sb=A()&&A().client; if(!sb) return Promise.reject(new Error("로그인 준비 중이에요. 잠시 후 다시 눌러 주세요."));
+    return sb.auth.getSession().then(function(r){
+      var tok=r&&r.data&&r.data.session&&r.data.session.access_token;
+      if(!tok) throw new Error("로그인이 필요해요.");
+      return fetch("/api/order-meta",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify(body)});
+    }).then(function(r){return r.json().catch(function(){return{};}).then(function(j){ if(!r.ok){var e=new Error(j.error||"잠시 후 다시 시도해 주세요.");e.json=j;throw e;} return j; });});
+  }
+
+  var SHOP=null, ITEMS=[], DISP=[], TAB="";
+  var started=false;
+  document.addEventListener("af-auth-change",function(e){ var u=e.detail&&e.detail.user; if(u){ if(!started){started=true;boot();} } else { started=false; showLogin(); } });
+  setTimeout(function(){ if(!started && !(A()&&A().user)) showLogin(); },2500);
+
+  function center(h){ $("main").innerHTML='<div class="center card">'+h+'</div>'; $("tabs").hidden=true; }
+  function showLogin(){
+    center('<h1>꽃집 사장님 화면</h1><p>카카오나 네이버로 로그인하면 내 가게 페이지와 메뉴를 고치고, 꽃안부 화환 발주를 받을 수 있어요.</p><button class="btn" id="loginBtn">로그인</button>');
+    $("loginBtn").onclick=function(){ if(A()&&A().login) A().login(); else toast("잠시 후 다시 눌러 주세요."); };
+    $("outBtn").hidden=true;
+  }
+  $("outBtn").onclick=function(){ if(A()&&A().logout) A().logout(); };
+
+  function boot(){
+    $("outBtn").hidden=false;
+    var c=pendingClaim();
+    var go=c? api({type:"shop-owner",action:"claim",slug:c.slug,code:c.code}).then(function(){ try{sessionStorage.removeItem(LS_CLAIM);}catch(_){} toast("가게가 연결됐어요"); },function(e){ try{sessionStorage.removeItem(LS_CLAIM);}catch(_){} toast(e.message); }) : Promise.resolve();
+    go.then(function(){ return api({type:"shop-owner",action:"me"}); }).then(function(j){
+      if(!j.shop) return noShop();
+      SHOP=j.shop; ITEMS=j.items||[];
+      $("shopName").textContent=SHOP.name;
+      var vp=$("viewPage"); vp.href="/f/"+SHOP.slug; vp.hidden=false;
+      drawTabs();
+    }).catch(function(e){
+      if(e.json&&e.json.notReady) return center('<h1>준비 중이에요</h1><p>꽃안부가 사장님 화면을 여는 중이에요. 조금만 기다려 주세요.</p>');
+      center('<h1>불러오지 못했어요</h1><p>'+esc(e.message)+'</p><button class="btn line" onclick="location.reload()">다시 불러오기</button>');
+    });
+  }
+  function noShop(){
+    center('<h1>연결된 가게가 없어요</h1><p>꽃안부에서 받은 연결 코드를 넣어 주세요. 코드는 책자나 메시지에 있어요.</p>'
+      +'<div class="f" style="text-align:left"><label for="cSlug">가게 주소</label><input id="cSlug" placeholder="floweranbu.co.kr/f/ 뒤에 붙은 영어" autocapitalize="off"></div>'
+      +'<div class="f" style="text-align:left"><label for="cCode">연결 코드 8자리</label><input id="cCode" maxlength="8" autocapitalize="characters"></div>'
+      +'<button class="btn" id="cGo">연결하기</button><p class="muted" style="margin-top:14px">코드가 없으면 1577-2286 으로 전화 주세요.</p>');
+    $("cGo").onclick=function(){
+      var slug=$("cSlug").value.trim().replace(/^.*\/f\//,"").replace(/\/.*$/,"").toLowerCase(), code=$("cCode").value.trim().toUpperCase();
+      api({type:"shop-owner",action:"claim",slug:slug,code:code}).then(function(){ toast("가게가 연결됐어요"); boot(); },function(e){ toast(e.message); });
+    };
+  }
+
+  // ── 탭 ──
+  function drawTabs(){
+    var T=[]; if(SHOP.kind==="hwawon") T.push(["wreath","화환 발주"]); T.push(["menu","메뉴"],["info","가게 정보"]);
+    if(!TAB||!T.some(function(t){return t[0]===TAB;})) TAB=T[0][0];
+    var nav=$("tabs"); nav.hidden=false;
+    nav.innerHTML=T.map(function(t){return '<button role="tab" data-t="'+t[0]+'" aria-selected="'+(t[0]===TAB)+'">'+t[1]+'</button>';}).join("");
+    nav.onclick=function(e){ var b=e.target.closest("[data-t]"); if(!b) return; TAB=b.dataset.t; drawTabs(); };
+    if(SHOP.status!=="active") $("main").innerHTML='<div class="card" style="margin-bottom:14px;background:var(--gold-soft);border-color:#ecd9a0">아직 손님에게 공개 전이에요. 다 고치셨으면 꽃안부에 알려 주세요. 확인하고 열어 드릴게요.</div><div id="body"></div>';
+    else $("main").innerHTML='<div id="body"></div>';
+    if(TAB==="wreath") drawWreath(); else if(TAB==="menu") drawMenu(); else drawInfo();
+  }
+
+  // ── 화환 발주 ──
+  var ST={offered:"새 발주",accepted:"만드는 중",done:"배송 완료",declined:"못 한다고 함"};
+  function drawWreath(){
+    $("body").innerHTML='<p class="muted">불러오는 중…</p>';
+    api({type:"shop-dispatch",action:"list"}).then(function(j){ DISP=j.dispatches||[]; paintWreath(); },function(e){ $("body").innerHTML='<div class="card">'+esc(e.message)+'</div>'; });
+  }
+  function kstMonth(d){ return new Date(new Date(d).getTime()+9*3600000).toISOString().slice(0,7); }
+  function when(s){ if(!s) return ""; var d=new Date(s); return (d.getMonth()+1)+"월 "+d.getDate()+"일 "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+  function paintWreath(){
+    var m=kstMonth(Date.now()), done=DISP.filter(function(d){return d.status==="done"&&d.settle_month===m;});
+    var off=DISP.filter(function(d){return d.status==="offered";}).length, mk=DISP.filter(function(d){return d.status==="accepted";}).length;
+    var h='<div class="sum"><div class="card"><span class="muted">새 발주</span><b>'+off+'건</b></div><div class="card"><span class="muted">만드는 중</span><b>'+mk+'건</b></div>'
+      +'<div class="card"><span class="muted">이번 달 제작비</span><b>'+won(done.reduce(function(s,d){return s+d.fee;},0))+'</b><span class="muted">'+done.length+'건 · 다음 달 초 입금</span></div></div>';
+    if(!DISP.length) h+='<div class="card center" style="margin:0 auto"><p>아직 받은 발주가 없어요. 꽃안부가 보내면 여기에 떠요.</p></div>';
+    h+='<div class="dlist">'+DISP.map(function(d,i){
+      var s=d.snapshot||{};
+      return '<div class="card d '+d.status+'"><div class="row"><span class="chip '+d.status+'">'+(ST[d.status]||d.status)+'</span><span class="sp" style="flex:1"></span><span class="fee">제작비 '+won(d.fee)+'</span></div>'
+        +(d.deadline_at&&d.status!=="done"?'<div class="dl">마감 '+esc(when(d.deadline_at))+'</div>':'')
+        +'<pre>'+esc(s.text||"")+'</pre>'
+        +'<div class="row">'+(s.ribbon||s.sender?'<button class="btn line" data-rib="'+i+'">리본 크게 보기</button>':'')
+        +'<button class="btn line" data-copy="'+i+'">글 복사</button></div>'
+        +(d.status==="offered"?'<div class="row"><button class="btn" style="flex:1" data-acc="'+i+'">받을게요</button><button class="btn warn" data-dec="'+i+'">못 해요</button></div>':'')
+        +(d.status==="accepted"?'<button class="btn" data-ph="'+i+'">배송 사진 올리기</button><p class="muted">사진을 올리면 손님께 도착 문자가 가고, 이 발주가 배송 완료로 바뀌어요.</p>':'')
+        +(d.status==="done"?'<p class="muted">'+esc(when(d.done_at))+' 배송 완료 · '+esc(d.settle_month||"")+' 정산</p>':'')
+        +'</div>';
+    }).join("")+'</div>';
+    $("body").innerHTML=h;
+    $("body").onclick=function(e){
+      var b=e.target.closest("button"); if(!b) return; var d;
+      if(b.dataset.rib){ d=DISP[+b.dataset.rib].snapshot||{}; return sheet('<h3>리본</h3><div class="big">'+esc(d.ribbon||"")+'</div>'+(d.sender?'<div class="big" style="font-size:clamp(20px,4.5vw,32px);padding-top:0">'+esc(d.sender)+'</div>':''),null,"닫기"); }
+      if(b.dataset.copy){ d=DISP[+b.dataset.copy].snapshot||{}; return copy(d.text||""); }
+      if(b.dataset.acc){ d=DISP[+b.dataset.acc]; b.disabled=true; return api({type:"shop-dispatch",action:"accept",id:d.id}).then(function(){ toast("받았어요. 꽃안부에 알렸어요"); drawWreath(); },function(e){ b.disabled=false; toast(e.message); drawWreath(); }); }
+      if(b.dataset.dec){ d=DISP[+b.dataset.dec]; return sheet('<h3>이 발주를 못 하시나요?</h3><p>꽃안부가 바로 다른 곳에 보낼게요.</p>',function(){ return api({type:"shop-dispatch",action:"decline",id:d.id}).then(function(){ toast("꽃안부에 알렸어요"); drawWreath(); }); },"못 해요"); }
+      if(b.dataset.ph){ d=DISP[+b.dataset.ph]; b.disabled=true; return api({type:"shop-dispatch",action:"photo-link",id:d.id}).then(function(j){ b.disabled=false; location.href=j.photoLink; },function(e){ b.disabled=false; toast(e.message); }); }
+    };
+  }
+  function copy(t){ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast("복사했어요");},function(){ window.prompt("복사해 주세요",t); }); }
+
+  // ── 메뉴 ──
+  var STATE=[["on","판매 중"],["soldout","오늘 품절"],["reserve","예약만"],["hidden","숨김"]];
+  var catLabel=function(id){ var c=(SHOP.cats||[]).filter(function(x){return x.id===id;})[0]; return c?c.label:""; };
+  function drawMenu(){
+    var h='<div class="row" style="margin-bottom:14px"><button class="btn" id="addIt">메뉴 추가</button><span class="muted">'+ITEMS.length+'/60 · 위에 고정한 메뉴가 먼저 보여요</span></div>';
+    if(!(SHOP.cats||[]).length) h+='<div class="card" style="margin-bottom:12px">가게 정보에서 분류(꽃다발, 꽃바구니 같은)를 먼저 만들어 두면 손님이 고르기 쉬워요.</div>';
+    h+='<div class="items">'+ITEMS.map(function(it,i){
+      var ph=it.photos&&it.photos[0];
+      return '<div class="card it"><div class="ph" style="'+(ph?'background-image:url(&quot;'+esc(ph)+'&quot;)':'')+'">'+(ph?'':'사진 없음')+'</div><div class="t">'
+        +'<b>'+(it.pinned?'📌 ':'')+esc(it.name)+'</b><span class="muted">'+esc([catLabel(it.cat),it.price_text].filter(Boolean).join(" · "))+'</span>'
+        +'<select data-st="'+i+'" aria-label="판매 상태">'+STATE.map(function(s){return '<option value="'+s[0]+'"'+(it.state===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join("")+'</select>'
+        +'<div class="acts"><button class="btn line" data-ed="'+i+'">고치기</button></div></div></div>';
+    }).join("")+'</div>';
+    $("body").innerHTML=h;
+    $("addIt").onclick=function(){ editItem({name:"",cat:(SHOP.cats&&SHOP.cats[0]&&SHOP.cats[0].id)||"",descr:"",price_text:"",photos:[],state:"on",pinned:false,sort:0}); };
+    $("body").onclick=function(e){ var b=e.target.closest("[data-ed]"); if(b) editItem(ITEMS[+b.dataset.ed]); };
+    $("body").onchange=function(e){ var s=e.target.closest("[data-st]"); if(!s) return; var it=ITEMS[+s.dataset.st];
+      var next=Object.assign({},it,{state:s.value}); if(s.value==="soldout") next.soldout_on=null;
+      saveItem(next).then(function(){ toast(s.value==="soldout"?"오늘 품절로 바꿨어요. 내일 다시 판매 중으로 보여요":"바꿨어요"); }); };
+  }
+  function saveItem(it){
+    return api({type:"shop-owner",action:"save-item",item:it}).then(function(j){
+      var k=-1; ITEMS.forEach(function(x,i){ if(x.id===j.item.id) k=i; });
+      if(k>=0) ITEMS[k]=j.item; else ITEMS.push(j.item); drawMenu();
+    },function(e){ toast(e.message); throw e; });
+  }
+  function editItem(it){
+    var cats=SHOP.cats||[];
+    var root=sheet('<h3>'+(it.id?'메뉴 고치기':'메뉴 추가')+'</h3>'+photoField("iPh",it.photos&&it.photos[0])
+      +field("iName","이름",it.name,"예: 들꽃 꽃다발")
+      +(cats.length?'<div class="f"><label for="iCat">분류</label><select id="iCat">'+cats.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===it.cat?' selected':'')+'>'+esc(c.label)+'</option>';}).join("")+'</select></div>':'')
+      +field("iDesc","짧은 설명",it.descr,"예: 생신 · 집들이")+field("iPrice","가격",it.price_text,"예: 55,000원부터")
+      +'<label class="chk"><input type="checkbox" id="iPin"'+(it.pinned?' checked':'')+'> 맨 위에 고정</label>'
+      +(it.id?'<button type="button" class="btn warn" id="iDel" style="width:100%;margin-top:6px">이 메뉴 지우기</button>':''),
+    function(){
+      var next=Object.assign({},it,{name:$("iName").value,descr:$("iDesc").value,price_text:$("iPrice").value,pinned:$("iPin").checked});
+      if($("iCat")) next.cat=$("iCat").value;
+      return uploadFrom("iPh").then(function(u){ if(u) next.photos=[u].concat((it.photos||[]).slice(1)); return saveItem(next); }).then(function(){ toast("저장했어요"); });
+    },"저장");
+    var del=root.querySelector("#iDel");
+    if(del) del.onclick=function(){ close(); sheet('<h3>'+esc(it.name)+' 메뉴를 지울까요?</h3><p>지우면 되돌릴 수 없어요. 잠깐 안 팔 거면 판매 상태를 숨김으로 바꿔 주세요.</p>',function(){
+      return api({type:"shop-owner",action:"delete-item",id:it.id}).then(function(){ ITEMS=ITEMS.filter(function(x){return x.id!==it.id;}); drawMenu(); toast("지웠어요"); }); },"지우기"); };
+  }
+
+  // ── 가게 정보 ──
+  function drawInfo(){
+    var p=SHOP.profile||{}, h=p.hours||{open:10,close:19}, bl=SHOP.blocks||{};
+    var hours=function(id,v){ var o=""; for(var k=0;k<=24;k++) o+='<option value="'+k+'"'+(k===v?' selected':'')+'>'+k+'시</option>'; return '<select id="'+id+'">'+o+'</select>'; };
+    var on=function(k){return bl[k]!==false;};
+    $("body").innerHTML='<div class="card"><div class="grid2"><div>'
+      +photoField("sHero",p.hero,"대표 사진")
+      +field("sName","가게 이름",SHOP.name)+field("sTag","한 줄 소개",p.tagline,"예: 파스텔톤 들꽃 꽃집")
+      +field("sArea","동네",p.area,"예: 경기 시흥시")+field("sTags","특징(쉼표로 나눠서 5개까지)",(p.tags||[]).join(", "),"예: 24시 무인, 예약 제작")
+      +'<div class="f"><label>여는 시간</label><div class="row">'+hours("sOpen",h.open)+'<span>부터</span>'+hours("sClose",h.close)+'<span>까지</span></div></div>'
+      +'</div><div>'
+      +field("sPhone","전화",p.phone,"예: 031-000-0000")+field("sKakao","카카오톡 채널 주소",p.kakao,"https://pf.kakao.com/…")
+      +field("sInsta","인스타 아이디",p.insta,"예: anel_flower")+field("sAddr","주소",p.address)
+      +'<div class="f"><label>분류</label><div class="list-ed" id="sCats"></div><button type="button" class="btn line" id="addCat">분류 추가</button></div>'
+      +'<div class="f"><label>클래스</label><div class="list-ed" id="sCls"></div><button type="button" class="btn line" id="addCls">클래스 추가</button></div>'
+      +'<div class="f"><label>페이지에 보일 칸</label>'
+      +'<label class="chk"><input type="checkbox" id="bOrder"'+(on("order")?' checked':'')+'> 예약 주문서</label>'
+      +'<label class="chk"><input type="checkbox" id="sUnm"'+(p.unmanned?' checked':'')+'> 무인 매장(밤에도 가져가기)</label>'
+      +'<label class="chk"><input type="checkbox" id="bCls"'+(on("cls")?' checked':'')+'> 클래스</label>'
+      +'<label class="chk"><input type="checkbox" id="bWreath"'+(on("wreath")?' checked':'')+'> 화환 주문(꽃안부로 연결, 소개비 드려요)</label></div>'
+      +'</div></div><button class="btn" id="sSave" style="width:100%;margin-top:6px">저장</button></div>';
+    var cats=(SHOP.cats||[]).map(function(c){return {id:c.id,label:c.label};}), cls=(SHOP.classes||[]).map(function(c){return {name:c.name,when:c.when};});
+    var drawCats=function(){ $("sCats").innerHTML=cats.map(function(c,i){return '<div class="r"><input data-ci="'+i+'" value="'+esc(c.label)+'" maxlength="10" placeholder="예: 꽃다발"><button type="button" data-cx="'+i+'" aria-label="빼기">✕</button></div>';}).join(""); };
+    var drawCls=function(){ $("sCls").innerHTML=cls.map(function(c,i){return '<div class="r"><input data-ln="'+i+'" value="'+esc(c.name)+'" maxlength="30" placeholder="예: 꽃다발 만들기"><input data-lw="'+i+'" value="'+esc(c.when)+'" maxlength="30" placeholder="예: 토요일 오후 2시"><button type="button" data-lx="'+i+'" aria-label="빼기">✕</button></div>';}).join(""); };
+    drawCats(); drawCls();
+    $("addCat").onclick=function(){ if(cats.length>=8) return toast("분류는 8개까지예요"); cats.push({id:"c"+Math.random().toString(36).slice(2,8),label:""}); drawCats(); };
+    $("addCls").onclick=function(){ if(cls.length>=6) return toast("클래스는 6개까지예요"); cls.push({name:"",when:""}); drawCls(); };
+    $("body").oninput=function(e){ var t=e.target;
+      if(t.dataset.ci) cats[+t.dataset.ci].label=t.value; if(t.dataset.ln) cls[+t.dataset.ln].name=t.value; if(t.dataset.lw) cls[+t.dataset.lw].when=t.value; };
+    $("body").onclick=function(e){ var b=e.target.closest("button"); if(!b) return;
+      if(b.dataset.cx){ cats.splice(+b.dataset.cx,1); drawCats(); } if(b.dataset.lx){ cls.splice(+b.dataset.lx,1); drawCls(); } };
+    $("sSave").onclick=function(){
+      var btn=this; btn.disabled=true;
+      uploadFrom("sHero").then(function(hero){
+        var shop={ name:$("sName").value, cats:cats.filter(function(c){return c.label.trim();}), classes:cls.filter(function(c){return c.name.trim();}),
+          blocks:{order:$("bOrder").checked,night:$("sUnm").checked,cls:$("bCls").checked,wreath:$("bWreath").checked},
+          profile:{ tagline:$("sTag").value, area:$("sArea").value, tags:$("sTags").value.split(","), hours:{open:+$("sOpen").value,close:+$("sClose").value},
+            unmanned:$("sUnm").checked, phone:$("sPhone").value, kakao:$("sKakao").value, insta:$("sInsta").value, address:$("sAddr").value, hero:hero||p.hero||"" } };
+        return api({type:"shop-owner",action:"save-shop",shop:shop});
+      }).then(function(j){ SHOP=j.shop; $("shopName").textContent=SHOP.name; toast("저장했어요. 내 페이지에 바로 보여요"); drawInfo(); },function(e){ btn.disabled=false; toast(e.message); });
+    };
+  }
+
+  // ── 부품 ──
+  function field(id,label,val,ph){ return '<div class="f"><label for="'+id+'">'+label+'</label><input id="'+id+'" value="'+esc(val||"")+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></div>'; }
+  function photoField(id,url,label){ return '<div class="f"><label for="'+id+'">'+(label||"사진")+'</label><div class="photo"><div class="pv" id="'+id+'Pv" style="'+(url?'background-image:url(&quot;'+esc(url)+'&quot;)':'')+'"></div><input type="file" id="'+id+'" accept="image/*"></div><small>휴대폰 사진 그대로 올려도 돼요. 알맞게 줄여서 올려요.</small></div>'; }
+  // 고른 사진을 900px JPEG 로 줄여 올리고 주소를 돌려준다. 안 골랐으면 null.
+  function uploadFrom(id){
+    var inp=$(id), f=inp&&inp.files&&inp.files[0]; if(!f) return Promise.resolve(null);
+    return new Promise(function(ok,no){
+      var r=new FileReader(); r.onerror=function(){no(new Error("이 사진은 열 수 없어요"));};
+      r.onload=function(){ var img=new Image(); img.onerror=function(){no(new Error("이 사진은 열 수 없어요"));};
+        img.onload=function(){ var k=Math.min(1,900/Math.max(img.width,img.height)), c=document.createElement("canvas");
+          c.width=Math.round(img.width*k); c.height=Math.round(img.height*k); c.getContext("2d").drawImage(img,0,0,c.width,c.height); ok(c.toDataURL("image/jpeg",0.8)); };
+        img.src=r.result; };
+      r.readAsDataURL(f);
+    }).then(function(data){ return api({type:"shop-owner",action:"upload-photo",data:data}); }).then(function(j){ return j.url; });
+  }
+  document.addEventListener("change",function(e){ var t=e.target; if(t.type!=="file"||!t.files||!t.files[0]) return; var pv=$(t.id+"Pv"); if(pv) pv.style.backgroundImage='url("'+URL.createObjectURL(t.files[0])+'")'; });
+
+  var OV=null;
+  function close(){ if(OV){ OV.remove(); OV=null; } }
+  // onOk 가 Promise 를 돌려주면 끝날 때까지 버튼을 잠근다. 실패하면 시트를 그대로 둔다.
+  function sheet(html,onOk,okLabel){
+    close(); OV=document.createElement("div"); OV.className="ov";
+    OV.innerHTML='<div class="sheet" role="dialog" aria-modal="true">'+html+'<div class="foot">'+(onOk?'<button class="btn line" data-x>닫기</button><button class="btn" data-ok>'+esc(okLabel||"확인")+'</button>':'<button class="btn" data-x>'+esc(okLabel||"닫기")+'</button>')+'</div></div>';
+    document.body.appendChild(OV);
+    OV.addEventListener("click",function(e){ if(e.target===OV||e.target.closest("[data-x]")) close(); });
+    var ok=OV.querySelector("[data-ok]");
+    if(ok) ok.onclick=function(){ ok.disabled=true; Promise.resolve().then(onOk).then(close,function(e){ ok.disabled=false; if(e&&e.message) toast(e.message); }); };
+    return OV;
+  }
+})();
+</script>
+</body>
+</html>

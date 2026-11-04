@@ -150,3 +150,21 @@ test("사진 올리기 — 진짜 사진만, 내 가게 폴더로", async () => 
   assert.equal(decodePhoto(fakeJpg), null);
   assert.equal((await handleShopOwner(req(), { action: "upload-photo", data: fakeJpg }, ENV)).status, 400);
 });
+
+test("품절은 고른 날만", () => {
+  const now = new Date("2026-11-05T16:00:00Z");   // 한국 11월 6일 새벽
+  assert.equal(checkItemInput({ name: "a", state: "soldout" }, [], ENV, now).value.soldout_on, "2026-11-06");
+  assert.equal(checkItemInput({ name: "a", state: "on" }, [], ENV, now).value.soldout_on, null);
+});
+
+test("사장님 화면 주소는 검색에 안 잡히고 /my-shop 으로 열린다", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const root = fileURLToPath(new URL("..", import.meta.url));
+  const v = JSON.parse(readFileSync(root + "vercel.json", "utf8"));
+  assert.ok(v.rewrites.some((r) => r.source === "/my-shop" && r.destination === "/my-shop.html"));
+  assert.match(readFileSync(root + "robots.txt", "utf8"), /Disallow: \/my-shop/);
+  const h = readFileSync(root + "my-shop.html", "utf8");
+  assert.match(h, /noindex,nofollow/);
+  assert.ok(!/tosspayments|requestPayment/.test(h));
+});
