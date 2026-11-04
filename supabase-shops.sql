@@ -30,10 +30,14 @@ create table if not exists public.shops (
   settle_holder  text,
   wreath_area    text[] not null default '{}',        -- 화원: 화환 받을 수 있는 지역(시·구)
   admin_note     text,
+  claim_hash     text,                                -- 사장님 연결 코드(해시만). 꽃안부가 미리 만든 페이지를 사장님이 로그인해서 '내 가게'로 가져갈 때
+  claim_expires_at timestamptz,
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now(),
   approved_at    timestamptz
 );
+alter table public.shops add column if not exists claim_hash text;
+alter table public.shops add column if not exists claim_expires_at timestamptz;
 create index if not exists shops_owner on public.shops (owner_user_id);
 create index if not exists shops_kind_status on public.shops (kind, status);
 

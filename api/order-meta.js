@@ -9,6 +9,7 @@ import { renderHelloOg } from "../lib/hello.mjs";
 import { publicSetup, kakaoShareKey } from "../lib/setup-status.mjs";
 import { handleGiftGet, handleGiftPost, handleGiftSenderGet, handleGiftSenderPost } from "../lib/gift.mjs";
 import { handleShopGet, handleShopOwner } from "../lib/shops.mjs";
+import { handleShopDispatch } from "../lib/dispatch.mjs";
 // 6) 꽃집 페이지(11/5) — GET ?shop=<slug> (손님 화면 내용), POST {type:"shop-owner", action} (사장님 저장·사진).
 // 3) 무료 부고장·청첩장 정식판(10/6) — GET ?card=<id> (짧은 링크 /c/<id> 미리보기·내용), POST {type:"card"} (만들기·고치기·조문 글).
 
@@ -224,6 +225,12 @@ export default async function handler(req, res) {
   }
   if (body.type === "shop-owner") {
     const out = await handleShopOwner(req, body, process.env).catch((e) => { console.error("shop owner", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(out.status).json(out.json);
+  }
+  if (body.type === "shop-dispatch") {
+    const notify = (text) => tgSend((process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "") + text);
+    const out = await handleShopDispatch(req, body, process.env, { notify }).catch((e) => { console.error("shop dispatch", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
     res.setHeader("Cache-Control", "no-store");
     return res.status(out.status).json(out.json);
   }
