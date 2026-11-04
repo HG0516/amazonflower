@@ -196,6 +196,76 @@ async function copyOrderText(i, btn){
   catch(e){ prompt("이 글을 복사해 꽃집에 보내세요:", txt); }
   setTimeout(()=>{ btn.textContent=old; }, 1800);
 }
+// ── 화원에 보내기(11/5 꽃집 페이지 2단계): '발주 복사' 글을 화원 사장님 화면(/my-shop)으로 보낸다. 사장님(owner)만.
+// 가게 표가 아직 없으면(SQL 적용 전) 버튼이 안 보이고 지금 화면 그대로다. 서버 = lib/dispatch.mjs.
+let HW = [], DISP = {};
+const DST = { offered:"답 기다리는 중", accepted:"만드는 중", done:"배송 완료", declined:"못 한다고 함", canceled:"거둠" };
+async function shopsApi(payload){
+  const r = await afAdmin.fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({resource:"shops", ...payload}) });
+  const d = await r.json().catch(()=>({}));
+  return r.ok ? d : { error: d.error || "오류", notReady: d.notReady };
+}
+async function loadDispatch(){
+  if(afAdmin.role!=="owner") return;
+  const [sh, dp] = await Promise.all([shopsApi({ action:"list" }), shopsApi({ action:"dispatch-of", orderIds: ORDERS.map(o=>o.order_id).filter(Boolean).slice(0,200) })]);
+  if(sh.error || !sh.shops) return;
+  HW = sh.shops.filter(x=>x.kind==="hwawon" && x.status==="active");
+  DISP = {};
+  (dp.dispatches||[]).forEach(d=>{ if(!DISP[d.order_id]) DISP[d.order_id]=d; });   // 최근 것 하나
+  render();
+}
+function dispLine(o){
+  const d = DISP[o.order_id]; if(!d) return "";
+  const live = d.status==="offered" || d.status==="accepted";
+  return `<div class="o-wait" style="margin-top:10px;background:#eef4ef;color:#1f4733;">🏵 ${esc(d.shop_name||"화원")} · ${DST[d.status]||d.status} · 제작비 ${Number(d.fee||0).toLocaleString()}원${live?` <button style="margin-left:6px;padding:3px 10px;border-radius:999px;border:1px solid #c9d8cc;background:#fff;font:inherit;font-size:12px;cursor:pointer" onclick="recallDispatch('${esc(d.id)}',this)">거두기</button>`:""}</div>`;
+}
+function hwBtn(o,i){
+  if(afAdmin.role!=="owner" || !HW.length || (o.status||"new")!=="new") return "";
+  const d = DISP[o.order_id]; if(d && (d.status==="offered"||d.status==="accepted")) return "";
+  return `<button onclick="sendHwawon(${i})">🏵 화원에 보내기</button>`;
+}
+function ribbonOf(o){
+  let who = o.ribbon_sender || "", words = o.ribbon_text || "";
+  if (!who && !words && o.ribbon) { const parts = String(o.ribbon).split(" / "); if (parts.length >= 2) { who = parts[0]; words = parts.slice(1).join(" / "); } else words = parts[0]; }
+  return { who: who || o.sender_name || o.orderer_name || "", words };
+}
+function sendHwawon(i){
+  const o = (window.__shown||[])[i]; if(!o) return;
+  const rb = ribbonOf(o), text = afOrderText(o);
+  const ov = document.createElement("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:440px;width:100%;max-height:90vh;overflow:auto;padding:18px">
+    <b style="font-size:17px">화원에 보내기</b>
+    <pre style="white-space:pre-wrap;font:inherit;font-size:13.5px;background:#f6f4ef;border-radius:8px;padding:10px;margin:10px 0">${esc(text)}</pre>
+    <label style="display:block;font-size:13px;font-weight:700;margin-top:8px">화원</label>
+    <select id="hwSel" style="width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;font:inherit">${HW.map(h=>`<option value="${esc(h.id)}">${esc(h.name)}${(h.wreath_area||[]).length?" · "+esc(h.wreath_area.join(", ")):""}</option>`).join("")}</select>
+    <label style="display:block;font-size:13px;font-weight:700;margin-top:8px">제작비(원)</label>
+    <input id="hwFee" inputmode="numeric" style="width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;font:inherit" placeholder="예: 55000">
+    <label style="display:block;font-size:13px;font-weight:700;margin-top:8px">답 마감(비워 두면 없음)</label>
+    <input id="hwDl" type="datetime-local" style="width:100%;padding:9px;border:1px solid #ddd;border-radius:8px;font:inherit">
+    <div style="font-size:12px;color:#7a766c;margin-top:8px">결제 금액·주문자 번호는 화원에게 안 가요. 화원이 받으면 이 주문이 '만드는 중'으로 바뀌고 텔레그램으로 알려요.</div>
+    <div style="display:flex;gap:8px;margin-top:14px"><button id="hwX" style="flex:1;padding:11px;border:1px solid #ddd;border-radius:8px;background:#fff;font:inherit;font-weight:700;cursor:pointer">닫기</button><button id="hwGo" style="flex:1;padding:11px;border:0;border-radius:8px;background:#2f5d46;color:#fff;font:inherit;font-weight:700;cursor:pointer">보내기</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector("#hwX").onclick = () => ov.remove();
+  ov.querySelector("#hwGo").onclick = async (e) => {
+    const fee = parseInt(String(ov.querySelector("#hwFee").value).replace(/[^0-9]/g,""), 10);
+    if(!(fee >= 0)) return toast("❌ 제작비를 넣어 주세요","err");
+    const dl = ov.querySelector("#hwDl").value;
+    e.target.disabled = true;
+    const d = await shopsApi({ action:"dispatch", orderId:o.order_id, shopId:ov.querySelector("#hwSel").value, fee,
+      deadline: dl ? new Date(dl).toISOString() : null,
+      snapshot:{ text, product:o.product_label||o.product_code||"", date:o.delivery_date||o.event_date||"", time:o.event_time||"", ribbon:rb.words, sender:rb.who, place:o.building_name||o.venue||"" } });
+    if(d.error){ e.target.disabled = false; return toast("❌ "+d.error,"err"); }
+    ov.remove(); toast("화원에 보냈어요 ✓"); DISP[o.order_id] = d.dispatch; render();
+  };
+}
+async function recallDispatch(id, btn){
+  if(!confirm("이 발주를 거둘까요? 화원 화면에서 사라져요. 화원이 이미 만들고 있으면 전화로 먼저 알려 주세요.")) return;
+  btn.disabled = true;
+  const d = await shopsApi({ action:"dispatch-cancel", id });
+  if(d.error){ btn.disabled = false; return toast("❌ "+d.error,"err"); }
+  toast("거뒀어요"); loadDispatch();
+}
 function fmtAddr(o){
   const road = [o.road_address, o.detail_address].filter(Boolean).join(" ");
   const bld = [o.building_name, o.room_info].filter(Boolean).join(" ");
@@ -215,6 +285,7 @@ async function load(){
   if(!data) return;
   ORDERS = data.orders || [];
   render();
+  loadDispatch();
 }
 
 function render(){
@@ -291,6 +362,7 @@ function render(){
         : st==='expired' ? `<div class="o-actions"><div class="o-wait" style="background:#f0eee8;color:#7a766c;">⌛ 입금 기한이 지나 닫힌 주문이에요. 만들지 않습니다.</div></div>`
         : st==='canceled'?`<div class="o-actions"><div style="flex:1;text-align:center;padding:10px;font-size:13px;color:#9a3b2e;font-weight:700;">💸 환불 완료된 주문이에요${o.canceled_at?` (${String(o.canceled_at).slice(5,16).replace("T"," ")})`:''}</div></div>`:refundPending?`<div class="o-actions"><div class="o-lock">🔒 환불 결과 확인 전까지 발주·배송·사진 작업을 잠갔어요.</div><button onclick="load()">↻ 환불 상태 확인</button></div>`:`<div class="o-actions">
         <button onclick="copyOrderText(${_i},this)">📋 발주 복사</button>
+        ${hwBtn(o,_i)}
         <button class="${st==='ordered'?'on':''}" onclick="setStatus('${oid}','ordered')">만드는 중</button>
         <button class="${st==='delivered'?'on':''}" onclick="setStatus('${oid}','delivered')">배송완료</button>
         <a class="photo" href="/admin-order.html?order=${encodeURIComponent(o.order_id||"")}">📷 직접 올리기</a>
@@ -298,6 +370,7 @@ function render(){
         ${afAdmin.role==="owner"&&!isBankOrder(o)&&!isVaOrder(o)?`<button style="color:#9a3b2e;border-color:#e5c4bf;" onclick="cancelOrder('${oid}',this)">💸 결제취소</button>`:''}
         ${afAdmin.role==="owner"&&o.corp_name?`<button onclick="markInvoice('${oid}',this)">🧾 계산서 발행</button>`:''}
       </div>`}
+      ${dispLine(o)}
       <div class="o-meta">주문번호 ${oid} · ${o.created_at?esc(String(o.created_at).slice(0,16).replace("T"," ")):""}</div>
     </div>`;
   }).join("");

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>꽃집·화원 — 꽃안부 관리자</title>
+<link rel="stylesheet" href="/tokens.css" />
+<style>
+  /* 꽃집 페이지 2단계(11/5). 가게 미리 만들기 → 연결 코드(책자·DM) → 사장님이 고침 → 여기서 공개. 화원은 화환 발주를 받는다.
+     서버 = /api/admin resource:"shops" (lib/dispatch.mjs). 사장님(owner)만. */
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-body,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif);background:var(--bg);color:var(--ink);line-height:1.5;font-size:15px;padding:0 0 40px;word-break:keep-all;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 14px;}
+  header{padding:18px 0 4px;}
+  h1{font-size:20px;font-weight:800;}
+  h2{font-size:16px;font-weight:800;margin:22px 0 4px;}
+  .sub{font-size:13px;color:var(--ink-soft);margin-top:4px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:12px;}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .sp{flex:1;}
+  .badge{font-size:12px;font-weight:800;padding:2px 9px;border-radius:999px;background:#f0ece3;color:var(--ink-soft);}
+  .badge.hw{background:#eaf3ec;color:#1f4733;} .badge.fl{background:#f3ecf8;color:#5b3d78;}
+  .badge.active{background:#eaf3ec;color:#1f4733;} .badge.pending{background:#fbf3dc;color:#7a5c00;} .badge.paused,.badge.closed{background:#eee;color:#666;}
+  input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;}
+  .sm{font-size:13px;font-weight:700;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;font-family:inherit;text-decoration:none;}
+  .go{background:var(--accent,#2f5d46);color:#fff;border-color:transparent;}
+  .hint{font-size:12.5px;color:var(--ink-faint);margin-top:6px;}
+  .code{font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:800;letter-spacing:2px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px;}
+  td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;}
+  td.n{text-align:right;}
+  .empty{text-align:center;color:var(--ink-faint);padding:24px 0;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:14px;z-index:100;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;}
+  .toast.show{opacity:1;} .toast.err{background:#9a3b2e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>꽃집·화원</h1>
+    <div class="sub">가게 페이지를 미리 만들어 두고 연결 코드를 책자나 DM 으로 보내요. 사장님이 로그인해서 코드를 넣으면 그 가게가 사장님 것이 돼요. 다 고치면 [공개]로 바꿔 주세요.</div>
+  </header>
+
+  <div id="notReady" class="card" hidden>가게 표가 아직 없어요. supabase-shops.sql 을 적용하면 이 화면이 열려요.</div>
+
+  <div id="main" hidden>
+    <h2>새 가게 만들기</h2>
+    <div class="card">
+      <div class="row">
+        <input id="nName" placeholder="가게 이름" maxlength="30" style="flex:1;min-width:140px">
+        <input id="nSlug" placeholder="주소(영어) 예: anel" maxlength="40" style="flex:1;min-width:140px" autocapitalize="off">
+        <select id="nKind"><option value="florist">1인 꽃집</option><option value="hwawon">화원(화환 제작)</option></select>
+        <button class="sm go" id="nGo" type="button">만들기</button>
+      </div>
+      <div class="hint">주소는 floweranbu.co.kr/f/<b>주소</b> 로 열려요. 영어 소문자·숫자·- 만.</div>
+    </div>
+
+    <h2>가게</h2>
+    <div id="list"><div class="empty">불러오는 중…</div></div>
+
+    <h2>화원 제작비 정산</h2>
+    <div class="card">
+      <div class="row"><input type="month" id="mon"><button class="sm" id="monGo" type="button">보기</button></div>
+      <div id="settle"><div class="hint">배송 완료된 화환 발주를 달마다 화원별로 더해요(배송 완료 날짜 기준).</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/admin-auth.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const won = n => Number(n||0).toLocaleString("ko-KR")+"원";
+const ST = { pending:"공개 전", active:"공개", paused:"잠시 닫음", closed:"닫음" };
+let SHOPS = [], toastT;
+function toast(msg,type){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(type==="err"?" err":""); clearTimeout(toastT); toastT=setTimeout(()=>t.className="toast",2400); }
+
+async function api(payload){
+  try{
+    const r = await afAdmin.fetch("/api/admin", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ resource:"shops", ...payload }) });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok){ if(d.notReady){ $("notReady").hidden=false; $("main").hidden=true; return null; } toast("❌ "+(d.error||"오류"),"err"); return null; }
+    return d;
+  }catch(_){ toast("❌ 연결이 끊겼어요. 다시 해 주세요.","err"); return null; }
+}
+async function load(){
+  const d = await api({ action:"list" }); if(!d) return;
+  $("main").hidden = false;
+  SHOPS = d.shops || [];
+  render();
+}
+function render(){
+  $("list").innerHTML = SHOPS.map((s,i)=>`<div class="card">
+    <div class="row"><b>${esc(s.name)}</b><span class="badge ${s.kind==="hwawon"?"hw":"fl"}">${s.kind==="hwawon"?"화원":"꽃집"}</span><span class="badge ${esc(s.status)}">${ST[s.status]||esc(s.status)}</span>
+      <span class="sp"></span><a class="sm" href="/f/${esc(s.slug)}" target="_blank" rel="noopener">페이지 보기</a></div>
+    <div class="hint">/f/${esc(s.slug)} · ${s.linked?"사장님 연결됨":"사장님 연결 전"}${s.kind==="hwawon"?" · 화환 지역 "+esc((s.wreath_area||[]).join(", ")||"미정"):""}</div>
+    <div class="row" style="margin-top:10px">
+      <select data-st="${i}">${Object.keys(ST).map(k=>`<option value="${k}"${s.status===k?" selected":""}>${ST[k]}</option>`).join("")}</select>
+      ${s.linked?"":`<button class="sm" data-code="${i}" type="button">연결 코드 만들기</button>`}
+      ${s.kind==="hwawon"?`<button class="sm" data-area="${i}" type="button">화환 지역</button>`:""}
+    </div>
+    <div id="code${i}"></div>
+  </div>`).join("") || '<div class="empty">아직 가게가 없어요.</div>';
+}
+$("list").addEventListener("change", async e => {
+  const sel = e.target.closest("[data-st]"); if(!sel) return;
+  const s = SHOPS[+sel.dataset.st];
+  if(sel.value==="active" && !confirm(`${s.name} 페이지를 손님에게 공개할까요?`)){ sel.value = s.status; return; }
+  const d = await api({ action:"set-status", shopId:s.id, status:sel.value });
+  if(!d){ sel.value = s.status; return; }
+  Object.assign(s, d.shop); render(); toast("바꿨어요 ✓");
+});
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.code){
+    const i = +b.dataset.code, s = SHOPS[i];
+    if(!confirm("연결 코드를 새로 만들까요? 예전에 만든 코드는 못 쓰게 돼요.")) return;
+    const d = await api({ action:"claim-code", shopId:s.id }); if(!d) return;
+    $("code"+i).innerHTML = `<div class="card" style="background:#fbf8f0"><div class="code">${esc(d.code)}</div>
+      <div class="hint">${esc(String(d.until).slice(0,10))}까지 쓸 수 있어요. 이 화면을 닫으면 코드를 다시 볼 수 없어요(새로 만들면 돼요).</div>
+      <div class="row" style="margin-top:8px"><input readonly value="${esc(d.url)}" style="flex:1;min-width:200px"><button class="sm" type="button" data-copy="${esc(d.url)}">링크 복사</button></div></div>`;
+    return;
+  }
+  if(b.dataset.copy){ try{ await navigator.clipboard.writeText(b.dataset.copy); toast("복사했어요 ✓"); }catch(_){ prompt("복사해 주세요", b.dataset.copy); } return; }
+  if(b.dataset.area){
+    const s = SHOPS[+b.dataset.area];
+    const v = prompt("화환 받을 수 있는 지역을 쉼표로 나눠 적어 주세요. 예: 시흥시, 안산시 단원구", (s.wreath_area||[]).join(", "));
+    if(v==null) return;
+    const d = await api({ action:"set-area", shopId:s.id, wreath_area:v.split(",").map(x=>x.trim()).filter(Boolean) });
+    if(d){ Object.assign(s, d.shop); render(); toast("저장했어요 ✓"); }
+  }
+});
+$("nGo").onclick = async () => {
+  const name = $("nName").value.trim(), slug = $("nSlug").value.trim().toLowerCase();
+  if(!name || !/^[a-z0-9-]{1,40}$/.test(slug)) return toast("❌ 이름과 주소(영어 소문자·숫자·-)를 넣어 주세요","err");
+  const d = await api({ action:"create", name, slug, kind:$("nKind").value }); if(!d) return;
+  $("nName").value = ""; $("nSlug").value = "";
+  toast("만들었어요. 연결 코드를 만들어 보내 주세요 ✓"); load();
+};
+$("mon").value = new Date(Date.now()+9*3600e3).toISOString().slice(0,7);
+$("monGo").onclick = async () => {
+  const d = await api({ action:"settle", month:$("mon").value }); if(!d) return;
+  const rows = d.shops || [];
+  $("settle").innerHTML = rows.length ? `<table><tr><th>화원</th><th>건수</th><th class="n">제작비</th><th>계좌</th></tr>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.count}</td><td class="n"><b>${won(r.total)}</b></td><td>${esc([r.bank,r.account,r.holder].filter(Boolean).join(" ")||"계좌 미등록")}</td></tr>`).join("")}
+    <tr><td><b>합계</b></td><td>${rows.reduce((a,r)=>a+r.count,0)}</td><td class="n"><b>${won(rows.reduce((a,r)=>a+r.total,0))}</b></td><td></td></tr></table>` : '<div class="empty">이 달에 끝난 화환 발주가 없어요.</div>';
+};
+afAdmin.ready.then(a => { if(!a) return; load(); });
+</script>
+</body>
+</html>
