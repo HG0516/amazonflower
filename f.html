@@ -12,11 +12,12 @@
 <style>
 /* 꽃집 페이지 틀 하나. 가게 정보는 /data/shops/<slug>.json 에서 읽는다(11/4 1단계: 서버·DB 없이).
    화환 버튼만 꽃안부 주문으로 가고, 유입 꼬리표(utm_source=shop, utm_campaign=<slug>)로 어느 꽃집 소개인지 센다.
-   꽃집 꽃값은 그 가게가 직접 받는다(꽃안부 토스로 남의 꽃값을 받지 않는다). */
+   꽃집 꽃값은 그 가게가 직접 받는다(꽃안부 토스로 남의 꽃값을 받지 않는다).
+   예시 가게(sample:true)만 '사장님 화면' 보여 드리기 모드가 있다. 고친 내용은 그 기기 localStorage 에만 남는다(11/4, 2단계에서 서버 저장). */
 :root{
   --bg:#fbf8f6; --card:#ffffff; --ink:#3a3340; --muted:#7b7282; --line:#ece4ea;
   --lilac:#b9a3d6; --lilac-soft:#f1ebf8; --peach:#f2c4b4; --peach-soft:#fcefe9; --sage-soft:#eaf1ea;
-  --anbu:#2f5d46; --anbu-soft:#e2ede6;
+  --anbu:#2f5d46; --anbu-soft:#e2ede6; --owner:#2b2a33;
   --display:"Gowun Batang",serif; --body:"Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
 }
 *{box-sizing:border-box}
@@ -27,9 +28,18 @@ img{max-width:100%;display:block}
 h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;line-height:1.35}
 p{margin:0}
 [hidden]{display:none!important}
-.sample{background:#3a3340;color:#fff;font-size:12.5px;text-align:center;padding:7px 12px}
+button{font:inherit;color:inherit}
+
+/* 위 띠 + 화면 전환 */
+.topbar{position:sticky;top:0;z-index:20;background:var(--owner);color:#fff;padding:8px 12px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.topbar small{font-size:11.5px;opacity:.8;text-align:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.12);border-radius:999px;padding:3px;width:100%;max-width:300px}
+.seg button{border:0;background:none;color:#fff;padding:6px 10px;border-radius:999px;font-size:13.5px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--owner);font-weight:700}
+
+.hero{position:relative}
 .hero img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--lilac-soft)}
-.head{padding:18px 20px 6px;display:flex;flex-direction:column;gap:6px}
+.head{padding:18px 20px 6px;display:flex;flex-direction:column;gap:6px;position:relative}
 .head h1{font-size:27px}
 .head .sub{color:var(--muted);font-size:14px}
 .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
@@ -43,17 +53,18 @@ p{margin:0}
 .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 20px 0}
 .quick a{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center;text-decoration:none;color:var(--ink);font-size:13px;display:flex;flex-direction:column;gap:4px;align-items:center}
 .quick a i{font-style:normal;font-size:18px}
-section{padding:30px 20px 0;display:flex;flex-direction:column;gap:14px}
+section{padding:30px 20px 0;display:flex;flex-direction:column;gap:14px;position:relative}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .sec-h h2{font-size:20px}
 .sec-h small{color:var(--muted);font-size:12.5px}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
-.chips button{font:inherit;font-size:13.5px;flex:none;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chips button{font-size:13.5px;flex:none;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer}
 .chips button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.item{background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column}
+.item{background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column;position:relative}
 .item img{aspect-ratio:1;object-fit:cover;background:var(--lilac-soft)}
-.item div{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px}
+.item .noimg{aspect-ratio:1;background:var(--lilac-soft);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.item div.t{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px}
 .item b{font-size:14.5px}
 .item span{font-size:13px;color:var(--muted)}
 .item .pr{color:var(--ink);font-size:14px}
@@ -61,35 +72,36 @@ section{padding:30px 20px 0;display:flex;flex-direction:column;gap:14px}
 .q{display:flex;flex-direction:column;gap:8px}
 .q > label,.q > .lab{font-size:14px;font-weight:700;font-family:var(--display)}
 .opts{display:flex;flex-wrap:wrap;gap:6px}
-.opts button{font:inherit;font-size:13.5px;padding:7px 13px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opts button{font-size:13.5px;padding:7px 13px;border-radius:12px;border:1px solid var(--line);background:var(--bg);cursor:pointer}
 .opts button[aria-pressed="true"]{background:var(--lilac-soft);border-color:var(--lilac);color:#5a4580;font-weight:700}
 .palette{display:flex;gap:26px 12px;flex-wrap:wrap;padding-bottom:16px}
 .palette button{width:44px;height:44px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;position:relative;padding:0}
 .palette button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
 .palette button span{position:absolute;left:50%;top:48px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
-input[type=date],input[type=time],textarea,input[type=text]{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+input[type=date],input[type=time],input[type=number],textarea,input[type=text],input[type=url],select{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
 textarea{min-height:70px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--lilac);outline-offset:2px}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--lilac);outline-offset:2px}
 .slip{border-radius:16px;background:var(--peach-soft);padding:16px;display:flex;flex-direction:column;gap:8px}
 .slip h3{font-size:15.5px}
 .slip pre{margin:0;font-family:var(--body);font-size:14px;white-space:pre-wrap;line-height:1.7;background:#fff;border-radius:12px;padding:12px;border:1px dashed var(--peach)}
 .slip .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.btn{font:inherit;font-size:14.5px;font-weight:700;padding:12px;border-radius:14px;border:0;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.btn{font-size:14.5px;font-weight:700;padding:12px;border-radius:14px;border:0;cursor:pointer;text-align:center;text-decoration:none;display:block}
 .btn.kakao{background:#fee500;color:#191919}
 .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
-.btn.off{background:#eee;color:#999;pointer-events:none}
+.btn.dark{background:var(--owner);color:#fff}
+.btn.danger{background:#fff;color:#b23b3b;border:1px solid #f0d0d0}
 .slip small{color:var(--muted);font-size:12.5px}
 .toast{font-size:13px;color:#5a7a5c;min-height:1em}
 .cls{display:flex;flex-direction:column;gap:8px}
-.cls div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.cls div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;position:relative}
 .cls b{font-size:14.5px;display:block}
 .cls span{font-size:13px;color:var(--muted)}
 .how{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px}
 .how div{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px}
 .how div:last-child{border-bottom:0}
 .how div::before{content:attr(data-n);font-family:var(--display);color:var(--lilac);font-size:18px;line-height:1.2}
-.wreath{margin:30px 20px 0;border-radius:20px;background:var(--anbu-soft);padding:18px;display:flex;flex-direction:column;gap:12px;border:1px solid #c7dccf}
+.wreath{margin:30px 20px 0;border-radius:20px;background:var(--anbu-soft);padding:18px;display:flex;flex-direction:column;gap:12px;border:1px solid #c7dccf;position:relative}
 .wreath .top{display:flex;gap:12px;align-items:center}
 .wreath img{width:72px;height:72px;border-radius:14px;object-fit:cover;flex:none}
 .wreath h2{font-size:18px;color:#1f4232}
@@ -102,85 +114,171 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .map a{color:var(--ink)}
 footer{padding:30px 20px 0;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 footer a{color:var(--muted)}
-.dock{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(251,248,246,0),var(--bg) 30%)}
+.dock{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(251,248,246,0),var(--bg) 30%);z-index:10}
 .dock div{max-width:428px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
-.dock a{border-radius:16px;padding:14px;text-align:center;text-decoration:none;font-weight:700;font-size:15px}
+.dock a,.dock button{border-radius:16px;padding:14px;text-align:center;text-decoration:none;font-weight:700;font-size:15px;border:0;cursor:pointer}
 .dock .a1{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .dock .a2{background:var(--ink);color:#fff}
 .missing{padding:80px 24px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
 .missing a{color:var(--anbu)}
+
+/* ── 사장님 화면 ── */
+.owner-panel{padding:16px 16px 4px;display:flex;flex-direction:column;gap:12px;background:#f3f1f6;border-bottom:1px solid var(--line)}
+.owner-panel h2{font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stats div{background:#fff;border-radius:12px;padding:8px 6px;text-align:center;display:flex;flex-direction:column}
+.stats b{font-size:18px;font-variant-numeric:tabular-nums}
+.stats small{font-size:11px;color:var(--muted);line-height:1.3}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tools button{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 4px;font-size:12.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tools button i{font-style:normal;font-size:17px}
+.inbox{display:flex;flex-direction:column;gap:6px}
+.inbox .msg{background:#fff;border-radius:12px;padding:10px 12px;font-size:13px;border:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.inbox .msg .top{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.inbox .msg b{font-size:13.5px}
+.inbox .msg small{color:var(--muted);font-size:11.5px}
+.inbox .msg pre{margin:0;font-family:var(--body);white-space:pre-wrap;font-size:12.5px;color:#57505d;max-height:0;overflow:hidden}
+.inbox .msg.open pre{max-height:none}
+.inbox .msg .new{font-size:10.5px;background:#e9584b;color:#fff;border-radius:999px;padding:0 6px}
+.inbox .empty{font-size:13px;color:var(--muted)}
+.note-o{font-size:12px;color:var(--muted)}
+.pen{position:absolute;right:10px;top:10px;z-index:3;border:0;background:var(--owner);color:#fff;border-radius:999px;font-size:12px;padding:4px 10px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.item .pen{right:6px;top:6px}
+.offblock{opacity:.45}
+.offtag{font-size:11.5px;background:#ddd;color:#555;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle;font-family:var(--body);font-weight:400}
+.addcard{border:1.5px dashed var(--lilac);background:var(--lilac-soft);border-radius:16px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-height:180px;cursor:pointer;color:#6b5590;font-size:13.5px}
+.addcard i{font-style:normal;font-size:26px}
+
+/* 아래에서 올라오는 편집 창 */
+.sheet-bg{position:fixed;inset:0;background:rgba(30,26,34,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:460px;max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.sheet h3{font-size:18px}
+.sheet .f{display:flex;flex-direction:column;gap:6px}
+.sheet .f > span{font-size:13.5px;font-weight:700}
+.sheet .f small{font-size:12px;color:var(--muted)}
+.sheet .acts{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;position:sticky;bottom:0;background:#fff;padding-top:6px}
+.photo-in{display:flex;gap:10px;align-items:center}
+.photo-in img,.photo-in .ph{width:84px;height:84px;border-radius:12px;object-fit:cover;background:var(--lilac-soft);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)}
+.photo-in label{flex:1;display:block;text-align:center;padding:12px;border-radius:12px;border:1px dashed var(--lilac);background:var(--lilac-soft);color:#5a4580;font-weight:700;font-size:14px;cursor:pointer}
+.photo-in input{position:absolute;opacity:0;width:1px;height:1px}
+.tg{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.tg small{display:block;font-size:12px;color:var(--muted)}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#d9d6dd;border-radius:999px;transition:.2s}
+.sw span::before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked + span{background:var(--anbu)}
+.sw input:checked + span::before{transform:translateX(20px)}
+.qrwrap{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.qrwrap img{width:200px;height:200px;image-rendering:pixelated;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}
+.linkbox{display:flex;gap:6px;width:100%}
+.linkbox input{flex:1;font-size:13px}
+.toastbar{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--owner);color:#fff;font-size:13.5px;border-radius:999px;padding:8px 16px;z-index:50;max-width:90vw;text-align:center}
+
 @media (min-width:700px){body{background:#efe9ee}.dock{background:none}.page{box-shadow:0 0 0 1px var(--line),0 20px 60px -30px rgba(58,51,64,.4)}}
 html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sw span,.sw span::before{transition:none}}
 </style>
 </head>
 <body>
 <div class="page" id="page">
   <div class="missing" id="loading"><p>불러오는 중이에요</p></div>
 </div>
-<div class="dock" id="dock" hidden><div><a class="a1" href="#wreath">화환</a><a class="a2" href="#order">예약 주문서 쓰기</a></div></div>
+<div class="dock" id="dock" hidden></div>
+<div id="sheetRoot"></div>
+<div class="toastbar" id="toastbar" hidden></div>
 
 <script>
 (function(){
   "use strict";
   var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
+  // 사진 주소는 사이트 안 경로(/...) 또는 사장님이 올린 사진(data:image/...)만 쓴다
+  var safeImg=function(u){u=String(u||"");return (/^\/[^\s"'<>]*$/.test(u)||/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(u))?u:"";};
   // 주소는 /f/<slug>(vercel rewrite) 또는 /f.html?shop=<slug>
   var m=location.pathname.match(/^\/f\/([a-z0-9-]{1,40})\/?$/);
   var slug=m?m[1]:(new URLSearchParams(location.search).get("shop")||"");
   if(!/^[a-z0-9-]{1,40}$/.test(slug)) return missing();
-  fetch("/data/shops/"+slug+".json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(render).catch(missing);
 
-  function missing(){
-    document.getElementById("page").innerHTML='<div class="missing"><h1>준비 중인 꽃집 페이지예요</h1><p>주소를 다시 확인해 주세요.</p><a href="/">꽃안부로 가기</a></div>';
-  }
+  var BASE=null, S=null, MODE="guest", FILTER="";
+  var LS_SHOP="f_demo_shop_"+slug, LS_INBOX="f_demo_inbox_"+slug;
+  var lsGet=function(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(_){return null;}};
+  var lsSet=function(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
+
+  fetch("/data/shops/"+slug+".json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
+    BASE=j; S=clone(j);
+    if(j.sample){ var saved=lsGet(LS_SHOP); if(saved&&saved.slug===slug) S=saved; }
+    S.blocks=Object.assign({order:true,night:!!S.unmanned,cls:true,wreath:true},S.blocks||{});
+    if(j.sample && location.hash==="#owner") MODE="owner";
+    render();
+  }).catch(missing);
+
+  function clone(o){return JSON.parse(JSON.stringify(o));}
+  function missing(){document.getElementById("page").innerHTML='<div class="missing"><h1>준비 중인 꽃집 페이지예요</h1><p>주소를 다시 확인해 주세요.</p><a href="/">꽃안부로 가기</a></div>';}
+  function save(){ if(!BASE.sample) return; if(!lsSet(LS_SHOP,S)) toast("사진이 많아서 이 휴대폰에 다 담지 못했어요. 사진을 줄여 주세요."); }
+  function toast(t){var b=document.getElementById("toastbar");b.textContent=t;b.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){b.hidden=true;},2600);}
 
   // 화환은 꽃안부 주문. footer.js 가 utm 을 30일 기억했다가 결제 때 주문에 싣는다 → 관리자 통계에 shop/page/<slug> 로 잡힌다.
   function utm(){return "utm_source=shop&utm_medium=page&utm_campaign="+encodeURIComponent(slug);}
-
   var COLORS=[["핑크","#f6c6d2"],["라벤더","#d7c8ee"],["피치","#fbe3b8"],["화이트","#fbfbf7"],["그린","#c9e0c7"],["옐로","#f4e27a"],["맡길게요","conic-gradient(#f6c6d2,#d7c8ee,#fbe3b8,#c9e0c7,#f6c6d2)"]];
+  var pen=function(act,arg){return MODE==="owner"?'<button type="button" class="pen" data-act="'+act+'"'+(arg!=null?' data-arg="'+esc(arg)+'"':'')+'>✎ 고치기</button>':'';};
+  var on=function(k){return S.blocks[k]!==false;};
+  var show=function(k){return on(k)||MODE==="owner";};
+  var offTag=function(k){return (MODE==="owner"&&!on(k))?'<span class="offtag">꺼짐 · 손님에게 안 보여요</span>':'';};
 
-  function render(s){
+  function render(){
+    var s=S, owner=MODE==="owner";
     document.title=s.name+" · "+(s.area||"꽃집");
     var kakaoOk=/^https:\/\/pf\.kakao\.com\/[A-Za-z0-9_]+(\/chat)?$/.test(s.kakao||"");
     var phone=(s.phone||"").replace(/[^0-9-]/g,"");
-    var cats=s.cats||[], menu=s.menu||[], kinds=s.orderKinds||cats.map(function(c){return c.label;});
+    var cats=s.cats||[], menu=s.menu||[], kinds=s.orderKinds&&s.orderKinds.length?s.orderKinds:cats.map(function(c){return c.label;});
     var h='';
-    if(s.sample) h+='<div class="sample">예시 페이지예요. 꽃집 사장님이 가입하면 이런 페이지가 생겨요</div>';
-    if(s.hero) h+='<div class="hero"><img src="'+esc(s.hero)+'" alt="'+esc(s.name)+' 대표 사진"></div>';
-    h+='<div class="head"><h1>'+esc(s.name)+'</h1><p class="sub">'+esc([s.tagline,s.area].filter(Boolean).join(" · "))+'</p>';
+    if(BASE.sample){
+      h+='<div class="topbar"><div class="seg" role="group" aria-label="화면 고르기"><button type="button" data-mode="guest" aria-pressed="'+!owner+'">손님 화면</button><button type="button" data-mode="owner" aria-pressed="'+owner+'">사장님 화면</button></div>';
+      h+='<small>'+(owner?'보여 드리기용 사장님 화면이에요. 고친 내용은 이 휴대폰에만 남아요':'예시 페이지예요. 꽃집 사장님이 가입하면 이런 페이지가 생겨요')+'</small></div>';
+    }
+    if(owner) h+=ownerPanel();
+    var hero=safeImg(s.hero);
+    h+='<div class="hero">'+(hero?'<img src="'+esc(hero)+'" alt="'+esc(s.name)+' 대표 사진">':'<div style="aspect-ratio:4/3;background:var(--lilac-soft)"></div>')+pen("hero")+'</div>';
+    h+='<div class="head">'+pen("info")+'<h1>'+esc(s.name)+'</h1><p class="sub">'+esc([s.tagline,s.area].filter(Boolean).join(" · "))+'</p>';
     if((s.tags||[]).length) h+='<div class="tags">'+s.tags.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>';
     h+='</div>';
     if(s.hours) h+='<div class="now" id="now"><span class="dot"></span><div><b id="nowT"></b><span id="nowS"></span></div></div>';
     h+='<nav class="quick" aria-label="바로가기"><a href="#order"><i>✿</i>주문서 쓰기</a><a href="#menu"><i>❀</i>꽃 둘러보기</a><a href="#come"><i>⌂</i>오시는 길</a></nav>';
 
-    h+='<section id="menu"><div class="sec-h"><h2>꽃 둘러보기</h2></div>';
-    if(cats.length>1) h+='<div class="chips" role="group" aria-label="종류"><button type="button" data-c="" aria-pressed="true">전체</button>'+cats.map(function(c){return '<button type="button" data-c="'+esc(c.id)+'" aria-pressed="false">'+esc(c.label)+'</button>';}).join("")+'</div>';
-    h+='<div class="menu">'+menu.map(function(it){return '<div class="item" data-c="'+esc(it.cat)+'">'+(it.img?'<img src="'+esc(it.img)+'" alt="" loading="lazy">':'')+'<div><b>'+esc(it.name)+'</b><span>'+esc(it.desc)+'</span><span class="pr">'+esc(it.price)+'</span></div></div>';}).join("")+'</div></section>';
+    h+='<section id="menu"><div class="sec-h"><h2>꽃 둘러보기</h2>'+(owner?'<small>사진을 눌러 고쳐요</small>':'')+'</div>';
+    if(cats.length>1) h+='<div class="chips" role="group" aria-label="종류"><button type="button" data-c="" aria-pressed="'+(FILTER==="")+'">전체</button>'+cats.map(function(c){return '<button type="button" data-c="'+esc(c.id)+'" aria-pressed="'+(FILTER===c.id)+'">'+esc(c.label)+'</button>';}).join("")+'</div>';
+    h+='<div class="menu">'+menu.map(function(it,i){
+      var im=safeImg(it.img), hide=FILTER&&it.cat!==FILTER;
+      return '<div class="item" data-c="'+esc(it.cat)+'"'+(hide?' hidden':'')+'>'+pen("item",i)+(im?'<img src="'+esc(im)+'" alt="" loading="lazy">':'<div class="noimg">사진 없음</div>')+'<div class="t"><b>'+esc(it.name)+'</b><span>'+esc(it.desc)+'</span><span class="pr">'+esc(it.price)+'</span></div></div>';
+    }).join("")+(owner?'<button type="button" class="addcard" data-act="additem"><i>＋</i>메뉴 추가</button>':'')+'</div></section>';
 
-    h+='<section id="order"><div class="sec-h"><h2>예약 주문서</h2><small>카톡 상담 대신 한 번에</small></div><div class="form">';
-    h+=opts("무엇이 필요하세요?","kind",kinds,0);
-    h+=opts("어떤 날인가요?","occ",["생일","기념일","졸업","부모님","고백","그냥"],-1);
-    h+=opts("예산","budget",["3만 원대","5만 원대","7만 원대","10만 원 이상"],1);
-    h+='<div class="q"><span class="lab">색 고르기 (여러 개 돼요)</span><div class="palette" data-k="color" data-multi="1">'+COLORS.map(function(c,i){return '<button type="button" aria-pressed="'+(i===0||i===3)+'" aria-label="'+c[0]+'" style="background:'+c[1]+'"><span>'+c[0]+'</span></button>';}).join("")+'</div></div>';
-    h+='<div class="row2"><div class="q"><label for="d">날짜</label><input id="d" type="date"></div><div class="q"><label for="t">시간</label><input id="t" type="time" value="15:00"></div></div>';
-    h+=opts("받는 방법","how",s.unmanned?["매장 픽업","무인 픽업 (밤)","배달 문의"]:["매장 픽업","배달 문의"],0);
-    h+='<div class="q"><label for="memo">더 하고 싶은 말</label><textarea id="memo" placeholder="예: 리본에 \'생일 축하해\' 넣어 주세요"></textarea></div>';
-    h+='<div class="q"><label for="nm">이름 · 연락처</label><input id="nm" type="text" placeholder="김○○ 010-0000-0000" autocomplete="off"></div>';
-    var send= s.sample ? '<span class="btn off">예시라 보내지지 않아요</span>'
-      : kakaoOk ? '<a class="btn kakao" href="'+esc(s.kakao)+'" target="_blank" rel="noopener">카톡으로 보내기</a>'
-      : phone ? '<a class="btn kakao" id="sms" href="sms:'+esc(phone)+'">문자로 보내기</a>' : '';
-    h+='<div class="slip" aria-live="polite"><h3>정리된 주문서</h3><pre id="slip"></pre><div class="acts"><button type="button" class="btn ghost" id="copy">복사하기</button>'+send+'</div>';
-    h+='<small>'+(kakaoOk?'복사한 뒤 '+esc(s.name)+' 카톡 채널에 붙여 넣으면 돼요.':'복사해서 '+esc(s.name)+'에 보내 주세요.')+' 사장님이 확인하고 답을 드려요.</small><span class="toast" id="toast"></span></div>';
-    h+='</div></section>';
-
-    if(s.unmanned) h+='<section id="night"><div class="sec-h"><h2>무인으로 이용할 때</h2><small>사장님이 안 계신 시간</small></div><div class="how"><div data-n="1">냉장고 안 꽃은 붙어 있는 가격표대로 가져가세요.</div><div data-n="2">결제는 계산대 옆 안내대로 해요.</div><div data-n="3">원하는 꽃이 없으면 위 주문서를 남겨 주세요. 다음 날 연락드려요.</div><div data-n="4">예약한 꽃은 이름 붙은 칸에서 찾아가세요.</div></div></section>';
-    if((s.classes||[]).length) h+='<section id="class"><div class="sec-h"><h2>원데이 클래스</h2><small>신청은 주문서·카톡으로</small></div><div class="cls">'+s.classes.map(function(c){return '<div><b>'+esc(c.name)+'</b><span>'+esc(c.when)+'</span></div>';}).join("")+'</div></section>';
-
-    h+='<div class="wreath" id="wreath"><div class="top"><img src="/photos/화환/근조/일반형.jpg" alt="근조화환"><div><h2>근조 · 축하화환</h2><p>'+esc(s.name)+'에 문의하신 화환은 꽃안부가 전국으로 보내 드려요.</p></div></div>';
-    h+='<div class="two"><a href="/?worder=funeral&amp;'+utm()+'">근조화환 보내기</a><a class="alt" href="/catalog.html?cat=congrats&amp;'+utm()+'">축하화환 보내기</a></div>';
-    h+='<small>49,000원부터 · 평일 18시, 주말 16시까지 주문하면 오늘 도착해요. 화환은 꽃안부(주식회사 아마존)가 판매하고 보내 드려요.</small></div>';
-
-    h+='<section id="come"><div class="sec-h"><h2>오시는 길</h2></div><div class="map">';
+    if(show("order")){
+      h+='<section id="order" class="'+(on("order")?'':'offblock')+'"><div class="sec-h"><h2>예약 주문서'+offTag("order")+'</h2><small>카톡 상담 대신 한 번에</small></div><div class="form">';
+      h+=opts("무엇이 필요하세요?","kind",kinds,0);
+      h+=opts("어떤 날인가요?","occ",["생일","기념일","졸업","부모님","고백","그냥"],-1);
+      h+=opts("예산","budget",["3만 원대","5만 원대","7만 원대","10만 원 이상"],1);
+      h+='<div class="q"><span class="lab">색 고르기 (여러 개 돼요)</span><div class="palette" data-k="color" data-multi="1">'+COLORS.map(function(c,i){return '<button type="button" aria-pressed="'+(i===0||i===3)+'" aria-label="'+c[0]+'" style="background:'+c[1]+'"><span>'+c[0]+'</span></button>';}).join("")+'</div></div>';
+      h+='<div class="row2"><div class="q"><label for="d">날짜</label><input id="d" type="date"></div><div class="q"><label for="t">시간</label><input id="t" type="time" value="15:00"></div></div>';
+      h+=opts("받는 방법","how",s.unmanned?["매장 픽업","무인 픽업 (밤)","배달 문의"]:["매장 픽업","배달 문의"],0);
+      h+='<div class="q"><label for="memo">더 하고 싶은 말</label><textarea id="memo" placeholder="예: 리본에 \'생일 축하해\' 넣어 주세요"></textarea></div>';
+      h+='<div class="q"><label for="nm">이름 · 연락처</label><input id="nm" type="text" placeholder="김○○ 010-0000-0000" autocomplete="off"></div>';
+      var send= BASE.sample ? '<button type="button" class="btn kakao" id="demoSend">사장님께 보내 보기</button>'
+        : kakaoOk ? '<a class="btn kakao" href="'+esc(s.kakao)+'" target="_blank" rel="noopener">카톡으로 보내기</a>'
+        : phone ? '<a class="btn kakao" id="sms" href="sms:'+esc(phone)+'">문자로 보내기</a>' : '';
+      h+='<div class="slip" aria-live="polite"><h3>정리된 주문서</h3><pre id="slip"></pre><div class="acts"><button type="button" class="btn ghost" id="copy">복사하기</button>'+send+'</div>';
+      h+='<small>'+(BASE.sample?'예시라서 실제 가게로 가지 않고 이 휴대폰의 사장님 화면 \'받은 주문서\'로 들어가요.':kakaoOk?'복사한 뒤 '+esc(s.name)+' 카톡 채널에 붙여 넣으면 돼요. 사장님이 확인하고 답을 드려요.':'복사해서 '+esc(s.name)+'에 보내 주세요.')+'</small><span class="toast" id="toast"></span></div>';
+      h+='</div></section>';
+    }
+    if(s.unmanned&&show("night")) h+='<section id="night" class="'+(on("night")?'':'offblock')+'"><div class="sec-h"><h2>무인으로 이용할 때'+offTag("night")+'</h2><small>사장님이 안 계신 시간</small></div><div class="how"><div data-n="1">냉장고 안 꽃은 붙어 있는 가격표대로 가져가세요.</div><div data-n="2">결제는 계산대 옆 안내대로 해요.</div><div data-n="3">원하는 꽃이 없으면 위 주문서를 남겨 주세요. 다음 날 연락드려요.</div><div data-n="4">예약한 꽃은 이름 붙은 칸에서 찾아가세요.</div></div></section>';
+    if(((s.classes||[]).length||owner)&&show("cls")){
+      h+='<section id="class" class="'+(on("cls")?'':'offblock')+'"><div class="sec-h"><h2>원데이 클래스'+offTag("cls")+'</h2><small>신청은 주문서·카톡으로</small></div><div class="cls">'+(s.classes||[]).map(function(c,i){return '<div>'+pen("cls",i)+'<b>'+esc(c.name)+'</b><span>'+esc(c.when)+'</span></div>';}).join("")+(owner?'<button type="button" class="addcard" style="min-height:56px" data-act="addcls"><span>＋ 클래스 추가</span></button>':'')+'</div></section>';
+    }
+    if(show("wreath")){
+      h+='<div class="wreath'+(on("wreath")?'':' offblock')+'" id="wreath"><div class="top"><img src="/photos/화환/근조/일반형.jpg" alt="근조화환"><div><h2>근조 · 축하화환'+offTag("wreath")+'</h2><p>'+esc(s.name)+'에 문의하신 화환은 꽃안부가 전국으로 보내 드려요.</p></div></div>';
+      h+='<div class="two"><a href="/?worder=funeral&amp;'+utm()+'">근조화환 보내기</a><a class="alt" href="/catalog.html?cat=congrats&amp;'+utm()+'">축하화환 보내기</a></div>';
+      h+='<small>49,000원부터 · 평일 18시, 주말 16시까지 주문하면 오늘 도착해요. 화환은 꽃안부(주식회사 아마존)가 판매하고 보내 드려요.'+(owner?' 여기서 주문이 나오면 사장님께 소개비가 쌓여요.':'')+'</small></div>';
+    }
+    h+='<section id="come">'+pen("info")+'<div class="sec-h"><h2>오시는 길</h2></div><div class="map">';
     if(s.address) h+='<b>'+esc(s.address)+'</b><a href="https://map.kakao.com/?q='+encodeURIComponent(s.address)+'" target="_blank" rel="noopener">카카오맵에서 보기</a>';
     if(phone) h+='<span>전화 <a href="tel:'+esc(phone)+'">'+esc(phone)+'</a></span>';
     if(s.insta) h+='<span>인스타 <a href="https://www.instagram.com/'+encodeURIComponent(s.insta)+'/" target="_blank" rel="noopener">@'+esc(s.insta)+'</a></span>';
@@ -189,53 +287,238 @@ html{scroll-behavior:smooth}
     h+='<footer><span>'+esc(s.name)+'</span><span>꽃안부 꽃집 페이지로 만들었어요 · <a href="/">floweranbu.co.kr</a></span></footer>';
 
     document.getElementById("page").innerHTML=h;
-    document.getElementById("dock").hidden=false;
-    wire(s);
+    var dock=document.getElementById("dock");
+    dock.innerHTML= owner
+      ? '<div><button type="button" class="a1" data-mode="guest">손님 화면 보기</button><button type="button" class="a2" data-act="share">내 페이지 링크 · QR</button></div>'
+      : '<div><a class="a1" href="#wreath"'+(on("wreath")?'':' hidden')+'>화환</a><a class="a2" href="#order"'+(on("order")?'':' hidden')+'>예약 주문서 쓰기</a></div>';
+    dock.hidden=false;
+    wire();
   }
 
-  function opts(label,key,list,on){
-    return '<div class="q"><span class="lab">'+esc(label)+'</span><div class="opts" data-k="'+key+'">'+list.map(function(x,i){return '<button type="button" aria-pressed="'+(i===on)+'">'+esc(x)+'</button>';}).join("")+'</div></div>';
+  function opts(label,key,list,onIdx){
+    return '<div class="q"><span class="lab">'+esc(label)+'</span><div class="opts" data-k="'+key+'">'+list.map(function(x,i){return '<button type="button" aria-pressed="'+(i===onIdx)+'">'+esc(x)+'</button>';}).join("")+'</div></div>';
   }
 
-  function wire(s){
+  // ── 사장님 화면 위쪽 ──
+  function ownerPanel(){
+    var inbox=lsGet(LS_INBOX)||[];
+    var examples=[
+      {t:"11/8(토) 15:00 · 꽃다발 · 5만 원대",w:"어제 밤 11:42",body:"종류: 꽃다발\n어떤 날: 생일\n예산: 5만 원대\n색: 핑크, 화이트\n받는 방법: 무인 픽업 (밤)\n주문하신 분: 김○○ 010-○○○○-1234",ex:true},
+      {t:"11/12(수) 11:00 · 꽃바구니 · 7만 원대",w:"그제",body:"종류: 꽃바구니\n어떤 날: 부모님\n예산: 7만 원대\n색: 맡길게요\n받는 방법: 매장 픽업\n하고 싶은 말: 어머니 칠순이에요\n주문하신 분: 이○○ 010-○○○○-5678",ex:true}
+    ];
+    var all=inbox.slice().reverse().concat(examples);
+    var h='<div class="owner-panel"><h2>'+esc(S.name)+' 사장님, 이번 주예요</h2>';
+    h+='<div class="stats"><div><b>214</b><small>페이지<br>방문</small></div><div><b>'+(6+inbox.length)+'</b><small>받은<br>주문서</small></div><div><b>2</b><small>화환<br>소개</small></div><div><b>6,000</b><small>쌓인<br>소개비(원)</small></div></div>';
+    h+='<div class="tools">'
+      +'<button type="button" data-act="hero"><i>🖼</i>대표 사진</button>'
+      +'<button type="button" data-act="info"><i>✎</i>가게 정보</button>'
+      +'<button type="button" data-act="additem"><i>＋</i>메뉴 추가</button>'
+      +'<button type="button" data-act="blocks"><i>◐</i>칸 켜고 끄기</button>'
+      +'<button type="button" data-act="share"><i>▦</i>링크 · QR</button>'
+      +'<button type="button" data-act="wreathlog"><i>✿</i>화환 소개 내역</button>'
+      +'</div>';
+    h+='<h3 style="font-size:15px">받은 주문서</h3><div class="inbox">'+all.map(function(x,i){
+      return '<div class="msg" data-i="'+i+'"><div class="top"><b>'+esc(x.t)+'</b>'+(x.ex?'<small>예시</small>':'<span class="new">새로</span>')+'</div><small>'+esc(x.w)+' · 눌러서 펼치기</small><pre>'+esc(x.body)+'</pre></div>';
+    }).join("")+'</div>';
+    h+='<p class="note-o">숫자는 예시예요. 실제로 쓰면 손님이 남긴 주문서와 방문 수가 여기에 쌓이고, 새 주문서가 오면 문자로 알려 드려요.</p>';
+    h+='<button type="button" class="btn danger" data-act="reset" style="font-size:13px;padding:9px">처음 상태로 되돌리기</button>';
+    h+='</div>';
+    return h;
+  }
+
+  function wire(){
+    var s=S;
+    document.querySelectorAll("[data-mode]").forEach(function(b){b.addEventListener("click",function(){
+      MODE=b.dataset.mode; history.replaceState(null,"",MODE==="owner"?"#owner":location.pathname+location.search); render(); window.scrollTo(0,0);
+    });});
+    document.querySelectorAll("[data-act]").forEach(function(b){b.addEventListener("click",function(e){e.preventDefault();act(b.dataset.act,b.dataset.arg);});});
+    document.querySelectorAll(".inbox .msg").forEach(function(mm){mm.addEventListener("click",function(){mm.classList.toggle("open");});});
     if(s.hours){
       var hr=new Date().getHours(), open=hr>=s.hours.open&&hr<s.hours.close;
-      var T=document.getElementById("nowT"), S=document.getElementById("nowS");
-      if(open){T.textContent="지금 사장님이 계세요";S.textContent="예약 주문은 오늘 받아서 만들어 드려요";}
+      var T=document.getElementById("nowT"), Sb=document.getElementById("nowS");
+      if(open){T.textContent="지금 사장님이 계세요";Sb.textContent="예약 주문은 오늘 받아서 만들어 드려요";}
       else{document.getElementById("now").classList.add("night");
         T.textContent=s.unmanned?"지금은 무인으로 운영 중이에요":"지금은 영업시간이 아니에요";
-        S.textContent=(s.unmanned?"냉장고 꽃은 바로 가져가고, ":"")+"예약은 주문서로 남겨 주세요. 사장님은 "+s.hours.open+"시에 오세요";}
+        Sb.textContent=(s.unmanned?"냉장고 꽃은 바로 가져가고, ":"")+"예약은 주문서로 남겨 주세요. 사장님은 "+s.hours.open+"시에 오세요";}
     }
     document.querySelectorAll(".chips button").forEach(function(b){b.addEventListener("click",function(){
+      FILTER=b.dataset.c||"";
       document.querySelectorAll(".chips button").forEach(function(x){x.setAttribute("aria-pressed",x===b);});
-      document.querySelectorAll(".item").forEach(function(it){it.hidden=!!b.dataset.c&&it.dataset.c!==b.dataset.c;});
+      document.querySelectorAll(".item").forEach(function(it){it.hidden=!!FILTER&&it.dataset.c!==FILTER;});
     });});
+    if(!document.getElementById("slip")) return;
     document.querySelectorAll("[data-k]").forEach(function(g){g.querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){
       if(g.dataset.multi) b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")!=="true");
       else g.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===b);});
-      slip(s);
+      slip();
     });});});
     var d=document.getElementById("d"), t=new Date(); t.setDate(t.getDate()+2);
     d.value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
-    ["d","t","memo","nm"].forEach(function(id){document.getElementById(id).addEventListener("input",function(){slip(s);});});
-    slip(s);
+    ["d","t","memo","nm"].forEach(function(id){document.getElementById(id).addEventListener("input",slip);});
+    slip();
     document.getElementById("copy").addEventListener("click",function(){
-      var txt=document.getElementById("slip").textContent, toast=document.getElementById("toast");
-      (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast.textContent="복사했어요. 그대로 붙여 넣어 주세요.";})
-      .catch(function(){var r=document.createRange();r.selectNodeContents(document.getElementById("slip"));var sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast.textContent="글이 선택됐어요. 길게 눌러 복사해 주세요.";});
+      var txt=document.getElementById("slip").textContent, tt=document.getElementById("toast");
+      (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){tt.textContent="복사했어요. 그대로 붙여 넣어 주세요.";})
+      .catch(function(){var r=document.createRange();r.selectNodeContents(document.getElementById("slip"));var sel=getSelection();sel.removeAllRanges();sel.addRange(r);tt.textContent="글이 선택됐어요. 길게 눌러 복사해 주세요.";});
+    });
+    var ds=document.getElementById("demoSend");
+    if(ds) ds.addEventListener("click",function(){
+      var inbox=lsGet(LS_INBOX)||[];
+      var body=document.getElementById("slip").textContent.split("\n").slice(1).join("\n");
+      inbox.push({t:(fmt(document.getElementById("d").value)+" "+document.getElementById("t").value+" · "+(pick("kind")||"")+" · "+(pick("budget")||"")),w:"방금",body:body});
+      lsSet(LS_INBOX,inbox.slice(-20));
+      document.getElementById("toast").textContent="보냈어요. 위 '사장님 화면'을 누르면 받은 주문서에 들어와 있어요.";
+      toast("사장님 화면의 받은 주문서로 들어갔어요");
     });
   }
 
   function pick(k){return Array.prototype.map.call(document.querySelectorAll('[data-k="'+k+'"] button[aria-pressed="true"]'),function(b){return b.getAttribute("aria-label")||b.textContent;}).join(", ");}
   function fmt(v){if(!v)return"";var x=new Date(v+"T00:00");return (x.getMonth()+1)+"/"+x.getDate()+"("+"일월화수목금토"[x.getDay()]+")";}
-  function slip(s){
-    var lines=["["+s.name+" 예약 주문서]","종류: "+(pick("kind")||"-"),pick("occ")?"어떤 날: "+pick("occ"):"","예산: "+(pick("budget")||"-"),"색: "+(pick("color")||"-"),
+  function slip(){
+    var lines=["["+S.name+" 예약 주문서]","종류: "+(pick("kind")||"-"),pick("occ")?"어떤 날: "+pick("occ"):"","예산: "+(pick("budget")||"-"),"색: "+(pick("color")||"-"),
       "날짜: "+fmt(document.getElementById("d").value)+" "+document.getElementById("t").value,"받는 방법: "+(pick("how")||"-"),
       document.getElementById("memo").value?"하고 싶은 말: "+document.getElementById("memo").value:"",
       document.getElementById("nm").value?"주문하신 분: "+document.getElementById("nm").value:""].filter(Boolean);
     var text=lines.join("\n");
     document.getElementById("slip").textContent=text;
-    var sms=document.getElementById("sms"); if(sms) sms.href="sms:"+(s.phone||"").replace(/[^0-9]/g,"")+"?&body="+encodeURIComponent(text);
+    var sms=document.getElementById("sms"); if(sms) sms.href="sms:"+(S.phone||"").replace(/[^0-9]/g,"")+"?&body="+encodeURIComponent(text);
+  }
+
+  // ── 편집 창 ──
+  function act(a,arg){
+    if(a==="hero") return sheetPhotoHero();
+    if(a==="info") return sheetInfo();
+    if(a==="item") return sheetItem(parseInt(arg,10));
+    if(a==="additem"){ S.menu=S.menu||[]; S.menu.push({cat:(S.cats&&S.cats[0]&&S.cats[0].id)||"bq",name:"새 메뉴",desc:"",price:"",img:""}); return sheetItem(S.menu.length-1,true); }
+    if(a==="cls") return sheetCls(parseInt(arg,10));
+    if(a==="addcls"){ S.classes=S.classes||[]; S.classes.push({name:"새 클래스",when:""}); return sheetCls(S.classes.length-1,true); }
+    if(a==="blocks") return sheetBlocks();
+    if(a==="share") return sheetShare();
+    if(a==="wreathlog") return sheetWreath();
+    if(a==="reset"){ return openSheet('<h3>처음 상태로 되돌릴까요?</h3><p>이 휴대폰에서 고친 사진, 메뉴, 받은 주문서가 모두 지워져요.</p>',function(){ try{localStorage.removeItem(LS_SHOP);localStorage.removeItem(LS_INBOX);}catch(_){} S=clone(BASE); S.blocks=Object.assign({order:true,night:!!S.unmanned,cls:true,wreath:true},S.blocks||{}); render(); toast("처음 상태로 되돌렸어요"); },"되돌리기"); }
+  }
+
+  function openSheet(inner,onSave,saveLabel,onCancel){
+    var root=document.getElementById("sheetRoot");
+    root.innerHTML='<div class="sheet-bg"><div class="sheet" role="dialog" aria-modal="true">'+inner+'<div class="acts"><button type="button" class="btn ghost" id="shCancel">닫기</button>'+(onSave?'<button type="button" class="btn dark" id="shSave">'+(saveLabel||"저장")+'</button>':'')+'</div></div></div>';
+    var close=function(){root.innerHTML="";};
+    document.getElementById("shCancel").onclick=function(){ if(onCancel) onCancel(); close(); };
+    root.querySelector(".sheet-bg").addEventListener("click",function(e){ if(e.target===e.currentTarget){ if(onCancel) onCancel(); close(); } });
+    if(onSave) document.getElementById("shSave").onclick=function(){ if(onSave()!==false) close(); };
+    var first=root.querySelector("input,textarea,select,button"); if(first) first.focus({preventScroll:true});
+    return root;
+  }
+  function field(id,label,val,type,hint){
+    var inp= type==="textarea" ? '<textarea id="'+id+'">'+esc(val)+'</textarea>' : '<input id="'+id+'" type="'+(type||"text")+'" value="'+esc(val)+'">';
+    return '<label class="f"><span>'+esc(label)+'</span>'+inp+(hint?'<small>'+esc(hint)+'</small>':'')+'</label>';
+  }
+  var val=function(id){var e=document.getElementById(id);return e?e.value.trim():"";};
+  function photoField(id,cur){
+    var im=safeImg(cur);
+    return '<div class="f"><span>사진</span><div class="photo-in">'+(im?'<img id="'+id+'Prev" src="'+esc(im)+'" alt="">':'<div class="ph" id="'+id+'Prev">사진 없음</div>')+'<label>사진첩에서 고르기<input type="file" accept="image/*" id="'+id+'"></label></div><small>휴대폰으로 찍은 사진을 그대로 올리면 알맞게 줄여서 넣어요.</small></div>';
+  }
+  // 올린 사진을 긴 변 900px JPEG 로 줄인다(이 기기 저장 공간을 아끼려고)
+  function readPhoto(input,cb){
+    var f=input&&input.files&&input.files[0]; if(!f) return cb(null);
+    var r=new FileReader();
+    r.onload=function(){ var img=new Image(); img.onload=function(){
+      var k=Math.min(1,900/Math.max(img.width,img.height)), c=document.createElement("canvas");
+      c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height); cb(c.toDataURL("image/jpeg",0.8));
+    }; img.onerror=function(){toast("이 사진은 열 수 없어요");cb(null);}; img.src=r.result; };
+    r.readAsDataURL(f);
+  }
+  function livePreview(id){
+    var inp=document.getElementById(id); if(!inp) return;
+    inp.addEventListener("change",function(){ readPhoto(inp,function(u){ if(!u) return; inp._data=u; var p=document.getElementById(id+"Prev"); if(p){ var im=document.createElement("img"); im.id=id+"Prev"; im.src=u; im.alt=""; p.replaceWith(im);} }); });
+  }
+
+  function sheetPhotoHero(){
+    openSheet('<h3>대표 사진 바꾸기</h3>'+photoField("phHero",S.hero)+'<small class="note-o">페이지 맨 위에 크게 나와요. 가게 앞이나 제일 자신 있는 꽃다발 사진이 좋아요.</small>',function(){
+      var inp=document.getElementById("phHero"); if(inp._data){ S.hero=inp._data; save(); render(); toast("대표 사진을 바꿨어요"); }
+    });
+    livePreview("phHero");
+  }
+  function sheetInfo(){
+    var s=S;
+    openSheet('<h3>가게 정보</h3>'
+      +field("iName","가게 이름",s.name)
+      +field("iTag","한 줄 소개",s.tagline,"text","예: 파스텔톤 들꽃 느낌 꽃집")
+      +field("iArea","동네",s.area)
+      +field("iTags","특징 (쉼표로 나눠요)",(s.tags||[]).join(", "))
+      +'<div class="row2">'+field("iOpen","사장님 오는 시각",s.hours?s.hours.open:10,"number")+field("iClose","사장님 가는 시각",s.hours?s.hours.close:19,"number")+'</div>'
+      +'<div class="tg"><span>24시 무인 매장이에요<small>켜면 무인 안내와 밤 픽업이 생겨요</small></span><label class="sw"><input type="checkbox" id="iUn"'+(s.unmanned?' checked':'')+'><span></span></label></div>'
+      +field("iKakao","카톡 채널 링크",s.kakao,"url","pf.kakao.com/... 주소를 넣으면 주문서가 카톡으로 바로 가요")
+      +field("iPhone","전화번호",s.phone,"text")
+      +field("iAddr","주소",s.address)
+      +field("iInsta","인스타 아이디",s.insta,"text","@ 없이")
+    ,function(){
+      var n=val("iName"); if(!n){toast("가게 이름을 넣어 주세요");return false;}
+      var k=val("iKakao"); if(k&&!/^https:\/\/pf\.kakao\.com\/[A-Za-z0-9_]+(\/chat)?$/.test(k)){toast("카톡 채널 링크는 https://pf.kakao.com/ 로 시작해야 해요");return false;}
+      var o=Math.max(0,Math.min(23,parseInt(val("iOpen"),10)||0)), c=Math.max(1,Math.min(24,parseInt(val("iClose"),10)||24));
+      Object.assign(S,{name:n.slice(0,30),tagline:val("iTag").slice(0,40),area:val("iArea").slice(0,30),tags:val("iTags").split(",").map(function(x){return x.trim();}).filter(Boolean).slice(0,5),
+        hours:{open:o,close:Math.max(o+1,c)},unmanned:document.getElementById("iUn").checked,kakao:k,phone:val("iPhone").slice(0,20),address:val("iAddr").slice(0,80),insta:val("iInsta").replace(/^@/,"").slice(0,40)});
+      S.blocks.night=S.unmanned;
+      save(); render(); toast("가게 정보를 고쳤어요");
+    });
+  }
+  function sheetItem(i,isNew){
+    var it=S.menu[i]; if(!it) return;
+    var catOpts=(S.cats||[]).map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===it.cat?' selected':'')+'>'+esc(c.label)+'</option>';}).join("");
+    var root=openSheet('<h3>'+(isNew?'메뉴 추가':'메뉴 고치기')+'</h3>'+photoField("mImg",it.img)
+      +field("mName","이름",it.name)+field("mDesc","짧은 설명",it.desc,"text","예: 생신 · 집들이")+field("mPrice","가격",it.price,"text","예: 55,000원부터")
+      +'<label class="f"><span>종류</span><select id="mCat">'+catOpts+'</select></label>'
+      +(isNew?'':'<div class="row2"><button type="button" class="btn ghost" id="mUp">앞으로</button><button type="button" class="btn ghost" id="mDown">뒤로</button></div><button type="button" class="btn danger" id="mDel">이 메뉴 지우기</button>')
+    ,function(){
+      var n=val("mName"); if(!n){toast("이름을 넣어 주세요");return false;}
+      var inp=document.getElementById("mImg");
+      Object.assign(it,{name:n.slice(0,30),desc:val("mDesc").slice(0,40),price:val("mPrice").slice(0,20),cat:val("mCat")||it.cat});
+      if(inp._data) it.img=inp._data;
+      save(); render(); toast(isNew?"메뉴를 추가했어요":"메뉴를 고쳤어요");
+    },"저장",function(){ if(isNew){ S.menu.pop(); } });
+    livePreview("mImg");
+    var mv=function(dlt){ var j=i+dlt; if(j<0||j>=S.menu.length) return; var t=S.menu[i]; S.menu[i]=S.menu[j]; S.menu[j]=t; save(); root.innerHTML=""; render(); toast(dlt<0?"앞으로 옮겼어요":"뒤로 옮겼어요"); };
+    if(!isNew){
+      document.getElementById("mUp").onclick=function(){mv(-1);};
+      document.getElementById("mDown").onclick=function(){mv(1);};
+      document.getElementById("mDel").onclick=function(){ S.menu.splice(i,1); save(); root.innerHTML=""; render(); toast("메뉴를 지웠어요"); };
+    }
+  }
+  function sheetCls(i,isNew){
+    var c=S.classes[i]; if(!c) return;
+    var root=openSheet('<h3>'+(isNew?'클래스 추가':'클래스 고치기')+'</h3>'+field("cName","이름",c.name)+field("cWhen","언제",c.when,"text","예: 토요일 오후 2시 · 2시간")+(isNew?'':'<button type="button" class="btn danger" id="cDel">이 클래스 지우기</button>'),function(){
+      var n=val("cName"); if(!n){toast("이름을 넣어 주세요");return false;}
+      c.name=n.slice(0,30); c.when=val("cWhen").slice(0,40); save(); render(); toast("클래스를 저장했어요");
+    },"저장",function(){ if(isNew) S.classes.pop(); });
+    if(!isNew) document.getElementById("cDel").onclick=function(){ S.classes.splice(i,1); save(); root.innerHTML=""; render(); toast("클래스를 지웠어요"); };
+  }
+  function sheetBlocks(){
+    var row=function(k,label,hint){return '<div class="tg"><span>'+label+'<small>'+hint+'</small></span><label class="sw"><input type="checkbox" data-b="'+k+'"'+(on(k)?' checked':'')+'><span></span></label></div>';};
+    openSheet('<h3>칸 켜고 끄기</h3><p class="note-o">끈 칸은 손님 화면에서 안 보여요. 사장님 화면에서는 흐리게 보여요.</p>'
+      +row("order","예약 주문서","손님이 날짜·예산·색을 한 번에 남겨요")
+      +(S.unmanned?row("night","무인 이용 안내","사장님 없는 시간 안내"):'')
+      +row("cls","원데이 클래스","클래스 일정 보여 주기")
+      +row("wreath","근조·축하화환","꽃안부가 보내고 사장님께 소개비가 쌓여요")
+    ,function(){
+      document.querySelectorAll("[data-b]").forEach(function(x){S.blocks[x.dataset.b]=x.checked;});
+      save(); render(); toast("저장했어요");
+    });
+  }
+  function sheetShare(){
+    var url=location.origin+"/f/"+slug;
+    openSheet('<h3>내 페이지 링크 · 매장 QR</h3><div class="qrwrap"><img id="qrImg" alt="내 페이지 QR" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="><div class="linkbox"><input type="text" id="lnk" value="'+esc(url)+'" readonly><button type="button" class="btn dark" id="lnkCopy" style="padding:10px 14px">복사</button></div><p class="note-o">링크는 인스타 프로필에 걸고, QR은 계산대나 냉장고 옆에 세워 두세요. 처음 30곳에는 가게 이름이 들어간 QR 스탠드를 무료로 보내 드려요.</p></div>');
+    document.getElementById("lnkCopy").onclick=function(){ var t=document.getElementById("lnk"); (navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(function(){toast("링크를 복사했어요");}).catch(function(){t.select();toast("길게 눌러 복사해 주세요");}); };
+    loadQr(function(){ try{ var q=window.qrcode(0,"M"); q.addData(url); q.make(); document.getElementById("qrImg").src=q.createDataURL(8,2); }catch(_){ } });
+  }
+  function loadQr(cb){
+    if(window.qrcode) return cb();
+    var sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"; sc.onload=cb; sc.onerror=function(){toast("QR을 불러오지 못했어요. 링크를 복사해 주세요");}; document.head.appendChild(sc);
+  }
+  function sheetWreath(){
+    openSheet('<h3>화환 소개 내역</h3><p class="note-o">이 페이지의 화환 버튼으로 들어온 주문이에요. 소개비는 매달 5일에 정산해 드려요. (예시)</p>'
+      +'<div class="inbox"><div class="msg open"><div class="top"><b>근조화환 일반형 49,000원</b><small>11/3</small></div><small>인하대병원 장례식장 · 도착 사진 있음 · 소개비 3,000원</small></div>'
+      +'<div class="msg open"><div class="top"><b>축하화환 중급형 79,000원</b><small>11/1</small></div><small>송도컨벤시아 · 도착 사진 있음 · 소개비 3,000원</small></div></div>'
+      +'<p class="note-o">이번 달 소개 2건 · 쌓인 소개비 6,000원</p>');
   }
 })();
 </script>
