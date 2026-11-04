@@ -8,6 +8,8 @@ import { handleCardGet, handleCardPost, isPreviewBot } from "../lib/cards.mjs";
 import { renderHelloOg } from "../lib/hello.mjs";
 import { publicSetup, kakaoShareKey } from "../lib/setup-status.mjs";
 import { handleGiftGet, handleGiftPost, handleGiftSenderGet, handleGiftSenderPost } from "../lib/gift.mjs";
+import { handleShopGet, handleShopOwner } from "../lib/shops.mjs";
+// 6) 꽃집 페이지(11/5) — GET ?shop=<slug> (손님 화면 내용), POST {type:"shop-owner", action} (사장님 저장·사진).
 // 3) 무료 부고장·청첩장 정식판(10/6) — GET ?card=<id> (짧은 링크 /c/<id> 미리보기·내용), POST {type:"card"} (만들기·고치기·조문 글).
 
 const ALLOWED = ["검색", "지인", "전단·현수막", "기타"];
@@ -179,6 +181,12 @@ export default async function handler(req, res) {
       res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
       return res.status(out.status).json(out.json);
     }
+    if (q.shop) {
+      const out = await handleShopGet(q, process.env).catch((e) => { console.error("shop get", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+      res.setHeader("Cache-Control", out.status === 200 ? "public, max-age=0, s-maxage=30, stale-while-revalidate=300" : "no-store");
+      res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+      return res.status(out.status).json(out.json);
+    }
     if (q.card) {
       const out = await handleCardGet(q, process.env, req.headers && req.headers["user-agent"]).catch((e) => { console.error("card get", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
       res.setHeader("Cache-Control", "no-store");
@@ -211,6 +219,11 @@ export default async function handler(req, res) {
   }
   if (body.type === "gift_sender") {
     const out = await handleGiftSenderPost(req, body, process.env).catch((e) => { console.error("gift sender", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(out.status).json(out.json);
+  }
+  if (body.type === "shop-owner") {
+    const out = await handleShopOwner(req, body, process.env).catch((e) => { console.error("shop owner", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
     res.setHeader("Cache-Control", "no-store");
     return res.status(out.status).json(out.json);
   }
