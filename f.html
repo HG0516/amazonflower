@@ -285,6 +285,8 @@ html{scroll-behavior:smooth}
     var mapq=s.address||[s.name,s.area].filter(Boolean).join(" ");
     h+='<div class="side">';
     var hero=safeImg(s.hero);
+    // 대표 사진을 아직 안 올린 가게는 첫 메뉴 사진을 대신 쓴다(손님 화면만).
+    if(!hero && MODE!=="owner"){ for(var hi=0;hi<(s.menu||[]).length&&!hero;hi++) hero=safeImg(s.menu[hi].img); }
     h+='<div class="hero">'+(hero?'<img src="'+esc(hero)+'" alt="'+esc(s.name)+' 대표 사진">':'<div style="aspect-ratio:4/3;background:var(--lilac-soft)"></div>')+pen("hero")+'</div>';
     h+='<div class="head">'+pen("info")+'<h1>'+esc(s.name)+'</h1><p class="sub">'+esc([s.tagline,s.area].filter(Boolean).join(" · "))+'</p>';
     if((s.tags||[]).length) h+='<div class="tags">'+s.tags.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>';
