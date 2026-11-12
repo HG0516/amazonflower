@@ -31,6 +31,7 @@ const fetch = compatFetch;
 
 import { PHOTO_UPLOAD_TTL_SECONDS, getPhotoUploadSecret, signUploadToken } from "../lib/photo-access.mjs";
 import { opsStatus, setupStatus } from "../lib/setup-status.mjs";
+import { adminShops } from "../lib/dispatch.mjs";
 import { sendTransactionalText } from "../lib/solapi.mjs";
 import {
   SENT_CATS, cleanText, decodeJpegBase64, dropRaw, importOrderPhotos, kstDate, putRaw, readRaw, signRaw,
@@ -852,6 +853,16 @@ export default async function handler(req, res) {
     if (!r.ok) { console.error("orders list fail", r.status, await r.text().catch(() => "")); return res.status(502).json({ error: "주문을 불러오지 못했습니다." }); }
     const orders = await r.json().catch(() => []);
     return res.status(200).json({ ok: true, orders: Array.isArray(orders) ? orders : [] });
+  }
+
+  // ─────────────────────── 꽃집·화원 가게 (11/5 꽃집 페이지 2단계) ───────────────────────
+  // 가게 목록·미리 만들기·승인·사장님 연결 코드·화환 발주(화원 배정)·정산표. owner 전용. 로직은 lib/dispatch.mjs.
+  if (body.resource === "shops") {
+    const out = await adminShops(body).catch((e) => { console.error("admin shops", e && e.message); return { status: 503, json: { error: "잠시 후 다시 시도해 주세요." } }; });
+    if (out.status === 200 && body.action && body.action !== "list" && body.action !== "dispatch-of" && body.action !== "settle") {
+      await audit(String(body.action), "shops", String(body.shopId || body.orderId || body.id || body.slug || ""), "");
+    }
+    return res.status(out.status).json(out.json);
   }
 
   // ─────────────────────── 법인 거래처 계정 링크 발급 ───────────────────────

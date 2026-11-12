@@ -167,6 +167,7 @@
       ["/admin-orders.html", "주문 관리", "staff", "list", "주문"],
       ["/admin-pay.html", "전화 주문", "owner", "phone", "전화 주문"],
       ["/admin-sent.html", "보낸 꽃 사진", "staff", "camera", "사진"],
+      ["/admin-shops.html", "꽃집·화원", "owner", "flower"],
     ]],
     ["사이트 꾸미기", [
       ["/admin-products.html", "상품", "owner", "box"],

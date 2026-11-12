@@ -80,6 +80,7 @@ section{padding:30px 20px 0;display:flex;flex-direction:column;gap:14px;position
 .chips button{font-size:13.5px;flex:none;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer}
 .chips button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.item .badge{position:absolute;left:8px;top:8px;font-style:normal;font-size:12px;font-weight:700;background:rgba(0,0,0,.62);color:#fff;padding:3px 8px;border-radius:99px}
 .item{background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column;position:relative}
 .item img{aspect-ratio:1;object-fit:cover;background:var(--lilac-soft)}
 .item .noimg{aspect-ratio:1;background:var(--lilac-soft);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
@@ -227,7 +228,8 @@ html{scroll-behavior:smooth}
   "use strict";
   var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
   // 사진 주소는 사이트 안 경로(/...) 또는 사장님이 올린 사진(data:image/...)만 쓴다
-  var safeImg=function(u){u=String(u||"");return (/^\/[^\s"'<>]*$/.test(u)||/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(u))?u:"";};
+  // 사장님이 올린 사진은 shop-photos 버킷(공개)에 있다(2단계).
+  var safeImg=function(u){u=String(u||"");return (/^\/[^\s"'<>]*$/.test(u)||/^https:\/\/ivlfwlbwiijhmwsfljzz\.supabase\.co\/storage\/v1\/object\/public\/shop-photos\/[A-Za-z0-9\/_.-]+$/.test(u)||/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(u))?u:"";};
   // 주소는 /f/<slug>(vercel rewrite) 또는 /f.html?shop=<slug>
   var m=location.pathname.match(/^\/f\/([a-z0-9-]{1,40})\/?$/);
   var slug=m?m[1]:(new URLSearchParams(location.search).get("shop")||"");
@@ -239,7 +241,11 @@ html{scroll-behavior:smooth}
   var lsGet=function(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(_){return null;}};
   var lsSet=function(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
 
-  fetch("/data/shops/"+slug+".json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
+  // 2단계: 서버(가게 표)에서 먼저 읽고, 표에 없으면(예시 가게·SQL 적용 전) 1단계 파일로.
+  var fromFile=function(){return fetch("/data/shops/"+slug+".json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();});};
+  fetch("/api/order-meta?shop="+slug).then(function(r){
+    return r.json().catch(function(){return {};}).then(function(j){ if(r.ok&&j.shop) return j.shop; if(r.status===404&&j.error&&!j.fallback) throw 0; return fromFile(); });
+  },fromFile).then(function(j){
     // 우리가 먼저 만들어 둔 가게(draft)는 사장님께 드린 주소(?k=)로만 열린다. 사장님이 쓰겠다고 하기 전에는 손님에게 안 보인다(11/10).
     if(j.draft){ if(!j.key || new URLSearchParams(location.search).get("k")!==j.key) return missing(); CONFIRM=true; }
     BASE=j; S=clone(j);
@@ -300,7 +306,7 @@ html{scroll-behavior:smooth}
     if(cats.length>1) h+='<div class="chips" role="group" aria-label="종류"><button type="button" data-c="" aria-pressed="'+(FILTER==="")+'">전체</button>'+cats.map(function(c){return '<button type="button" data-c="'+esc(c.id)+'" aria-pressed="'+(FILTER===c.id)+'">'+esc(c.label)+'</button>';}).join("")+'</div>';
     h+='<div class="menu">'+menu.map(function(it,i){
       var im=safeImg(it.img), hide=FILTER&&it.cat!==FILTER;
-      return '<div class="item'+(owner?'':' tap')+'" data-c="'+esc(it.cat)+'"'+(owner?'':' data-view="'+i+'" role="button" tabindex="0"')+(hide?' hidden':'')+'>'+pen("item",i)+(im?'<img src="'+esc(im)+'" alt="" loading="lazy">':'<div class="noimg">사진 없음</div>')+'<div class="t"><b>'+esc(it.name)+'</b><span>'+esc(it.desc)+'</span><span class="pr">'+esc(it.price||"상담 후 결정")+'</span></div></div>';
+      return '<div class="item'+(owner?'':' tap')+'" data-c="'+esc(it.cat)+'"'+(owner?'':' data-view="'+i+'" role="button" tabindex="0"')+(hide?' hidden':'')+'>'+pen("item",i)+(im?'<img src="'+esc(im)+'" alt="" loading="lazy">':'<div class="noimg">사진 없음</div>')+(it.state==="soldout"?'<em class="badge">오늘 품절</em>':it.state==="reserve"?'<em class="badge">예약만</em>':'')+'<div class="t"><b>'+esc(it.name)+'</b><span>'+esc(it.desc)+'</span><span class="pr">'+esc(it.price||"상담 후 결정")+'</span></div></div>';
     }).join("")+(owner?'<button type="button" class="addcard" data-act="additem"><i>＋</i>메뉴 추가</button>':'')+'</div></section>';
 
     if(show("order")){
@@ -337,7 +343,7 @@ html{scroll-behavior:smooth}
     if(s.insta) h+='<span>인스타 <a href="https://www.instagram.com/'+encodeURIComponent(s.insta)+'/" target="_blank" rel="noopener">@'+esc(s.insta)+'</a></span>';
     if(s.hours) h+='<span>사장님 계신 시간 '+s.hours.open+'시~'+s.hours.close+'시'+(s.unmanned?' · 그 밖에는 무인':'')+'</span>';
     h+='</div></section>';
-    h+='<footer><span>'+esc(s.name)+'</span><span>꽃안부 꽃집 페이지로 만들었어요 · <a href="/">floweranbu.co.kr</a></span></footer>';
+    h+='<footer><span>'+esc(s.name)+'</span><span>꽃안부 꽃집 페이지로 만들었어요 · <a href="/">floweranbu.co.kr</a></span><span><a href="/my-shop">가게 사장님이세요? 내 가게 고치기</a></span></footer>';
     h+='</div>';
 
     document.getElementById("page").innerHTML=h;

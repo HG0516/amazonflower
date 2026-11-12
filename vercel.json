@@ -228,6 +228,7 @@
   ],
   "rewrites": [
     { "source": "/f/:slug", "destination": "/f.html" },
+    { "source": "/my-shop", "destination": "/my-shop.html" },
     {
       "source": "/s/:pc",
       "destination": "/s/:pc.html"
