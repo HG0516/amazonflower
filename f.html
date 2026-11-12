@@ -50,7 +50,26 @@ button{font:inherit;color:inherit}
 .now span{font-size:13.5px;color:#55625a}
 .now.night{background:var(--lilac-soft)}
 .now.night .dot{background:#8b6fc0;box-shadow:0 0 0 4px rgba(139,111,192,.2)}
-.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 20px 0}
+.cta{display:block;margin:14px 20px 0;background:var(--ink);color:#fff;border-radius:16px;padding:15px;text-align:center;text-decoration:none;font-weight:700;font-size:16px}
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px;margin:10px 20px 0}
+.quick button{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center;font-size:13px;display:flex;flex-direction:column;gap:4px;align-items:center;cursor:pointer}
+.quick button i{font-style:normal;font-size:18px}
+.best{display:flex;gap:10px;overflow-x:auto;margin:0 -20px;padding:0 20px 4px;scroll-snap-type:x proximity}
+.best button{flex:none;width:132px;border:0;background:none;padding:0;text-align:left;cursor:pointer;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px}
+.best img{width:132px;height:132px;object-fit:cover;border-radius:16px;background:var(--lilac-soft)}
+.best b{font-size:14px}
+.best span{font-size:13px;color:var(--muted)}
+.item.tap{cursor:pointer}
+.vimg{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;background:var(--lilac-soft)}
+.vdesc{color:var(--muted);font-size:14px}
+.pk{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--lilac-soft);border-radius:12px;padding:8px 12px;font-size:14px}
+.pk button{border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline}
+.confirm{position:sticky;top:0;z-index:20;background:var(--owner);color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.confirm span{font-size:13px;line-height:1.45}
+.confirm button{flex:none;border:0;background:#fff;color:var(--owner);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13.5px;cursor:pointer}
+.choice{display:flex;flex-direction:column;gap:8px}
+.choice button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:13px 14px;font-size:15px;font-weight:700;cursor:pointer}
+.choice button small{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
 .quick a{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center;text-decoration:none;color:var(--ink);font-size:13px;display:flex;flex-direction:column;gap:4px;align-items:center}
 .quick a i{font-style:normal;font-size:18px}
 section{padding:30px 20px 0;display:flex;flex-direction:column;gap:14px;position:relative}
@@ -176,6 +195,21 @@ footer a{color:var(--muted)}
 .toastbar{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--owner);color:#fff;font-size:13.5px;border-radius:999px;padding:8px 16px;z-index:50;max-width:90vw;text-align:center}
 
 @media (min-width:700px){body{background:#efe9ee}.dock{background:none}.page{box-shadow:0 0 0 1px var(--line),0 20px 60px -30px rgba(58,51,64,.4)}}
+/* PC: 왼쪽에 가게 소개를 붙여 두고 오른쪽에서 둘러본다 */
+@media (min-width:1000px){
+  .page{max-width:1120px;display:grid;grid-template-columns:360px minmax(0,1fr);gap:0 28px;align-items:start;padding:28px 28px 60px;background:none;box-shadow:none}
+  .topbar,.owner-panel,.confirm{grid-column:1/-1;border-radius:16px;margin-bottom:20px}
+  .side{position:sticky;top:90px;background:var(--bg);border-radius:24px;overflow:hidden;padding-bottom:22px;box-shadow:0 0 0 1px var(--line)}
+  .main{background:var(--bg);border-radius:24px;padding-bottom:30px;box-shadow:0 0 0 1px var(--line)}
+  .main > section:first-child{padding-top:24px}
+  .menu{grid-template-columns:repeat(3,1fr)}
+  .form,.slip,.how,.cls,.map{max-width:600px}
+  .wreath{max-width:600px}
+  .best{margin:0;padding:0 0 4px}
+  .dock{display:none}
+  .sheet{border-radius:22px;margin-bottom:8vh}
+  .sheet-bg{align-items:center}
+}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sw span,.sw span::before{transition:none}}
 </style>
@@ -199,12 +233,15 @@ html{scroll-behavior:smooth}
   var slug=m?m[1]:(new URLSearchParams(location.search).get("shop")||"");
   if(!/^[a-z0-9-]{1,40}$/.test(slug)) return missing();
 
-  var BASE=null, S=null, MODE="guest", FILTER="";
+  var BASE=null, S=null, MODE="guest", FILTER="", PICKED="", CONFIRM=false;
+  var ANBU_CHAT="https://pf.kakao.com/_AXXBX/chat";
   var LS_SHOP="f_demo_shop_"+slug, LS_INBOX="f_demo_inbox_"+slug;
   var lsGet=function(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(_){return null;}};
   var lsSet=function(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
 
   fetch("/data/shops/"+slug+".json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
+    // 우리가 먼저 만들어 둔 가게(draft)는 사장님께 드린 주소(?k=)로만 열린다. 사장님이 쓰겠다고 하기 전에는 손님에게 안 보인다(11/10).
+    if(j.draft){ if(!j.key || new URLSearchParams(location.search).get("k")!==j.key) return missing(); CONFIRM=true; }
     BASE=j; S=clone(j);
     if(j.sample){ var saved=lsGet(LS_SHOP); if(saved&&saved.slug===slug) S=saved; }
     S.blocks=Object.assign({order:true,night:!!S.unmanned,cls:true,wreath:true},S.blocks||{});
@@ -236,37 +273,52 @@ html{scroll-behavior:smooth}
       h+='<div class="topbar"><div class="seg" role="group" aria-label="화면 고르기"><button type="button" data-mode="guest" aria-pressed="'+!owner+'">손님 화면</button><button type="button" data-mode="owner" aria-pressed="'+owner+'">사장님 화면</button></div>';
       h+='<small>'+(owner?'보여 드리기용 사장님 화면이에요. 고친 내용은 이 휴대폰에만 남아요':'예시 페이지예요. 꽃집 사장님이 가입하면 이런 페이지가 생겨요')+'</small></div>';
     }
+    if(CONFIRM) h+='<div class="confirm"><span>사장님께 먼저 보여 드려요.<br>손님에게는 아직 안 보여요.</span><button type="button" data-act="confirm">답하기</button></div>';
     if(owner) h+=ownerPanel();
+    var kid=/^[A-Za-z0-9._-]{2,30}$/.test(s.kakaoId||"")?s.kakaoId:"";
+    var mapq=s.address||[s.name,s.area].filter(Boolean).join(" ");
+    h+='<div class="side">';
     var hero=safeImg(s.hero);
     h+='<div class="hero">'+(hero?'<img src="'+esc(hero)+'" alt="'+esc(s.name)+' 대표 사진">':'<div style="aspect-ratio:4/3;background:var(--lilac-soft)"></div>')+pen("hero")+'</div>';
     h+='<div class="head">'+pen("info")+'<h1>'+esc(s.name)+'</h1><p class="sub">'+esc([s.tagline,s.area].filter(Boolean).join(" · "))+'</p>';
     if((s.tags||[]).length) h+='<div class="tags">'+s.tags.map(function(t){return '<span>'+esc(t)+'</span>';}).join("")+'</div>';
     h+='</div>';
     if(s.hours) h+='<div class="now" id="now"><span class="dot"></span><div><b id="nowT"></b><span id="nowS"></span></div></div>';
-    h+='<nav class="quick" aria-label="바로가기"><a href="#order"><i>✿</i>주문서 쓰기</a><a href="#menu"><i>❀</i>꽃 둘러보기</a><a href="#come"><i>⌂</i>오시는 길</a></nav>';
+    else if(s.notice) h+='<div class="now"><span class="dot"></span><div><b>'+esc(s.notice)+'</b>'+(s.noticeSub?'<span>'+esc(s.noticeSub)+'</span>':'')+'</div></div>';
+    if(on("order")) h+='<a class="cta" href="#order">예약 주문서 쓰기</a>';
+    h+='<nav class="quick" aria-label="바로가기">'
+      +(kakaoOk?'<a href="'+esc(s.kakao)+'" target="_blank" rel="noopener"><i>💬</i>카톡</a>':kid?'<button type="button" data-act="kid"><i>💬</i>카톡</button>':'')
+      +(phone?'<a href="tel:'+esc(phone)+'"><i>✆</i>전화</a>':'')
+      +(mapq?'<a href="https://map.kakao.com/?q='+encodeURIComponent(mapq)+'" target="_blank" rel="noopener"><i>⌖</i>길찾기</a>':'')
+      +'<button type="button" data-act="shareguest"><i>↗</i>공유</button></nav>';
+    h+='</div><div class="main">';
+    var best=menu.map(function(it,i){return {it:it,i:i};}).filter(function(x){return x.it.best&&safeImg(x.it.img);});
+    if(best.length>1&&!owner) h+='<section id="best"><div class="sec-h"><h2>많이 찾는 꽃</h2></div><div class="best">'+best.map(function(x){
+      return '<button type="button" data-view="'+x.i+'"><img src="'+esc(safeImg(x.it.img))+'" alt="" loading="lazy"><b>'+esc(x.it.name)+'</b><span>'+esc(x.it.price||"상담 후 결정")+'</span></button>';}).join("")+'</div></section>';
 
     h+='<section id="menu"><div class="sec-h"><h2>꽃 둘러보기</h2>'+(owner?'<small>사진을 눌러 고쳐요</small>':'')+'</div>';
     if(cats.length>1) h+='<div class="chips" role="group" aria-label="종류"><button type="button" data-c="" aria-pressed="'+(FILTER==="")+'">전체</button>'+cats.map(function(c){return '<button type="button" data-c="'+esc(c.id)+'" aria-pressed="'+(FILTER===c.id)+'">'+esc(c.label)+'</button>';}).join("")+'</div>';
     h+='<div class="menu">'+menu.map(function(it,i){
       var im=safeImg(it.img), hide=FILTER&&it.cat!==FILTER;
-      return '<div class="item" data-c="'+esc(it.cat)+'"'+(hide?' hidden':'')+'>'+pen("item",i)+(im?'<img src="'+esc(im)+'" alt="" loading="lazy">':'<div class="noimg">사진 없음</div>')+'<div class="t"><b>'+esc(it.name)+'</b><span>'+esc(it.desc)+'</span><span class="pr">'+esc(it.price)+'</span></div></div>';
+      return '<div class="item'+(owner?'':' tap')+'" data-c="'+esc(it.cat)+'"'+(owner?'':' data-view="'+i+'" role="button" tabindex="0"')+(hide?' hidden':'')+'>'+pen("item",i)+(im?'<img src="'+esc(im)+'" alt="" loading="lazy">':'<div class="noimg">사진 없음</div>')+'<div class="t"><b>'+esc(it.name)+'</b><span>'+esc(it.desc)+'</span><span class="pr">'+esc(it.price||"상담 후 결정")+'</span></div></div>';
     }).join("")+(owner?'<button type="button" class="addcard" data-act="additem"><i>＋</i>메뉴 추가</button>':'')+'</div></section>';
 
     if(show("order")){
       h+='<section id="order" class="'+(on("order")?'':'offblock')+'"><div class="sec-h"><h2>예약 주문서'+offTag("order")+'</h2><small>카톡 상담 대신 한 번에</small></div><div class="form">';
+      h+='<div class="q" id="pickedQ" hidden><span class="lab">고른 꽃</span><div class="pk"><span id="pickedT"></span><button type="button" id="pickedX">빼기</button></div></div>';
       h+=opts("무엇이 필요하세요?","kind",kinds,0);
       h+=opts("어떤 날인가요?","occ",["생일","기념일","졸업","부모님","고백","그냥"],-1);
       h+=opts("예산","budget",["3만 원대","5만 원대","7만 원대","10만 원 이상"],1);
       h+='<div class="q"><span class="lab">색 고르기 (여러 개 돼요)</span><div class="palette" data-k="color" data-multi="1">'+COLORS.map(function(c,i){return '<button type="button" aria-pressed="'+(i===0||i===3)+'" aria-label="'+c[0]+'" style="background:'+c[1]+'"><span>'+c[0]+'</span></button>';}).join("")+'</div></div>';
       h+='<div class="row2"><div class="q"><label for="d">날짜</label><input id="d" type="date"></div><div class="q"><label for="t">시간</label><input id="t" type="time" value="15:00"></div></div>';
-      h+=opts("받는 방법","how",s.unmanned?["매장 픽업","무인 픽업 (밤)","배달 문의"]:["매장 픽업","배달 문의"],0);
+      h+=opts("받는 방법","how",(s.howOpts&&s.howOpts.length)?s.howOpts:s.unmanned?["매장 픽업","무인 픽업 (밤)","배달 문의"]:["매장 픽업","배달 문의"],0);
       h+='<div class="q"><label for="memo">더 하고 싶은 말</label><textarea id="memo" placeholder="예: 리본에 \'생일 축하해\' 넣어 주세요"></textarea></div>';
       h+='<div class="q"><label for="nm">이름 · 연락처</label><input id="nm" type="text" placeholder="김○○ 010-0000-0000" autocomplete="off"></div>';
       var send= BASE.sample ? '<button type="button" class="btn kakao" id="demoSend">사장님께 보내 보기</button>'
-        : kakaoOk ? '<a class="btn kakao" href="'+esc(s.kakao)+'" target="_blank" rel="noopener">카톡으로 보내기</a>'
+        : kakaoOk ? '<a class="btn kakao" id="kgo" href="'+esc(s.kakao)+'" target="_blank" rel="noopener">카톡으로 보내기</a>'
         : phone ? '<a class="btn kakao" id="sms" href="sms:'+esc(phone)+'">문자로 보내기</a>' : '';
       h+='<div class="slip" aria-live="polite"><h3>정리된 주문서</h3><pre id="slip"></pre><div class="acts"><button type="button" class="btn ghost" id="copy">복사하기</button>'+send+'</div>';
-      h+='<small>'+(BASE.sample?'예시라서 실제 가게로 가지 않고 이 휴대폰의 사장님 화면 \'받은 주문서\'로 들어가요.':kakaoOk?'복사한 뒤 '+esc(s.name)+' 카톡 채널에 붙여 넣으면 돼요. 사장님이 확인하고 답을 드려요.':'복사해서 '+esc(s.name)+'에 보내 주세요.')+'</small><span class="toast" id="toast"></span></div>';
+      h+='<small>'+(BASE.sample?'예시라서 실제 가게로 가지 않고 이 휴대폰의 사장님 화면 \'받은 주문서\'로 들어가요.':kakaoOk?'누르면 주문서가 복사돼요. 열린 카톡 채널에 붙여 넣으면 사장님이 확인하고 답을 드려요.':kid?'문자로 보내거나, 복사해서 카톡 아이디 '+esc(kid)+' 로 보내 주세요.':'복사해서 '+esc(s.name)+'에 보내 주세요.')+'</small><span class="toast" id="toast"></span></div>';
       h+='</div></section>';
     }
     if(s.unmanned&&show("night")) h+='<section id="night" class="'+(on("night")?'':'offblock')+'"><div class="sec-h"><h2>무인으로 이용할 때'+offTag("night")+'</h2><small>사장님이 안 계신 시간</small></div><div class="how"><div data-n="1">냉장고 안 꽃은 붙어 있는 가격표대로 가져가세요.</div><div data-n="2">결제는 계산대 옆 안내대로 해요.</div><div data-n="3">원하는 꽃이 없으면 위 주문서를 남겨 주세요. 다음 날 연락드려요.</div><div data-n="4">예약한 꽃은 이름 붙은 칸에서 찾아가세요.</div></div></section>';
@@ -279,12 +331,14 @@ html{scroll-behavior:smooth}
       h+='<small>49,000원부터 · 평일 18시, 주말 16시까지 주문하면 오늘 도착해요. 화환은 꽃안부(주식회사 아마존)가 판매하고 보내 드려요.'+(owner?' 여기서 주문이 나오면 사장님께 소개비가 쌓여요.':'')+'</small></div>';
     }
     h+='<section id="come">'+pen("info")+'<div class="sec-h"><h2>오시는 길</h2></div><div class="map">';
-    if(s.address) h+='<b>'+esc(s.address)+'</b><a href="https://map.kakao.com/?q='+encodeURIComponent(s.address)+'" target="_blank" rel="noopener">카카오맵에서 보기</a>';
+    if(mapq) h+='<b>'+esc(s.address||s.area||"")+'</b><a href="https://map.kakao.com/?q='+encodeURIComponent(mapq)+'" target="_blank" rel="noopener">카카오맵에서 보기</a>';
+    if(kid) h+='<span>카톡 아이디 '+esc(kid)+'</span>';
     if(phone) h+='<span>전화 <a href="tel:'+esc(phone)+'">'+esc(phone)+'</a></span>';
     if(s.insta) h+='<span>인스타 <a href="https://www.instagram.com/'+encodeURIComponent(s.insta)+'/" target="_blank" rel="noopener">@'+esc(s.insta)+'</a></span>';
     if(s.hours) h+='<span>사장님 계신 시간 '+s.hours.open+'시~'+s.hours.close+'시'+(s.unmanned?' · 그 밖에는 무인':'')+'</span>';
     h+='</div></section>';
     h+='<footer><span>'+esc(s.name)+'</span><span>꽃안부 꽃집 페이지로 만들었어요 · <a href="/">floweranbu.co.kr</a></span></footer>';
+    h+='</div>';
 
     document.getElementById("page").innerHTML=h;
     var dock=document.getElementById("dock");
@@ -332,6 +386,10 @@ html{scroll-behavior:smooth}
       MODE=b.dataset.mode; history.replaceState(null,"",MODE==="owner"?"#owner":location.pathname+location.search); render(); window.scrollTo(0,0);
     });});
     document.querySelectorAll("[data-act]").forEach(function(b){b.addEventListener("click",function(e){e.preventDefault();act(b.dataset.act,b.dataset.arg);});});
+    document.querySelectorAll("[data-view]").forEach(function(b){
+      var go=function(){ if(MODE!=="owner") sheetView(parseInt(b.dataset.view,10)); };
+      b.addEventListener("click",go); b.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){e.preventDefault();go();} });
+    });
     document.querySelectorAll(".inbox .msg").forEach(function(mm){mm.addEventListener("click",function(){mm.classList.toggle("open");});});
     if(s.hours){
       var hr=new Date().getHours(), open=hr>=s.hours.open&&hr<s.hours.close;
@@ -355,6 +413,12 @@ html{scroll-behavior:smooth}
     var d=document.getElementById("d"), t=new Date(); t.setDate(t.getDate()+2);
     d.value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
     ["d","t","memo","nm"].forEach(function(id){document.getElementById(id).addEventListener("input",slip);});
+    // 이름·연락처는 이 휴대폰에 기억해 둔다(다음에 다시 안 적게)
+    var nm=document.getElementById("nm"), me=lsGet("f_me"); if(typeof me==="string"&&!nm.value) nm.value=me.slice(0,60);
+    nm.addEventListener("input",function(){lsSet("f_me",nm.value.slice(0,60));});
+    document.getElementById("pickedX").addEventListener("click",function(){PICKED="";slip();});
+    var kgo=document.getElementById("kgo");
+    if(kgo) kgo.addEventListener("click",function(){ try{navigator.clipboard.writeText(document.getElementById("slip").textContent);}catch(_){} });
     slip();
     document.getElementById("copy").addEventListener("click",function(){
       var txt=document.getElementById("slip").textContent, tt=document.getElementById("toast");
@@ -375,7 +439,8 @@ html{scroll-behavior:smooth}
   function pick(k){return Array.prototype.map.call(document.querySelectorAll('[data-k="'+k+'"] button[aria-pressed="true"]'),function(b){return b.getAttribute("aria-label")||b.textContent;}).join(", ");}
   function fmt(v){if(!v)return"";var x=new Date(v+"T00:00");return (x.getMonth()+1)+"/"+x.getDate()+"("+"일월화수목금토"[x.getDay()]+")";}
   function slip(){
-    var lines=["["+S.name+" 예약 주문서]","종류: "+(pick("kind")||"-"),pick("occ")?"어떤 날: "+pick("occ"):"","예산: "+(pick("budget")||"-"),"색: "+(pick("color")||"-"),
+    var pq=document.getElementById("pickedQ"); pq.hidden=!PICKED; document.getElementById("pickedT").textContent=PICKED;
+    var lines=["["+S.name+" 예약 주문서]",PICKED?"고른 꽃: "+PICKED:"","종류: "+(pick("kind")||"-"),pick("occ")?"어떤 날: "+pick("occ"):"","예산: "+(pick("budget")||"-"),"색: "+(pick("color")||"-"),
       "날짜: "+fmt(document.getElementById("d").value)+" "+document.getElementById("t").value,"받는 방법: "+(pick("how")||"-"),
       document.getElementById("memo").value?"하고 싶은 말: "+document.getElementById("memo").value:"",
       document.getElementById("nm").value?"주문하신 분: "+document.getElementById("nm").value:""].filter(Boolean);
@@ -386,6 +451,9 @@ html{scroll-behavior:smooth}
 
   // ── 편집 창 ──
   function act(a,arg){
+    if(a==="confirm") return sheetConfirm();
+    if(a==="kid") return copyText(S.kakaoId,"카톡 아이디를 복사했어요. 카톡 친구 찾기에 붙여 넣어 주세요.");
+    if(a==="shareguest"){ var u=location.origin+"/f/"+slug; if(navigator.share&&!CONFIRM) return navigator.share({title:S.name,url:u}).catch(function(){}); return copyText(u,"링크를 복사했어요"); }
     if(a==="hero") return sheetPhotoHero();
     if(a==="info") return sheetInfo();
     if(a==="item") return sheetItem(parseInt(arg,10));
@@ -407,6 +475,32 @@ html{scroll-behavior:smooth}
     if(onSave) document.getElementById("shSave").onclick=function(){ if(onSave()!==false) close(); };
     var first=root.querySelector("input,textarea,select,button"); if(first) first.focus({preventScroll:true});
     return root;
+  }
+  function copyText(txt,msg){ (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast(msg);}).catch(function(){toast("복사하지 못했어요: "+txt);}); }
+  // 사진을 누르면 크게 보고, 그 꽃으로 주문서를 시작한다
+  function sheetView(i){
+    var it=(S.menu||[])[i]; if(!it) return;
+    var im=safeImg(it.img), canOrder=on("order")&&document.getElementById("slip");
+    openSheet((im?'<img class="vimg" src="'+esc(im)+'" alt="">':'')+'<h3>'+esc(it.name)+'</h3>'+(it.desc?'<p class="vdesc">'+esc(it.desc)+'</p>':'')+'<p><b>'+esc(it.price||"상담 후 결정")+'</b></p>',
+      canOrder?function(){
+        PICKED=it.name;
+        var c=(S.cats||[]).filter(function(x){return x.id===it.cat;})[0], g=document.querySelector('[data-k="kind"]');
+        if(c&&g) g.querySelectorAll("button").forEach(function(b){ if(b.textContent===c.label) g.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===b);}); });
+        slip(); document.getElementById("order").scrollIntoView();
+      }:null,"이 꽃으로 주문서 쓰기");
+  }
+  // 사장님 확인: 답을 고르면 글이 복사되고 꽃안부 카톡으로 간다(서버 없이)
+  function sheetConfirm(){
+    var root=openSheet('<h3>'+esc(S.name)+' 사장님, 어떠세요?</h3><p class="note-o">사진과 값은 꽃안부가 임시로 넣어 둔 거예요. 사장님 사진과 값으로 바꿔 드려요. 비용은 없어요.</p>'
+      +'<div class="choice"><button type="button" data-ans="이대로 쓸게요">이대로 쓸게요<small>손님에게 보이게 열어 드려요</small></button>'
+      +'<button type="button" data-ans="고칠 곳이 있어요">고칠 곳 알려 주기<small>사진, 값, 영업시간을 알려 주세요</small></button>'
+      +'<button type="button" data-ans="안 쓸래요">안 쓸래요<small>이 페이지를 바로 지워요</small></button></div>');
+    root.querySelectorAll("[data-ans]").forEach(function(b){b.addEventListener("click",function(){
+      var txt="["+S.name+" 꽃집 페이지] "+b.dataset.ans;
+      try{navigator.clipboard.writeText(txt);}catch(_){}
+      toast("답을 복사했어요. 열린 꽃안부 카톡에 붙여 넣어 주세요");
+      window.open(ANBU_CHAT,"_blank","noopener");
+    });});
   }
   function field(id,label,val,type,hint){
     var inp= type==="textarea" ? '<textarea id="'+id+'">'+esc(val)+'</textarea>' : '<input id="'+id+'" type="'+(type||"text")+'" value="'+esc(val)+'">';

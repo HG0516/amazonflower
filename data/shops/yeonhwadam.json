@@ -1,0 +1,102 @@
+{
+  "slug": "yeonhwadam",
+  "draft": true,
+  "key": "zwhPK8xwxaU",
+  "name": "연화담플라워",
+  "tagline": "시흥 대야동 꽃집",
+  "area": "경기 시흥시 대야동",
+  "tags": [
+    "연중무휴",
+    "무인 픽업",
+    "예약 제작"
+  ],
+  "notice": "연중무휴예요",
+  "noticeSub": "영업시간 밖에는 무인 픽업으로 찾아가실 수 있어요",
+  "unmanned": false,
+  "howOpts": [
+    "매장 픽업",
+    "무인 픽업",
+    "배달 문의"
+  ],
+  "kakao": "",
+  "kakaoId": "yeonhwadam",
+  "phone": "010-5645-6230",
+  "insta": "yeonhwadam_flower",
+  "address": "",
+  "hero": "/photos/products/BQ-003_1.jpg",
+  "cats": [
+    {
+      "id": "bq",
+      "label": "꽃다발"
+    },
+    {
+      "id": "mini",
+      "label": "미니 꽃다발"
+    },
+    {
+      "id": "bk",
+      "label": "꽃바구니"
+    },
+    {
+      "id": "pl",
+      "label": "식물"
+    }
+  ],
+  "menu": [
+    {
+      "cat": "bq",
+      "name": "꽃다발",
+      "desc": "생일 · 기념일",
+      "price": "",
+      "img": "/photos/products/BQ-004_1.jpg",
+      "best": true
+    },
+    {
+      "cat": "mini",
+      "name": "미니 꽃다발",
+      "desc": "한 손에 쏙",
+      "price": "",
+      "img": "/photos/products/BQ-005_1.jpg",
+      "best": true
+    },
+    {
+      "cat": "bq",
+      "name": "장미 꽃다발",
+      "desc": "기념일 · 고백",
+      "price": "",
+      "img": "/photos/products/BQ-007_1.jpg"
+    },
+    {
+      "cat": "bk",
+      "name": "꽃바구니",
+      "desc": "생신 · 집들이",
+      "price": "",
+      "img": "/photos/꽃바구니/꽃바구니_기본.jpg",
+      "best": true
+    },
+    {
+      "cat": "pl",
+      "name": "호접란",
+      "desc": "개업 · 승진",
+      "price": "",
+      "img": "/photos/난/서양란_기본.jpg"
+    },
+    {
+      "cat": "pl",
+      "name": "관엽 화분",
+      "desc": "사무실 · 개업",
+      "price": "",
+      "img": "/photos/관엽/일반형.jpg"
+    }
+  ],
+  "orderKinds": [
+    "꽃다발",
+    "미니 꽃다발",
+    "꽃바구니",
+    "식물"
+  ],
+  "classes": [],
+  "blocks": {
+    "cls": false
+  }
+}

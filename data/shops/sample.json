@@ -4,8 +4,15 @@
   "name": "예시 꽃집",
   "tagline": "파스텔톤 들꽃 느낌 꽃집",
   "area": "경기 시흥시",
-  "tags": ["24시 무인", "예약 제작", "원데이 클래스"],
-  "hours": { "open": 10, "close": 19 },
+  "tags": [
+    "24시 무인",
+    "예약 제작",
+    "원데이 클래스"
+  ],
+  "hours": {
+    "open": 10,
+    "close": 19
+  },
   "unmanned": true,
   "kakao": "",
   "phone": "1577-2286",
@@ -13,22 +20,84 @@
   "address": "경기 시흥시 신천3길 23, 103호",
   "hero": "/photos/products/BQ-003_1.jpg",
   "cats": [
-    { "id": "bq", "label": "꽃다발" },
-    { "id": "mini", "label": "미니 꽃다발" },
-    { "id": "bk", "label": "꽃바구니" },
-    { "id": "pl", "label": "식물" }
+    {
+      "id": "bq",
+      "label": "꽃다발"
+    },
+    {
+      "id": "mini",
+      "label": "미니 꽃다발"
+    },
+    {
+      "id": "bk",
+      "label": "꽃바구니"
+    },
+    {
+      "id": "pl",
+      "label": "식물"
+    }
   ],
   "menu": [
-    { "cat": "bq", "name": "들꽃 꽃다발", "desc": "파스텔 섞어서", "price": "55,000원부터", "img": "/photos/products/BQ-004_1.jpg" },
-    { "cat": "mini", "name": "미니 꽃다발", "desc": "한 손에 쏙", "price": "35,000원부터", "img": "/photos/products/BQ-005_1.jpg" },
-    { "cat": "bq", "name": "장미 꽃다발", "desc": "기념일 · 고백", "price": "65,000원부터", "img": "/photos/products/BQ-007_1.jpg" },
-    { "cat": "bk", "name": "꽃바구니", "desc": "생신 · 집들이", "price": "57,000원부터", "img": "/photos/꽃바구니/꽃바구니_기본.jpg" },
-    { "cat": "pl", "name": "호접란", "desc": "개업 · 승진", "price": "67,000원부터", "img": "/photos/난/서양란_기본.jpg" },
-    { "cat": "pl", "name": "관엽 화분", "desc": "사무실 · 개업", "price": "57,000원부터", "img": "/photos/관엽/일반형.jpg" }
+    {
+      "cat": "bq",
+      "name": "들꽃 꽃다발",
+      "desc": "파스텔 섞어서",
+      "price": "55,000원부터",
+      "img": "/photos/products/BQ-004_1.jpg",
+      "best": true
+    },
+    {
+      "cat": "mini",
+      "name": "미니 꽃다발",
+      "desc": "한 손에 쏙",
+      "price": "35,000원부터",
+      "img": "/photos/products/BQ-005_1.jpg",
+      "best": true
+    },
+    {
+      "cat": "bq",
+      "name": "장미 꽃다발",
+      "desc": "기념일 · 고백",
+      "price": "65,000원부터",
+      "img": "/photos/products/BQ-007_1.jpg"
+    },
+    {
+      "cat": "bk",
+      "name": "꽃바구니",
+      "desc": "생신 · 집들이",
+      "price": "57,000원부터",
+      "img": "/photos/꽃바구니/꽃바구니_기본.jpg",
+      "best": true
+    },
+    {
+      "cat": "pl",
+      "name": "호접란",
+      "desc": "개업 · 승진",
+      "price": "67,000원부터",
+      "img": "/photos/난/서양란_기본.jpg"
+    },
+    {
+      "cat": "pl",
+      "name": "관엽 화분",
+      "desc": "사무실 · 개업",
+      "price": "57,000원부터",
+      "img": "/photos/관엽/일반형.jpg"
+    }
   ],
-  "orderKinds": ["꽃다발", "미니 꽃다발", "꽃바구니", "식물"],
+  "orderKinds": [
+    "꽃다발",
+    "미니 꽃다발",
+    "꽃바구니",
+    "식물"
+  ],
   "classes": [
-    { "name": "들꽃 꽃다발 만들기", "when": "토요일 오후 2시 · 2시간" },
-    { "name": "화병 꽃꽂이", "when": "일요일 오후 1시 · 1시간 반" }
+    {
+      "name": "들꽃 꽃다발 만들기",
+      "when": "토요일 오후 2시 · 2시간"
+    },
+    {
+      "name": "화병 꽃꽂이",
+      "when": "일요일 오후 1시 · 1시간 반"
+    }
   ]
 }
