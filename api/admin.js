@@ -205,6 +205,19 @@ export default async function handler(req, res) {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
 
+  // 카톡 주문 알림(11/14): 집맥 kakao-watch 가 플라워스토리 방에서 읽은 주문을 이 봇 방으로 넘긴다.
+  // 봇 열쇠는 Vercel 밖으로 못 꺼내므로 서버가 대신 보낸다. KAKAO_ALERT_SECRET 전용, 글만, 봇 방으로만.
+  if (body.resource === "kakao" && body.action === "alert") {
+    const KSECRET = process.env.KAKAO_ALERT_SECRET || "";
+    if (!KSECRET || !safeEqual(String(req.headers.authorization || ""), `Bearer ${KSECRET}`)) {
+      return res.status(401).json({ error: "unauthorized" });
+    }
+    const text = String(body.text || "").slice(0, 3500).trim();
+    if (!text) return res.status(400).json({ error: "text 없음" });
+    const sent = await notifyChange(text);
+    return res.status(sent ? 200 : 502).json({ ok: sent });
+  }
+
   // 결제취소만 텔레그램 HMAC 링크를 유지한다. 그 외는 Supabase 관리자
   // 세션(전환기 dual 모드에서는 구형 비밀번호)을 서버 allowlist로 확인한다.
   const isCancel = body.resource === "order" && body.action === "cancel";
