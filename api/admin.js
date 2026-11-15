@@ -44,10 +44,11 @@ export const config = { runtime: "nodejs" };
 // 사장님이 상품·옵션·사진을 바꾸면 단톡방에 남긴다. 손님에게 보이는 것이 바뀌는데
 // 아무도 모르는 상태를 없애기 위한 것 — 감사 흔적 겸 "이거 누가 바꿨지?"의 답.
 // 실패해도 작업 자체는 성공으로 둔다(알림 때문에 저장이 막히면 안 된다). env 없으면 생략.
-async function notifyChange(text) {
+async function notifyChange(text, { noTag = false } = {}) {
   const tg = process.env.TELEGRAM_BOT_TOKEN, tgc = process.env.TELEGRAM_CHAT_ID;
   if (!tg || !tgc) return false;
-  const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
+  // 복사해서 붙일 글(noTag)은 머리표를 빼야 그대로 붙여 쓸 수 있다(11/16).
+  const tag = !noTag && process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), 3500);
   try {
@@ -214,7 +215,7 @@ export default async function handler(req, res) {
     }
     const text = String(body.text || "").slice(0, 3500).trim();
     if (!text) return res.status(400).json({ error: "text 없음" });
-    const sent = await notifyChange(text);
+    const sent = await notifyChange(text, { noTag: body.paste === true });
     return res.status(sent ? 200 : 502).json({ ok: sent });
   }
 
