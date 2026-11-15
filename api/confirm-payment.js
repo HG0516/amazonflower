@@ -255,6 +255,31 @@ function buildOwnerMessage(order, payment) {
   return lines.join("\n");
 }
 
+// 플라워스토리 방에 그대로 붙일 발주 글(11/15 형구). 돈·주문자·주문번호는 넣지 않는다.
+function buildOrderPaste(order) {
+  const L = [];
+  if (Array.isArray(order.items) && order.items.length >= 2) {
+    for (const it of order.items) L.push(`${it.name || it.productCode}${Number(it.quantity) > 1 ? ` ${it.quantity}개` : ""}`);
+  } else if (order.productLabel) {
+    L.push(`${order.productLabel}${Number(order.quantity) > 1 ? ` ${order.quantity}개` : ""}`);
+  }
+  if (order.date) L.push(`${order.date}${order.time ? " " + order.time : ""}`);
+  if (order.eventTime) L.push(`${order.type === "funeral" ? "발인" : order.type === "wedding" ? "예식" : "행사"} ${order.eventTime}`);
+  const venue = order.venue || order.venueName;
+  if (venue) L.push(`${venue}${order.venueDetail ? " " + order.venueDetail : ""}`);
+  const addr = order.address || order.venueAddress;
+  if (addr) L.push(addr);
+  if (order.chiefMourner) L.push(`상주 ${order.chiefMourner}`);
+  if (order.recipientName) L.push(`받는 분 ${order.recipientName}${order.recipientPhone ? " " + order.recipientPhone : ""}`);
+  const ribbon = order.ribbonText || [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ");
+  if (ribbon) L.push(`리본 ${ribbon}`);
+  if (order.cardMessage) L.push(`카드 ${order.cardMessage}`);
+  if (order.delivReq) L.push(`요청 ${order.delivReq}`);
+  if (order.entrancePw) L.push(`공동현관 ${order.entrancePw}`);
+  L.push("부탁드립니다~");
+  return L.join("\n");
+}
+
 // 손님이 받는 주문 확인 문자. 사장님용과 달리 원가·내부 메모는 절대 넣지 않는다.
 // 근조에는 판촉·축하 표현을 쓰지 않는다.
 function buildCustomerMessage(order, payment) {
@@ -500,6 +525,17 @@ export async function notifyTelegram(order, payment) {
         ...(res.status === 408 || res.status === 429 || res.status >= 500 || (res.ok && !data)
           ? { uncertain: true } : {}),
       };
+    }
+    // 두 번째 통: 플라워스토리 방에 붙일 발주 글. 실패해도 주문 알림 결과는 그대로.
+    if (!waitingVa && !giftWaiting) {
+      try {
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: buildOrderPaste(order), disable_web_page_preview: true }),
+          signal: AbortSignal.timeout(3000),
+        });
+      } catch { console.error("발주 글 발송 실패"); }
     }
     return { sent: true };
   } catch (err) {

@@ -53,6 +53,9 @@ function restoreEnv(snapshot) {
   }
 }
 
+// 사장님 알림 뒤에 따로 가는 "플라워스토리 방에 붙일 발주 글"(11/15). 알림 횟수 셈에서 뺀다.
+const isOrderPaste = (o) => { try { const b = JSON.parse(o.body); return !b.reply_markup && /부탁드립니다~$/.test(b.text || ""); } catch { return false; } };
+
 test("payment hash and idempotency key are deterministic", () => {
   const a = { amount: 78000, recipient: { name: "김안부", phone: "01012345678" } };
   const b = { recipient: { phone: "01012345678", name: "김안부" }, amount: 78000 };
@@ -201,6 +204,7 @@ test("payment notifications retry only the channel that did not succeed", { conc
         return Response.json({ groupInfo: { count: { registeredSuccess: tos.length, registeredFailed: 0 } } });
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         return Response.json(telegramShouldFail ? { ok: false } : { ok: true }, { status: telegramShouldFail ? 400 : 200 });
       }
@@ -284,6 +288,7 @@ test("concurrent notification workers acquire only one per-channel lease", { con
         throw new Error(`unexpected intent patch ${options.body}`);
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         announceTelegram();
         await telegramGate;
@@ -359,6 +364,7 @@ test("uncertain payment SMS and Telegram results retain their leases", { concurr
         return Response.json({ message: "temporary upstream error" }, { status: 500 });
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         return new Response("not-json", { status: 200, headers: { "Content-Type": "application/json" } });
       }
@@ -443,6 +449,7 @@ test("payment notice and refund holds are mutually exclusive in both start order
         return Response.json([{ result: "started", lease_until: null }]);
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         announceTelegram();
         await telegramGate;
@@ -525,6 +532,7 @@ test("cancellation critical alerts can claim canceling rows but payment alerts c
         return Response.json([{ ...stored }]);
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         return Response.json({ ok: true });
       }
@@ -923,6 +931,7 @@ test("a permanent Toss cancel rejection closes automatic retries but retains the
         return Response.json({ code: "NOT_CANCELABLE", message: "permanent rejection" }, { status: 403 });
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         return Response.json({ ok: true });
       }
@@ -1206,6 +1215,7 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
         return Response.json([]);
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         briefingText = JSON.parse(options.body || "{}").text || "";
         return Response.json({ ok: true });
@@ -1246,6 +1256,7 @@ test("briefings and delivery warnings exclude refund-pending orders at query and
         return Response.json([]);
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         return Response.json({ ok: true });
       }
@@ -1297,6 +1308,7 @@ test("a normal ordered transition after a delivery warning is never mislabeled a
         return Response.json([{ ...order }]);
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         // 운영자가 경고를 보고 정상 발주완료 처리한 상황.
         order.status = "ordered";
@@ -1346,6 +1358,7 @@ test("a refund started while a briefing is sent gets an immediate correction", {
         });
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         const body = JSON.parse(options.body);
         telegramBodies.push(body.text);
         if (telegramBodies.length === 1) row.cancel_requested_at = new Date().toISOString();
@@ -1614,6 +1627,7 @@ test("reconciliation stops retrying a permanent Toss cancel rejection and retain
         return Response.json({ code: "NOT_CANCELABLE" }, { status: 403 });
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramCalls++;
         return Response.json({ ok: true });
       }
@@ -2380,6 +2394,7 @@ test("manual photo notice mode never calls SOLAPI and gives the owner a forwarda
         return Response.json({});
       }
       if (url.hostname === "api.telegram.org") {
+        if (isOrderPaste(options)) return Response.json({ ok: true }); // 두 번째 통(발주 글)은 세지 않는다
         telegramText = body.text || "";
         return Response.json({ ok: true });
       }
