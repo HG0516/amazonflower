@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 
 import { askClaude, extractJson, AI_MODEL } from "../lib/ai.mjs";
 import { createRequire } from "node:module";
-import { fixParsed, frameUrls, kstToday, pageToText, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
+import { dataUrlFor, fixParsed, frameUrls, gaonBugoText, kstToday, pageToText, scriptHangul, scriptUrls } from "../lib/parse-fix.mjs";
 
 // 장례식장 목록(공공데이터 1,117곳, 부고장 만들기와 같은 목록) — 자동읽기 결과의 장례식장 주소를 맞춰 본다.
 let HOMES = null;
@@ -82,6 +82,18 @@ async function readHtml(res) {
 }
 
 async function fetchPageText(url) {
+  // 브라우저가 그리는 부고장은 페이지가 비어 있다 → 그 사이트의 공개 데이터 주소를 먼저 읽는다. 안 되면 평소대로.
+  const data = dataUrlFor(url);
+  if (data) {
+    try {
+      const r = await fetch(data.url, { headers: { Accept: "application/json", "User-Agent": PAGE_HEADERS["User-Agent"] || PHONE_UA }, signal: AbortSignal.timeout(6000) });
+      if (r.ok) {
+        const t = data.kind === "gaon" ? gaonBugoText(await r.json()) : "";
+        const n = (t.match(/[가-힣]/g) || []).length;
+        if (n >= 8) return { text: t.slice(0, 10000), hangul: n };
+      }
+    } catch { /* 못 읽으면 아래 평소 방식으로 */ }
+  }
   const res = await openPage(url);
   if (!res.ok) {
     throw new Error(`페이지를 불러오지 못했습니다 (HTTP ${res.status})`);

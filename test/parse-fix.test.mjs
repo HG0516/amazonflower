@@ -315,3 +315,44 @@ test("장소 이름 검색(카카오): 꽃 가는 곳을 위로, 키 없으면 �
     if (oldKey === undefined) delete process.env.KAKAO_REST_KEY; else process.env.KAKAO_REST_KEY = oldKey;
   }
 });
+
+// 11/20 효담부고 — 주소를 열면 빈 껍데기만 오는 부고장은 그 사이트의 공개 데이터 주소를 읽는다.
+test("효담부고: 데이터 주소 찾기", async () => {
+  const { dataUrlFor } = await import("../lib/parse-fix.mjs");
+  assert.deepEqual(dataUrlFor("https://aplus.gaonprime.com/bugo/6afe790ed36b0b0692ccfe3b"), { kind: "gaon", url: "https://api.bugo.gaonprime.com/public/bugo/6afe790ed36b0b0692ccfe3b" });
+  assert.equal(dataUrlFor("https://aplus.gaonprime.com/bugo/6afe790ed36b0b0692ccfe3b/").kind, "gaon");
+  // 다른 사이트·다른 길·이름만 비슷한 곳은 건드리지 않는다
+  assert.equal(dataUrlFor("https://aplus.gaonprime.com/shop/1"), null);
+  assert.equal(dataUrlFor("https://evilgaonprime.com/bugo/6afe790ed36b0b0692ccfe3b"), null);
+  assert.equal(dataUrlFor("https://gaonprime.com.evil.kr/bugo/6afe790ed36b0b0692ccfe3b"), null);
+  assert.equal(dataUrlFor("https://floweranbu.co.kr/c/abc"), null);
+  assert.equal(dataUrlFor("주소 아님"), null);
+});
+
+test("효담부고: 데이터를 글로 — 발인은 한국 시간, 전화번호·계좌는 뺀다", async () => {
+  const { gaonBugoText } = await import("../lib/parse-fix.mjs");
+  const t = gaonBugoText({
+    user: { info: { phoneNumber: "01000001111" } },
+    fevent: {
+      roomInfoEmbed: { name: "7호실" },
+      deceasedInfo: {
+        name: "홍길동 집사", age: 89, cemetery: "시흥 추모공원",
+        enterance: { date: "2026-11-19T23:30:00.000Z", timeDefined: true },
+        coffinIn: { date: "2026-11-21T04:00:00.000Z", timeDefined: true },
+        coffinOut: { date: "2026-11-21T20:30:00.000Z", timeDefined: true },
+      },
+      funeralHomeInfo: { name: "시흥장례식장", address: "경기 시흥시 은행로 1", phoneNumber: "031-000-0000" },
+      memberOrderList: [{ fullName: "김영희", relationType: "배우자", phoneNumber: "01022223333" }, { fullName: "홍철수", relationType: "아 들" }],
+      cashAccounts: [{ account: "123-456" }],
+    },
+  });
+  assert.match(t, /故 홍길동 집사 \(향년 89세\)/);
+  assert.match(t, /장례식장: 시흥장례식장 7호실/);
+  assert.match(t, /장례식장 주소: 경기 시흥시 은행로 1/);
+  assert.match(t, /발인: 2026년 11월 22일 05시 30분/);   // UTC 21일 20:30 = 한국 22일 05:30
+  assert.match(t, /입관: 2026년 11월 21일 13시 00분/);
+  assert.match(t, /상주: 배우자 김영희, 아들 홍철수/);
+  assert.doesNotMatch(t, /0100|0102|031-000|123-456/);
+  assert.equal(gaonBugoText({}), "");
+  assert.equal(gaonBugoText(null), "");
+});
