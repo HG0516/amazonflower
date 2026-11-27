@@ -278,15 +278,33 @@ function buildOwnerMessage(order, payment, { forStaff = false } = {}) {
   return lines.join("\n");
 }
 
-// 플라워스토리 방에 그대로 붙일 발주 글(11/15 형구). 돈·주문자·주문번호는 넣지 않는다.
-function buildOrderPaste(order) {
+// 오늘(한국 시간) 들어온 주문 중 이 주문이 첫 번째인지. 못 읽으면 false(인사 없이 평소대로).
+async function isFirstOrderToday(orderId) {
+  const URL = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!URL || !KEY || !orderId) return false;
+  const k = new Date(Date.now() + 9 * 3600000);
+  const start = new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate()) - 9 * 3600000).toISOString();
+  try {
+    const out = await fetchJsonWithTimeout(
+      `${URL}/rest/v1/orders?select=order_id&created_at=gte.${encodeURIComponent(start)}&order=created_at.asc&limit=1`,
+      { headers: serviceHeaders(KEY) }, 1500);
+    if (!out.response.ok || !Array.isArray(out.data)) return false;
+    return out.data.length === 0 || out.data[0].order_id === orderId;
+  } catch { return false; }
+}
+
+// 플라워스토리 방에 그대로 붙일 발주 글(11/15 형구). 돈·주문자·주문번호·우리 상품 링크는 넣지 않는다.
+// 11/27 형구: 우리끼리 보는 알림과 나눠서 한 통으로. 그날 첫 주문이면 인사 한 줄을 앞에 붙인다.
+// ⚠️ 끝 줄 '부탁드립니다~' 는 test/first-bundle 이 발주 글을 알아보는 표시. 바꾸면 테스트도 같이.
+function buildOrderPaste(order, { firstToday = false } = {}) {
   const L = [];
+  if (firstToday) L.push("안녕하세요, 아마존입니다. 오늘 첫 주문이에요. 잘 부탁드립니다!", "");
   if (Array.isArray(order.items) && order.items.length >= 2) {
     for (const it of order.items) L.push(`${it.name || it.productCode}${Number(it.quantity) > 1 ? ` ${it.quantity}개` : ""}`);
   } else if (order.productLabel) {
     L.push(`${order.productLabel}${Number(order.quantity) > 1 ? ` ${order.quantity}개` : ""}`);
   }
-  if (order.date) L.push(`${order.date}${order.time ? " " + order.time : ""}`);
+  if (order.date) L.push(`${shortDate(order.date)}${order.time ? " " + order.time : ""}`);
   if (order.eventTime) L.push(`${order.type === "funeral" ? "발인" : order.type === "wedding" ? "예식" : "행사"} ${order.eventTime}`);
   const venue = order.venue || order.venueName;
   if (venue) L.push(`${venue}${order.venueDetail ? " " + order.venueDetail : ""}`);
@@ -507,8 +525,14 @@ export async function notifyTelegram(order, payment) {
   const tag = process.env.PROJECT_TAG ? `[${process.env.PROJECT_TAG}] ` : "";
   const waitingVa = isWaitingVirtualAccount(payment);
   const giftWaiting = !!(order.gift && !order.giftFilled);
+  // 발주 글이 나가는 주문인지, 나간다면 어느 방으로 가는지(발주 방이 있으면 그 방).
+  const pasteGoes = !waitingVa && !giftWaiting;
+  const staffChat = String(process.env.TELEGRAM_STAFF_CHAT_ID || "").trim();
+  const toStaff = !!staffChat && staffChat !== String(chatId).trim() && pasteGoes;
+  const PASTE_NEXT = "\n\n👇 다음 글은 플라워스토리 발주용이에요. 길게 눌러 복사해서 붙여 주세요.";
   const text = tag + (giftWaiting ? giftOwnerWaitingText(order, payment)
-    : waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment));
+    : waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment))
+    + (pasteGoes ? (toStaff ? "\n\n📋 플라워스토리 발주 글은 발주 방으로 보냈어요." : PASTE_NEXT) : "");
   // 발주 누락방지: '발주 완료 처리' 버튼. 누르면 status=ordered 가 되어 마감 경고 대상에서 빠진다.
   // 입금 전 가상계좌는 버튼을 달지 않는다 — 입금 확인 알림(lib/deposit-orders)에 따로 붙는다.
   let reply_markup;
@@ -552,26 +576,25 @@ export async function notifyTelegram(order, payment) {
       };
     }
     // 발주 방(있으면): 결제수단 뺀 알림 + [발주 완료] 버튼 하나. 실패해도 주문 알림 결과는 그대로.
-    const staffChat = String(process.env.TELEGRAM_STAFF_CHAT_ID || "").trim();
-    const toStaff = !!staffChat && staffChat !== String(chatId).trim() && !waitingVa && !giftWaiting;
     if (toStaff) {
       try {
         const staffKb = reply_markup ? { inline_keyboard: [reply_markup.inline_keyboard[0].slice(0, 1)] } : undefined;
         await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: staffChat, text: tag + buildOwnerMessage(order, payment, { forStaff: true }), disable_web_page_preview: true, ...(staffKb ? { reply_markup: staffKb } : {}) }),
+          body: JSON.stringify({ chat_id: staffChat, text: tag + buildOwnerMessage(order, payment, { forStaff: true }) + PASTE_NEXT, disable_web_page_preview: true, ...(staffKb ? { reply_markup: staffKb } : {}) }),
           signal: AbortSignal.timeout(3000),
         });
       } catch { console.error("발주 방 알림 발송 실패"); }
     }
     // 두 번째 통: 플라워스토리 방에 붙일 발주 글. 발주 방이 있으면 그 방으로. 실패해도 주문 알림 결과는 그대로.
-    if (!waitingVa && !giftWaiting) {
+    if (pasteGoes) {
       try {
+        const firstToday = await isFirstOrderToday(payment.orderId);
         await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: toStaff ? staffChat : chatId, text: buildOrderPaste(order), disable_web_page_preview: true }),
+          body: JSON.stringify({ chat_id: toStaff ? staffChat : chatId, text: buildOrderPaste(order, { firstToday }), disable_web_page_preview: true }),
           signal: AbortSignal.timeout(3000),
         });
       } catch { console.error("발주 글 발송 실패"); }
