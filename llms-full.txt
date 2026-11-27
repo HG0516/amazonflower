@@ -69,6 +69,9 @@
 - [전체 상품 가격](https://floweranbu.co.kr/prices): 107가지 상품의 이름, 가격, 주문 링크
 - [자주 묻는 것](https://floweranbu.co.kr/faq): 마감, 배송비, 빈소 호실, 리본, 계산서, 환불
 - [기념일·디데이 계산기](https://floweranbu.co.kr/dday): 100일·1주년·결혼기념일 n주년(은혼식·금혼식)·음력 생일을 양력으로, 그날 알림 받기
+- [부고 문자·조의 문자·축하 문구 만들기](https://floweranbu.co.kr/msg): 빈칸만 채우면 부고 알림, 조문 못 갈 때 위로 문자, 개업·승진·결혼·칠순 축하 문구와 리본 문구
+- [축의금·조의금 얼마 낼까](https://floweranbu.co.kr/money): 관계별로 흔히 내는 금액, 봉투 쓰는 법, 무료 경조사 장부
+- [환갑·칠순·팔순 계산기](https://floweranbu.co.kr/age): 몇 년생이 언제 환갑·칠순·팔순인지 세는 나이·만 나이로
 - [꽃 선물 묻고 답하기](https://floweranbu.co.kr/guide/): 근조화환 시기·가격·리본, 여자친구·부모님·개업·승진 선물
 - [리본 문구 모음](https://floweranbu.co.kr/ribbon/): 근조화환, 결혼 축하화환, 개업·승진·생신 리본 문구
 - [전국 장례식장 근조화환](https://floweranbu.co.kr/funeral/): 장례식장별 주소, 배송비, 주문 링크

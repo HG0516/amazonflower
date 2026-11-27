@@ -278,6 +278,18 @@
       "destination": "/dday.html"
     },
     {
+      "source": "/msg",
+      "destination": "/msg.html"
+    },
+    {
+      "source": "/money",
+      "destination": "/money.html"
+    },
+    {
+      "source": "/age",
+      "destination": "/age.html"
+    },
+    {
       "source": "/hello",
       "has": [{ "type": "query", "key": "s" }],
       "destination": "/api/order-meta?hello=1"

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>환갑·칠순·팔순 계산기 — 몇 년생이 올해 칠순? | 꽃안부</title>
+<meta name="description" content="태어난 해만 넣으면 환갑(회갑)·진갑·칠순(고희)·희수·팔순(산수)·미수·구순·백수가 몇 년인지 바로 보여 드려요. 세는 나이와 만 나이 두 가지로 모두 계산하고, 음력 생일도 그해 양력 날짜로 바꿔 드려요.">
+<link rel="canonical" href="https://floweranbu.co.kr/age">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="꽃안부">
+<meta property="og:title" content="환갑·칠순·팔순 계산기 | 꽃안부">
+<meta property="og:description" content="몇 년생이 언제 환갑·칠순·팔순인지 세는 나이·만 나이로 한 번에.">
+<meta property="og:url" content="https://floweranbu.co.kr/age">
+<meta property="og:image" content="https://floweranbu.co.kr/og_preview.png">
+<meta name="theme-color" content="#1f4733">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/tools.css?v=20261127">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebApplication","name":"환갑·칠순·팔순 계산기","url":"https://floweranbu.co.kr/age","applicationCategory":"UtilitiesApplication","operatingSystem":"All","inLanguage":"ko","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"publisher":{"@type":"Florist","name":"꽃안부","url":"https://floweranbu.co.kr/","telephone":"+82-1577-2286"}},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"환갑은 몇 살인가요?","acceptedAnswer":{"@type":"Answer","text":"환갑(회갑)은 태어난 해의 간지가 다시 돌아오는 해로, 만 60세 생일이에요. 세는 나이로는 61세예요. 그래서 태어난 해에 60을 더한 해가 환갑이에요."}},
+{"@type":"Question","name":"칠순은 몇 살인가요?","acceptedAnswer":{"@type":"Answer","text":"칠순은 일흔 살 생일이에요. 예전엔 세는 나이 70세(만 69세)에 많이 했고, 2023년 6월부터 만 나이를 쓰게 되면서 만 70세에 하는 집도 많아요. 집안에서 정하면 돼요."}},
+{"@type":"Question","name":"희수·미수·백수는 몇 살인가요?","acceptedAnswer":{"@type":"Answer","text":"희수는 77세, 팔순(산수)은 80세, 미수는 88세, 구순(졸수)은 90세, 백수는 99세예요. 보통 세는 나이로 셉니다."}}
+]},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"꽃안부","item":"https://floweranbu.co.kr/"},{"@type":"ListItem","position":2,"name":"환갑·칠순 계산기","item":"https://floweranbu.co.kr/age"}]}
+]}
+</script>
+</head>
+<body>
+<div class="w">
+<div class="top"><a href="/">꽃안부</a><a href="tel:1577-2286">전화 1577-2286</a></div>
+<h1>환갑·칠순·팔순 계산기</h1>
+<p class="lead">태어난 해만 넣으면 환갑부터 백수까지 몇 년인지 보여 드려요. 세는 나이와 만 나이 두 가지로 다 계산해요.</p>
+
+<div class="box">
+  <label class="fl" for="who">누구 (선택)</label>
+  <input id="who" placeholder="예: 어머니">
+  <label class="fl" for="y">태어난 해</label>
+  <select id="y"></select>
+  <label class="fl">생일 (선택 — 넣으면 그해 날짜·요일까지)</label>
+  <div class="duo">
+    <select id="m"><option value="">월</option></select>
+    <select id="d"><option value="">일</option></select>
+  </div>
+  <div class="chips" id="cal" style="margin-top:8px">
+    <button type="button" class="on" data-v="solar">양력</button>
+    <button type="button" data-v="lunar">음력</button>
+  </div>
+  <div class="now" id="age"></div>
+</div>
+
+<ul class="ms" id="list"></ul>
+<p class="note">요즘은 집안마다 세는 나이로 하기도, 만 나이로 하기도 해요. 2023년 6월부터 법과 행정에서 만 나이를 쓰게 됐어요.</p>
+<div class="acts" id="acts"></div>
+
+<section class="qa">
+  <h2>잔치 이름 한눈에</h2>
+  <table class="t">
+    <thead><tr><th>이름</th><th>나이</th><th>뜻</th></tr></thead>
+    <tbody>
+      <tr><td>환갑·회갑</td><td>만 60세</td><td>태어난 해의 간지가 다시 돌아옴</td></tr>
+      <tr><td>진갑</td><td>만 61세</td><td>환갑 다음 해</td></tr>
+      <tr><td>칠순·고희</td><td>70세</td><td>일흔 살</td></tr>
+      <tr><td>희수</td><td>77세</td><td>기쁠 희(喜) 자의 흘림 글씨가 七十七 같다고 해서</td></tr>
+      <tr><td>팔순·산수</td><td>80세</td><td>여든 살</td></tr>
+      <tr><td>미수</td><td>88세</td><td>쌀 미(米) 자가 八十八로 보인다고 해서</td></tr>
+      <tr><td>구순·졸수</td><td>90세</td><td>아흔 살</td></tr>
+      <tr><td>백수</td><td>99세</td><td>百에서 一을 빼면 白</td></tr>
+    </tbody>
+  </table>
+  <h2>자주 묻는 것</h2>
+  <h3>칠순 잔치엔 무엇을 보내나요?</h3>
+  <p>잔치 자리에는 축하화환이나 꽃바구니를, 가족끼리 식사하는 자리라면 꽃바구니나 꽃다발을 많이 보내요. 리본에는 '축 칠순', '축 고희', '만수무강하세요' 같은 문구를 써요.</p>
+  <h3>자녀들이 함께 보낼 땐 리본에 뭐라고 쓰나요?</h3>
+  <p>보내는 사람 칸에 '자녀 일동', '아들 ○○ 딸 ○○ 올림'처럼 적어요.</p>
+</section>
+
+<h2>함께 쓰면 좋은 것</h2>
+<div class="more">
+  <a href="/msg?tab=congrats&amp;ev=70">칠순·환갑 축하 문자 만들기 <small>관계별 예시와 리본 문구</small></a>
+  <a href="/money?ev=70">돌잔치·칠순 축하금 얼마? <small>관계별로 흔히 내는 금액</small></a>
+  <a href="/dday?tab=lunar">음력 생일 계산기 <small>올해부터 5년치 양력 날짜</small></a>
+</div>
+
+<p class="foot">꽃안부 · 1993년부터 꽃을 보내 온 꽃집 · 전화 1577-2286</p>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var WD = "일월화수목금토";
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  // k: 세는 나이 기준 나이, man: 만 나이로만 세는 잔치(환갑·진갑)
+  var MS = [
+    { n: "환갑(회갑)", a: 60, man: true }, { n: "진갑", a: 61, man: true }, { n: "칠순(고희)", a: 70 }, { n: "희수", a: 77 },
+    { n: "팔순(산수)", a: 80 }, { n: "미수", a: 88 }, { n: "구순(졸수)", a: 90 }, { n: "백수", a: 99 },
+  ];
+  var now = new Date(), Y = now.getFullYear(), o = "";
+  for (var y = Y - 20; y >= Y - 105; y--) o += '<option value="' + y + '"' + (y === Y - 65 ? " selected" : "") + ">" + y + "년생 (" + (y % 100 < 10 ? "0" : "") + (y % 100) + "년생)</option>";
+  $("y").innerHTML = o; o = "";
+  for (var i = 1; i <= 12; i++) o += '<option value="' + i + '">' + i + "월</option>"; $("m").innerHTML += o; o = "";
+  for (var j = 1; j <= 31; j++) o += '<option value="' + j + '">' + j + "일</option>"; $("d").innerHTML += o;
+  var cal = "solar";
+  $("cal").addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; cal = b.getAttribute("data-v"); $("cal").querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); draw(); });
+  ["y", "m", "d"].forEach(function (id) { $(id).addEventListener("change", draw); });
+  $("who").addEventListener("input", draw);
+
+  function fmt(s) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); if (!m) return ""; var d = new Date(+m[1], +m[2] - 1, +m[3]); return (+m[2]) + "월 " + (+m[3]) + "일(" + WD[d.getDay()] + ")"; }
+  function ymd(y, m, d) { var x = new Date(y, m - 1, d); if (x.getMonth() !== m - 1) x = new Date(y, m, 0); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
+  var seq = 0;
+  function draw() {
+    var by = +$("y").value, m = +$("m").value, d = +$("d").value, who = $("who").value.trim(), my = ++seq;
+    var korean = Y - by + 1, man = Y - by - (m && d && (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) ? 1 : 0);
+    $("age").innerHTML = (who ? esc(who) + " · " : "") + by + "년생은 올해 세는 나이 <b>" + korean + "세</b>" + (m && d && cal === "solar" ? " · 만 <b>" + man + "세</b>" : " · 만 " + (Y - by - 1) + "~" + (Y - by) + "세");
+    var rows = MS.map(function (x) {
+      var yk = x.man ? by + x.a : by + x.a - 1, ym = by + x.a;
+      return { x: x, ys: x.man ? [ym] : [yk, ym] };
+    });
+    function render(dates) {
+      $("list").innerHTML = rows.map(function (r) {
+        var past = r.ys[r.ys.length - 1] < Y, next = !past && r === rows.filter(function (q) { return q.ys[q.ys.length - 1] >= Y; })[0];
+        var line = r.x.man ? r.ys[0] + "년 (만 " + r.x.a + "세)" + (dates[r.ys[0]] ? " · " + dates[r.ys[0]] : "")
+          : "세는 나이 " + r.ys[0] + "년" + (dates[r.ys[0]] ? " " + dates[r.ys[0]] : "") + "<small>만 나이로 하면 " + r.ys[1] + "년" + (dates[r.ys[1]] ? " " + dates[r.ys[1]] : "") + "</small>";
+        var tag = r.ys[0] === Y ? "올해" : r.ys[1] === Y ? "올해(만)" : r.ys[0] > Y ? r.ys[0] - Y + "년 뒤" : "지남";
+        return '<li class="' + (past ? "past" : next ? "next" : "") + '"><span class="k">' + r.x.n + '</span><span class="v">' + line + '</span><span class="dd">' + tag + "</span></li>";
+      }).join("");
+    }
+    var dates = {};
+    if (m && d && cal === "solar") rows.forEach(function (r) { r.ys.forEach(function (y) { dates[y] = fmt(ymd(y, m, d)); }); });
+    render(dates);
+    // 음력 생일은 해마다 양력 날짜가 달라 서버에서 바꾼다(2000~2100년만)
+    if (m && d && cal === "lunar") {
+      var ys = []; rows.forEach(function (r) { r.ys.forEach(function (y) { if (y >= 2000 && y <= 2100 && ys.indexOf(y) < 0) ys.push(y); }); });
+      Promise.all(ys.map(function (y) {
+        return fetch("/api/parse-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "lunar", items: [{ m: m, d: Math.min(d, 30) }], y0: y, n: 1 }) })
+          .then(function (r) { return r.json(); }).then(function (j) { var s = j && j.ok && j.dates && j.dates[0] && j.dates[0][0]; if (s) dates[y] = "양력 " + fmt(s); }).catch(function () {});
+      })).then(function () { if (my === seq) render(dates); });
+    }
+    var acts = '<a class="btn" href="/catalog.html?cat=basket&amp;utm_source=age">💐 생신·칠순 꽃바구니 보기</a><a class="btn o" href="/catalog.html?cat=congrats&amp;utm_source=age">잔치 자리 축하화환</a>';
+    if (m && d) {
+      var p = new URLSearchParams({ tab: "people", add: "1", lb: "생일", m: String(m), d: String(Math.min(d, 30)), utm_source: "age" });
+      if (who) p.set("who", who); if (cal === "lunar") p.set("cal", "lunar");
+      acts = '<a class="btn" href="/my?' + esc(p.toString()) + '">🔔 매년 생신 알림 받기</a>' + acts;
+    }
+    $("acts").innerHTML = acts;
+  }
+  var q = new URLSearchParams(location.search), qy = +q.get("y");
+  if (qy >= Y - 105 && qy <= Y - 20) $("y").value = String(qy);
+  draw();
+})();
+</script>
+<script src="/va.js?v=20261025a" defer></script>
+</body>
+</html>

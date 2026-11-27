@@ -183,6 +183,12 @@
   .wed-home .wedcard-h { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); }
   .wed-home .wedcard-t { font-size: 14px; color: var(--ink-soft); line-height: 1.75; }
   .wed-home .wedcard-s { font-size: 12.5px; color: var(--gold); font-weight: 700; }
+  /* 무료 계산기·문구(11/27) — 꽃이 아니어도 기념일·경조사로 들어오는 손님 입구 */
+  .tools-home h2 { font-size: 17px; margin: 0 0 10px; }
+  .tools-home .tl-g { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tools-home .tl-g a { display: block; padding: 13px 12px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 700; font-size: 14.5px; line-height: 1.4; min-width: 0; }
+  .tools-home .tl-g a small { display: block; margin-top: 3px; font-weight: 400; font-size: 12.5px; color: var(--ink-faint); }
+  .tools-home .tl-g a:hover { border-color: var(--gold); }
   .wed-home .wedcard-cta { margin-top: 4px; background: var(--accent); color: #fff; text-align: center; padding: 13px; border-radius: var(--radius); font-size: 15px; font-weight: 700; }
 
   /* ── 카드 — 그림자 없이 선만 ── */
@@ -828,6 +834,7 @@
     .hdr-menu a:hover { color: var(--accent); }
     .hdr-menu a.on { color: var(--accent); font-weight: 800; }
     .hm-dd { position: relative; display: flex; }
+    @media (max-width:1199px){ .hm-dd.hm-tools { display: none; } }   /* 1000~1199px 에선 메뉴가 넘쳐 숨김(홈 칸·푸터에 링크 있음) */
     .hm-dd-b { padding: 10px 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; white-space: nowrap; }
     .hm-dd-b span { font-size: 11px; color: var(--ink-faint); }
     .hm-dd-p { display: none; position: absolute; top: 100%; left: -14px; z-index: 60; min-width: 250px; padding: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,.1); }
@@ -925,6 +932,15 @@
             <a role="menuitem" href="/bugo">부고장<small>장례식장·계좌·조문 글, 무료</small></a>
             <a role="menuitem" href="/wedding-card">모바일 청첩장<small>사진·디자인·참석 여부, 무료</small></a>
             <a role="menuitem" href="/bugo/make?ty=t">감사 인사장<small>장례·결혼식 뒤 고마움 전하기</small></a>
+          </div>
+        </div>
+        <div class="hm-dd hm-tools">
+          <button type="button" class="hm-dd-b" aria-haspopup="true">계산기·문구 <span aria-hidden="true">▾</span></button>
+          <div class="hm-dd-p" role="menu">
+            <a role="menuitem" href="/dday">기념일·디데이 계산기<small>100일·1주년·결혼기념일·음력 생일</small></a>
+            <a role="menuitem" href="/msg">부고·조의·축하 문자<small>관계별 예시, 바로 복사</small></a>
+            <a role="menuitem" href="/money">축의금·조의금 얼마?<small>흔히 내는 금액 + 경조사 장부</small></a>
+            <a role="menuitem" href="/age">환갑·칠순 계산기<small>몇 년생이 언제 잔치하는지</small></a>
           </div>
         </div>
         <a href="/my">주문·배송 조회</a>
@@ -1063,6 +1079,16 @@
         <div class="wedcard-cta">웨딩 부케 예약 상담 →</div>
       </div>
     </a>
+  </section>
+
+  <section class="home-sect tools-home" data-home="tools" style="margin-top:var(--space-sect);">
+    <h2>무료로 쓰는 계산기·문구</h2>
+    <div class="tl-g">
+      <a href="/dday?utm_source=home">📅 기념일·디데이<small>100일·1주년·음력 생일</small></a>
+      <a href="/msg?utm_source=home">✉️ 부고·축하 문자<small>관계별 예시, 바로 복사</small></a>
+      <a href="/money?utm_source=home">💰 축의금·조의금<small>얼마 낼까 + 장부</small></a>
+      <a href="/age?utm_source=home">🎂 환갑·칠순 계산<small>몇 년생이 언제 잔치?</small></a>
+    </div>
   </section>
 
   <section class="card hidden" id="prodCard">

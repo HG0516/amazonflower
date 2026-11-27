@@ -1,0 +1,35 @@
+:root{--paper:#fff;--bg:#f7f6f2;--ink:#1f1d18;--soft:#5a564d;--faint:#8a857a;--line:#e4e1d8;--accent:#1f4733;--accent-soft:#e6efe9;--warm:#b4572b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b;--accent-soft:#22332a;--warm:#f0a27a}}
+:root[data-theme="dark"]{--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b;--accent-soft:#22332a;--warm:#f0a27a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}.w{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:14px}.top a{text-decoration:none;font-weight:700}
+h1{margin:18px 0 6px;font-size:25px;line-height:1.35}.lead{margin:0;color:var(--soft)}
+h2{margin:30px 0 6px;font-size:19px}
+.box{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.tabs{display:flex;gap:6px;margin-top:18px}.tabs button{flex:1;padding:11px 8px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+label.fl{display:block;margin:12px 0 4px;font-size:14px;color:var(--soft);font-weight:600}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.chips button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.duo{display:flex;gap:8px}.duo>*{flex:1}
+.now{margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft);font-size:17px}.now b{font-size:22px}
+ul.ms{list-style:none;margin:10px 0 0;padding:0;border-top:1px solid var(--line)}
+ul.ms li{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+ul.ms .k{flex:0 0 auto;min-width:86px;font-weight:800}ul.ms .v{flex:1;min-width:0}ul.ms .v small{display:block;color:var(--faint);font-size:13px}
+ul.ms .dd{flex:0 0 auto;font-weight:800;color:var(--warm);font-size:14px}ul.ms li.past{opacity:.55}ul.ms li.next{background:var(--accent-soft);margin:0 -8px;padding:11px 8px;border-radius:10px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{display:inline-block;padding:11px 14px;border-radius:12px;border:1px solid var(--accent);background:var(--accent);color:#fff;font:inherit;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer}
+.btn.o{background:transparent;color:var(--accent)}
+.note{margin-top:10px;font-size:14px;color:var(--faint)}
+.qa h3{font-size:17px;margin:18px 0 4px}.qa p{margin:0;color:var(--soft)}
+.foot{margin-top:30px;font-size:13px;color:var(--faint)}
+@media (min-width:1000px){.w{max-width:720px}}
+textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;line-height:1.7;resize:vertical}
+.out{margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);white-space:pre-wrap;font-size:15px}
+.out+.acts{margin-top:8px}
+.more{margin-top:26px;display:grid;gap:8px}.more a{display:block;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);text-decoration:none;color:var(--ink);font-weight:700}.more a small{display:block;font-weight:400;color:var(--faint);font-size:13px}
+table.t{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}table.t th,table.t td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}table.t th{color:var(--soft);font-size:13px;font-weight:700}
+
+.duo>*{min-width:0}
