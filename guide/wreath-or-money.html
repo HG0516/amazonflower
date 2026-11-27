@@ -15,8 +15,8 @@
 <meta property="article:modified_time" content="2026-11-27">
 <meta name="theme-color" content="#1f4733">
 <link rel="icon" href="/favicon.ico">
-<style>:root{--paper:#fff;--bg:#f7f6f2;--ink:#1f1d18;--soft:#5a564d;--faint:#8a857a;--line:#e4e1d8;--accent:#1f4733}
-@media (prefers-color-scheme:dark){:root{--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b}}
+<style>:root{--paper:#fff;--bg:#f7f6f2;--ink:#1f1d18;--soft:#5a564d;--faint:#8a857a;--line:#e4e1d8;--accent:#1f4733;--warm:#b4572b}
+@media (prefers-color-scheme:dark){:root{--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b;--warm:#f0a27a}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all;overflow-wrap:anywhere}
 a{color:var(--accent)}.w{max-width:720px;margin:0 auto;padding:20px 16px 48px}
 .top{display:flex;justify-content:space-between;align-items:center;font-size:14px}.top a{text-decoration:none;font-weight:700}
@@ -41,25 +41,46 @@ ul.gl a{display:block;font-size:17px;font-weight:700;text-decoration:none}ul.gl 
 .rel{margin-top:26px;font-size:15px}.rel a{display:block;padding:6px 0}
 .wh{grid-template-columns:96px 1fr;gap:10px 12px}.wh dd{color:var(--soft)}.sec small{color:var(--faint)}
 .top1{margin-top:16px}.top1 a{display:block;padding:14px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--line);text-decoration:none;font-weight:700;font-size:17px}.top1 span{display:block;margin-top:2px;color:var(--soft);font-weight:400;font-size:15px}
-h2.gh{margin:30px 0 0}</style>
+h2.gh{margin:30px 0 0}
+.hero{display:block;position:relative;margin-top:14px;border-radius:16px;overflow:hidden;background:#eee;text-decoration:none}
+.hero img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+@media (min-width:600px){.hero img{aspect-ratio:16/10;object-position:center 30%}}
+.hero span{position:absolute;left:10px;bottom:10px;padding:5px 11px;border-radius:999px;background:rgba(20,40,30,.82);color:#fff;font-size:13px;font-weight:700}
+.ans .q{display:block;margin-bottom:6px;font-size:15px;color:var(--accent);font-weight:800}
+figure.vis{margin:18px 0 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+figure.vis svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto;font-family:inherit}
+figure.vis figcaption{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:8px;font-size:13.5px;color:var(--soft);text-align:center}
+ul.pg{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ul.pg li{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;min-width:0}
+ul.pg img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}
+ul.pg .nm{padding:8px 10px 0;flex:1}ul.pg .nm b{display:block;font-size:14.5px;font-weight:600;line-height:1.4}ul.pg .nm span{font-size:16px;font-weight:800}
+ul.pg .buy{margin:8px 10px 10px;padding:9px 0;border-radius:10px;background:var(--accent);color:#fff;text-align:center;font-size:14px;font-weight:700;text-decoration:none}
+@media (min-width:600px){ul.pg{grid-template-columns:repeat(3,1fr)}}</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","url":"https://floweranbu.co.kr/guide/wreath-or-money","inLanguage":"ko","dateModified":"2026-11-27","publisher":{"@type":"Florist","@id":"https://floweranbu.co.kr/#shop","name":"꽃안부"},"mainEntity":[{"@type":"Question","name":"화환과 조의금, 둘 다 해야 하나요?","acceptedAnswer":{"@type":"Answer","text":"꼭 둘 다 해야 하는 건 아니에요. 직접 조문할 때는 조의금으로, 조문하기 어렵거나 회사·단체 이름으로 마음을 전할 때는 근조화환으로 하는 경우가 많아요. 가까운 사이라면 둘 다 하기도 하고, 어느 쪽이든 정성이 전해지면 충분해요."}},{"@type":"Question","name":"조문을 못 가는데 화환만 보내도 되나요?","acceptedAnswer":{"@type":"Answer","text":"괜찮아요. 직접 가기 어려울 때 근조화환으로 마음을 전해도 돼요. 리본에 보내는 분 이름이 들어가서 유족이 누가 보냈는지 알 수 있어요."}},{"@type":"Question","name":"부고장 링크만 있는데 주문할 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"링크나 캡처 사진을 꽃안부 첫 화면 칸에 넣으면 고인 성함, 장례식장, 발인 시간을 읽어 주문서를 채워 드려요. 채워진 내용을 한 번 보고 결제하시면 돼요."}},{"@type":"Question","name":"도착했는지 알 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"배송하고 바로 도착 사진을 문자로 보내 드려요."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"꽃안부","item":"https://floweranbu.co.kr/"},{"@type":"ListItem","position":2,"name":"꽃 선물 묻고 답하기","item":"https://floweranbu.co.kr/guide/"},{"@type":"ListItem","position":3,"name":"화환과 조의금, 둘 다 해야 하나요?","item":"https://floweranbu.co.kr/guide/wreath-or-money"}]}</script>
 <script src="/va.js?v=20261025a" defer></script>
 </head>
 <body><div class="w">
 <div class="top"><a href="/">꽃안부</a><a href="tel:1577-2286">전화 1577-2286</a></div>
-<h1>화환과 조의금, 둘 다 해야 하나요?</h1>
+<h1>화환과 조의금, 언제 무엇을</h1>
 <p class="by">꽃안부 · 1993년부터 경기 시흥 꽃집 · <time datetime="2026-11-27">2026-11-27</time> 확인</p>
-<div class="box ans"><p>꼭 둘 다 해야 하는 건 아니에요. 직접 조문할 때는 조의금으로, 조문하기 어렵거나 회사·단체 이름으로 마음을 전할 때는 근조화환으로 하는 경우가 많아요. 가까운 사이라면 둘 다 하기도 하고, 어느 쪽이든 정성이 전해지면 충분해요.</p></div>
+<a class="hero" href="/catalog.html?item=WC-01"><img src="/photos/products/WC-01_1.jpg" alt="꽃안부 근조 보통" width="720" height="540" fetchpriority="high"><span>꽃안부 근조 보통 · 49,000원</span></a>
+<div class="box ans"><b class="q">Q. 화환과 조의금, 둘 다 해야 하나요?</b><p>꼭 둘 다 해야 하는 건 아니에요. 직접 조문할 때는 조의금으로, 조문하기 어렵거나 회사·단체 이름으로 마음을 전할 때는 근조화환으로 하는 경우가 많아요. 가까운 사이라면 둘 다 하기도 하고, 어느 쪽이든 정성이 전해지면 충분해요.</p></div>
+<figure class="vis"><svg viewBox="0 0 340 150" role="img" aria-label="삼일장 흐름과 근조화환이 도착하면 좋은 때">
+<line x1="30" y1="60" x2="310" y2="60" stroke="var(--line)" stroke-width="6" stroke-linecap="round"/>
+<rect x="30" y="54" width="230" height="12" rx="6" fill="var(--accent)"/>
+<circle cx="30" cy="60" r="9" fill="var(--paper)" stroke="var(--accent)" stroke-width="4"/><text x="30" y="32" font-size="13" text-anchor="start" fill="var(--soft)">첫째 날</text><text x="30" y="96" font-size="15" font-weight="700" text-anchor="start" fill="var(--ink)">빈소 차림</text><circle cx="170" cy="60" r="9" fill="var(--paper)" stroke="var(--accent)" stroke-width="4"/><text x="170" y="32" font-size="13" text-anchor="middle" fill="var(--soft)">둘째 날</text><text x="170" y="96" font-size="15" font-weight="700" text-anchor="middle" fill="var(--ink)">조문</text><circle cx="310" cy="60" r="9" fill="var(--paper)" stroke="var(--warm)" stroke-width="4"/><text x="310" y="32" font-size="13" text-anchor="end" fill="var(--soft)">셋째 날 아침</text><text x="310" y="96" font-size="15" font-weight="700" text-anchor="end" fill="var(--ink)">발인</text>
+<text x="30" y="132" font-size="13" fill="var(--accent)" font-weight="700">■ 근조화환은 부고를 받으면 바로, 늦어도 발인 전에</text>
+</svg><figcaption><span>흔히 하는 삼일장 기준이에요. 장례 일정은 집마다 달라요.</span></figcaption></figure>
 
 <section class="sec"><h2>근조화환이 잘 맞을 때</h2><ul><li>멀리 있거나 일정 때문에 직접 조문하기 어려울 때</li><li>회사, 거래처, 동창회처럼 여럿의 이름으로 마음을 전할 때</li><li>빈소에 위로의 뜻이 눈에 보이게 남았으면 할 때</li></ul></section>
 <section class="sec"><h2>조의금이 잘 맞을 때</h2><ul><li>직접 빈소에 가서 조문할 때</li><li>유족이 화환을 받지 않겠다고 미리 알렸을 때</li></ul></section>
 <section class="sec"><h2>유족이 화환을 사양했다면</h2><p>부고에 화환을 정중히 사양한다는 말이 있다면 그 뜻을 따르는 게 좋아요. 꽃안부 무료 부고장에도 화환 보내기 칸이 있는데, 유족이 이 칸을 끌 수 있어요.</p></section>
-<section class="sec"><h2>꽃안부에서 고르기</h2><p>사진을 누르면 크게 보이고, 주문을 누르면 그 상품으로 주문서가 열려요.</p><ul class="it"><li><a href="/catalog.html?item=WC-01"><img src="/photos/products/WC-01_1.jpg" alt="근조 보통" loading="lazy" width="64" height="64"></a><div class="nm"><b><a href="/catalog.html?item=WC-01" style="color:inherit;text-decoration:none">근조 보통</a></b><span>49,000원</span></div><a class="buy" href="/?pc=WC-01&amp;utm_source=guide">주문</a></li><li><a href="/catalog.html?item=WC-04"><img src="/photos/products/WC-04_1.jpg" alt="근조 일반1호" loading="lazy" width="64" height="64"></a><div class="nm"><b><a href="/catalog.html?item=WC-04" style="color:inherit;text-decoration:none">근조 일반1호</a></b><span>79,000원</span></div><a class="buy" href="/?pc=WC-04&amp;utm_source=guide">주문</a></li></ul></section>
+<section class="sec"><h2>꽃안부에서 고르기</h2><p>사진을 누르면 크게 보이고, 주문을 누르면 그 상품으로 주문서가 열려요.</p><ul class="pg"><li><a href="/catalog.html?item=WC-01"><img src="/photos/products/WC-01_1.jpg" alt="근조 보통" loading="lazy" width="300" height="300"></a><div class="nm"><b>근조 보통</b><span>49,000원</span></div><a class="buy" href="/?pc=WC-01&amp;utm_source=guide">주문하기</a></li><li><a href="/catalog.html?item=WC-04"><img src="/photos/products/WC-04_1.jpg" alt="근조 일반1호" loading="lazy" width="300" height="300"></a><div class="nm"><b>근조 일반1호</b><span>79,000원</span></div><a class="buy" href="/?pc=WC-04&amp;utm_source=guide">주문하기</a></li></ul></section>
 <section class="qa"><h2>더 궁금한 것</h2><h3>조문을 못 가는데 화환만 보내도 되나요?</h3><p>괜찮아요. 직접 가기 어려울 때 근조화환으로 마음을 전해도 돼요. 리본에 보내는 분 이름이 들어가서 유족이 누가 보냈는지 알 수 있어요.</p>
 <h3>부고장 링크만 있는데 주문할 수 있나요?</h3><p>링크나 캡처 사진을 꽃안부 첫 화면 칸에 넣으면 고인 성함, 장례식장, 발인 시간을 읽어 주문서를 채워 드려요. 채워진 내용을 한 번 보고 결제하시면 돼요.</p>
 <h3>도착했는지 알 수 있나요?</h3><p>배송하고 바로 도착 사진을 문자로 보내 드려요.</p></section>
 <a class="go" href="/?worder=funeral&amp;utm_source=guide">근조화환 보내기 · 49,000원부터</a>
-<div class="rel"><b>이어서 보면 좋은 질문</b><a href="/guide/cant-attend-funeral">조문을 못 갈 때는 어떻게 하나요?</a><a href="/guide/funeral-timing">장례식장에 근조화환은 언제까지 보내야 하나요?</a><a href="/guide/funeral-price">근조화환 가격은 얼마가 적당한가요?</a><a href="/guide/funeral-ribbon">근조화환 리본 문구는 어떻게 쓰나요?</a></div>
-<p class="foot"><a href="/guide/">꽃 선물 묻고 답하기</a> · <a href="/prices">전체 상품 가격</a> · <a href="/faq">자주 묻는 것</a> · <a href="/ribbon/">리본 문구 모음</a><br>꽃안부 · 주식회사 아마존 · 대표 권점숙 · 사업자등록번호 234-86-00344 · 통신판매업 제2026-경기시흥-1357호 · 경기 시흥시 신천3길 23, 103호 · 1577-2286 · amazonflower@naver.com</p>
+<div class="rel"><b>이어서 보면 좋은 글</b><a href="/guide/cant-attend-funeral">조문을 못 갈 때 마음 전하기</a><a href="/guide/funeral-timing">근조화환 보내는 시기 — 발인 전에 닿게</a><a href="/guide/funeral-price">근조화환 가격, 사이에 맞게 고르기</a><a href="/guide/funeral-ribbon">근조화환 리본 문구 쓰는 법</a></div>
+<p class="foot"><a href="/guide/">꽃 보내기 안내</a> · <a href="/prices">전체 상품 가격</a> · <a href="/faq">자주 묻는 것</a> · <a href="/ribbon/">리본 문구 모음</a><br>꽃안부 · 주식회사 아마존 · 대표 권점숙 · 사업자등록번호 234-86-00344 · 통신판매업 제2026-경기시흥-1357호 · 경기 시흥시 신천3길 23, 103호 · 1577-2286 · amazonflower@naver.com</p>
 </div></body></html>

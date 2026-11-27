@@ -531,8 +531,85 @@ export const GROUPS = [
   ["친구·모임", ["group-wreath", "birthday-flowers", "graduation-bouquet", "wedding-wreath"]],
 ];
 
-const CSS = `:root{--paper:#fff;--bg:#f7f6f2;--ink:#1f1d18;--soft:#5a564d;--faint:#8a857a;--line:#e4e1d8;--accent:#1f4733}
-@media (prefers-color-scheme:dark){:root{--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b}}
+// 사람 눈에 보이는 큰 제목은 안내 글 제목으로(11/27 형구: 질문만 줄줄이 있으면 어색). 질문(q)은 <title>·FAQ 데이터·답 상자 첫 줄에 그대로 둔다.
+const HEAD = {
+  "funeral-timing": "근조화환 보내는 시기 — 발인 전에 닿게", "funeral-price": "근조화환 가격, 사이에 맞게 고르기",
+  "funeral-ribbon": "근조화환 리본 문구 쓰는 법", "wreath-or-money": "화환과 조의금, 언제 무엇을",
+  "girlfriend-flowers": "여자친구에게 꽃 선물하기", "parents-birthday": "부모님 생신 꽃 고르기",
+  "opening-gift": "개업 선물 — 화분과 축하화환", "promotion-orchid": "승진·취임 축하 난 고르기",
+  "same-day-delivery": "오늘 꽃 배달 — 주문 마감 시간", "opening-plant": "개업 화분 고르기",
+  "wedding-wreath": "결혼식 축하화환 보내기", "rice-wreath": "쌀화환 보내기",
+  "graduation-bouquet": "졸업식·입학식 꽃다발", "birthday-flowers": "생일 꽃 배달",
+  "anniversary-flowers": "기념일 꽃 선물", "proposal-bouquet": "프로포즈 꽃다발",
+  "parents-70th": "칠순·환갑 꽃 선물", "retirement-flowers": "퇴임·정년 축하 꽃",
+  "clinic-opening": "병원 개원·사무실 이전 축하", "hospital-visit": "병문안 꽃 고르기",
+  "birth-congrats": "출산 축하 꽃", "business-condolence": "회사 이름으로 근조화환 보내기",
+  "group-wreath": "여럿이 돈 모아 보내는 화환", "cant-attend-funeral": "조문을 못 갈 때 마음 전하기",
+};
+const hd = (g) => { if (!HEAD[g.slug]) throw new Error("보이는 제목 없음: " + g.slug); return HEAD[g.slug]; };
+
+// ── 그림(SVG). 글자는 사이트 규칙에 있는 말만 쓴다: 리본 왼쪽=보내는 분, 오른쪽=문구(주문서), 마감 평일 18시·주말 16시, 화환은 발인 전에.
+const noRead = (t) => rb(t).replace(/\s*\([^)]*\)/g, "");   // '삼가 故人(고인)의…' → '삼가 故人의…'
+const vtext = (x, y0, t, size, max) => { const ch = [...t.replace(/\s+/g, " ")].slice(0, max); return ch.map((c, i) => c === " " ? "" : `<text x="${x}" y="${y0 + i * size * 1.02}" font-size="${size}" text-anchor="middle">${esc(c)}</text>`).join(""); };
+const RIB = {
+  funeral: { right: noRead("삼가 故人(고인)의 冥福(명복)을 빕니다"), flower: "#f4f2ec", stroke: "#cfcabd", band: "#fafaf7" },
+  wedding: { right: noRead("祝 結婚 (축 결혼)"), flower: "#f6d5d9", stroke: "#e2a9b1", band: "#fff8f0" },
+  open: { right: noRead("祝 開業 (축 개업)"), flower: "#f8e2b8", stroke: "#e3bb6e", band: "#fff8f0" },
+};
+function ribbonSvg(kind, left) {
+  const k = RIB[kind];
+  const flowers = Array.from({ length: 14 }, (_, i) => { const a = (i / 14) * Math.PI * 2; return `<circle cx="${(160 + Math.cos(a) * 58).toFixed(1)}" cy="${(92 + Math.sin(a) * 58).toFixed(1)}" r="17" fill="${k.flower}" stroke="${k.stroke}"/>`; }).join("");
+  const lines = Math.max([...k.right].length, [...left].length);
+  const size = lines > 14 ? 11 : 13;
+  return `<figure class="vis"><svg viewBox="0 0 320 400" role="img" aria-label="화환 리본 자리: 왼쪽은 보내는 분 이름, 오른쪽은 문구">
+<g stroke="var(--faint)" stroke-width="3"><line x1="160" y1="150" x2="110" y2="390"/><line x1="160" y1="150" x2="210" y2="390"/><line x1="160" y1="150" x2="160" y2="390"/></g>
+${flowers}<circle cx="160" cy="92" r="38" fill="${k.flower}" stroke="${k.stroke}"/>
+<rect x="72" y="104" width="34" height="${Math.min(280, 30 + lines * size * 1.02)}" fill="${k.band}" stroke="var(--faint)"/>
+<rect x="214" y="104" width="34" height="${Math.min(280, 30 + lines * size * 1.02)}" fill="${k.band}" stroke="var(--faint)"/>
+<g fill="#1f1d18" font-weight="700">${vtext(89, 126, left, size, 24)}${vtext(231, 126, k.right, size, 24)}</g>
+</svg><figcaption><span><b>왼쪽 리본</b> 보내는 분 이름</span><span><b>오른쪽 리본</b> 인사 문구</span></figcaption></figure>`;
+}
+function funeralDaysSvg() {
+  const days = [["첫째 날", "빈소 차림"], ["둘째 날", "조문"], ["셋째 날 아침", "발인"]];
+  return `<figure class="vis"><svg viewBox="0 0 340 150" role="img" aria-label="삼일장 흐름과 근조화환이 도착하면 좋은 때">
+<line x1="30" y1="60" x2="310" y2="60" stroke="var(--line)" stroke-width="6" stroke-linecap="round"/>
+<rect x="30" y="54" width="230" height="12" rx="6" fill="var(--accent)"/>
+${days.map(([a, b], i) => { const x = 30 + i * 140; return `<circle cx="${x}" cy="60" r="9" fill="var(--paper)" stroke="${i === 2 ? "var(--warm)" : "var(--accent)"}" stroke-width="4"/><text x="${x}" y="32" font-size="13" text-anchor="${i === 0 ? "start" : i === 2 ? "end" : "middle"}" fill="var(--soft)">${a}</text><text x="${x}" y="96" font-size="15" font-weight="700" text-anchor="${i === 0 ? "start" : i === 2 ? "end" : "middle"}" fill="var(--ink)">${b}</text>`; }).join("")}
+<text x="30" y="132" font-size="13" fill="var(--accent)" font-weight="700">■ 근조화환은 부고를 받으면 바로, 늦어도 발인 전에</text>
+</svg><figcaption><span>흔히 하는 삼일장 기준이에요. 장례 일정은 집마다 달라요.</span></figcaption></figure>`;
+}
+function cutoffSvg() {
+  const row = (y, lb, h) => { const x = 70 + (h / 24) * 250; return `<text x="0" y="${y + 14}" font-size="14" font-weight="700" fill="var(--ink)">${lb}</text><rect x="70" y="${y}" width="250" height="20" rx="10" fill="var(--line)"/><rect x="70" y="${y}" width="${(x - 70).toFixed(1)}" height="20" rx="10" fill="var(--accent)"/><line x1="${x.toFixed(1)}" y1="${y - 6}" x2="${x.toFixed(1)}" y2="${y + 26}" stroke="var(--warm)" stroke-width="3"/><text x="${x.toFixed(1)}" y="${y - 10}" font-size="13" font-weight="800" text-anchor="middle" fill="var(--warm)">${h}시</text>`; };
+  return `<figure class="vis"><svg viewBox="0 0 330 140" role="img" aria-label="오늘 도착 마감: 평일 18시, 주말 16시">
+${row(30, "평일", 18)}${row(86, "주말", 16)}
+<text x="70" y="134" font-size="12" fill="var(--accent)" font-weight="700">■ 이때까지 주문하면 오늘 도착</text><text x="320" y="134" font-size="12" fill="var(--faint)" text-anchor="end">그 뒤는 다음 날</text>
+</svg><figcaption><span>급하면 1577-2286 으로 전화 주세요.</span></figcaption></figure>`;
+}
+function priceSvg(cat) {
+  const l = byCat(cat).slice(0, 8), max = Math.max(...l.map((p) => p.price)), h = l.length * 34 + 10;
+  return `<figure class="vis"><svg viewBox="0 0 340 ${h}" role="img" aria-label="꽃안부 가격 비교">
+${l.map((p, i) => { const y = 8 + i * 34, w = Math.max(30, (p.price / max) * 150); return `<text x="0" y="${y + 16}" font-size="13" fill="var(--ink)">${esc(p.name.length > 9 ? p.name.slice(0, 9) + "…" : p.name)}</text><rect x="110" y="${y + 2}" width="${w.toFixed(1)}" height="20" rx="6" fill="var(--accent)" opacity="${(0.45 + 0.55 * (p.price / max)).toFixed(2)}"/><text x="${(116 + w).toFixed(1)}" y="${y + 17}" font-size="13" font-weight="800" fill="var(--ink)">${won(p.price)}</text>`; }).join("")}
+</svg><figcaption><span>기본 배송비가 들어간 가격이에요.</span></figcaption></figure>`;
+}
+const VIS = {
+  "funeral-ribbon": () => ribbonSvg("funeral", "○○주식회사 임직원 일동"),
+  "business-condolence": () => ribbonSvg("funeral", "주식회사 ○○ 대표이사 ○○○"),
+  "group-wreath": () => ribbonSvg("funeral", "○○고등학교 ○회 동창 일동"),
+  "wedding-wreath": () => ribbonSvg("wedding", "○○주식회사 임직원 일동"),
+  "rice-wreath": () => ribbonSvg("wedding", "○○○ 드림"),
+  "opening-gift": () => ribbonSvg("open", "주식회사 ○○ 대표 ○○○"),
+  "clinic-opening": () => ribbonSvg("open", "○○병원 원장 ○○○"),
+  "funeral-timing": funeralDaysSvg, "cant-attend-funeral": funeralDaysSvg, "wreath-or-money": funeralDaysSvg,
+  "same-day-delivery": cutoffSvg, "birthday-flowers": cutoffSvg,
+  "funeral-price": () => priceSvg("condolence"), "promotion-orchid": () => priceSvg("orchid"),
+};
+// 맨 위 큰 사진: 이 글에서 고른 첫 상품(없으면 그 분류 가장 싼 것) — 실제 파는 상품 사진.
+const HERO = { "same-day-delivery": "BQ-004" };   // 첫 사진이 근조화환이면 분위기가 안 맞는 글
+const heroOf = (g) => [...(HERO[g.slug] ? [prod(HERO[g.slug])] : []), ...g.items.map(prod), ...byCat(g.cta[2])].find((p) => p.photos && p.photos[0]);
+const hero = (g) => { const p = heroOf(g); return p ? `<a class="hero" href="/catalog.html?item=${encodeURIComponent(p.pc)}"><img src="${esc(p.photos[0])}" alt="꽃안부 ${esc(label(p))}" width="720" height="540" fetchpriority="high"><span>꽃안부 ${esc(p.name)} · ${won(p.price)}</span></a>` : ""; };
+
+const CSS = `:root{--paper:#fff;--bg:#f7f6f2;--ink:#1f1d18;--soft:#5a564d;--faint:#8a857a;--line:#e4e1d8;--accent:#1f4733;--warm:#b4572b}
+@media (prefers-color-scheme:dark){:root{--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b;--warm:#f0a27a}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all;overflow-wrap:anywhere}
 a{color:var(--accent)}.w{max-width:720px;margin:0 auto;padding:20px 16px 48px}
 .top{display:flex;justify-content:space-between;align-items:center;font-size:14px}.top a{text-decoration:none;font-weight:700}
@@ -557,7 +634,21 @@ ul.gl a{display:block;font-size:17px;font-weight:700;text-decoration:none}ul.gl 
 .rel{margin-top:26px;font-size:15px}.rel a{display:block;padding:6px 0}
 .wh{grid-template-columns:96px 1fr;gap:10px 12px}.wh dd{color:var(--soft)}.sec small{color:var(--faint)}
 .top1{margin-top:16px}.top1 a{display:block;padding:14px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--line);text-decoration:none;font-weight:700;font-size:17px}.top1 span{display:block;margin-top:2px;color:var(--soft);font-weight:400;font-size:15px}
-h2.gh{margin:30px 0 0}`;
+h2.gh{margin:30px 0 0}
+.hero{display:block;position:relative;margin-top:14px;border-radius:16px;overflow:hidden;background:#eee;text-decoration:none}
+.hero img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+@media (min-width:600px){.hero img{aspect-ratio:16/10;object-position:center 30%}}
+.hero span{position:absolute;left:10px;bottom:10px;padding:5px 11px;border-radius:999px;background:rgba(20,40,30,.82);color:#fff;font-size:13px;font-weight:700}
+.ans .q{display:block;margin-bottom:6px;font-size:15px;color:var(--accent);font-weight:800}
+figure.vis{margin:18px 0 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+figure.vis svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto;font-family:inherit}
+figure.vis figcaption{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:8px;font-size:13.5px;color:var(--soft);text-align:center}
+ul.pg{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ul.pg li{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper);display:flex;flex-direction:column;min-width:0}
+ul.pg img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:#eee}
+ul.pg .nm{padding:8px 10px 0;flex:1}ul.pg .nm b{display:block;font-size:14.5px;font-weight:600;line-height:1.4}ul.pg .nm span{font-size:16px;font-weight:800}
+ul.pg .buy{margin:8px 10px 10px;padding:9px 0;border-radius:10px;background:var(--accent);color:#fff;text-align:center;font-size:14px;font-weight:700;text-decoration:none}
+@media (min-width:600px){ul.pg{grid-template-columns:repeat(3,1fr)}}`;
 
 const SHOP_LINE = "꽃안부 · 주식회사 아마존 · 대표 권점숙 · 사업자등록번호 234-86-00344 · 통신판매업 제2026-경기시흥-1357호 · 경기 시흥시 신천3길 23, 103호 · 1577-2286 · amazonflower@naver.com";
 const topBar = `<div class="top"><a href="/">꽃안부</a><a href="tel:1577-2286">전화 1577-2286</a></div>`;
@@ -590,6 +681,8 @@ ${extra}
 
 const itemRow = (p) => `<li>${p.photos && p.photos[0] ? `<a href="/catalog.html?item=${encodeURIComponent(p.pc)}"><img src="${esc(p.photos[0])}" alt="${esc(label(p))}" loading="lazy" width="64" height="64"></a>` : ""}<div class="nm"><b><a href="/catalog.html?item=${encodeURIComponent(p.pc)}" style="color:inherit;text-decoration:none">${esc(label(p))}</a></b><span>${won(p.price)}</span></div><a class="buy" href="${esc(order(p.pc))}">주문</a></li>`;
 const itemList = (list) => (list.length ? `<ul class="it">${list.map(itemRow).join("")}</ul>` : "");
+const cardRow = (p) => `<li><a href="/catalog.html?item=${encodeURIComponent(p.pc)}">${p.photos && p.photos[0] ? `<img src="${esc(p.photos[0])}" alt="${esc(label(p))}" loading="lazy" width="300" height="300">` : ""}</a><div class="nm"><b>${esc(label(p))}</b><span>${won(p.price)}</span></div><a class="buy" href="${esc(order(p.pc))}">주문하기</a></li>`;
+const cardList = (list) => (list.length ? `<ul class="pg">${list.map(cardRow).join("")}</ul>` : "");
 const crumbs = (extra) => ({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
   { "@type": "ListItem", position: 1, name: "꽃안부", item: BASE + "/" },
   { "@type": "ListItem", position: 2, name: "꽃 선물 묻고 답하기", item: BASE + "/guide/" },
@@ -602,30 +695,32 @@ export function guideHtml(g) {
     publisher: { "@type": "Florist", "@id": BASE + "/#shop", name: "꽃안부" },
     mainEntity: [[g.q, g.a], ...g.faq].map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: plain(a) } })) };
   const sections = g.sections.map(([h, body, cat]) => `<section class="sec"><h2>${esc(h)}</h2>${fill(body)}${cat ? itemList(byCat(cat)) : ""}</section>`).join("\n");
-  const picks = g.items.length ? `<section class="sec"><h2>꽃안부에서 고르기</h2><p>사진을 누르면 크게 보이고, 주문을 누르면 그 상품으로 주문서가 열려요.</p>${itemList(g.items.map(prod))}</section>` : "";
-  const rel = g.related.map((s) => { const x = GUIDES.find((y) => y.slug === s); if (!x) throw new Error(`${g.slug}: 없는 질문 ${s}`); return `<a href="/guide/${x.slug}">${esc(x.q)}</a>`; }).join("");
+  const picks = g.items.length ? `<section class="sec"><h2>꽃안부에서 고르기</h2><p>사진을 누르면 크게 보이고, 주문을 누르면 그 상품으로 주문서가 열려요.</p>${cardList(g.items.map(prod))}</section>` : "";
+  const rel = g.related.map((s) => { const x = GUIDES.find((y) => y.slug === s); if (!x) throw new Error(`${g.slug}: 없는 질문 ${s}`); return `<a href="/guide/${x.slug}">${esc(hd(x))}</a>`; }).join("");
   const who = g.who ? `<section class="sec"><h2>누구에게 보내나요</h2><dl class="kv cmp wh">${g.who.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${fill(v)}</dd>`).join("")}</dl></section>` : "";
   const from = byCat(g.cta[2])[0];
   return head(g.title, answer, url, ld(faq) + "\n" + ld(crumbs([g.q, url]))) + `
 <body><div class="w">
 ${topBar}
-<h1>${esc(g.q)}</h1>
+<h1>${esc(hd(g))}</h1>
 ${byline}
-<div class="box ans"><p>${fill(g.a)}</p></div>
+${hero(g)}
+<div class="box ans"><b class="q">Q. ${esc(g.q)}</b><p>${fill(g.a)}</p></div>
+${VIS[g.slug] ? VIS[g.slug]() : ""}
 ${who}
 ${sections}
 ${picks}
 <section class="qa"><h2>더 궁금한 것</h2>${g.faq.map(([q, a]) => `<h3>${esc(q)}</h3><p>${fill(a)}</p>`).join("\n")}</section>
 <a class="go" href="${esc(g.cta[1])}">${esc(g.cta[0])}${from ? ` · ${won(from.price)}부터` : ""}</a>
-<div class="rel"><b>이어서 보면 좋은 질문</b>${rel}</div>
-${foot(`<a href="/guide/">꽃 선물 묻고 답하기</a> · <a href="/prices">전체 상품 가격</a> · <a href="/faq">자주 묻는 것</a> · <a href="/ribbon/">리본 문구 모음</a>`)}
+<div class="rel"><b>이어서 보면 좋은 글</b>${rel}</div>
+${foot(`<a href="/guide/">꽃 보내기 안내</a> · <a href="/prices">전체 상품 가격</a> · <a href="/faq">자주 묻는 것</a> · <a href="/ribbon/">리본 문구 모음</a>`)}
 </div></body></html>
 `;
 }
 
 export function guideIndexHtml() {
   const url = `${BASE}/guide/`;
-  const title = "꽃 선물 묻고 답하기 | 근조화환·개업 화분·결혼식 화환·생일 꽃 | 꽃안부";
+  const title = "꽃 보내기 안내 — 꽃 선물 묻고 답하기 | 근조화환·개업 화분·결혼식 화환·생일 꽃 | 꽃안부";
   const desc = "근조화환·장례식장 화환부터 개업 화분, 결혼식 화환, 생일·기념일·졸업식 꽃다발, 칠순 꽃바구니, 승진·퇴임 난, 친구들이 모아 보내는 화환까지 꽃 보낼 때 자주 묻는 질문에 짧게 답했어요.";
   for (const [, l] of GROUPS) for (const s of l) if (!GUIDES.some((g) => g.slug === s)) throw new Error("묶음에 없는 질문 " + s);
   for (const g of GUIDES) if (!GROUPS.some(([, l]) => l.includes(g.slug))) throw new Error("어느 묶음에도 없는 질문 " + g.slug);
@@ -636,11 +731,11 @@ export function guideIndexHtml() {
   return head(title, desc, url, ld(list) + "\n" + ld(crumbs())) + `
 <body><div class="w">
 ${topBar}
-<h1>꽃 선물 묻고 답하기</h1>
+<h1>꽃 보내기 안내</h1>
 ${byline}
 <p class="lead" style="margin-top:10px">슬픈 날, 기쁜 날, 회사 일로, 가족과 친구에게. 꽃을 보낼 때 많이 묻는 질문에 짧게 답했어요. 더 궁금한 건 ${tel}으로 전화 주세요.</p>
-<div class="top1"><a href="/guide/${sd.slug}">${esc(sd.q)}<span>${first(sd)}</span></a></div>
-${GROUPS.map(([name, l]) => `<h2 class="gh">${esc(name)}</h2><ul class="gl">${l.map((s) => GUIDES.find((g) => g.slug === s)).map((g) => `<li><a href="/guide/${g.slug}">${esc(g.q)}</a><p>${first(g)}</p></li>`).join("")}</ul>`).join("\n")}
+<div class="top1"><a href="/guide/${sd.slug}">${esc(hd(sd))}<span>${first(sd)}</span></a></div>
+${GROUPS.map(([name, l]) => `<h2 class="gh">${esc(name)}</h2><ul class="gl">${l.map((s) => GUIDES.find((g) => g.slug === s)).map((g) => `<li><a href="/guide/${g.slug}">${esc(hd(g))}</a><p>${first(g)}</p></li>`).join("")}</ul>`).join("\n")}
 <a class="go" href="/prices">전체 상품 가격 보기</a>
 ${foot(`<a href="/">처음으로</a> · <a href="/faq">자주 묻는 것</a> · <a href="/ribbon/">리본 문구 모음</a> · <a href="/funeral/">전국 장례식장 근조화환</a>`)}
 </div></body></html>
