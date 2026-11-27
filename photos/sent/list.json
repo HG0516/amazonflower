@@ -1,6 +1,90 @@
 [
-  {"photo_url": "/photos/sent/sent-05.jpg", "category": "condolence", "title": "근조화환", "shot_on": null, "area": null, "product_code": null},
-  {"photo_url": "/photos/sent/sent-01.jpg", "category": "condolence", "title": "근조화환", "shot_on": null, "area": null, "product_code": null},
-  {"photo_url": "/photos/sent/sent-02.jpg", "category": "congrats", "title": "졸업 축하화환", "shot_on": null, "area": null, "product_code": null},
-  {"photo_url": "/photos/sent/sent-03.jpg", "category": "condolence", "title": "근조화환", "shot_on": null, "area": null, "product_code": null}
+ {
+  "photo_url": "/photos/sent/c02.jpg",
+  "category": "condolence",
+  "title": "근조화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/g04.jpg",
+  "category": "congrats",
+  "title": "결혼 축하화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/c01.jpg",
+  "category": "condolence",
+  "title": "근조화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/g01.jpg",
+  "category": "congrats",
+  "title": "졸업 축하화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/c03.jpg",
+  "category": "condolence",
+  "title": "근조화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/g05.jpg",
+  "category": "congrats",
+  "title": "결혼 축하화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/c04.jpg",
+  "category": "condolence",
+  "title": "근조화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/g02.jpg",
+  "category": "congrats",
+  "title": "취임 축하화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/c05.jpg",
+  "category": "condolence",
+  "title": "근조화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/g06.jpg",
+  "category": "congrats",
+  "title": "취임 축하화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ },
+ {
+  "photo_url": "/photos/sent/c06.jpg",
+  "category": "condolence",
+  "title": "근조화환",
+  "shot_on": null,
+  "area": null,
+  "product_code": null
+ }
 ]
