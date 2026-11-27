@@ -9,7 +9,7 @@
   function day(v) { var m = /^\d{4}-(\d{2})-(\d{2})/.exec(v.shot_on || ""); return m ? +m[1] + "/" + +m[2] : ""; }
   function title(v) { return v.title || NAME[v.category] || "보낸 꽃"; }
   function where(v) { return v.category === "condolence" ? "" : v.area || ""; }
-  function link(v) { return v.product_code ? "/catalog.html?item=" + encodeURIComponent(v.product_code) : "/catalog.html#sentSec"; }
+  function link(v) { return v.product_code ? "/catalog.html?item=" + encodeURIComponent(v.product_code) : v.category ? "/catalog.html?cat=" + encodeURIComponent(v.category) : "/catalog.html"; }
   function okUrl(u) { return /^https:\/\/[a-z0-9.-]+\/storage\/v1\/object\/public\/gallery\//.test(u || "") || /^\/photos\//.test(u || ""); }
 
   function css() {
@@ -43,7 +43,7 @@
       var cap = [day(v), title(v)].filter(Boolean).join(" · ");
       return '<a class="sf-c" href="' + esc(link(v)) + '"><img src="' + esc(v.photo_url) + '" alt="꽃안부가 보낸 ' + esc(title(v)) + '" loading="lazy" width="132" height="176"><span>' + esc(cap) + "</span></a>";
     };
-    el.innerHTML = '<div class="sf-h"><h2>오늘도 사장님이 만들어 보냈어요</h2><a href="/catalog.html#sentSec">보낸 꽃 보기 ›</a></div>' +
+    el.innerHTML = '<div class="sf-h"><h2>오늘도 사장님이 만들어 보냈어요</h2><a href="/catalog.html">꽃 고르러 가기 ›</a></div>' +
       '<p class="sf-p">실제로 배송하고 찍은 사진이에요. 리본 이름은 가렸어요.</p>' +
       '<div class="sf-v"><div class="sf-t" style="--sf-d:' + l.length * 4 + 's">' + l.concat(l).map(card).join("") + "</div></div>";
     // 두 번째 묶음은 흐름을 잇기 위한 복사본 — 읽는 기계엔 숨긴다
@@ -73,12 +73,15 @@
     var flows = document.querySelectorAll("[data-sent-flow]"), slides = document.querySelectorAll("[data-sent-slide]");
     if (!flows.length && !slides.length) return;
     var S = window.SUPA;
-    if (!S || !S.url || !S.anon) return;
-    fetch(S.url + "/rest/v1/sent_photos?select=photo_url,product_code,category,title,area,shot_on&status=eq.shown&order=sort.asc,shot_on.desc,created_at.desc&limit=60",
-      { headers: { apikey: S.anon, Authorization: "Bearer " + S.anon } })
-      .then(function (r) { return r.ok ? r.json() : []; })
+    var get = function (u, h) { return fetch(u, h ? { headers: h } : undefined).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }); };
+    // 관리 화면에서 공개한 사진 + 형구가 보내 준 사진(photos/sent/list.json, 리본 이름 가린 것)
+    Promise.all([
+      S && S.url && S.anon ? get(S.url + "/rest/v1/sent_photos?select=photo_url,product_code,category,title,area,shot_on&status=eq.shown&order=sort.asc,shot_on.desc,created_at.desc&limit=60", { apikey: S.anon, Authorization: "Bearer " + S.anon }) : [],
+      get("/photos/sent/list.json"),
+    ])
+      .then(function (r) { return [].concat(Array.isArray(r[0]) ? r[0] : [], Array.isArray(r[1]) ? r[1] : []); })
       .then(function (rows) {
-        rows = (Array.isArray(rows) ? rows : []).filter(function (v) { return v && okUrl(v.photo_url); });
+        rows = rows.filter(function (v) { return v && okUrl(v.photo_url); });
         if (!rows.length) return;
         css();
         for (var i = 0; i < flows.length; i++) flow(flows[i], rows);
