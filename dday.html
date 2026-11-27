@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기념일·디데이 계산기 (100일, 1주년, 결혼기념일, 음력 생일) | 꽃안부</title>
+<meta name="description" content="날짜 하나만 넣으면 100일, 200일, 1000일, 1주년부터 결혼기념일 n주년(은혼식·금혼식)까지 요일과 남은 날을 바로 보여 줘요. 음력 생일을 올해·내년 양력 날짜로도 바꿔 드려요. 시작한 날을 1일로 세요.">
+<link rel="canonical" href="https://floweranbu.co.kr/dday">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="꽃안부">
+<meta property="og:title" content="기념일·디데이 계산기 | 꽃안부">
+<meta property="og:description" content="100일·1주년·결혼기념일 n주년·음력 생일을 한 번에. 그날 알림도 받아요.">
+<meta property="og:url" content="https://floweranbu.co.kr/dday">
+<meta property="og:image" content="https://floweranbu.co.kr/og_preview.png">
+<meta name="theme-color" content="#1f4733">
+<link rel="icon" href="/favicon.ico">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebApplication","name":"기념일·디데이 계산기","url":"https://floweranbu.co.kr/dday","applicationCategory":"UtilitiesApplication","operatingSystem":"All","inLanguage":"ko","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"publisher":{"@type":"Florist","name":"꽃안부","url":"https://floweranbu.co.kr/","telephone":"+82-1577-2286"}},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"100일은 어떻게 세나요?","acceptedAnswer":{"@type":"Answer","text":"사귀기 시작한 날이나 태어난 날을 1일로 세요. 그래서 100일은 시작한 날에서 99일 뒤예요. 이 계산기도 같은 방법으로 셉니다."}},
+{"@type":"Question","name":"결혼기념일 25주년, 50주년은 뭐라고 부르나요?","acceptedAnswer":{"@type":"Answer","text":"흔히 25주년을 은혼식, 50주년을 금혼식이라고 불러요. 1주년은 지혼식, 10주년은 석혼식, 30주년은 진주혼식, 60주년은 회혼식이라고 해요."}},
+{"@type":"Question","name":"음력 생일은 올해 양력으로 언제인가요?","acceptedAnswer":{"@type":"Answer","text":"음력 날짜는 해마다 양력 날짜가 달라져요. 이 계산기에 음력 월·일을 넣으면 올해와 다음 몇 해의 양력 날짜를 보여 드려요. 그해에 음력 30일이 없으면 29일로 셉니다."}}
+]},
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"꽃안부","item":"https://floweranbu.co.kr/"},{"@type":"ListItem","position":2,"name":"기념일 계산기","item":"https://floweranbu.co.kr/dday"}]}
+]}
+</script>
+<style>
+:root{--paper:#fff;--bg:#f7f6f2;--ink:#1f1d18;--soft:#5a564d;--faint:#8a857a;--line:#e4e1d8;--accent:#1f4733;--accent-soft:#e6efe9;--warm:#b4572b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b;--accent-soft:#22332a;--warm:#f0a27a}}
+:root[data-theme="dark"]{--paper:#202124;--bg:#17181a;--ink:#eceae4;--soft:#c4c0b6;--faint:#a5a197;--line:#2c2d30;--accent:#7fc29b;--accent-soft:#22332a;--warm:#f0a27a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}.w{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:14px}.top a{text-decoration:none;font-weight:700}
+h1{margin:18px 0 6px;font-size:25px;line-height:1.35}.lead{margin:0;color:var(--soft)}
+h2{margin:30px 0 6px;font-size:19px}
+.box{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.tabs{display:flex;gap:6px;margin-top:18px}.tabs button{flex:1;padding:11px 8px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+label.fl{display:block;margin:12px 0 4px;font-size:14px;color:var(--soft);font-weight:600}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.chips button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.duo{display:flex;gap:8px}.duo>*{flex:1}
+.now{margin-top:14px;padding:14px;border-radius:12px;background:var(--accent-soft);font-size:17px}.now b{font-size:22px}
+ul.ms{list-style:none;margin:10px 0 0;padding:0;border-top:1px solid var(--line)}
+ul.ms li{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+ul.ms .k{flex:0 0 auto;min-width:86px;font-weight:800}ul.ms .v{flex:1;min-width:0}ul.ms .v small{display:block;color:var(--faint);font-size:13px}
+ul.ms .dd{flex:0 0 auto;font-weight:800;color:var(--warm);font-size:14px}ul.ms li.past{opacity:.55}ul.ms li.next{background:var(--accent-soft);margin:0 -8px;padding:11px 8px;border-radius:10px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{display:inline-block;padding:11px 14px;border-radius:12px;border:1px solid var(--accent);background:var(--accent);color:#fff;font:inherit;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer}
+.btn.o{background:transparent;color:var(--accent)}
+.note{margin-top:10px;font-size:14px;color:var(--faint)}
+.qa h3{font-size:17px;margin:18px 0 4px}.qa p{margin:0;color:var(--soft)}
+.foot{margin-top:30px;font-size:13px;color:var(--faint)}
+@media (min-width:1000px){.w{max-width:720px}}
+</style>
+</head>
+<body>
+<div class="w">
+<div class="top"><a href="/">꽃안부</a><a href="tel:1577-2286">전화 1577-2286</a></div>
+<h1>기념일·디데이 계산기</h1>
+<p class="lead">날짜 하나만 넣으면 100일, 1주년, 결혼기념일 n주년까지 요일과 남은 날을 바로 보여 드려요. 음력 생일도 올해 양력 날짜로 바꿔 드려요.</p>
+
+<div class="tabs" role="tablist">
+  <button type="button" role="tab" id="tb-d" aria-selected="true" aria-controls="p-d">기념일·디데이</button>
+  <button type="button" role="tab" id="tb-l" aria-selected="false" aria-controls="p-l">음력 생일</button>
+</div>
+
+<section id="p-d" role="tabpanel" aria-labelledby="tb-d">
+  <div class="box">
+    <label class="fl">무슨 날부터 셀까요?</label>
+    <div class="chips" id="kind">
+      <button type="button" class="on" data-k="love">사귄 날</button>
+      <button type="button" data-k="wed">결혼한 날</button>
+      <button type="button" data-k="baby">아기 태어난 날</button>
+      <button type="button" data-k="open">개업한 날</button>
+      <button type="button" data-k="etc">다른 날</button>
+    </div>
+    <label class="fl" for="start">시작한 날</label>
+    <input id="start" type="date">
+    <label class="fl" for="who" id="whoL" hidden>누구의 날인가요? <span style="font-weight:400">(알림에 적혀요, 선택)</span></label>
+    <input id="who" maxlength="20" placeholder="예: 우리, 부모님, 언니네" hidden>
+  </div>
+  <div id="out" aria-live="polite"></div>
+</section>
+
+<section id="p-l" role="tabpanel" aria-labelledby="tb-l" hidden>
+  <div class="box">
+    <label class="fl">음력 생일</label>
+    <div class="duo"><select id="lm" aria-label="음력 월"></select><select id="ld" aria-label="음력 일"></select></div>
+    <label class="fl" for="lwho">누구 생일인가요? <span style="font-weight:400">(선택)</span></label>
+    <input id="lwho" maxlength="20" placeholder="예: 어머니, 할머니">
+    <div class="acts"><button type="button" class="btn" id="lgo">양력으로 바꾸기</button></div>
+  </div>
+  <div id="lout" aria-live="polite"></div>
+</section>
+
+<h2>자주 묻는 것</h2>
+<div class="qa">
+  <h3>100일은 어떻게 세나요?</h3>
+  <p>사귀기 시작한 날이나 태어난 날을 1일로 세요. 그래서 100일은 시작한 날에서 99일 뒤예요. 이 계산기도 같은 방법으로 셉니다.</p>
+  <h3>결혼기념일 25주년, 50주년은 뭐라고 부르나요?</h3>
+  <p>흔히 25주년을 은혼식, 50주년을 금혼식이라고 불러요. 1주년은 지혼식, 10주년은 석혼식, 30주년은 진주혼식, 60주년은 회혼식이라고 해요.</p>
+  <h3>음력 생일은 올해 양력으로 언제인가요?</h3>
+  <p>음력 날짜는 해마다 양력 날짜가 달라져요. 위 '음력 생일'에 월·일을 넣으면 올해와 다음 몇 해의 양력 날짜를 보여 드려요. 그해에 음력 30일이 없으면 29일로 셉니다.</p>
+  <h3>그날을 잊지 않으려면요?</h3>
+  <p>'매년 알림 받기'를 누르면 꽃안부 챙길 사람 수첩에 들어가서 일주일 전 아침에 알려 드려요. 100일처럼 한 번뿐인 날은 '내 달력에 넣기'로 휴대폰 달력에 넣어 두세요.</p>
+</div>
+
+<p class="foot"><a href="/guide/">꽃 선물 묻고 답하기</a> · <a href="/guide/anniversary-flowers">기념일 꽃 선물</a> · <a href="/prices">전체 상품 가격</a><br>꽃안부 · 주식회사 아마존 · 경기 시흥시 신천3길 23, 103호 · 1993년부터 같은 꽃집 · 1577-2286</p>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var WD = "일월화수목금토";
+  var DAY = 86400000;
+  // 결혼기념일 이름(흔히 쓰는 것만)
+  var WED = { 1: "지혼식", 5: "목혼식", 10: "석혼식", 15: "동혼식", 20: "도혼식", 25: "은혼식", 30: "진주혼식", 35: "산호혼식", 40: "홍옥혼식", 50: "금혼식", 60: "회혼식" };
+  var KIND = {
+    love: { days: [22, 50, 100, 200, 300, 500, 700, 1000, 1500, 2000, 3000], years: [1, 2, 3, 4, 5, 7, 10], lb: "사귄 날", cat: "bouquet", gift: "기념일엔 꽃다발이 가장 무난해요." },
+    wed: { days: [100, 1000], years: [1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 35, 40, 50, 60], lb: "결혼기념일", cat: "bouquet", gift: "결혼기념일엔 꽃다발이나 꽃바구니를 많이 보내요." },
+    baby: { days: [50, 100, 200, 300, 1000], years: [1, 2, 3, 5, 7, 10], lb: "생일", cat: "basket", gift: "백일·돌에는 꽃바구니가 잔치 자리에 어울려요." },
+    open: { days: [100, 1000], years: [1, 2, 3, 5, 10, 20, 30], lb: "개업일", cat: "plant", gift: "개업 기념일엔 오래 두는 관엽식물이나 난이 좋아요." },
+    etc: { days: [100, 200, 300, 500, 1000], years: [1, 2, 3, 5, 10], lb: "기념일", cat: "bouquet", gift: "" },
+  };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function today() { var t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
+  function parse(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function addYears(d, n) { var x = new Date(d.getFullYear() + n, d.getMonth(), d.getDate()); if (x.getMonth() !== d.getMonth()) x = new Date(d.getFullYear() + n, d.getMonth() + 1, 0); return x; }
+  function fmt(d) { return d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일 (" + WD[d.getDay()] + ")"; }
+  function diff(d) { return Math.round((d - today()) / DAY); }
+  function ddTxt(n) { return n === 0 ? "오늘" : n > 0 ? "D-" + n : n + 1 === 0 ? "어제" : -n + "일 전"; }
+  function ymd(d) { return d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0"); }
+  function ics(title, d) {
+    var s = ymd(d), e = ymd(addDays(d, 1));
+    var body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//floweranbu//dday//KO", "BEGIN:VEVENT", "UID:" + s + "-" + Math.random().toString(36).slice(2) + "@floweranbu.co.kr",
+      "DTSTAMP:" + ymd(new Date()) + "T000000Z", "DTSTART;VALUE=DATE:" + s, "DTEND;VALUE=DATE:" + e, "SUMMARY:" + title.replace(/[,;\\]/g, " "),
+      "BEGIN:VALARM", "TRIGGER:-P3D", "ACTION:DISPLAY", "DESCRIPTION:" + title.replace(/[,;\\]/g, " ") + " 3일 전", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([body], { type: "text/calendar" }));
+    a.download = title.replace(/[^\w가-힣]+/g, "_") + ".ics";
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  function remindUrl(who, lb, d, cal) {
+    var p = new URLSearchParams({ tab: "people", add: "1", lb: lb, m: String(d.getMonth() + 1), d: String(d.getDate()), utm_source: "dday" });
+    if (who) p.set("who", who);
+    if (cal) p.set("cal", cal);
+    return "/my?" + p.toString();
+  }
+  var kind = "love";
+
+  function draw() {
+    var start = parse($("start").value), K = KIND[kind], who = $("who").value.trim();
+    $("whoL").hidden = $("who").hidden = !start;
+    if (!start) { $("out").innerHTML = ""; return; }
+    var t = today(), rows = [];
+    K.days.forEach(function (n) { rows.push({ k: n + "일", sub: kind === "baby" && n === 100 ? "백일" : "", d: addDays(start, n - 1) }); });
+    K.years.forEach(function (n) {
+      var sub = kind === "wed" ? (WED[n] || "") : kind === "baby" ? (n === 1 ? "돌 · 첫 생일" : n + "번째 생일") : "";
+      rows.push({ k: n + "주년", sub: sub, d: addYears(start, n) });
+    });
+    // 해마다 오는 날(결혼기념일·생일·개업일)은 목록에 없어도 '올해/다음 n주년'을 꼭 넣는다.
+    if (kind !== "love" && kind !== "etc") {
+      var ny = t.getFullYear() - start.getFullYear(); if (addYears(start, ny) < t) ny++;
+      if (ny >= 1 && K.years.indexOf(ny) < 0) rows.push({ k: ny + "주년", sub: kind === "wed" ? (WED[ny] || "") : kind === "baby" ? ny + "번째 생일" : "", d: addYears(start, ny) });
+    }
+    rows.sort(function (a, b) { return a.d - b.d; });
+    // 지난 날은 바로 앞 두 개만 남긴다(오래된 결혼은 줄이 너무 길어진다).
+    var past = rows.filter(function (r) { return r.d < t; });
+    rows = past.slice(-2).concat(rows.filter(function (r) { return r.d >= t; }));
+    var nextI = -1; rows.forEach(function (r, i) { if (nextI < 0 && r.d >= t) nextI = i; });
+    var count = Math.round((t - start) / DAY) + 1;
+    var html = '<div class="now">' + (count >= 1 ? "오늘은 <b>" + count.toLocaleString() + "일째</b>예요." : "시작까지 <b>" + (1 - count) + "일</b> 남았어요.")
+      + (nextI >= 0 ? "<br>다음 기념일은 <b>" + esc(rows[nextI].k) + "</b>, " + fmt(rows[nextI].d) + " · " + ddTxt(diff(rows[nextI].d)) : "") + "</div>";
+    html += '<ul class="ms">' + rows.map(function (r, i) {
+      var n = diff(r.d);
+      return '<li class="' + (n < 0 ? "past" : i === nextI ? "next" : "") + '"><span class="k">' + esc(r.k) + '</span><span class="v">' + fmt(r.d)
+        + (r.sub ? "<small>" + esc(r.sub) + "</small>" : "") + '</span><span class="dd">' + ddTxt(n) + "</span></li>";
+    }).join("") + "</ul>";
+    var nx = nextI >= 0 ? rows[nextI] : null;
+    html += '<div class="acts">';
+    html += '<a class="btn" href="' + esc(remindUrl(who, K.lb, start)) + '">🔔 매년 ' + esc(K.lb) + ' 알림 받기</a>';
+    if (nx) html += '<button type="button" class="btn o" id="icsBtn">📅 ' + esc(nx.k) + " 내 달력에 넣기</button>";
+    html += '<a class="btn o" href="/catalog.html?cat=' + K.cat + '&utm_source=dday">💐 그날 보낼 꽃 보기</a></div>';
+    if (K.gift) html += '<p class="note">' + esc(K.gift) + " 평일 18시·주말 16시 전에 주문하면 오늘 도착해요.</p>";
+    $("out").innerHTML = html;
+    var ib = $("icsBtn"); if (ib && nx) ib.onclick = function () { ics((who ? who + " " : "") + K.lb.replace("일", "") + " " + nx.k, nx.d); };
+  }
+  $("kind").onclick = function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    kind = b.getAttribute("data-k");
+    $("kind").querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    draw();
+  };
+  $("start").oninput = $("start").onchange = draw;
+  $("who").oninput = draw;
+
+  // 탭
+  function tab(t) {
+    ["d", "l"].forEach(function (k) { $("tb-" + k).setAttribute("aria-selected", k === t ? "true" : "false"); $("p-" + k).hidden = k !== t; });
+    try { history.replaceState(null, "", "/dday" + (t === "l" ? "?tab=lunar" : "")); } catch (_e) {}
+  }
+  $("tb-d").onclick = function () { tab("d"); };
+  $("tb-l").onclick = function () { tab("l"); };
+
+  // 음력 생일 → 양력(서버 /api/parse-url action:lunar, 챙길 사람 수첩과 같은 계산)
+  var o = "";
+  for (var i = 1; i <= 12; i++) o += '<option value="' + i + '">' + i + "월</option>"; $("lm").innerHTML = o; o = "";
+  for (var j = 1; j <= 30; j++) o += '<option value="' + j + '">' + j + "일</option>"; $("ld").innerHTML = o;
+  $("lgo").onclick = function () {
+    var m = +$("lm").value, d = +$("ld").value, y0 = new Date().getFullYear(), who = $("lwho").value.trim();
+    $("lout").innerHTML = '<p class="note">바꾸는 중…</p>';
+    fetch("/api/parse-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "lunar", items: [{ m: m, d: d }], y0: y0, n: 5 }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var list = j && j.ok && j.dates && j.dates[0] ? j.dates[0] : null;
+        if (!list) throw 0;
+        var rows = list.map(function (s, k) { var x = parse(s); return x ? { y: y0 + k, d: x } : null; }).filter(Boolean);
+        var t = today(), nxt = rows.filter(function (r) { return r.d >= t; })[0];
+        var html = '<div class="now">음력 ' + m + "월 " + d + "일" + (who ? " (" + esc(who) + ")" : "") + (nxt ? "<br>다음 생일은 <b>" + fmt(nxt.d) + "</b> · " + ddTxt(diff(nxt.d)) : "") + "</div>";
+        html += '<ul class="ms">' + rows.map(function (r) { var n = diff(r.d); return '<li class="' + (n < 0 ? "past" : r === nxt ? "next" : "") + '"><span class="k">' + r.y + '년</span><span class="v">양력 ' + fmt(r.d) + '</span><span class="dd">' + ddTxt(n) + "</span></li>"; }).join("") + "</ul>";
+        html += '<div class="acts"><a class="btn" href="' + esc(remindUrl(who, "생일", new Date(2000, m - 1, d), "lunar")) + '">🔔 매년 음력 생일 알림 받기</a>'
+          + '<a class="btn o" href="/catalog.html?cat=basket&utm_source=dday">💐 생신 꽃바구니 보기</a></div>'
+          + '<p class="note">음력 생일은 해마다 날짜가 바뀌어서 잊기 쉬워요. 알림을 받으면 해마다 바뀐 날짜로 일주일 전에 알려 드려요.</p>';
+        $("lout").innerHTML = html;
+      })
+      .catch(function () { $("lout").innerHTML = '<p class="note">지금은 바꾸지 못했어요. 잠시 후 다시 눌러 주세요.</p>'; });
+  };
+
+  var q = new URLSearchParams(location.search);
+  if (q.get("tab") === "lunar") tab("l");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(q.get("s") || "")) { $("start").value = q.get("s"); }
+  var k0 = q.get("k"); if (KIND[k0]) { kind = k0; $("kind").querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-k") === k0); }); }
+  draw();
+})();
+</script>
+<script src="/va.js?v=20261025a" defer></script>
+</body>
+</html>

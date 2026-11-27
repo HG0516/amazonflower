@@ -729,9 +729,10 @@
 
   // 사람 추가 — 칩을 누르면 10초
   function opts(n, a, b, sel) { var s = ""; for (var i = a; i <= b; i++) s += '<option value="' + i + '"' + (i === sel ? " selected" : "") + ">" + i + n + "</option>"; return s; }
-  function openAdd() {
+  function openAdd(pre) {
     var f = $("ppForm");
     var now = new Date();
+    pre = pre || {};
     f.innerHTML = '<div class="card addbox"><h2 style="margin-top:0">사람 추가</h2>'
       + '<label class="fl">누구</label><div class="chips" id="fWhoC">' + WHO.map(function (w) { return '<button type="button">' + w + "</button>"; }).join("") + "</div>"
       + '<input id="fWho" maxlength="20" placeholder="이름이나 관계 (예: 박 부장님)" style="margin-top:8px">'
@@ -751,6 +752,16 @@
       $("fDay").hidden = !b.getAttribute("data-own"); if (!$("fDay").hidden) $("fDay").focus();
     };
     calC.onclick = function (e) { var b = e.target.closest("button"); if (!b) return; calC.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); };
+    // 기념일 계산기(/dday) 등에서 ?add=1&who=&lb=&m=&d=&cal= 로 넘어오면 미리 채운다(11/27).
+    if (pre.who) $("fWho").value = String(pre.who).slice(0, 20);
+    if (pre.lb) {
+      var hit = null; dayC.querySelectorAll("button").forEach(function (x) { if (!x.getAttribute("data-own") && x.textContent === pre.lb) hit = x; });
+      if (!hit) { hit = dayC.querySelector("[data-own]"); $("fDay").hidden = false; $("fDay").value = String(pre.lb).slice(0, 20); }
+      dayC.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === hit); });
+    }
+    if (pre.m >= 1 && pre.m <= 12) $("fM").value = String(pre.m);
+    if (pre.d >= 1 && pre.d <= 31) $("fD").value = String(pre.d);
+    if (pre.cal === "lunar") calC.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-v") === "lunar"); });
     $("fX").onclick = function () { f.innerHTML = ""; };
     $("fOk").onclick = function () {
       var who = $("fWho").value.trim();
@@ -898,7 +909,14 @@
     drawWho();
     if (same) return;
     drawOrders();
-    if (USER) { $("ppBody").innerHTML = '<div class="empty" style="margin-top:16px">불러오는 중…</div>'; refreshPeople(); } else { PEOPLE = []; drawPeople(); }
+    if (USER) {
+      $("ppBody").innerHTML = '<div class="empty" style="margin-top:16px">불러오는 중…</div>';
+      refreshPeople().then(function () {
+        if (q.get("add") !== "1" || !$("ppForm")) return;
+        openAdd({ who: q.get("who"), lb: q.get("lb"), m: +q.get("m"), d: +q.get("d"), cal: q.get("cal") });
+        q.delete("add");
+      });
+    } else { PEOPLE = []; drawPeople(); }
     if (!USER && q.get("o")) $("ph").focus();
   }
   document.addEventListener("af-auth-change", function (e) { onUser(e.detail && e.detail.user); });

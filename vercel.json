@@ -274,6 +274,10 @@
       "destination": "/faq.html"
     },
     {
+      "source": "/dday",
+      "destination": "/dday.html"
+    },
+    {
       "source": "/hello",
       "has": [{ "type": "query", "key": "s" }],
       "destination": "/api/order-meta?hello=1"
