@@ -676,6 +676,8 @@ function head(title, desc, canon, extra) {
 <style>${CSS}</style>
 ${extra}
 <script src="/va.js?v=20261025a" defer></script>
+<script src="/supabase-config.js" defer></script>
+<script src="/sent-strip.js?v=20261127" defer></script>
 </head>`;
 }
 
@@ -704,7 +706,7 @@ export function guideHtml(g) {
 ${topBar}
 <h1>${esc(hd(g))}</h1>
 ${byline}
-${hero(g)}
+<div data-sent-slide="${esc(g.cta[2])}">${hero(g)}</div>
 <div class="box ans"><b class="q">Q. ${esc(g.q)}</b><p>${fill(g.a)}</p></div>
 ${VIS[g.slug] ? VIS[g.slug]() : ""}
 ${who}

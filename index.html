@@ -55,6 +55,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Florist","@id":"https://floweranbu.co.kr/#shop","name":"꽃안부","alternateName":["아마존플라워","주식회사 아마존"],"description":"경기 시흥에서 1993년부터 같은 사장님이 운영하는 꽃집이에요. 근조화환, 축하화환, 꽃다발, 꽃바구니, 난, 관엽식물을 전국 당일 배송해요. 평일 18시, 주말 16시까지 주문하면 오늘 도착해요.","foundingDate":"1993","image":"https://floweranbu.co.kr/og_preview.png","logo":"https://floweranbu.co.kr/icons/icon-512.png","telephone":"+82-1577-2286","address":{"@type":"PostalAddress","streetAddress":"신천3길 23, 103호","addressLocality":"시흥시","addressRegion":"경기도","addressCountry":"KR"},"url":"https://floweranbu.co.kr/","priceRange":"₩49,000~₩247,000","currenciesAccepted":"KRW","paymentAccepted":"신용카드, 네이버페이, 카카오페이, 토스페이","areaServed":{"@type":"Country","name":"대한민국"},"taxID":"234-86-00344","sameAs":["https://instagram.com/floweranbu_","https://pf.kakao.com/_AXXBX"],"hasOfferCatalog":{"@type":"OfferCatalog","name":"꽃안부 전체 상품","url":"https://floweranbu.co.kr/prices"}},{"@type":"WebSite","@id":"https://floweranbu.co.kr/#site","name":"꽃안부","alternateName":"floweranbu","url":"https://floweranbu.co.kr/","inLanguage":"ko-KR","publisher":{"@id":"https://floweranbu.co.kr/#shop"}}]}</script>
 <!-- 로그인 (Supabase Auth: 카카오·구글). 키 설정은 SETUP-AUTH.md 참조 -->
 <script src="/supabase-config.js" defer></script>
+<script src="/sent-strip.js?v=20261127" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="/auth.js?v=20261020e" defer></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
@@ -965,6 +966,8 @@
     <h1 class="vh">안부는, 꽃으로</h1>
     <div class="trust-row"><span><b>시흥 33년</b>같은 사장님</span><span><b>오늘 도착</b>평일 18시 · 주말 16시까지 주문</span></div>
   </section>
+  <!-- 보낸 꽃 흐르는 띠(11/27 시안 D-1) — 관리 화면에서 공개한 실제 배송 사진 3장 이상일 때만 sent-strip.js 가 채운다 -->
+  <section class="home-sect" data-sent-flow hidden style="margin-top:14px;"></section>
 
   <section class="card hidden" id="catalogBanner" style="position:sticky;top:calc(var(--hdr-h, 56px) + 6px);z-index:10;">
     <div class="pick-label">SELECTED</div>
