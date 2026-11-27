@@ -88,10 +88,17 @@ function supabaseMock(seen, { pointsRows = [] } = {}) {
     seen.push(u);
     assert.equal(init.headers.apikey, "svc");
     const table = u.pathname.split("/").pop();
+    if (u.pathname === "/auth/v1/admin/users") {
+      return Response.json({ users: [
+        { created_at: new Date(NOW - 20 * 3600000).toISOString(), app_metadata: { provider: "kakao" } },
+        { created_at: new Date(NOW - 20 * 3600000).toISOString(), app_metadata: { provider: "email" }, user_metadata: { provider: "naver" } },
+        { created_at: "2026-01-01T00:00:00Z", app_metadata: { provider: "google" } },
+      ] });
+    }
     if (table === "orders") {
       return Response.json([
-        { paid_amount: 49000, utm_source: "funeral" },
-        { paid_amount: 49000, utm_source: null, referral_source: null },
+        { paid_amount: 49000, utm_source: "funeral", product_code: "WC-01", payment_method: "카드" },
+        { paid_amount: 49000, utm_source: null, referral_source: null, product_code: "BQ-004", payment_method: "간편결제" },
       ]);
     }
     if (table === "payment_intents") {
@@ -118,16 +125,18 @@ test("시안 B 모양 그대로: 한 줄에 한 가지, 3개씩만", async () =>
   assert.equal(Number(calls[0].searchParams.get("until")), until - 1, "until 은 포함이라 1ms 앞까지");
   assert.ok(!visits.pages.some(([k]) => k === "Sh수협장례식장"), "장례식장 하나하나는 '장례식장 페이지' 한 줄로 합친다");
   const site = await fetchSiteNumbers({ supabaseUrl: "https://sb.test", headers: { apikey: "svc" }, since, until, env: {}, fetchImpl: supabaseMock(seen) });
-  assert.equal(seen.length, 4, "적립금이 꺼져 있으면 points_ledger 를 안 읽는다");
+  assert.equal(seen.length, 5, "적립금이 꺼져 있으면 points_ledger 를 안 읽는다(4표 + 가입자)");
   const text = formatDailyNumbers({ since, visits, site, now: NOW });
   assert.equal(text, [
     "📊 어제 10/25(일)",
     "방문 32명 (지난주 20) → 주문 2건 98,000원 (6%)",
-    "주문 어디서: 장례식장 페이지 1, 직접 1",
+    "주문 어디서: 장례식장 페이지 1건 49,000원, 직접 1건 49,000원",
+    "결제수단: 카드 1건 49,000원, 간편결제 1건 49,000원",
+    "상품 종류: 근조화환 1건 49,000원, 꽃다발 1건 49,000원",
     "결제창 6번 → 결제 3건 · 그만둔 것: 근조화환 기본 2, 개업화분 1",
     "들어온 곳: 직접·카톡 15, 네이버 10, 구글 3",
     "많이 본 곳: 홈 40, 상품 12, 장례식장 페이지 9",
-    "부고장 3 · 청첩장 1 · 새 회원 1",
+    "부고장 3 · 청첩장 1 · 새 회원 2 (카카오 1, 네이버 1) · 전체 3명",
     "다가오는 날: 수능 D-24 · 인사철(11월 말~)",
   ].join("\n"));
 });
@@ -141,7 +150,7 @@ test("조회 조건: 취소·환불 중 주문은 빼고, 결제창은 상품 �
   assert.equal(byTable.orders.searchParams.get("status"), "neq.canceled");
   assert.deepEqual(byTable.orders.searchParams.getAll("created_at"), [`gte.${new Date(since).toISOString()}`, `lt.${new Date(until).toISOString()}`]);
   assert.equal(byTable.payment_intents.searchParams.get("select"), "state,label:order_data->>productLabel");
-  for (const u of seen) assert.doesNotMatch(u.searchParams.get("select"), /phone|name|address|recipient|sender/i, "개인 정보 칸은 안 읽는다");
+  for (const u of seen.filter((x) => x.pathname.startsWith("/rest/"))) assert.doesNotMatch(u.searchParams.get("select"), /phone|name|address|recipient|sender/i, "개인 정보 칸은 안 읽는다");
 });
 
 test("적립금을 켜면 한 줄 더", async () => {
@@ -151,7 +160,7 @@ test("적립금을 켜면 한 줄 더", async () => {
     supabaseUrl: "https://sb.test", headers: { apikey: "svc" }, since, until, env: { POINTS_MODE: "on" },
     fetchImpl: supabaseMock(seen, { pointsRows: [{ reason: "사용", amount: -3000 }, { reason: "사용", amount: -1000 }, { reason: "추천", amount: 3000 }, { reason: "추천", amount: 1000 }] }),
   });
-  assert.equal(seen.length, 5);
+  assert.equal(seen.length, 6);
   assert.match(formatDailyNumbers({ since, visits: null, site, now: NOW }), /\n적립금 사용 2건 4,000원 · 추천 적립 2건\n/);
 });
 
@@ -224,7 +233,8 @@ test("지난주 묶음: 방문·주문·많이 팔린 것·많이 본 장례식�
   assert.equal(out, [
     "📈 지난주 11/2(월)~11/8(일)",
     "방문 210명 (그 전 주 150) → 주문 3건 177,000원 (1%)",
-    "주문 어디서: 장례식장 페이지 1, 부고장·청첩장 1, 직접 1",
+    "주문 어디서: 직접 1건 79,000원, 장례식장 페이지 1건 49,000원, 부고장·청첩장 1건 49,000원",
+    "상품 종류: 근조화환 2건 98,000원, 축하화환 1건 79,000원",
     "결제창 4번 → 결제 3건",
     "많이 팔린 것: 근조 보통 2, 축하 일반 1",
     "많이 본 장례식장: 시흥장례식장 12, 수협장례식장 8",

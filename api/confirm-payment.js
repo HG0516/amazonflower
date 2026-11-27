@@ -160,14 +160,35 @@ function paymentMethodLabel(payment) {
   return prov && prov !== m ? `${m} (${prov})` : m;
 }
 
-// 사장님께 보낼 문자 본문 구성 (발주 복붙용 + 원문 대조용)
-// 프론트 order 객체의 실제 키(venue, ribbonLeft/Right, senderName/Phone, src)를 우선 사용하고,
-// 혹시 모를 구버전 키(venueName, ribbonText, ordererName...)도 함께 지원한다.
-function buildOwnerMessage(order, payment) {
+// 사장님·발주 방에 가는 새 주문 알림(11/27 형구: 깔끔하게, 주문번호·상품 링크가 보이게).
+// 한 줄에 한 가지, 맨 위에 무엇을 얼마에, 그다음 언제·어디·누구·리본, 맨 끝에 주문자·주문번호.
+// 프론트 order 객체의 실제 키(venue, ribbonLeft/Right, senderName/Phone, src)를 우선 쓰고,
+// 구버전 키(venueName, ribbonText, ordererName...)도 받는다.
+// forStaff: 아주머니들 발주 방(TELEGRAM_STAFF_CHAT_ID)용 — 결제수단·에스크로 안내는 뺀다(형구 방에만).
+// ⚠️ '주문번호: AF…' 줄 모양은 lib/sent-photos.mjs orderIdFromAlarm 이 읽는다. 바꾸지 말 것.
+const PRODUCT_PAGE_RE = /^(WC|WG|BQ|BS|OR|PL)-\d{2,4}$/;
+function productLink(code) {
+  const c = String(code || "").trim();
+  if (!PRODUCT_PAGE_RE.test(c)) return "";
+  return `${(process.env.PUBLIC_BASE_URL || "https://floweranbu.co.kr").replace(/\/+$/, "")}/catalog.html?item=${encodeURIComponent(c)}`;
+}
+function shortDate(ymd) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(ymd || ""));
+  if (!m) return String(ymd || "");
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return `${+m[2]}/${+m[3]}(${"일월화수목금토"[d.getUTCDay()]})`;
+}
+// 문자(SMS·LMS)는 이모지가 깨질 수 있어 뺀다. 텔레그램은 그대로.
+const smsSafe = (t) => String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]\u{FE0F}?\s?/gu, "").replace(/\u{FE0F}/gu, "");
+function buildOwnerMessage(order, payment, { forStaff = false } = {}) {
   const lines = [];
-  lines.push("[새 주문] 꽃안부");
+  const multi = Array.isArray(order.items) && order.items.length >= 2;
+  const amount = Number(payment && payment.totalAmount);
+  const amountTxt = Number.isFinite(amount) && amount > 0 ? `${amount.toLocaleString()}원` : "";
+  const qty = !multi && Number(order.quantity) > 1 ? ` ×${order.quantity}` : "";
+  const head = multi ? `상품 ${order.items.length}가지` : `${order.productLabel || "-"}${qty}`;
+  lines.push(`🌸 [새 주문] ${head}${amountTxt ? ` · ${amountTxt}` : ""}`);
   // 확인이 필요한 건은 맨 위에 세운다 — 놓치면 손님이 기다리다 사고가 난다.
-  // 안 되는 건이면 아래 '💸 결제취소(환불)' 버튼으로 바로 전액 환불하시면 됩니다.
   const tags = Array.isArray(order.confirmTags) ? order.confirmTags.filter(Boolean).slice(0, 4) : [];
   if (tags.length) lines.push(`⚠️ 확인 필요 — ${tags.map((t) => String(t).slice(0, 10)).join(" · ")}`);
   // 주소 없는 꽃 선물(lib/gift.mjs): 받는 분이 링크에서 주소를 넣은 뒤에 이 알림이 간다.
@@ -175,83 +196,85 @@ function buildOwnerMessage(order, payment) {
     lines.push(order.giftFilled === "edited" ? "🎁 선물 · 받는 분이 주소·날짜를 고쳤어요 (이 내용이 최신)" : "🎁 선물 · 받는 분이 주소를 넣었어요");
     if (Number(order.giftExtraFee) > 0) {
       lines.push(`먼 지역 추가 배송비 ${Number(order.giftExtraFee).toLocaleString()}원 · 결제되면 맞춤 결제 주문으로 따로 와요`);
-      if (order.giftExtraFeeUrl) lines.push(`보내는 분 결제 링크(문자가 안 갔으면 이걸 보내 주세요): ${order.giftExtraFeeUrl}`);
+      if (order.giftExtraFeeUrl && !forStaff) lines.push(`보내는 분 결제 링크(문자가 안 갔으면 이걸 보내 주세요): ${order.giftExtraFeeUrl}`);
     }
   }
   lines.push("");
-  if (Array.isArray(order.items) && order.items.length >= 2) {
-    // 같은 곳으로 여러 상품 — 하나도 빠뜨리지 않게 줄마다 하나씩
+
+  // ── 무엇을 ──
+  if (multi) {
+    // 같은 곳으로 여러 상품 — 하나도 빠뜨리지 않게 줄마다 하나씩, 사진 링크도 하나씩
     lines.push(`상품 ${order.items.length}가지 (같은 곳으로):`);
     for (const it of order.items) {
       const tl = Array.isArray(it.toppings) && it.toppings.length ? ` (+${it.toppings.map((t) => TOPPING_LABELS[t] || t).join("·")})` : "";
-      lines.push(`· ${it.name || it.productCode}${Number(it.quantity) > 1 ? ` ×${it.quantity}` : ""}${tl}`);
+      const link = productLink(it.productCode);
+      lines.push(`· ${it.name || it.productCode}${Number(it.quantity) > 1 ? ` ×${it.quantity}` : ""}${tl}${link ? `  ${link}` : ""}`);
     }
   } else {
-    lines.push(`상품: ${order.productLabel || "-"}`);
-    if (order.quantity && Number(order.quantity) > 1) lines.push(`수량: ${order.quantity}개`);
+    const link = productLink(order.productCode);
+    if (link) lines.push(`🔗 상품 사진 ${link}`);
     const tops = Array.isArray(order.toppings) ? order.toppings : [];
-    if (tops.length) {
-      lines.push(`얹기: ${tops.map((t) => TOPPING_LABELS[t] || t).join(" · ")}`);
+    if (tops.length) lines.push(`➕ 얹기 ${tops.map((t) => TOPPING_LABELS[t] || t).join(" · ")}`);
+  }
+
+  // ── 언제 ──
+  if (order.date) {
+    let when = `📅 ${shortDate(order.date)}${order.time ? " " + order.time : ""}`;
+    // 발인·예식 시각은 도착 시각과 다르다 — 이 시각 전에 닿아야 한다.
+    if (order.eventTime) {
+      const evLabel = order.type === "funeral" ? "발인" : order.type === "wedding" ? "예식" : "행사";
+      when += ` · ${evLabel} ${order.eventTime} 전 도착`;
     }
+    lines.push(when);
   }
-  lines.push(`결제금액: ${Number(payment.totalAmount).toLocaleString()}원`);
-  const payLabel = paymentMethodLabel(payment);
-  if (payLabel) lines.push(`결제수단: ${payLabel}`);
-  // 손님이 구매안전(에스크로)을 고른 계좌이체·가상계좌 — 사장님이 배송 완료를 등록해야 정산된다.
-  if (payment && payment.useEscrow === true) lines.push("🛡 구매안전(에스크로) 결제 — 배달 후 토스 상점관리자에서 '배송 완료'를 등록해야 정산돼요");
-  if (order.recipientName) lines.push(`받는분: ${order.recipientName}`);
-  if (order.recipientPhone) lines.push(`받는분 연락처: ${order.recipientPhone}`);
-  if (order.chiefMourner) lines.push(`상주: ${order.chiefMourner}`);
+
+  // ── 어디 ──
   const venueName = order.venue || order.venueName;
-  if (venueName) {
-    let place = venueName;
-    if (order.venueDetail) place += ` ${order.venueDetail}`;
-    lines.push(`장소: ${place}`);
-  }
   const addr = order.address || order.venueAddress;
-  if (addr) lines.push(`주소: ${addr}`);
-  if (order.date) lines.push(`일시: ${order.date}${order.time ? " " + order.time : ""}`);
-  // 발인·예식 시각은 도착 시각과 다르다 — 이 시각 전에 닿아야 한다.
-  if (order.eventTime) {
-    const evLabel = order.type === "funeral" ? "발인" : order.type === "wedding" ? "예식" : "행사";
-    lines.push(`${evLabel} 시간: ${order.eventTime} (이 전에 도착)`);
-  }
-  if (order.delivReq) lines.push(`배송요청: ${order.delivReq}`);
-  if (order.entrancePw) lines.push(`공동현관: ${order.entrancePw}`);
-  const ribbon =
-    order.ribbonText ||
-    [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ");
-  if (ribbon) lines.push(`리본문구: ${ribbon}`);
+  if (venueName) lines.push(`📍 ${venueName}${order.venueDetail ? ` ${order.venueDetail}` : ""}`);
+  if (addr) lines.push(venueName ? `    ${addr}` : `📍 ${addr}`);
+  if (order.entrancePw) lines.push(`🚪 공동현관 ${order.entrancePw}`);
+
+  // ── 누구 ──
+  const who = [];
+  if (order.recipientName) who.push(`${order.recipientName}${order.recipientPhone ? ` ${order.recipientPhone}` : ""}`);
+  if (order.chiefMourner) who.push(`상주 ${order.chiefMourner}`);
+  if (who.length) lines.push(`👤 받는 분 ${who.join(" · ")}`);
+  else if (order.recipientPhone) lines.push(`👤 받는 분 연락처 ${order.recipientPhone}`);
+
+  // ── 리본·카드·부탁 ──
+  const ribbon = order.ribbonText || [order.ribbonLeft, order.ribbonRight].filter(Boolean).join(" / ");
+  if (ribbon) lines.push(`🎗 리본 ${ribbon}`);
   // 꽃다발·꽃바구니는 리본 대신 메시지 카드. 안 넣기를 고른 것도 적어 둔다(빠뜨린 건지 헷갈리지 않게).
-  if (order.cardMessage) lines.push(`카드 문구: ${order.cardMessage}`);
-  else if (order.category === "basket") lines.push("메시지 카드: 안 넣음");
-  if (order.senderNote) lines.push(`부탁: ${order.senderNote}`);
+  if (order.cardMessage) lines.push(`💌 카드 문구: ${order.cardMessage}`);
+  else if (order.category === "basket") lines.push("💌 메시지 카드: 안 넣음");
+  if (order.delivReq) lines.push(`📝 배송 요청 ${order.delivReq}`);
+  if (order.senderNote) lines.push(`📝 부탁 ${order.senderNote}`);
   lines.push("");
+
+  // ── 주문자·결제·주문번호 ──
   const orderer = order.senderName || order.ordererName;
   const ordererPhone = order.senderPhone || order.ordererPhone;
-  lines.push(`주문자: ${orderer || "-"} ${ordererPhone || ""}`.trim());
+  lines.push(`☎️ 주문자 ${`${orderer || "-"} ${ordererPhone || ""}`.trim()}`);
   if (order.buyerType === "corp" && order.corpName) {
-    lines.push(`법인: ${order.corpName} (${order.corpRegNo || "-"}) 계산서→${order.corpEmail || "-"}`);
+    lines.push(`🏢 법인 ${order.corpName} (${order.corpRegNo || "-"}) 계산서→${order.corpEmail || "-"}`);
   }
-  lines.push(`주문번호: ${payment.orderId}`);
+  if (!forStaff) {
+    const payLabel = paymentMethodLabel(payment);
+    if (payLabel) lines.push(`💳 결제수단: ${payLabel}`);
+    // 손님이 구매안전(에스크로)을 고른 계좌이체·가상계좌 — 사장님이 배송 완료를 등록해야 정산된다.
+    if (payment && payment.useEscrow === true) lines.push("🛡 구매안전(에스크로) — 배달 후 토스 상점관리자에서 '배송 완료'를 등록해야 정산돼요");
+  }
+  lines.push(`🧾 주문번호: ${payment.orderId}`);
 
-  // ── 원문 대조용 ──
-  lines.push("");
-  lines.push("─ 원문(대조용) ─");
+  // ── 원문(부고장·청첩장) — 있을 때만 한 줄 ──
   const srcUrl = order.sourceUrl || (typeof order.src === "string" && /^https?:\/\//i.test(order.src) ? order.src : "");
   const srcText = order.sourceText || (!srcUrl ? order.src : "");
-  if (srcUrl) {
-    lines.push(srcUrl);
-  }
-  if (srcText) {
-    // 너무 길면 잘라서 담는다 (전체 원문은 주문 데이터/관리자에서 확인)
+  if (srcUrl) lines.push(`📎 원문 ${srcUrl}`);
+  else if (srcText) {
     const t = String(srcText).replace(/\s+/g, " ").trim();
-    lines.push(t.length > 600 ? t.slice(0, 600) + " …(이하 생략)" : t);
+    if (t) lines.push(`📎 원문 ${t.length > 300 ? t.slice(0, 300) + " …" : t}`);
   }
-  if (!srcUrl && !srcText) {
-    lines.push("(원문 없음 - 직접 입력 주문)");
-  }
-
   return lines.join("\n");
 }
 
@@ -383,7 +406,7 @@ export async function notifyOwners(order, payment, { includeCustomer = true, inc
   const giftLink = giftWaiting ? giftUrl(giftCodeFor(payment.orderId)) : "";
   const tagLine = Array.isArray(order.confirmTags) && order.confirmTags.length ? `⚠️ 확인 필요 — ${order.confirmTags.slice(0, 4).join(" · ")}\n` : "";
   const textBody = giftWaiting ? tagLine + giftOwnerWaitingText(order, payment)
-    : waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : buildOwnerMessage(order, payment);
+    : waitingVa ? ownerWaitingText(vaWaitingFacts(order, payment)) : smsSafe(buildOwnerMessage(order, payment));
 
   const mk = (to, text, subject) => {
     const len = Buffer.byteLength(text, "utf8");
@@ -472,6 +495,8 @@ export async function notifyOwners(order, payment, { includeCustomer = true, inc
 
 // 사장님께 텔레그램으로도 주문 알림 (문자와 같은 본문). 봇 토큰/챗id 없으면 생략(결제는 정상).
 // TELEGRAM_BOT_TOKEN(BotFather), TELEGRAM_CHAT_ID(개인/그룹), PROJECT_TAG(선택) 를 Vercel env에 설정.
+// TELEGRAM_STAFF_CHAT_ID(선택, 11/27): 아주머니들 발주 방. 있으면 그 방에 결제수단 뺀 알림 + 발주 글이 가고,
+// 형구 방(TELEGRAM_CHAT_ID)에는 지금처럼 전체 알림 + 환불 버튼. 환불 버튼은 발주 방에 절대 달지 않는다.
 export async function notifyTelegram(order, payment) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -526,13 +551,27 @@ export async function notifyTelegram(order, payment) {
           ? { uncertain: true } : {}),
       };
     }
-    // 두 번째 통: 플라워스토리 방에 붙일 발주 글. 실패해도 주문 알림 결과는 그대로.
+    // 발주 방(있으면): 결제수단 뺀 알림 + [발주 완료] 버튼 하나. 실패해도 주문 알림 결과는 그대로.
+    const staffChat = String(process.env.TELEGRAM_STAFF_CHAT_ID || "").trim();
+    const toStaff = !!staffChat && staffChat !== String(chatId).trim() && !waitingVa && !giftWaiting;
+    if (toStaff) {
+      try {
+        const staffKb = reply_markup ? { inline_keyboard: [reply_markup.inline_keyboard[0].slice(0, 1)] } : undefined;
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: staffChat, text: tag + buildOwnerMessage(order, payment, { forStaff: true }), disable_web_page_preview: true, ...(staffKb ? { reply_markup: staffKb } : {}) }),
+          signal: AbortSignal.timeout(3000),
+        });
+      } catch { console.error("발주 방 알림 발송 실패"); }
+    }
+    // 두 번째 통: 플라워스토리 방에 붙일 발주 글. 발주 방이 있으면 그 방으로. 실패해도 주문 알림 결과는 그대로.
     if (!waitingVa && !giftWaiting) {
       try {
         await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: chatId, text: buildOrderPaste(order), disable_web_page_preview: true }),
+          body: JSON.stringify({ chat_id: toStaff ? staffChat : chatId, text: buildOrderPaste(order), disable_web_page_preview: true }),
           signal: AbortSignal.timeout(3000),
         });
       } catch { console.error("발주 글 발송 실패"); }

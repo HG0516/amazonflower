@@ -266,6 +266,10 @@
       "destination": "/ribbon/:name.html"
     },
     {
+      "source": "/guide/:name",
+      "destination": "/guide/:name.html"
+    },
+    {
       "source": "/faq",
       "destination": "/faq.html"
     },
