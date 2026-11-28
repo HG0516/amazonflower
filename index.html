@@ -693,6 +693,7 @@
   .hg-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .hg-ph img.tall { object-position: 50% 28%; }
   .hg-nm { margin-top: 7px; font-size: var(--fs-sub); font-weight: 600; line-height: 1.35; color: var(--ink); word-break: keep-all; }
+  .hg-fee { font-size: 12px; color: #8a5a18; font-weight: 600; margin-top: 1px; }
   .hg-pr { font-size: var(--fs-body); font-weight: 800; line-height: 1.35; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
   /* 화환 49,000원 띠(10/20 형구 "49,000 티 나게"). 상품 칩 바로 위. 값·링크는 afRenderPriceBand 가 products.js 에서 채운다. */
   .prb { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; padding: 12px 12px 12px 16px; border-radius: var(--radius-lg); background: var(--accent-deep); color: #fff; overflow: hidden; }
@@ -2648,6 +2649,8 @@ function afHomePlants(all, cheapest){
   AF_HOME_PLANT_FIRST.forEach(f=>{ const p=pl.find(x=>f(x) && first.indexOf(x)<0); if(p) first.push(p); });
   return first.concat(pl.filter(p=>first.indexOf(p)<0));
 }
+// 4.9만 화환(근조·축하 보통): 먼 지역 배송비가 따로 붙는다고 가격 밑에 알린다(11/28 사장님 요청). 금액은 regions.js 목록대로 주문서가 넣는다.
+function afFeeNote(p){ return !!p && (p.cat==="condolence"||p.cat==="congrats") && p.price<=49000; }
 function afRenderHomeGrid(){
   const el=document.getElementById("homeGrid"); if(!el) return;
   const ok=p=>p && p.status!=="품절" && (p.photos||[]).length;
@@ -2657,7 +2660,7 @@ function afRenderHomeGrid(){
   const n=AF_PC_MQ && AF_PC_MQ.matches ? 9 : 6;
   const card=(p,i)=>{
     const nm=escapeHtml(afHomeName(p)), tall=(p.cat==="condolence"||p.cat==="congrats")?' class="tall"':'';
-    return `<a class="hg-card" href="/?pc=${encodeURIComponent(p.pc)}"><div class="hg-ph"><img${tall} src="${escapeHtml(p.photos[0])}" alt="${nm}" loading="${i<n-3?"eager":"lazy"}" onerror="this.style.display='none'"></div><div class="hg-nm">${nm}</div><div class="hg-pr">${p.price.toLocaleString()}원</div></a>`;
+    return `<a class="hg-card" href="/?pc=${encodeURIComponent(p.pc)}"><div class="hg-ph"><img${tall} src="${escapeHtml(p.photos[0])}" alt="${nm}" loading="${i<n-3?"eager":"lazy"}" onerror="this.style.display='none'"></div><div class="hg-nm">${nm}</div><div class="hg-pr">${p.price.toLocaleString()}원</div>${afFeeNote(p)?'<div class="hg-fee">추가지역 배송비 별도</div>':""}</a>`;
   };
   if(afHomeSel) el.innerHTML=cheapest(all.filter(p=>p.cat===afHomeSel)).slice(0,n).map(card).join("");
   else {
@@ -4923,7 +4926,7 @@ function selProduct(p){
         ${p.subtitle?`<div style="font-size:var(--fs-caption);color:var(--ink-soft);margin-top:-2px;">${escapeHtml(p.subtitle)}</div>`:""}
         <div class="design-desc">${escapeHtml(sizeLine)}</div>
         <div class="design-price" id="designTotal"><b>${p.price.toLocaleString()}원</b></div>
-        <div class="design-deliv">기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요</div>
+        <div class="design-deliv">${afFeeNote(p)?'<b>추가지역은 배송비 1만~3만 원이 더해져요.</b> 주소를 넣으면 지역에 맞는 금액이 자동으로 들어가요.':'기본 배송비 포함 · 도서·산간·원거리는 추가될 수 있어요'}</div>
         <a href="/catalog.html" style="display:inline-block;margin-top:8px;font-size:var(--fs-caption);color:var(--ink-soft);text-decoration:underline;">다른 상품 보기 →</a>
         ${afOriginHtml()}
       </div>

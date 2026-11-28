@@ -324,6 +324,7 @@
   .wtier { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); }
   .wbadge { font-size: var(--fs-caption); font-weight: 700; color: #fff; background: var(--accent); padding: 2px 7px; border-radius: var(--radius-pill); margin-left: 5px; vertical-align: middle; }
   .wnote { font-size: var(--fs-sub); color: var(--ink-soft); line-height: 1.55; flex: 1; }
+  .fee-note { font-size: 12.5px; color: #8a5a18; font-weight: 600; margin-top: 2px; line-height: 1.5; }
   .wprice { font-family: var(--font-display); font-weight: 700; font-size: 21px; color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums; }
   .worder { margin-top: 6px; padding: 13px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; font-family: var(--font-body); min-height: 48px; }
   .worder:hover { background: var(--accent-deep); }
@@ -777,6 +778,8 @@ let occSel = [];            // 상황 모드에서 켜져 있는 종류들(기�
 
 const GAL = window.GALLERY || {};
 // HTML 이스케이프 — 업로드된 이름/경로를 innerHTML에 넣기 전 항상 통과(저장형 XSS 방지)
+// 4.9만 화환(근조·축하 보통): 먼 지역 배송비가 따로 붙는다고 알린다(11/28 사장님 요청). 금액은 regions.js 목록대로 주문서가 넣는다.
+function feeNote(p){ return !!p && (p.cat==="condolence"||p.cat==="congrats") && p.price<=49000; }
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 // 현재 탭/서브/밴드에 맞는 상품 목록(정렬 적용)
@@ -921,7 +924,7 @@ function productCard(p, sizeWord){
             ? `<div><span class="kind-chip">${esc(p.subtitle)}</span></div>`
             : ((p.subtitle||FEATURE[p.name])?`<div class="nm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:"")}
           <div class="meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}${cutTag}</div>
-          <div class="price">${p.price.toLocaleString()}원</div>
+          <div class="price">${p.price.toLocaleString()}원</div>${feeNote(p)?`<div class="fee-note">추가지역 배송비 별도 · 주소 넣으면 자동 계산</div>`:""}
           ${sold
             ? `<button class="order" disabled>${esc(p.status)}</button>`
             : `<div class="card-actions">
@@ -1383,7 +1386,7 @@ function renderWreath(key){
         <div class="wphoto"><img src="${esc(p.photos[0]||"")}" alt="${esc(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#9e9a8f;font-size: var(--fs-caption);&quot;>사진 준비 중</div>'"></div>
         <div class="wbody">
           <div class="wtier">${esc(p.name)}</div>
-          <div class="wprice">${p.price.toLocaleString()}원</div>
+          <div class="wprice">${p.price.toLocaleString()}원</div>${feeNote(p)?`<div class="fee-note">추가지역 배송비 별도</div>`:""}
           ${WREATH_NOTE[p.name] ? `<div class="wnote">${esc(WREATH_NOTE[p.name])}</div>` : ""}
           <button class="worder" onclick="location.href='/?worder=${worder}&tier=${i}'">${ORDER_VERB[key]||ORDER_LABEL}</button>
         </div>
@@ -1653,6 +1656,7 @@ function renderDetail(){
       ${(p.subtitle||FEATURE[p.name])?`<div class="pm-sub">${esc(p.subtitle||FEATURE[p.name])}</div>`:""}
       <div class="pm-meta"><span class="band-tag">${esc(p.band)}</span>${sizeTag}<span class="size-tag">${esc(kind)}</span></div>
       <div class="pm-price">${p.price.toLocaleString()}원</div>
+      ${feeNote(p)?`<div class="fee-note">추가지역은 배송비 1만~3만 원이 더해져요. 주문서에 주소를 넣으면 지역에 맞는 금액이 자동으로 들어가요.</div>`:""}
       ${originHtml(p.cat)}
       ${meaningBlock(p)}
       <div class="pm-desc">${p.desc?esc(p.desc).replace(/\n/g,"<br>")+"<br><br>":""}전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
@@ -1732,6 +1736,7 @@ function renderGroupDetail(){
       <div class="gtiers">${tierTabs}</div>
       ${colorOpts?`<div class="glbl">색·구성 고르기</div><div class="gcolors">${colorOpts}</div>`:""}
       <div class="pm-price">${p.price.toLocaleString()}원</div>
+      ${feeNote(p)?`<div class="fee-note">추가지역은 배송비 1만~3만 원이 더해져요. 주문서에 주소를 넣으면 지역에 맞는 금액이 자동으로 들어가요.</div>`:""}
       ${originHtml(p.cat)}
       ${meaningBlock(p)}
       <div class="pm-desc">전 품목 정찰제 · 전국 당일배송. 계절·수급에 따라 사진과 일부 다를 수 있으며, 같은 등급 이상으로 정성껏 제작해 드립니다.${(p.cat==="plant"&&p.size)?`<br>크기: 높이 약 ${cmH(p.size.h)}cm · 폭 약 ${cmH(p.size.w)}cm`:""}</div>
