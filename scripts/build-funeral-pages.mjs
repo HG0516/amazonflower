@@ -89,7 +89,7 @@ function head(title, desc, canon, extra = "") {
 
 function page(h, near) {
   const rc = regionCheck(h.a) || null;
-  const fee = rc && rc.amt ? `${h.gu || h.sido} 지역은 배송비 ${won(rc.amt)}이 더해져요.` : "배송비가 포함된 가격이에요.";
+  const fee = rc && rc.amt ? `이 장례식장은 거리가 멀어 배송비 ${won(rc.amt)}이 더해져요(주문서가 자동으로 넣어요).` : "배송비가 포함된 가격이에요.";
   const title = `${h.n} 근조화환 ${won(from)}부터 · 당일 배송 | 꽃안부`;
   const desc = `${h.n}(${h.a}) 빈소로 근조화환을 보내요. ${won(from)}부터, ${rc && rc.amt ? "지역 배송비 " + won(rc.amt) : "배송비 포함"}. 평일 18시·주말 16시까지 주문하면 오늘 도착하고, 도착하면 사진으로 알려 드려요.`;
   // AI 검색·검색엔진이 '○○장례식장 근조화환' 질문에 가격·배송 조건을 바로 읽어 가게 서비스 데이터도 붙인다(10/26).
